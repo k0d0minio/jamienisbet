@@ -3,10 +3,10 @@
 
 ## Inputs
 - Layer 4 (working): proposal scope + strategy target/floor
-- Layer 3 (reference): [`shared/templates/`](../../../../shared/templates/), [`../../references/`](../../references/), [`_config/business/`](../../../../_config/business/)
+- Layer 3 (reference): [`shared/templates/`](../../../../shared/templates/), [`../../references/pricing-models.md`](../../references/pricing-models.md), [`../../setup/output/config.md`](../../setup/output/config.md), [`_config/business/rates.md`](../../../../_config/business/rates.md)
 
 ## Process
-Build line items, apply the target rate, set payment terms and validity, render on brand.
+Build line items, apply the target tier/rate, handle IVA per foreign-client rules (reverse-charge EU / out of scope UK-US — see pricing-models.md), set payment terms and validity, render on brand.
 
 ## Outputs
 - `quote.md` -> output/

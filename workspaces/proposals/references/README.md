@@ -12,9 +12,9 @@ This is the recipe, not the meal. It stores the material that stays constant acr
 - **Draws on (Layer 3 reference):** [`../setup/`](../setup/) (workspace defaults that instantiate these models per Jamie)
 
 ## Contents
-- `discovery-questions.md` — planned: the question-maximizing intake bank, grouped by topic (client, problem, budget, deciders, timeline, competition, drivers, value). Describe only.
-- `negotiation-playbook.md` — planned: anchoring, framing, tiering, objection handling, hold/walk rules.
-- `pricing-models.md` — planned: rate logic, tier structures, value-to-client estimation method.
+- [`discovery-questions.md`](discovery-questions.md) — the must-know checklist + the full intake question bank (powers Stage 01).
+- [`negotiation-playbook.md`](negotiation-playbook.md) — anchoring, value framing, tiering, objection library, hold/walk, talk-track.
+- [`pricing-models.md`](pricing-models.md) — rate logic, good/better/best tiering, value-based pricing, retainer/commission, IVA note.
 
 ## Notes
 Keep pricing models aligned with [`_config/business/`](../../../_config/business/); if the canonical rate card moves, update here too. Pricing/value methods are commercial decision-support, not tax guidance — VAT/IVA and any statutory figures require a licensed contabilista certificado.

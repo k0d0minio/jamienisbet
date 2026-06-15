@@ -12,8 +12,8 @@ This is the "configure the factory, not the product" step (Principle 5). Before 
 - **Draws on (Layer 3 reference):** [`../references/`](../references/) (pricing models the defaults are expressed in); [`_config/conventions/`](../../../_config/conventions/) (how to build/configure a workspace)
 
 ## Contents
-- `questionnaire.md` — planned: the one-time config interview (rates, floor, anchor appetite, deal types accepted/declined, coaching tone, default payment terms). Do not create yet; describe only.
-- `output/` — planned: the saved, answered configuration that stages load at runtime.
+- [`questionnaire.md`](questionnaire.md) — the one-time config interview (rates, floor, anchor, deal types, coaching tone, terms).
+- `output/config.md` — the **locked configuration** stages load at runtime (€120/h standard, floor, anchor, retainer, terms).
 
 ## Notes
 Keep this in sync with [`_config/business/`](../../../_config/business/): if the canonical rate card changes there, the answers here must be re-confirmed. Any rate, floor, or payment-term defaults stored here are commercial decision-support, not accounting advice — confirm tax/VAT treatment with a licensed Portuguese contabilista certificado before relying on a number in a real quote.
