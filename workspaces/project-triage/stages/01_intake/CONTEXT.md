@@ -3,7 +3,7 @@
 
 ## Inputs
 - Layer 4 (working): human input captured live; existing client record from [`shared/clients/`](../../../../shared/clients/)
-- Layer 3 (reference): [`../../references/`](../../references/) intake checklist
+- Layer 3 (reference): [`../../references/intake-checklist.md`](../../references/intake-checklist.md)
 
 ## Process
 Agent prompts only for the fields needed to make a triage decision, fills them in real time, flags anything ambiguous, and keeps it brief. No evaluation happens here — capture only.

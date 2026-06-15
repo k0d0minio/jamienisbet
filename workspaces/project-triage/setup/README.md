@@ -12,8 +12,8 @@
 - **Draws on (Layer 3 reference):** [`_config/conventions/`](../../../_config/conventions/) for how to build/configure a workspace
 
 ## Contents
-- `questionnaire.md` — planned: Jamie's answers defining strategic-fit targets, day-rate floor, capacity limits, deal-breakers, and per-dimension rubric weights (do NOT create yet)
-- `thresholds.md` — planned: the numeric GO / REDIRECT / NO-GO cut-offs the recommendation stage applies
+- [`questionnaire.md`](questionnaire.md) — the config interview (fit targets, floor, capacity, deal-breakers, weights).
+- `output/config.md` — the **locked configuration** stages read (floor €90, weights, deal-breakers, modes). GO/REDIRECT/NO-GO cut-offs live in [`../references/decision-criteria.md`](../references/decision-criteria.md).
 
 ## Notes
 This is stable Layer 3 config, edited rarely. Keep it plain markdown so Jamie can adjust a threshold in seconds. Rate floors and profitability assumptions captured here are business planning inputs, not accounting advice — any tax/financial framing must be reviewed by a licensed Portuguese contabilista certificado before being treated as fact.
