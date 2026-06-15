@@ -4,8 +4,9 @@
 > Goal: close at a higher-than-usual rate without losing the deal. Honest, value-first, never tricky.
 
 ## 1. Anchor
-- **Open high, with a reason.** Anchor at the stretch / value-based number from
+- **Open high, with a reason.** Anchor at the value-based number from
   [`pricing-models.md`](pricing-models.md), justified by the client's upside — not "my rate is X".
+  The hourly rate anchors at the €120 standard; there is no hourly premium — you open high on *value*.
 - The first number framed sets the range; let the anchor be the *value*, then the price.
 - Never anchor at the floor. The floor is private (in setup) — it's the walk line, not an opener.
 

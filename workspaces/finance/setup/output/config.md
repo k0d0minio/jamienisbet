@@ -9,11 +9,9 @@
 ## Tax-reserve rates (set aside per euro of income)
 Structure: *trabalhador independente*, *regime simplificado* (see legal-and-tax). Reserve covers
 **IRS + Segurança Social** — **no IVA** (foreign clients reverse-charged / out of scope).
-- **Year 1 (2026):** ~12% — SS-exempt + reduced coefficient; reserve mainly for IRS. **(confirm)**
-- **Year 2 (2027):** ~25%. **(confirm)**
-- **Year 3+ (2028→):** ~33% (steady-state wedge). **(confirm)**
+- **Flat 30% every year** (IRS + Segurança Social; no IVA). Slightly over-reserves in year 1 (SS-exempt) — a deliberate safety buffer. Confirm with the contabilista.
 
-Pass the current year's rate to `stripe-report.sh --reserve`.
+Pass `30` to `stripe-report.sh --reserve`.
 
 ## IVA periodicity
 - Periodic IVA declarations + recapitulative (VIES) statements (foreign B2B). Cadence per contabilista.

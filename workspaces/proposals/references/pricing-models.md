@@ -5,7 +5,7 @@
 
 ## Base
 - **Standard €120/hour.** Estimate project work in hours, present as a fixed price.
-- **Floor** (never below) and **anchor** (open high) live in [`../setup/output/config.md`](../setup/output/config.md).
+- **Floor €80** (never below) lives in [`../setup/output/config.md`](../setup/output/config.md). There is **no hourly anchor premium** — the hourly anchors at the €120 standard; open high via value-based pricing (below) and the **Best** tier.
 
 ## Tiering (good / better / best — default)
 Build three options that differ by **outcome and scope**, not just hours:

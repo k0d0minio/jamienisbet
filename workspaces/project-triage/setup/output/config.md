@@ -1,7 +1,7 @@
 <!-- run: setup v1 | date: 2026-06-15 -->
 # Project-Triage — Locked Configuration (v1)
 
-> Numbers marked **(confirm)** are starting points — adjust freely.
+> Configured 2026-06-15.
 
 ## Strategic-fit targets (more of this)
 - AI features / automations wired into real workflows.
@@ -9,11 +9,11 @@
 - Retainer / recurring relationships.
 
 ## Gates
-- **Floor:** €90/hour — same as [`../../../proposals/setup/output/config.md`](../../../proposals/setup/output/config.md). Budget below floor with no upside → NO-GO.
-- **Capacity:** ~{{hours}} hours/week available **(confirm)**; contractors on standby for large builds.
+- **Floor:** €80/hour — same as [`../../../proposals/setup/output/config.md`](../../../proposals/setup/output/config.md). Budget below floor with no upside → NO-GO.
+- **Capacity:** ~30 hours/week available; contractors on standby for large builds.
 
-## Rubric weights **(confirm)**
-- Fit 40% · Budget 35% · Strategic value 25%.
+## Rubric weights
+- Fit 30% · Budget 45% · Strategic value 25%.
 
 ## Hard deal-breakers (always decline)
 - Below floor with no strategic upside.

@@ -4,7 +4,7 @@
 > **Purpose:** Recommend how much cash to set aside for IRS + Segurança Social, from Stripe income × the year's reserve rate.
 
 ## What this folder accomplishes
-This stage turns period income (fetched from Stripe) into the number Jamie shouldn't spend: his tax reserve. It applies the **year's reserve rate** from [`../../references/tax-reserve-rates.md`](../../references/tax-reserve-rates.md) (year-1 ~12% while SS-exempt, rising to ~33% steady-state) to the income, for **IRS + Segurança Social** — there is **no IVA to reserve** (foreign clients are reverse-charged / out of scope). It pairs with the legal-and-tax compliance calendar so the cash is ready when each deadline lands.
+This stage turns period income (fetched from Stripe) into the number Jamie shouldn't spend: his tax reserve. It applies the **reserve rate** from [`../../references/tax-reserve-rates.md`](../../references/tax-reserve-rates.md) (**flat 30%**) to the income, for **IRS + Segurança Social** — there is **no IVA to reserve** (foreign clients are reverse-charged / out of scope). It pairs with the legal-and-tax compliance calendar so the cash is ready when each deadline lands.
 
 **Decision-support only — not a tax return.** Confirm the rate and figures with a licensed Portuguese contabilista certificado.
 
@@ -18,6 +18,6 @@ This stage turns period income (fetched from Stripe) into the number Jamie shoul
 - `output/` — the reserve calculation per period (gitignored).
 
 ## Notes
-Don't over-reserve in year 1 (SS-exempt) and starve cash — Jamie draws everything to live on. Re-run each period and when the rate changes.
+A flat 30% over-reserves slightly while SS is exempt in year 1 (Jamie's deliberate buffer). Re-run each period and when the rate changes.
 
 > Contract: see [CONTEXT.md](CONTEXT.md).

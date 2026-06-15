@@ -8,7 +8,7 @@
 #   Invocation:   by the agent for the monthly review / the dashboard
 #
 # Reserve rate: pass --reserve from workspaces/finance/setup/output/config.md
-# (year-1 ~12%, steady-state ~33%) — confirm with the contabilista. Omit it and reserve is left blank.
+# (flat 30%) — confirm with the contabilista. Omit it and reserve is left blank.
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$ROOT"
@@ -39,7 +39,7 @@ if [ -n "$RESERVE" ]; then
   reserve="$(awk "BEGIN{printf \"%.2f\", ${income:-0} * ${RESERVE} / 100}")"
   echo "- Tax reserve @ ${RESERVE}%: €${reserve}"
 else
-  echo "- Tax reserve: pass --reserve <pct> (finance/setup/config.md; year-1 ~12%, steady ~33%; confirm with contabilista)"
+  echo "- Tax reserve: pass --reserve <pct> (finance/setup/config.md; flat 30%; confirm with contabilista)"
 fi
 echo
 echo "> Read-only from Stripe; figures are decision-support — confirm with the contabilista."

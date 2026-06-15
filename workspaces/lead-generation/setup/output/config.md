@@ -1,10 +1,10 @@
 <!-- run: setup v1 | date: 2026-06-15 -->
 # Lead-Generation — Locked Configuration (v1)
 
-> **(confirm)** = starting point.
+> Configured 2026-06-15.
 
 ## Capacity & posture
-- Selling capacity: ~{{hours}} hrs/week on lead-gen **(confirm)**. Primary channel: **word of mouth + referrals**.
+- Selling capacity: ~5 hrs/week on lead-gen. Primary channel: **word of mouth + referrals**.
 - Social media: low priority, not a focus. **Paid ads: excluded** (freelancer, not a corporation).
 
 ## The productised offer (what sellers pitch)

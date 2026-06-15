@@ -3,7 +3,7 @@
 > **ICM role:** Layer 3 — reference (brand visual)
 > **Purpose:** The palette — hex values, semantic roles, and contrast rules. Machine-readable values live in [`tokens.json`](tokens.json) / [`tokens.css`](tokens.css); this is the human explainer.
 
-Direction: trustworthy + expert (deep teal-blue) warmed by a friendly, approachable amber, on clean neutrals with lots of white space. **Starter palette — review and adjust.** Every site and document reads from the tokens, so a change here propagates everywhere.
+Direction: trustworthy + expert (deep teal-blue) warmed by a friendly, approachable amber, on clean neutrals with lots of white space. **Confirmed (2026-06-15).** Every site and document reads from the tokens, so a change here propagates everywhere.
 
 ## Core
 | Token | Hex | Role |

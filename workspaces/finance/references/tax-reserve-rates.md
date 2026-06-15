@@ -8,10 +8,10 @@ Social**. There is **no IVA to reserve** — foreign clients are reverse-charged
 
 | Year | Effective wedge (tax + SS) | Suggested reserve | Why |
 |---|---|---|---|
-| Year 1 (2026) | ~7–8% | **~12%** | SS-exempt + reduced coefficient; reserve mainly IRS, with a buffer |
-| Year 2 (2027) | ~27% | **~25%** | SS resumes (~€7,490); coefficient reduction tapers |
-| Year 3+ (2028→) | ~31–33% | **~33%** | steady state |
+| Year 1 (2026) | ~7–8% | **30%** | flat reserve — over-reserves while SS-exempt (deliberate buffer) |
+| Year 2 (2027) | ~27% | **30%** | flat reserve |
+| Year 3+ (2028→) | ~31–33% | **30%** | flat reserve ≈ steady-state wedge |
 
-Caveat: Jamie draws everything to live on — don't over-reserve in year 1 and starve cash, but keep
-enough for the IRS bill. Dependent-child credits lower IRS further. Confirm the exact % with the
+Jamie chose a **flat 30%** for simplicity and safety; note this over-reserves while SS is exempt in
+year 1 (cash set aside but not yet owed). Dependent-child credits lower IRS further. Confirm with the
 contabilista. Detail: [`../../legal-and-tax/references/`](../../legal-and-tax/references/).

@@ -4,13 +4,13 @@
 
 ## Dimensions (0–5 each)
 
-### Fit (weight 40%)
+### Fit (weight 30%)
 How well it matches Jamie's expertise (software / AI consulting, web).
 - **0** — outside expertise, no learning value.
 - **3** — adjacent; doable.
 - **5** — squarely in the wheelhouse.
 
-### Budget (weight 35%)
+### Budget (weight 45%)
 Does the budget clear the floor with margin?
 - **0** — no budget / below floor.
 - **3** — clears the floor at standard rate.
@@ -23,5 +23,5 @@ What it builds beyond the fee.
 - **5** — opens doors: retainer potential, referral network, portfolio piece, valuable tech.
 
 ## Weighted total
-`total = 0.40·fit + 0.35·budget + 0.25·strategic` (0–5). Cut-offs in
+`total = 0.30·fit + 0.45·budget + 0.25·strategic` (0–5). Cut-offs in
 [`decision-criteria.md`](decision-criteria.md).
