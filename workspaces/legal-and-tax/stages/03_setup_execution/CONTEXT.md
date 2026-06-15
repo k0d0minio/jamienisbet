@@ -1,22 +1,21 @@
-# 03 — Setup Execution — Contract
+# 03 — Setup Execution (Início de Atividade Plan) — Contract
 <!-- ICM Layer 2 — machine-loaded stage contract. Human narrative is in README.md. -->
 
 ## Inputs
-- Layer 4 (working): `../02_entity_options/output/recommended-direction.md` (contabilista-confirmed)
-- Layer 3 (reference): `../../references/`
+- Layer 4 (working): `../02_entity_options/output/` (the decision record)
+- Layer 3 (reference): `../../references/accounting-regimes.md`, `../../references/iva-vat-notes.md`, `../../references/social-security-notes.md`; `../../../../portugal-business-structure-analysis.md` §7
 
 ## Process
-Generate an ordered checklist (Finanças → CAE → Segurança Social → bank → IVA), each step with owner, portal/location, prerequisites, and a confirm-with-contabilista flag.
+Produce the ordered início-de-atividade plan: regime simplificado selection; activity/CIRS code (flag the 0.75/0.35 decision for the contabilista); a start date chosen to maximise the year-1 SS exemption + reduced-coefficient window; VIES registration; foreign-client invoice wording (reverse-charge / out-of-scope). Mark who does each step (Jamie vs contabilista) and where.
 
 ## Outputs
-- `registration-checklist.md` -> output/
-- `entity-facts-to-record.md` -> output/  (handoff back to `_config/business/`)
+- `setup-action-plan.md` -> output/
 
 ## Integrations
-- none
+- none (filing is done by Jamie/contabilista on the Portal; the agent never files)
 
 ## Verify
-- Steps are correctly ordered (dependencies respected); CAE and IVA choices match Stage 02; every official step names the portal and notes contabilista sign-off.
+- Every step traces to the decided structure; the coefficient is flagged for the contabilista, not chosen blind; the start date is justified against the startup-benefit windows.
 
 ## Review gate
-- none
+- MANDATORY contabilista review before anything is filed.

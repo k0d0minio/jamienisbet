@@ -14,7 +14,8 @@
 - **Draws on (Layer 3 reference):** [`../references/`](../references/)
 
 ## Contents
-- `questionnaire.md` — planned. The configure-once intake: residency, NIF status, income sources, client geography, revenue band, liability tolerance, growth plans, family/IRS context, existing contabilista (if any). Do NOT create yet.
+- [`questionnaire.md`](questionnaire.md) — the configure-once intake (situation + decision).
+- `output/config.md` — the **locked configuration**, derived from the root analysis; every stage reads it instead of re-asking.
 
 ## Notes
 Keep this distinct from Stage 01 discovery: setup holds *stable* config (the factory settings); discovery holds *per-run* direction-setting. Personal/financial detail captured here is sensitive — reference, never restate, figures from [`_config/business/`](../../../_config/business/).

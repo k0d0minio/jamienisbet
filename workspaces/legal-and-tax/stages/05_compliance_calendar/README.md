@@ -1,23 +1,23 @@
 # Stage 05 — Compliance Calendar
 
 > **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
-> **Purpose:** Generate Jamie's recurring filing deadlines and push them into the systems that track and act on them.
+> **Purpose:** Generate the recurring filing deadlines for the chosen structure, as a markdown calendar the tracker surfaces.
 
 ## What this folder accomplishes
-This final stage converts the entity's obligations into a dated calendar so nothing is missed and no late penalties are incurred. Based on the chosen structure and regime, it lays out the cadence for **IVA/VAT** returns (monthly or quarterly), **IRS** (annual personal income tax and any payments on account), **Segurança Social** monthly contributions and the periodic quarterly declaration, and any annual filings (e.g., IES / SAF-T where applicable). Each entry has a due date, what's filed, who files it (Jamie vs contabilista), and a buffer reminder. This is the bridge from the legal workspace into day-to-day operations.
+The final stage turns the obligations of a simplified-regime *trabalhador independente* into a dated calendar so nothing is missed. It lays out: **quarterly Segurança Social declarations** (Apr / Jul / Oct / Jan) once the **12-month year-1 exemption ends** (note that end date prominently); the **annual IRS Modelo 3 + Anexo B**; and the **periodic IVA declarations + recapitulative (VIES) statements** for foreign-client services. Each entry has a due date, what is filed, who files it (Jamie vs contabilista), and a buffer reminder. This is the workspace's hand-off into day-to-day operations.
 
-> **DISCLAIMER:** Decision-support only. Deadlines and obligation cadences depend on the confirmed regime and change by law — a licensed Portuguese contabilista certificado must validate the final calendar.
+> **DISCLAIMER:** Decision-support only. The final cadence depends on the confirmed regime and IVA periodicity — a licensed Portuguese contabilista certificado must validate the calendar.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../03_setup_execution/output/`](../03_setup_execution/) and [`../04_tax_optimization/output/`](../04_tax_optimization/)
-- **Downstream / feeds:** [`tracker/`](../../../../tracker/) (deadline reminders for the morning routine) and [`workspaces/finance/`](../../../finance/) (filing/payment scheduling)
-- **Draws on (Layer 3 reference):** [`../../references/`](../../references/)
+- **Downstream / feeds:** [`tracker/`](../../../../tracker/) (read-only deadline surfacing in the morning brief); [`workspaces/finance/`](../../../finance/) (filing/payment scheduling)
+- **Draws on (Layer 3 reference):** [`../../references/social-security-notes.md`](../../references/social-security-notes.md), [`../../references/iva-vat-notes.md`](../../references/iva-vat-notes.md)
 
 ## Contents
 - [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the generated compliance calendar
 
 ## Notes
-Regenerate when the regime, IVA periodicity, or the law changes. This is the workspace's hand-off into recurring operations.
+Regenerate when the regime, IVA periodicity, or the law changes. The tracker reads this **read-only** — it does **not** auto-feed Google Calendar (per the decision).
 
 > Contract: see [CONTEXT.md](CONTEXT.md).

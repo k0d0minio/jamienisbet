@@ -9,19 +9,19 @@ This folder holds the execution pipeline. Each stage is one job; its number enco
 > **DISCLAIMER:** Decision-support only. No output here is legal/tax/accounting advice; a licensed Portuguese contabilista certificado / lawyer reviews before action.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** [`../setup/questionnaire.md`](../setup/) (config); workspace router [`../README.md`](../README.md)
+- **Upstream / reads from:** [`../setup/output/config.md`](../setup/) (locked config); workspace router [`../README.md`](../README.md)
 - **Downstream / feeds:** [`tracker/`](../../../tracker/) and [`workspaces/finance/`](../../finance/) from Stage 05; [`_config/business/`](../../../_config/business/) once the entity is live
 - **Draws on (Layer 3 reference):** [`../references/`](../references/)
 
 ## Contents
-- `01_discovery/` — question-heavy intake; sets direction (heavy human editing)
-- `02_entity_options/` — compare PT structures as trade-offs (ENI vs Lda., simplified vs organised, incentive regimes)
-- `03_setup_execution/` — registration checklist (Finanças, Segurança Social, CAE, bank, IVA)
-- `04_tax_optimization/` — ongoing legal optimisation as decision-support
-- `05_compliance_calendar/` — generates filing deadlines that feed tracker and finance
+- `01_discovery/` — confirm the locked situation config; flag any revisit trigger.
+- `02_entity_options/` — record the decided structure (trabalhador independente, regime simplificado) + the open coefficient lever.
+- `03_setup_execution/` — the início-de-atividade action plan for the contabilista (regime, CIRS code, start date, VIES).
+- `04_tax_optimization/` — the legal levers under the simplified regime (coefficient, startup benefits, SS smoothing, dependents).
+- `05_compliance_calendar/` — generates the filing deadlines that feed tracker (read-only) and finance.
 
 ## Flow
 01 → 02 → 03 → 04 → 05. Each stage reads the previous stage's `output/`, does its one job, writes to its own `output/`, then stops for human review.
 
 ## Notes
-Stages 01–02 are direction-setting and revisited often; 03 runs once at incorporation; 04–05 are recurring (re-run on regime review or threshold crossing).
+Stage 01 confirms the situation; Stage 02 records the made decision (re-opens only if a revisit trigger fires); 03 runs once at registration; 04–05 recur (re-run before IRS season or when the law/regime changes).

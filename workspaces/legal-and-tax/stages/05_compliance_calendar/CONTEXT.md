@@ -2,20 +2,20 @@
 <!-- ICM Layer 2 — machine-loaded stage contract. Human narrative is in README.md. -->
 
 ## Inputs
-- Layer 4 (working): confirmed entity form, regime, IVA periodicity
-- Layer 3 (reference): `../../references/`
+- Layer 4 (working): `../03_setup_execution/output/`, `../04_tax_optimization/output/`
+- Layer 3 (reference): `../../references/social-security-notes.md`, `../../references/iva-vat-notes.md`
 
 ## Process
-Map each obligation (IVA, IRS, Segurança Social, annual filings) to its cadence and due dates with owner and buffer; format so `tracker/` and `workspaces/finance/` can consume it.
+Build the dated calendar: quarterly SS declarations (Apr/Jul/Oct/Jan) starting when the 12-month exemption ends (state that date); annual IRS Modelo 3 + Anexo B; periodic IVA + recapitulative (VIES) statements. Each entry: due date, what is filed, who files it, buffer reminder.
 
 ## Outputs
 - `compliance-calendar.md` -> output/
 
 ## Integrations
-- none
+- none (the tracker reads this read-only; no Google Calendar feed, per the decision)
 
 ## Verify
-- Cadence matches the regime confirmed in Stage 03; no obligation orphaned; dates align with what feeds `tracker/`; every date flagged "confirm with contabilista."
+- The year-1 SS-exemption end date is correct and prominent; every obligation cites its reference + as-of date; cadence matches the confirmed regime.
 
 ## Review gate
-- none
+- Jamie/contabilista validate the calendar before the tracker relies on it.
