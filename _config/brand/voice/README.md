@@ -12,10 +12,10 @@ This folder is the verbal counterpart to `visual/`. It captures how Jamie's busi
 - **Draws on (Layer 3 reference):** [`_config/brand/visual/`](../visual/) so tone and visuals stay aligned.
 
 ## Contents
-- `tone.md` — voice attributes, register, and examples (before/after rewrites).  *(planned — do not create)*
-- `messaging-pillars.md` — the 3–5 core messages every deliverable reinforces.  *(planned)*
-- `vocabulary.md` — preferred terms, product/service naming, words to avoid.  *(planned)*
-- `do-dont.md` — concrete do/don't pairs for fast self-checking.  *(planned)*
+- [`tone.md`](tone.md) — the five voice attributes, register, and before/after examples.
+- [`messaging-pillars.md`](messaging-pillars.md) — the core messages every deliverable reinforces.
+- [`vocabulary.md`](vocabulary.md) — preferred terms, naming, words to avoid.
+- [`do-dont.md`](do-dont.md) — concrete do/don't pairs for fast self-checking.
 
 ## Notes
 Voice rules are the recipe, not the content — no client-specific copy lives here. When a deliverable's wording is off-brand, fix the rule here (the "edit-source" principle) so the next run inherits the correction. Keep examples real and Portugal/freelancer-relevant rather than generic marketing-speak.

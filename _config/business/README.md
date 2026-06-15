@@ -13,10 +13,10 @@ Every official document needs the same facts: who the legal entity is, its Portu
 
 ## Contents
 - `founder-brief.md` — the founder's original brief (created separately by the orchestrator; documented here, not authored here).
-- `entity.md` — legal entity type, NIF/VAT, registered Mafra address, company registration details.  *(planned — do not create)*
-- `banking.md` — IBAN and payment details.  *(planned)*
-- `rates.md` — standard day-rate and rate card.  *(planned)*
-- `contact.md` — email, phone, business address used on documents.  *(planned)*
+- [`rates.md`](rates.md) — standard rate (€120/h), flex levers, pricing approach, affiliate terms.
+- [`contact.md`](contact.md) — name, email, location, language used on documents and sites.
+- `entity.md` — legal entity type, NIF/VAT, registered Mafra address.  *(planned — pending entity setup)*
+- `banking.md` — IBAN and payment details.  *(planned — pending entity setup)*
 
 ## Notes
 Decision-support only: nothing in this folder is legal or tax advice. The entity type, VAT treatment, and any rate or tax figure must be reviewed and confirmed by a licensed Portuguese contabilista certificado / lawyer before being used on a real document. Do not assert specific tax figures or legal conclusions as fact here — record options and the source, and flag them for professional review.

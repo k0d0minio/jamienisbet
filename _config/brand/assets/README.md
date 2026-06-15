@@ -19,4 +19,4 @@ This is the binary/output side of the brand: the finished, ready-to-embed files 
 - `letterhead/` — document header/footer assets for proposals, quotes, contracts, invoices.  *(planned)*
 
 ## Notes
-Assets are downstream of the spec: never edit a token by editing an exported file. If [`visual/`](../visual/) changes, re-export every affected asset here so the website and documents stay in sync. Name files by variant and intent (e.g. `logo-horizontal-dark.svg`) so both Claude and a human can pick the right one without guessing.
+The spec now exists in [`visual/`](../visual/) (tokens, type, logo brief) — these asset files are still to be produced against it. Until a logo is designed, use the interim wordmark from [`visual/logo.md`](../visual/logo.md). Assets are downstream of the spec: never edit a token by editing an exported file. If [`visual/`](../visual/) changes, re-export every affected asset here so the website and documents stay in sync. Name files by variant and intent (e.g. `logo-horizontal-dark.svg`) so both Claude and a human can pick the right one without guessing.

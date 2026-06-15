@@ -12,11 +12,12 @@ This folder defines the visual language of Jamie's business as a set of stable t
 - **Draws on (Layer 3 reference):** [`_config/brand/voice/`](../voice/) for the personality the visuals must express.
 
 ## Contents
-- `colors.md` — palette with hex/RGB values, semantic roles (primary, accent, neutral, success, warning), and contrast notes.  *(planned — do not create)*
-- `typography.md` — typefaces, weights, type scale, line-height, web + print fallbacks.  *(planned)*
-- `logo.md` — logo variants, clear space, minimum size, misuse examples.  *(planned)*
-- `tokens.md` — spacing scale, radii, shadows, breakpoints as named design tokens.  *(planned)*
-- `iconography.md` — icon style, stroke weight, sizing rules.  *(planned)*
+- [`colors.md`](colors.md) — palette: hex values, semantic roles, contrast rules.
+- [`typography.md`](typography.md) — typefaces (Inter / JetBrains Mono), type scale, weights.
+- [`tokens.md`](tokens.md) — spacing, radii, shadows, layout tokens.
+- [`logo.md`](logo.md) — logo brief + usage rules (logo still to be designed).
+- [`iconography.md`](iconography.md) — icon style rules (Lucide, line, 1.5px).
+- [`tokens.json`](tokens.json) / [`tokens.css`](tokens.css) — **machine-readable** tokens; the single source websites and document templates import (brand-as-code).
 
 ## Notes
 Keep tokens named and semantic (e.g. `color-primary`, `space-4`) so both Claude and humans can reference them unambiguously across web and print. Treat these files as the contract: when a value changes here, re-export the affected files in [`assets/`](../assets/) and re-run any website/template stage that consumes them.
