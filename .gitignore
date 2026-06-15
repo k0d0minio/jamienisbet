@@ -11,6 +11,10 @@ dist/
 build/
 .vercel/
 
+# Generated financial reports — fetched from Stripe on demand; not committed (sensitive)
+workspaces/finance/stages/*/output/*
+state/dashboard.md
+
 # OS / editor
 .DS_Store
 *.log

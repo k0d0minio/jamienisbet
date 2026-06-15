@@ -2,20 +2,20 @@
 <!-- ICM Layer 2 — machine-loaded stage contract. Human narrative is in README.md. -->
 
 ## Inputs
-- Layer 4 (working): ledgers from stages 01 and 02; config from [`../../setup/`](../../setup/).
-- Layer 3 (reference): [`../../references/`](../../references/) tax-rate notes.
+- Layer 4 (working): income from `../01_income_tracking/output/` (or a fresh `scripts/stripe-income.sh` fetch)
+- Layer 3 (reference): `../../references/tax-reserve-rates.md`; `../../setup/output/config.md` (the year's rate)
 
 ## Process
-The agent nets output vs input IVA, applies IRS and Segurança Social set-aside percentages to the relevant base, and recommends a total reserve, recording every rate used.
+Apply the year's reserve rate (tax-reserve-rates.md: year-1 ~12% → steady ~33%) to period income to recommend a set-aside for IRS + Segurança Social. No IVA reserve (foreign clients reverse-charged / out of scope). Record the rate used.
 
 ## Outputs
-- `tax-reserve.md` -> output/
+- `tax-reserve-<period>.md` -> output/  (generated; gitignored)
 
 ## Integrations
-- none
+- `scripts/stripe-income.sh` (read-only) if fetching income directly.
 
 ## Verify
-- Income and expense totals match stages 01/02 outputs; every rate cites a source in [`../../references/`](../../references/); reserve never exceeds income; deadlines align with legal-and-tax `05_compliance_calendar`; the contabilista disclaimer is present.
+- The rate matches the year in tax-reserve-rates.md / config; the reserve never exceeds income; no IVA is reserved; the as-of date + contabilista disclaimer are present; deadlines align with legal-and-tax `05_compliance_calendar`.
 
 ## Review gate
 - none

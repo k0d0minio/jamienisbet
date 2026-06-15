@@ -22,5 +22,10 @@ Convention: [`_config/conventions/scripts-and-integrations.md`](../_config/conve
 - [`new-project.sh`](new-project.sh) — scaffold the docs-only `projects/<slug>/` from
   `_template-project/`; reminds you to create the external delivery repo (a separate reviewed step).
 
-Planned (built when entity data exists): `gen-dashboard.sh` — aggregate per-entity front-matter into
+Finance (Stripe is the source of truth — these are **read-only** fetches; no committed ledgers):
+- [`stripe-income.sh`](stripe-income.sh) — paid income for a period.
+- [`stripe-receivables.sh`](stripe-receivables.sh) — open + overdue invoices.
+- [`stripe-report.sh`](stripe-report.sh) — period summary: income, receivables, tax reserve.
+
+Planned: `gen-dashboard.sh` — aggregate per-entity front-matter + the `stripe-report` figures into
 [`state/dashboard.md`](../state/README.md).

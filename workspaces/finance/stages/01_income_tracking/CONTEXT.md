@@ -2,21 +2,20 @@
 <!-- ICM Layer 2 — machine-loaded stage contract. Human narrative is in README.md. -->
 
 ## Inputs
-- Layer 4 (working): invoice records from [`workspaces/proposals/`](../../../proposals/) `07_invoice/output/`.
-- Layer 3 (reference): [`../../references/`](../../references/) income categories; [`shared/clients/`](../../../../shared/clients/).
+- Layer 4 (working): live Stripe data via `scripts/stripe-income.sh` + `scripts/stripe-receivables.sh` (read-only)
+- Layer 3 (reference): `shared/clients/` (bill-to reconciliation); `../../references/report-formats.md`
 
 ## Process
-The agent appends each issued invoice to the income ledger, marks paid invoices against bank confirmation, and recomputes the outstanding-receivables list (amount and days overdue).
+Fetch paid income and open/overdue receivables for the period from Stripe (read-only). Reconcile client names against `shared/clients/`. Produce a period income summary — not a maintained ledger; Stripe stays the source of truth.
 
 ## Outputs
-- `income-ledger.md` -> output/
-- `outstanding-receivables.md` -> output/
+- `income-<period>.md` -> output/  (generated; gitignored)
 
 ## Integrations
-- none
+- `scripts/stripe-income.sh`, `scripts/stripe-receivables.sh` — read-only fetches from Stripe.
 
 ## Verify
-- Every invoice number here exists in `proposals/07_invoice`; client names match [`shared/clients/`](../../../../shared/clients/); no invoice is both paid and outstanding; amounts and IVA are internally consistent.
+- Figures match Stripe at fetch time; client names reconcile to `shared/clients/`; overdue is computed against the run date; nothing is hand-edited into a parallel ledger.
 
 ## Review gate
-- none
+- none (read-only fetch + summary; auto-runs per the autonomy policy).

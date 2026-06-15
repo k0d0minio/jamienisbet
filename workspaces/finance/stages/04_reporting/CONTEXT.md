@@ -2,21 +2,21 @@
 <!-- ICM Layer 2 — machine-loaded stage contract. Human narrative is in README.md. -->
 
 ## Inputs
-- Layer 4 (working): outputs of stages 01–03 for the period.
-- Layer 3 (reference): [`../../references/`](../../references/) for category grouping.
+- Layer 4 (working): `scripts/stripe-report.sh` (income + receivables + reserve for the period)
+- Layer 3 (reference): `../../references/report-formats.md`
 
 ## Process
-The agent aggregates income, expenses and reserve for the period, computes net position and outstanding receivables, and writes a founder summary plus an accountant pack listing review-needed items.
+Run stripe-report.sh for the period; produce the monthly P&L and (quarterly) the IVA/VIES filing summary; surface the metrics for state/dashboard (revenue, overdue receivables, tax reserve). A founder view + an accountant pack from the same fetch.
 
 ## Outputs
-- `<period>-summary.md` -> output/
-- `<period>-accountant-pack.md` -> output/
+- `<period>-summary.md` -> output/  (generated; gitignored)
+- `<period>-accountant-pack.md` -> output/  (generated; gitignored)
 
 ## Integrations
-- none
+- `scripts/stripe-report.sh` (read-only; composes stripe-income + stripe-receivables).
 
 ## Verify
-- Report totals equal the sum of stages 01/02 rows; reserve matches stage 03; period boundaries are consistent; every "review-needed" expense from stage 02 is carried forward; disclaimer present.
+- Figures match the Stripe fetch; the reserve uses the year's rate; quarterly periods carry the IVA/VIES note; the as-of date + disclaimer are present.
 
 ## Review gate
-- none
+- Jamie reviews the founder view before it informs the morning brief; the accountant pack is the formal handoff.

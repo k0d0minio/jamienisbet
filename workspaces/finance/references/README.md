@@ -14,8 +14,8 @@ This is the recipe for the finance factory. It holds the lightweight chart of ac
 - **Draws on (Layer 3 reference):** [`_config/conventions/`](../../../_config/conventions/) for how reference folders are structured.
 
 ## Contents
-- `chart-of-accounts-lite.md` — planned: the fixed list of income and expense categories.  (Describe only; do not create.)
-- `tax-rate-notes.md` — planned: current IVA/IRS/Segurança Social rates and thresholds, each with a source and "confirm with contabilista" flag.  (Describe only; do not create.)
+- [`tax-reserve-rates.md`](tax-reserve-rates.md) — the reserve % by year (year-1 SS-exempt vs steady-state), drawn from legal-and-tax.
+- [`report-formats.md`](report-formats.md) — what the monthly P&L and quarterly IVA reports contain (from Stripe fetches).
 
 ## Notes
 Stable across runs — update these files deliberately (e.g. annual rate changes or a new regime), not every fiscal period; a change here ripples into stage 03's reserve. Keep the chart of accounts small on purpose; this is lightweight bookkeeping, not a full ledger system. Always pair a rate with its effective date so old reports remain explainable.

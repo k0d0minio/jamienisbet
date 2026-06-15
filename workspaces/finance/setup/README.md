@@ -14,8 +14,8 @@ This is the "configure the factory, not the product" step (Principle 5). Before 
 - **Draws on (Layer 3 reference):** [`references/`](../references/) (tax-rate notes provide the candidate values the questionnaire confirms); [`_config/conventions/`](../../../_config/conventions/).
 
 ## Contents
-- `questionnaire.md` — planned: the one-time setup answers (regime, IVA status, reserve % for IVA/IRS/Segurança Social, fiscal year start, reporting cadence, base currency EUR).  (Describe only; do not create.)
-- `output/` — planned: the saved, confirmed configuration that stages load.
+- [`questionnaire.md`](questionnaire.md) — the one-time config (reserve %, IVA periodicity, reporting cadence).
+- `output/config.md` — the **locked configuration** stages read (reserve rates by year, IVA cadence) — derived from legal-and-tax.
 
 ## Notes
 Re-run setup only when Jamie's fiscal status changes (e.g. crosses an IVA threshold, incorporates, or changes regime) — not every fiscal period. Keep it short: this configures behaviour, it does not hold transaction data. Any change here should trigger a note to the contabilista.
