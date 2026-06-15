@@ -3,7 +3,7 @@
 
 ## Inputs
 - Layer 4 (working): `../../setup/output/` (locked config: geography, capacity, pricing)
-- Layer 3 (reference): `../../references/`, `_config/brand/voice/`
+- Layer 3 (reference): `../../references/positioning-notes.md`, `../../references/affiliate-program.md`; `_config/brand/voice/messaging-pillars.md`
 
 ## Process
 Define the ICP (segments, locations, pains, where they gather), select the niche/offer to lead with, draft the value proposition and 2–3 proof points, and a positioning statement the affiliate sellers and outreach can reuse verbatim.

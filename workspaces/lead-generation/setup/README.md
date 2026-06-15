@@ -12,8 +12,8 @@ This is where Jamie configures the lead-gen "factory" once: how much time per we
 - **Draws on (Layer 3 reference):** `_config/conventions/` (how to build a workspace), `../references/`
 
 ## Contents
-- `questionnaire.md` — planned: the one-time config interview (weekly selling capacity, target geography, social-media comfort, baseline landing-page price, affiliate commission %, excluded channels, brand-asset locations). Do NOT create yet.
-- `output/` — planned: the answered/locked config that stages load as context.
+- [`questionnaire.md`](questionnaire.md) — the config interview (capacity, geography, social comfort, landing-page floor, commission %, excluded channels).
+- `output/config.md` — the **locked configuration** stages load (€200 landing-page floor, 10% commission, word-of-mouth posture, no ads).
 
 ## Notes
 Per ICM principle 5, configure once here; each run then produces new deliverables using this config. Keep pricing and commission numbers in sync with `_config/business/`; if they ever disagree, `_config/business/` is the source of truth. Any rate, invoicing, or tax implication surfaced here is decision-support only and must be reviewed by a licensed Portuguese contabilista certificado / lawyer before being treated as fact.

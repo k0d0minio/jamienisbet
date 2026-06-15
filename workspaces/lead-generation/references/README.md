@@ -8,15 +8,14 @@ This folder is the recipe shelf for the lead-gen workspace: stable, reusable kno
 
 ## How it connects to the architecture
 - **Upstream / reads from:** human input (what Jamie learns in the field), `_config/business/founder-brief.md`
-- **Downstream / feeds:** `../stages/01_positioning/`, `../stages/02_channels/`, `../stages/04_outreach/`
+- **Downstream / feeds:** `../stages/01_positioning/`, `../stages/02_channels/`, `../stages/03_affiliate_program/`, `../stages/04_outreach/`
 - **Draws on (Layer 3 reference):** `_config/brand/voice/`, `shared/knowledge/` (cross-workspace playbooks)
 
 ## Contents
-- `positioning-notes.md` — planned: ICP research, niche rationale, proven message angles
-- `channel-playbooks.md` — planned: how-to guides for networking, referral asks, partnerships
-- `referral-script-bank.md` — planned: phrasings friends and affiliates can reuse
-
-(Do NOT create these files yet — they are described, not built.)
+- [`affiliate-program.md`](affiliate-program.md) — the 10% program rules + the sellers-site capture spec (referral codes, the productised offer).
+- [`positioning-notes.md`](positioning-notes.md) — ICP, niche, value proposition, message angles.
+- [`channel-playbooks.md`](channel-playbooks.md) — word of mouth, affiliates, partners, networking (no ads).
+- [`referral-script-bank.md`](referral-script-bank.md) — reusable phrasings for friends, affiliates, partners.
 
 ## Notes
 Reference material is stable; working drafts and live data live in stage `output/` folders and in `../output/`, not here. When a run teaches a durable lesson (a new angle that closes, a meetup that converts), promote it into these notes so future runs inherit it. Keep anything broadly reusable across workspaces in `shared/knowledge/` instead, and link to it from here.

@@ -3,7 +3,7 @@
 
 ## Inputs
 - Layer 4 (working): `../01_positioning/output/` (ICP/offer), `../../setup/output/` (price, 10% rate)
-- Layer 3 (reference): `_config/brand/assets/`, `_config/brand/visual/`, `shared/templates/`, `_config/business/`
+- Layer 3 (reference): `../../references/affiliate-program.md` (program rules + sellers-site spec); `_config/brand/`, `shared/templates/`, `_config/business/rates.md`
 
 ## Process
 Define seller recruiting criteria and onboarding; assemble the sales kit (one-pager, pricing tiers, brand assets); specify the 10% commission base, timing, and edge cases; design lead attribution (unique referral codes/named introductions logged at first contact); define the payout process; draft a simple seller agreement.
