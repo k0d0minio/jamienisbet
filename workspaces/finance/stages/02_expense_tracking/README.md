@@ -1,6 +1,6 @@
 # Stage 02 — Expense Tracking
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Log deductible business expenses so they can offset income and feed tax optimisation.
 
 ## What this folder accomplishes
@@ -14,19 +14,11 @@ This stage is the expense ledger. Every business cost Jamie incurs — software 
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/) (chart-of-accounts-lite expense categories, IVA-rate notes).
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the expense ledger (Layer 4 handoff).
 - `receipts/` — planned: filed scans/PDFs referenced by ledger rows.  (Describe only; do not create.)
 
-## Stage contract
-### Inputs
-- Layer 4 (working): receipts and bank statements provided by Jamie.
-- Layer 3 (reference): [`../../references/`](../../references/) expense categories and IVA-rate notes.
-### Process
-The agent appends each expense to the ledger, assigns a chart-of-accounts-lite category, flags it as likely-deductible or review-needed, and records IVA paid for later netting.
-### Outputs
-- `expense-ledger.md` -> output/
-### Verify
-- Every row has a category from the chart-of-accounts-lite; IVA amounts use a rate present in [`../../references/`](../../references/); flagged-uncertain items are listed for accountant review; totals reconcile to provided statements.
-
 ## Notes
 Append-only; keep the source receipt reference on each row so the accountant can audit. When unsure about deductibility, mark "review-needed" rather than guessing — that flag is the contabilista handoff. EUR only.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

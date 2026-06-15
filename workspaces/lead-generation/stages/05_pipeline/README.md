@@ -1,6 +1,6 @@
 # Stage 05 — Pipeline
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Track every lead from first contact to qualified, then hand off to proposals and projects while keeping the client registry current.
 
 ## What this folder accomplishes
@@ -11,17 +11,7 @@ This stage is Jamie's single, plain-markdown sales pipeline. Each lead moves thr
 - **Downstream / feeds:** `workspaces/proposals/`, `projects/` (copied from `projects/_template-project/`), `shared/clients/`
 - **Draws on (Layer 3 reference):** `_config/conventions/`, `shared/knowledge/`
 
-## Stage contract
-### Inputs
-- Layer 4 (working): `../04_outreach/output/` (sends/replies), incoming intros and inbound enquiries
-- Layer 3 (reference): `../03_affiliate_program/output/attribution-rules.md`, `_config/conventions/`
-### Process
-Log each lead with status, source/referrer, offer, value band, and next action; advance or close leads; on "qualified," package the lead for `workspaces/proposals/`; on "won," trigger a `projects/` pipeline and upsert `shared/clients/`; flag affiliate-attributed deals for payout in `../03_affiliate_program/`.
-### Outputs
-- `pipeline.md` (the live board) -> output/
-- `handoffs/` (per-lead qualified packets) -> output/
-### Verify
-- Every affiliate-sourced lead has exactly one referrer per attribution rules; qualified leads exist in both `pipeline.md` and a handoff packet; client records written to `shared/clients/` match the lead; no duplicate clients.
-
 ## Notes
 This is a living Layer 4 artifact updated continuously, not a one-shot run. Keep it skimmable — Jamie's morning routine in `tracker/` may reference it for "who needs a follow-up today." Won/lost reasons are worth a one-line note to improve `01_positioning` over time.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

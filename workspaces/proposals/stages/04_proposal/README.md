@@ -1,6 +1,6 @@
 # Stage 04 — Proposal (Persuasive, On-Brand Document)
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Generate the client-facing proposal that sells the outcome using the dossier, the negotiation framing, and Jamie's brand.
 
 ## What this folder accomplishes
@@ -12,20 +12,10 @@ With the strategy locked, this stage writes the actual proposal Jamie sends. It 
 - **Draws on (Layer 3 reference):** [`shared/templates/`](../../../../shared/templates/) (proposal template); [`_config/brand/voice/`](../../../../_config/brand/voice/) (copy rules); [`_config/brand/visual/`](../../../../_config/brand/visual/) and [`_config/brand/assets/`](../../../../_config/brand/assets/) (design tokens, logo); [`_config/business/`](../../../../_config/business/) (entity details)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — Layer 4: the generated proposal for this deal.
-
-## Stage contract
-### Inputs
-- Layer 4 (working): dossier + negotiation strategy from upstream stages
-- Layer 3 (reference): [`shared/templates/`](../../../../shared/templates/), [`_config/brand/`](../../../../_config/brand/)
-### Process
-Fill the proposal template with the client's problem, the proposed outcome, tiered options, and the value framing; apply brand voice and visual identity.
-### Outputs
-- `proposal.md` -> output/
-### Verify
-- Tiers, scope, and emphasis match the strategy; brand voice/visual tokens applied; business identity facts correct.
-### Review gate
-- Jamie approves wording and scope before pricing is attached.
 
 ## Notes
 The proposal persuades; the quote prices. Keep numbers out of this document except as option framing — exact figures live in `05_quote`.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

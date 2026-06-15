@@ -1,6 +1,6 @@
 # Stage 02 — Entity Options
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Present the Portuguese business structures available to Jamie as clear trade-offs — never a single prescribed answer.
 
 ## What this folder accomplishes
@@ -14,19 +14,10 @@ Using the situation brief, the agent lays out the realistic structures for a Maf
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the entity comparison and recommended direction
-
-## Stage contract
-### Inputs
-- Layer 4 (working): `../01_discovery/output/situation-brief.md`
-- Layer 3 (reference): `../../references/`
-### Process
-Build an options matrix (ENI vs Lda.; simplified vs organised; incentive regimes). Map each to Jamie's revenue band, client geography, and risk appetite. Mark eligibility items as "to confirm with contabilista."
-### Outputs
-- `entity-comparison.md` -> output/
-- `recommended-direction.md` -> output/
-### Verify
-- At least two structures and both accounting regimes are compared; every claim traces to `../../references/` or is flagged unconfirmed; no single answer presented as final without the contabilista caveat.
 
 ## Notes
 Trade-offs over verdicts. Revisit when revenue crosses a threshold that changes the optimal regime.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

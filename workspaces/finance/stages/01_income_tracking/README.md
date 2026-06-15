@@ -1,6 +1,6 @@
 # Stage 01 — Income Tracking
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Record every invoice issued and paid, and surface outstanding receivables.
 
 ## What this folder accomplishes
@@ -14,20 +14,11 @@ This stage is the income ledger. When [`workspaces/proposals/`](../../../proposa
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/) (chart-of-accounts-lite income categories).
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the income ledger and outstanding-receivables list (Layer 4 handoff).
 - `notes.md` — planned: per-period collection notes (e.g. promised-payment dates).  (Describe only; do not create.)
 
-## Stage contract
-### Inputs
-- Layer 4 (working): invoice records from [`workspaces/proposals/`](../../../proposals/) `07_invoice/output/`.
-- Layer 3 (reference): [`../../references/`](../../references/) income categories; [`shared/clients/`](../../../../shared/clients/).
-### Process
-The agent appends each issued invoice to the income ledger, marks paid invoices against bank confirmation, and recomputes the outstanding-receivables list (amount and days overdue).
-### Outputs
-- `income-ledger.md` -> output/
-- `outstanding-receivables.md` -> output/
-### Verify
-- Every invoice number here exists in `proposals/07_invoice`; client names match [`shared/clients/`](../../../../shared/clients/); no invoice is both paid and outstanding; amounts and IVA are internally consistent.
-
 ## Notes
 Append-only — never delete a row; mark superseded/credited invoices instead. One currency: EUR. Keep paid-date separate from issue-date so the reserve stage can work on cash actually received when needed.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

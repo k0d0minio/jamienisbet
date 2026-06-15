@@ -1,6 +1,6 @@
 # Stage 01 — Discovery
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Interrogate Jamie's full situation so every downstream decision rests on a complete, human-edited picture.
 
 ## What this folder accomplishes
@@ -14,18 +14,10 @@ This is the direction-setting first stage and gets the heaviest human editing. T
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the situation brief produced by this stage
-
-## Stage contract
-### Inputs
-- Layer 4 (working): human answers; `../../setup/questionnaire.md`
-- Layer 3 (reference): `../../references/`
-### Process
-Agent asks question-by-question, never assuming. Captures income geography, revenue band, risk appetite, and goals. Flags open questions for the contabilista.
-### Outputs
-- `situation-brief.md` -> output/
-### Verify
-- Every config field from setup is reflected; client-geography and revenue band are explicit (they drive VAT and regime choice); unknowns are listed, not guessed.
 
 ## Notes
 Bias toward more questions. Wrong assumptions here propagate to entity choice; surface gaps rather than fill them.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

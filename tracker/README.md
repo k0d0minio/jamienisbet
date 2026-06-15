@@ -1,27 +1,20 @@
-# Tracker — Standalone Daily Operations
+# Tracker — Daily Operations
 
-> **ICM role:** Layer 1 — router (standalone entity)
-> **Purpose:** A walled-off daily todo + morning-brief system that tracks both business and personal tasks for Jamie, kept deliberately separate from the rest of the business data.
+> **ICM role:** Layer 1 — router (standalone daily-ops hub)
+> **Purpose:** A business-only daily todo + morning-brief system: the every-morning routine scans what's open across the repo (read-only) and emits one brief of today's todos and anything overdue.
 
 ## What this folder accomplishes
-This is Jamie's personal command center for getting things done day to day. A Claude routine runs every morning, scans what is open across the repo (read-only), and produces a single brief listing today's todos and anything overdue. It mixes business action items (follow up with a lead, send an invoice) and purely personal life admin (renew the residence card, book a dentist). Because it holds personal data, it is a **standalone entity**, not part of any business pipeline.
-
-## STANDALONE / PRIVACY BOUNDARY — read this first
-- `tracker/` is **separated from the business**. It is a private task list, NOT a source of truth for any workspace, project, or deliverable.
-- The morning routine MAY **reference** business folders (`workspaces/`, `projects/`, `_config/business/finance`, legal `05_compliance_calendar`) **READ-ONLY** to surface deadlines. It must never write into them.
-- `tracker/personal/` content **MUST NEVER** leak into any business output — no proposal, invoice, email, website, or client-facing artifact may quote, summarize, or embed personal items.
-- Data flows business → tracker (as references), **never** tracker/personal → business. Nothing here is merged back upstream.
+This is Jamie's command center for getting things done day to day. A Claude routine runs every morning, scans what is open across the repo (READ-ONLY), and produces a single brief listing today's todos and anything overdue — chase a lead, send an invoice, prep for a Mafra networking event, hit a compliance deadline. A Friday weekly-review routine does a deeper scan of the whole pipeline. The tracker is a **standalone hub**: it is the human's checklist, not the source of truth for any workspace (each workspace owns its own state). It reads business state read-only; it never writes back into it.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** human input; READ-ONLY scans of [`workspaces/`](../workspaces/), [`projects/`](../projects/), [`_config/business/`](../_config/business/) finance, and legal `05_compliance_calendar`
-- **Downstream / feeds:** the human (the morning brief); no business deliverable
+- **Upstream / reads from:** human input (todos Jamie types); READ-ONLY scans of [`workspaces/`](../workspaces/), [`projects/`](../projects/), [`shared/clients/`](../shared/clients/), [`state/`](../state/), [`_config/business/`](../_config/business/) finance, and legal `05_compliance_calendar`
+- **Downstream / feeds:** the human (the morning brief + weekly review); no business deliverable
 - **Draws on (Layer 3 reference):** [`_config/conventions/`](../_config/conventions/) for ICM rules
 
 ## Contents
-- `routine/` — the every-morning Claude run spec (scan, list, surface overdue)
-- `business/` — business todos (linked from workspaces, not a workspace source of truth)
-- `personal/` — purely personal todos and life admin, walled off
-- `output/` — archive of daily briefs, one per day (Layer 4)
+- `routine/` — the morning-brief + weekly-review run specs (scan, list, surface overdue).
+- `business/` — the human's business todo list (linked to workspaces, not their source of truth).
+- `output/` — archive of dated briefs, one per run (Layer 4).
 
 ## Notes
-Treat the personal/business split as a hard firewall. When the morning run is asked to act on a business task it may read business context, but it returns to the human here, never the other way around. Keep entries short and scannable so the daily brief stays fast.
+The tracker reads the business read-only and returns to the human; nothing here is merged back upstream. Todos arrive two ways: Jamie types them in `business/`, and the routine proposes them from pipeline state ([`state/`](../state/)). Keep entries short and scannable so the daily brief stays fast. Finance/compliance dates surfaced here are decision-support reminders only — see [`_config/conventions/governance.md`](../_config/conventions/governance.md).

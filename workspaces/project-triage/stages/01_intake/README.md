@@ -1,6 +1,6 @@
 # Stage 01 — Intake
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Rapidly capture a project or idea — the ask, scope, who, and constraints — fast and low-friction enough to run live in a meeting.
 
 ## What this folder accomplishes
@@ -12,18 +12,11 @@ This is the fast-capture front door. While Jamie is on a call or face-to-face, t
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/) for the intake field checklist; [`_config/business/founder-brief.md`](../../../../_config/business/founder-brief.md)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the captured intake note(s), one per triaged idea (Layer 4 handoff)
 - `intake-template.md` — planned: the rapid-capture field set (ask / scope / who / constraints / budget / timeline / red flags)
 
-## Stage contract
-### Inputs
-- Layer 4 (working): human input captured live; existing client record from [`shared/clients/`](../../../../shared/clients/)
-- Layer 3 (reference): [`../../references/`](../../references/) intake checklist
-### Process
-Agent prompts only for the fields needed to make a triage decision, fills them in real time, flags anything ambiguous, and keeps it brief. No evaluation happens here — capture only.
-### Outputs
-- `intake-<slug>.md` -> output/
-### Verify
-- All required fields present (ask, scope, who, constraints); customer name reconciled against [`shared/clients/`](../../../../shared/clients/); open questions explicitly listed so the assessment stage isn't guessing
 ## Notes
 Optimize for speed over completeness — an 80%-complete intake captured live beats a perfect one sent later. Mark assumptions clearly so they surface at the review gate before assessment.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

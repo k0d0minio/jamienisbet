@@ -4,7 +4,7 @@
 > **Purpose:** Route an agent through the three ordered delivery stages of a single project, handing each stage's `output/` to the next.
 
 ## What this folder accomplishes
-This folder holds the numbered stages that move one engagement from "we agreed what to build" to "client accepted it." The numbering encodes execution order (Principle 1: one stage, one job). Each stage reads the previous stage's `output/`, does exactly one job, and writes its own `output/` for the next stage and for Jamie to review.
+This folder holds the numbered stages that move one engagement from "we agreed what to build" to "client accepted it." The build itself runs in the client's **external delivery repo**; these stages track and gate it. The numbering encodes execution order (Principle 1: one stage, one job). Each stage reads the previous stage's `output/`, does exactly one job, and writes its own `output/` (the docs-only tracking record) for the next stage and for Jamie to review.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** the parent project's `../references/` (client brand, tech-stack decisions, signed scope) and the accepted proposal from `workspaces/proposals/`.

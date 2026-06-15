@@ -1,6 +1,6 @@
 # Stage 04 — Reporting
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Produce a monthly/quarterly financial summary for the founder and for his accountant.
 
 ## What this folder accomplishes
@@ -14,20 +14,11 @@ This stage rolls up the ledgers and the reserve into one readable summary per pe
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/) (chart-of-accounts-lite for grouping); [`_config/brand/voice/`](../../../../_config/brand/voice/) and [`_config/brand/visual/`](../../../../_config/brand/visual/) if a branded PDF is exported.
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — generated period summaries (Layer 4).
 - `templates/` — planned: layout for the founder view vs the accountant pack.  (Describe only; do not create.)
 
-## Stage contract
-### Inputs
-- Layer 4 (working): outputs of stages 01–03 for the period.
-- Layer 3 (reference): [`../../references/`](../../references/) for category grouping.
-### Process
-The agent aggregates income, expenses and reserve for the period, computes net position and outstanding receivables, and writes a founder summary plus an accountant pack listing review-needed items.
-### Outputs
-- `<period>-summary.md` -> output/
-- `<period>-accountant-pack.md` -> output/
-### Verify
-- Report totals equal the sum of stages 01/02 rows; reserve matches stage 03; period boundaries are consistent; every "review-needed" expense from stage 02 is carried forward; disclaimer present.
-
 ## Notes
 Name outputs by period (e.g. `2026-Q2`). The founder view is for Jamie's morning routine; the accountant pack is the formal handoff. Keep it a summary — detail lives in the stage ledgers, not here.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

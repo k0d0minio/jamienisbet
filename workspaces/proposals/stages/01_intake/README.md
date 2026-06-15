@@ -1,6 +1,6 @@
 # Stage 01 — Intake (Question-Maximizing Discovery Engine)
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Interrogate a new deal exhaustively and produce a structured deal dossier that everything downstream depends on.
 
 ## What this folder accomplishes
@@ -12,20 +12,10 @@ This is the heavy-edit, direction-setting Stage 1 and the defining behavior of t
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/) (the discovery question bank in the negotiation playbook); [`../../setup/`](../../setup/) (deal types Jamie accepts)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — Layer 4: the per-deal dossier lands here, then is copied/linked into `../../output/<client>/`.
-
-## Stage contract
-### Inputs
-- Layer 4 (working): human answers to the discovery interview
-- Layer 3 (reference): question bank in [`../../references/`](../../references/)
-### Process
-Run an exhaustive, structured Q&A across: client identity, underlying problem, budget signals, decision-makers/influencers, timeline and deadlines, alternatives/competition, emotional drivers, and perceived value. Flag every unknown explicitly rather than assuming.
-### Outputs
-- `deal-dossier.md` -> output/
-### Verify
-- No required dossier section is blank or guessed; open unknowns are listed as "must ask" follow-ups before the gate closes.
-### Review gate
-- Jamie edits the dossier heavily here; this is where direction is set.
 
 ## Notes
 A weak dossier guarantees weak strategy. When unsure, ask more questions rather than fewer.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

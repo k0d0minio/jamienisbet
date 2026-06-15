@@ -1,6 +1,6 @@
 # Stage 05 — Compliance Calendar
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Generate Jamie's recurring filing deadlines and push them into the systems that track and act on them.
 
 ## What this folder accomplishes
@@ -14,18 +14,10 @@ This final stage converts the entity's obligations into a dated calendar so noth
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the generated compliance calendar
-
-## Stage contract
-### Inputs
-- Layer 4 (working): confirmed entity form, regime, IVA periodicity
-- Layer 3 (reference): `../../references/`
-### Process
-Map each obligation (IVA, IRS, Segurança Social, annual filings) to its cadence and due dates with owner and buffer; format so `tracker/` and `workspaces/finance/` can consume it.
-### Outputs
-- `compliance-calendar.md` -> output/
-### Verify
-- Cadence matches the regime confirmed in Stage 03; no obligation orphaned; dates align with what feeds `tracker/`; every date flagged "confirm with contabilista."
 
 ## Notes
 Regenerate when the regime, IVA periodicity, or the law changes. This is the workspace's hand-off into recurring operations.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

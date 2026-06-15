@@ -12,11 +12,11 @@ This is the assembly line. Each child folder is exactly one stage that does exac
 - **Draws on (Layer 3 reference):** [`../references/`](../references/) and repo-wide references under [`_config/`](../../../_config/) and [`shared/`](../../../shared/).
 
 ## Contents
-- `01_stage/` — example stage; the canonical stage-contract template (Inputs / Process / Outputs / Verify) to copy and rename.
-- `02_*/`, `03_*/` — *(planned, do not create yet)* real stages, numbered in execution order, each with its own README contract and `output/`.
+- `01_stage/` — example stage: a `README.md` (narrative) + `CONTEXT.md` (the six-section contract — Inputs / Process / Outputs / Integrations / Verify / Review gate) to copy and rename.
+- `02_*/`, `03_*/` — *(planned, do not create yet)* real stages, numbered in execution order, each with its own `README.md`, `CONTEXT.md`, and `output/`.
 
 ## How to add a stage
-Copy `01_stage/` to the next number (e.g. `02_draft/`), rename it to its single job, fill in the stage contract, and list it here in order. Renumber if you insert a stage mid-pipeline. Keep one job per stage — if a stage does two things, split it.
+Copy `01_stage/` to the next number (e.g. `02_draft/`), rename it to its single job, fill in its `CONTEXT.md` contract (and trim the `README.md` to narrative), and list it here in order. Renumber — or use a letter suffix like `02a_` — if you insert a stage mid-pipeline. Keep one job per stage; if a stage does two things, split it. Schema: [`_config/conventions/stage-contracts.md`](../../../_config/conventions/stage-contracts.md).
 
 ## Notes
 Layered context loading (Principle 3): a stage agent should load only this stage's README, its inputs, and the specific references it names — not the whole repo. This keeps runs cheap and focused, which matters for a solo consultancy.

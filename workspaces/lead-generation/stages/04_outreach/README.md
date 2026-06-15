@@ -1,6 +1,6 @@
 # Stage 04 — Outreach
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Provide on-brand templates and follow-up cadences for warm intros and inbound leads so nothing stalls or sounds off-voice.
 
 ## What this folder accomplishes
@@ -11,17 +11,7 @@ This stage gives Jamie ready-to-send, on-brand copy for the two situations he ac
 - **Downstream / feeds:** `../05_pipeline/` (each send is logged), `workspaces/proposals/` (when a lead is ready to quote)
 - **Draws on (Layer 3 reference):** `_config/brand/voice/`, `shared/templates/` (email template), `shared/knowledge/`
 
-## Stage contract
-### Inputs
-- Layer 4 (working): `../03_affiliate_program/output/`, `../01_positioning/output/`
-- Layer 3 (reference): `_config/brand/voice/`, `shared/templates/`
-### Process
-Draft templates for warm-intro first touch, inbound reply, discovery questions, and a 2–3 step follow-up cadence with timing; adapt tone to voice rules; mark merge fields (name, referrer, town, offer) and the point where a lead hands to proposals.
-### Outputs
-- `templates/` (warm-intro, inbound-reply, discovery, close-out) -> output/
-- `follow-up-cadence.md` -> output/
-### Verify
-- Wording matches `_config/brand/voice/`; every template names its trigger and the `../05_pipeline/` stage it advances a lead to; affiliate-sourced messages credit the referrer per `../03_affiliate_program/output/attribution-rules.md`.
-
 ## Notes
 Keep cadences short and human — a freelancer over-following-up reads as desperate; the goal is to stay polite and present. Re-run this stage alone whenever brand voice or offer changes, without touching positioning.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

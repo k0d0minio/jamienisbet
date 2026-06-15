@@ -1,6 +1,6 @@
 # Stage 06 — Contract (Agreement Generation)
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Generate the engagement contract that locks the agreed scope, price, and terms once the client accepts the quote.
 
 ## What this folder accomplishes
@@ -14,20 +14,10 @@ When the quote is accepted, this stage drafts the contract that formalizes the d
 - **Draws on (Layer 3 reference):** [`shared/templates/`](../../../../shared/templates/) (contract template); [`_config/business/`](../../../../_config/business/) (legal entity, NIF/VAT, address); [`_config/brand/`](../../../../_config/brand/)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — Layer 4: the draft contract for this deal.
-
-## Stage contract
-### Inputs
-- Layer 4 (working): accepted quote from [`../05_quote/output/`](../05_quote/)
-- Layer 3 (reference): [`shared/templates/`](../../../../shared/templates/), [`_config/business/`](../../../../_config/business/)
-### Process
-Populate the contract template with parties, scope, agreed price, payment schedule, milestones, IP/confidentiality, and termination.
-### Outputs
-- `contract.md` -> output/
-### Verify
-- Price and scope match the accepted quote exactly; entity facts correct; no clause contradicts the quote's terms.
-### Review gate
-- MANDATORY professional review (lawyer; contabilista for tax) before Jamie signs or sends.
 
 ## Notes
 Never present a generated contract as legally vetted. Flag any clause that needs counsel.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

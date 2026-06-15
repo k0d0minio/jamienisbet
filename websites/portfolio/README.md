@@ -18,6 +18,8 @@ This holds Jamie's professional portfolio: a Next.js (App Router) site, deployed
 - `theme.config` — (planned) the file that imports brand tokens from `_config/brand/visual/`
 
 ## Notes
-- One job: present Jamie and his work. Personal experiments belong in [../personal/](../personal/); client deliverables belong in [../clients/](../clients/).
+- One job: present Jamie and his work. Client sites live in their **own external repos**, not here.
+- **Build first:** the portfolio is the first website to go live — it drives the word-of-mouth lead channel.
+- Portfolio entries are **auto-suggested from completed [projects/](../../projects/)** (delivery acceptance + retro), then curated before publishing.
 - Stack intent is Next.js App Router on Vercel; domains and deploy config come later — skeleton only.
 - Case studies should reference real [projects/](../../projects/) work without exposing any client-confidential material.

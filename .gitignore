@@ -1,0 +1,17 @@
+# Secrets — never commit. See _config/conventions/governance.md.
+.env
+.env.*
+!.env.example
+
+# Web app builds (websites/* are Next.js on Vercel)
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+
+# OS / editor
+.DS_Store
+*.log
+.idea/

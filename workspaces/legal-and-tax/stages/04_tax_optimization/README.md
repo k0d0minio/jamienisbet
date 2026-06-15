@@ -1,6 +1,6 @@
 # Stage 04 — Tax Optimization
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Produce ongoing, strictly-legal tax-reduction decision-support for the running entity.
 
 ## What this folder accomplishes
@@ -14,19 +14,10 @@ With the entity live, this recurring stage surfaces legal ways to keep Jamie's e
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — the optimisation review and action list
-
-## Stage contract
-### Inputs
-- Layer 4 (working): entity facts; finance actuals from `workspaces/finance/`
-- Layer 3 (reference): `../../references/`
-### Process
-Review deductibles, regime fit, invoicing structure, social-security base, and pension/insurance options. Output legal levers ranked by impact and effort, each with a contabilista-confirm flag.
-### Outputs
-- `optimization-review.md` -> output/
-- `action-list.md` -> output/
-### Verify
-- Every lever is legal and conservative; claims trace to `../../references/`; revenue band and regime are consistent with Stages 02–03; figures are illustrative, never asserted.
 
 ## Notes
 Re-run at least annually before IRS season and whenever revenue band shifts.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

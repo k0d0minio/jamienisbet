@@ -1,6 +1,6 @@
 # Stage 05 — Quote (Priced to the Target Rate)
 
-> **ICM role:** Layer 2 — stage
+> **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
 > **Purpose:** Produce the formal quote with line-item pricing set to the strategy's target rate, not a default rate.
 
 ## What this folder accomplishes
@@ -12,20 +12,10 @@ This stage prices the approved proposal. It takes the target price and tiered op
 - **Draws on (Layer 3 reference):** [`shared/templates/`](../../../../shared/templates/) (quote template); [`../../references/`](../../references/) (pricing models); [`_config/business/`](../../../../_config/business/) (rate card, IBAN, NIF/VAT, payment terms); [`_config/brand/`](../../../../_config/brand/)
 
 ## Contents
+- [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
 - `output/` — Layer 4: the priced quote for this deal.
-
-## Stage contract
-### Inputs
-- Layer 4 (working): proposal scope + strategy target/floor
-- Layer 3 (reference): [`shared/templates/`](../../../../shared/templates/), [`../../references/`](../../references/), [`_config/business/`](../../../../_config/business/)
-### Process
-Build line items, apply the target rate, set payment terms and validity, render on brand.
-### Outputs
-- `quote.md` -> output/
-### Verify
-- Headline price = strategy target and ≥ configured floor; line items reconcile to the proposal scope; business/payment details correct.
-### Review gate
-- Jamie confirms the number before it is sent or rolled into a contract.
 
 ## Notes
 Pricing here is commercial decision-support. VAT/IVA treatment and any tax-inclusive figures must be confirmed with a licensed Portuguese contabilista certificado before issuing.
+
+> Contract: see [CONTEXT.md](CONTEXT.md).

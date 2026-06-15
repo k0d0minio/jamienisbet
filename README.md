@@ -19,7 +19,7 @@ produced. Five context layers run the whole system:
 
 - **Layer 0 — [`CLAUDE.md`](CLAUDE.md):** the agent's identity & routing ("where am I?").
 - **Layer 1 — a folder's `README.md`:** routes you to the right stage ("where do I go?").
-- **Layer 2 — a stage's `README.md`:** the stage contract — Inputs / Process / Outputs / Verify.
+- **Layer 2 — a stage's `CONTEXT.md`:** the contract — Inputs / Process / Outputs / Integrations / Verify / Review gate (the `README.md` is its narrative).
 - **Layer 3 — `_config/`, `shared/`, `references/`:** stable reference (brand, templates, rules) — *the factory*.
 - **Layer 4 — `output/`:** per-run deliverables — *the product*.
 
@@ -49,20 +49,23 @@ jamienisbet/
 │   ├── finance/            bookkeeping-lite, invoice tracking, tax reserve
 │   └── _template-workspace/  copy this to create a new capability
 │
-├── projects/           ONE ICM PIPELINE PER CLIENT (copy _template-project/ per lead)
-├── websites/           hosted sites: portfolio/ · personal/ · clients/ (all brand-driven)
-└── tracker/            STANDALONE daily todo + morning routine (business + personal, walled off)
+├── projects/           PER-CLIENT DELIVERY DOCS (docs-only; the build lives in the client's own external repo)
+├── websites/           Jamie's own apps: portfolio/ · payment-gateway/ · admin-dashboard/ · sellers-site/
+├── tracker/            STANDALONE business-only daily todos + morning brief & weekly review
+├── scripts/            the automation layer (bash): new-client · new-project · send-email
+└── state/              generated dashboard: pipeline value · win rate · revenue · tax reserve · receivables
 ```
 
 ## How the pieces work together
 
-1. **Find work** in `lead-generation/` (incl. the affiliate program) → leads land in `shared/clients/`.
-2. **Qualify it** fast in `project-triage/` — worth your time? better solution out there? Hand the
-   customer structured feedback on the spot.
+1. **Find work** in `lead-generation/` (incl. the affiliate program + the public `sellers-site/`).
+2. **Qualify it** fast in `project-triage/` — worth your time? better solution out there? On a go, a
+   `shared/clients/<slug>/` record is created (`scripts/new-client.sh`); hand the customer structured
+   feedback on the spot.
 3. **Close it** in `proposals/` — the flagship: it asks you exhaustive questions, then coaches the
    negotiation to lift your rate, and generates the proposal, quote and contract on-brand.
-4. **Deliver it** by copying `projects/_template-project/` into a per-client pipeline; client sites
-   live in `websites/`.
+4. **Deliver it** via `scripts/new-project.sh` → a docs-only `projects/<slug>/` pipeline that tracks
+   the build; the build itself runs in the client's **own external repo**.
 5. **Get paid & stay compliant** via `finance/` and `legal-and-tax/`, whose deadlines surface every
    morning in `tracker/`.
 
@@ -71,10 +74,14 @@ so everything looks and sounds like one business.
 
 ## Status
 
-This is the **architecture skeleton**: every folder exists and is documented with a detailed
-`README.md` describing what it does and how it connects. No business content, code, or assets have
-been built yet — each README describes what *will* live there. Build a capability by opening its
-workspace and filling in `setup/` and the stage contracts.
+**Foundation built (Pass 1).** The ICM protocol is now real: the
+[`_config/conventions/`](_config/conventions/) docs, the [`scripts/`](scripts/) automation layer, the
+[`state/`](state/) model, and a machine-loadable `CONTEXT.md` contract in every stage. The structural
+decisions are settled — `projects/` is docs-only (client builds live in external repos), `websites/`
+hosts Jamie's own apps, `tracker/` is business-only. **Still to come (later passes):** brand identity,
+each workspace's `setup/` + `references/` content, and making `legal-and-tax` runnable first.
+Decisions are recorded in [`brainstorm.md`](brainstorm.md) and
+[`_config/conventions/decisions.md`](_config/conventions/decisions.md).
 
 ## Important
 
