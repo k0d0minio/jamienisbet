@@ -1,0 +1,38 @@
+{
+  "name": "@jamie-nisbet/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jamie Nisbet shared design system — tokens, brand assets, and reusable React components consumed by every website under websites/.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": [
+    "*.css",
+    "./components/**/*.jsx"
+  ],
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./styles.css": "./styles.css",
+    "./tokens/*": "./tokens/*",
+    "./assets/*": "./assets/*",
+    "./components/*": "./components/*"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "styles.css",
+    "tokens",
+    "components",
+    "assets",
+    "README.md",
+    "SKILL.md"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  }
+}

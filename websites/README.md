@@ -18,7 +18,7 @@ This is the home for Jamie's **own** front-facing and internal web apps. Each is
 - `sellers-site/` — public affiliate + partner referral intake (the 10% program's front door).
 
 ## Brand-as-code
-Each app resolves its theme from `_config/brand/visual/` design tokens (the brand pass emits these as machine-readable JSON / CSS variables), so one brand change updates documents *and* every site. No per-app brand overrides.
+Each app consumes the shared design system from [`packages/ui`](../packages/ui/) (`@jamie-nisbet/ui`): import `@jamie-nisbet/ui/styles.css` once at the app root for the tokens + fonts (light + dark via `data-theme`), then compose the exported React primitives (`import { Button, Card } from '@jamie-nisbet/ui'`). That package is the canonical implementation of the brand contract in [`_config/brand/visual/`](../_config/brand/visual/), so one brand change updates documents *and* every site. No per-app brand overrides.
 
 ## Notes
 - Stack intent is Next.js App Router on Vercel; actual hosting, domains, and deploy config are added later — this is the folder skeleton only.

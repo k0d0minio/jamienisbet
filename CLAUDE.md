@@ -44,6 +44,7 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Track income, expenses, invoices, tax reserve | [`workspaces/finance/`](workspaces/finance/) |
 | Deliver a client engagement (docs-only; build lives in the client's external repo) | [`projects/`](projects/) (`scripts/new-project.sh`) |
 | Build/host one of Jamie's own web apps (portfolio, payment gateway, admin dashboard, sellers site) | [`websites/`](websites/) |
+| Use/extend shared code across every website (design system / UI components, future services) | [`packages/`](packages/) (`packages/ui` = `@jamie-nisbet/ui`) |
 | Daily business todos / the morning brief + weekly review | [`tracker/`](tracker/) |
 | Run a mechanical action (new client/project, send a reviewed email) | [`scripts/`](scripts/) |
 | See where the business stands (pipeline, metrics) | [`state/`](state/) |
@@ -57,9 +58,12 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 do the Process, write to `output/`. 4. **Pause at each `output/` for human review before continuing.**
 
 ## Standing rules (do not break these)
-- **Brand is one source of truth.** All visual identity comes from
-  [`_config/brand/visual/`](_config/brand/visual/) and all copy tone from
-  [`_config/brand/voice/`](_config/brand/voice/). Websites and every official document pull from there.
+- **Brand is one source of truth.** All visual identity is defined in
+  [`_config/brand/visual/`](_config/brand/visual/) (the contract) and implemented in code by
+  [`packages/ui`](packages/ui/) (`@jamie-nisbet/ui` — tokens + components + assets); all copy
+  tone comes from [`_config/brand/voice/`](_config/brand/voice/). Websites consume the package
+  and every official document pulls from there. Change the package tokens and the brand docs
+  together — never fork them per site.
 - **Legal / tax / financial output is decision-support only.** Never assert tax figures or legal
   conclusions as fact; always note that outputs need review by a licensed Portuguese
   *contabilista certificado* / lawyer.

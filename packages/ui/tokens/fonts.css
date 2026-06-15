@@ -1,0 +1,11 @@
+/* ============================================================
+   FONTS — Jamie Nisbet Design System
+   Sans:  Hanken Grotesk  (neutral grotesque, Swiss body + display)
+   Mono:  IBM Plex Mono   (engineer-signal accent: labels, code, meta)
+
+   NOTE: loaded from Google Fonts CDN — no binaries are shipped with
+   this system. To self-host, replace the @import below with local
+   @font-face rules pointing at woff2 files in /assets/fonts.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');

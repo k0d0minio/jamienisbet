@@ -1,64 +1,17 @@
 /* Jamie Nisbet — brand design tokens.
-   Source of truth: _config/brand/visual/tokens.json (this file mirrors it).
-   Import these variables in every website and document template — never hard-code raw values. */
-:root {
-  /* color */
-  --color-ink: #16202C;
-  --color-primary: #1B5A78;
-  --color-primary-strong: #103E54;
-  --color-accent: #E8A23D;
-  --color-accent-strong: #C9871F;
-  --color-surface: #FFFFFF;
-  --color-surface-muted: #F5F7F9;
-  --color-border: #E2E8EE;
-  --color-muted: #5C6B7A;
-  --color-success: #2E7D5B;
-  --color-warning: #C9871F;
-  --color-danger: #C0492F;
 
-  /* type */
-  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-size-xs: 0.8rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-md: 1.25rem;
-  --font-size-lg: 1.5625rem;
-  --font-size-xl: 1.9375rem;
-  --font-size-2xl: 2.4375rem;
-  --font-size-3xl: 3.0625rem;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --leading-body: 1.6;
-  --leading-heading: 1.2;
+   CANONICAL IMPLEMENTATION lives in the shared UI package:
+     packages/ui/styles.css  →  packages/ui/tokens/*.css
+   Websites consume it directly via `@jamie-nisbet/ui/styles.css`. This file
+   re-exports those same tokens so non-package consumers (document templates,
+   one-off HTML) can link a single brand stylesheet by relative path.
 
-  /* space */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
+   Source of truth for VALUES: packages/ui/tokens/. Human explainers:
+   colors.md, typography.md, tokens.md. Never hard-code raw values — reference
+   the semantic aliases (--surface, --text-1, --border, --primary), which flip
+   between light and dark via [data-theme="dark"].
 
-  /* radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-pill: 999px;
+   Brand: calm, minimal, Swiss. One slate-blue (--blue-600 #3A5A78), cool-grey
+   neutrals, Hanken Grotesk + IBM Plex Mono. Confirmed 2026-06-15. */
 
-  /* shadow */
-  --shadow-sm: 0 1px 2px rgba(22, 32, 44, 0.06);
-  --shadow-md: 0 4px 12px rgba(22, 32, 44, 0.08);
-
-  /* layout */
-  --max-width: 1120px;
-  --reading-width: 680px;
-  --bp-sm: 640px;
-  --bp-md: 768px;
-  --bp-lg: 1024px;
-  --bp-xl: 1280px;
-}
+@import url('../../../packages/ui/styles.css');

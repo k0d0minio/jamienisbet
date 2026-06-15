@@ -51,6 +51,7 @@ jamienisbet/
 │
 ├── projects/           PER-CLIENT DELIVERY DOCS (docs-only; the build lives in the client's own external repo)
 ├── websites/           Jamie's own apps: portfolio/ · payment-gateway/ · admin-dashboard/ · sellers-site/
+├── packages/           SHARED CODE for every website — ui/ = @jamie-nisbet/ui (design system: tokens, components, assets)
 ├── tracker/            STANDALONE business-only daily todos + morning brief & weekly review
 ├── scripts/            the automation layer (bash): new-client · new-project · send-email
 └── state/              generated dashboard: pipeline value · win rate · revenue · tax reserve · receivables

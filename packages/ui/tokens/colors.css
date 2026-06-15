@@ -1,0 +1,116 @@
+/* ============================================================
+   COLOR — Jamie Nisbet Design System
+   Calm, minimal, Swiss. One disciplined slate-blue primary,
+   a cool neutral ramp, and restrained semantic colors.
+   ============================================================ */
+
+:root {
+  /* ---- Primary: slate blue ---------------------------------- */
+  --blue-50:  #F2F6FA;
+  --blue-100: #E3EBF3;
+  --blue-200: #C6D6E5;
+  --blue-300: #9DB6CF;
+  --blue-400: #6E90B2;
+  --blue-500: #4A6E94;
+  --blue-600: #3A5A78;   /* ★ brand base */
+  --blue-700: #2F4A63;
+  --blue-800: #283D51;
+  --blue-900: #1E2E3D;
+  --blue-950: #141F2A;
+
+  /* ---- Neutrals: cool grey ---------------------------------- */
+  --neutral-0:   #FFFFFF;
+  --neutral-50:  #F7F8F9;
+  --neutral-100: #EFF1F3;
+  --neutral-200: #E2E5E9;
+  --neutral-300: #CBD0D6;
+  --neutral-400: #9AA2AC;
+  --neutral-500: #6B747F;
+  --neutral-600: #4C545D;
+  --neutral-700: #383E45;
+  --neutral-800: #24282D;
+  --neutral-900: #15181C;
+  --neutral-950: #0C0E11;
+
+  /* ---- Semantic accents (muted, never neon) ----------------- */
+  --green-500:  #2E7D5B;
+  --green-50:   #ECF5F0;
+  --amber-500:  #B7791F;
+  --amber-50:   #FBF3E4;
+  --red-500:    #C0453B;
+  --red-50:     #FBECEA;
+
+  /* ============================================================
+     SEMANTIC ALIASES — light theme (default)
+     Always design against these, not the raw ramps above.
+     ============================================================ */
+  --bg:            var(--neutral-50);
+  --surface:       var(--neutral-0);
+  --surface-2:     var(--neutral-50);
+  --surface-sunken:var(--neutral-100);
+
+  --text-1:        var(--neutral-900);   /* primary text */
+  --text-2:        var(--neutral-600);   /* secondary    */
+  --text-3:        var(--neutral-500);   /* muted / meta */
+  --text-inverse:  var(--neutral-0);
+
+  --border:        var(--neutral-200);   /* hairline      */
+  --border-strong: var(--neutral-300);
+  --border-focus:  var(--blue-600);
+
+  --primary:       var(--blue-600);
+  --primary-hover: var(--blue-700);
+  --primary-active:var(--blue-800);
+  --primary-fg:    var(--neutral-0);
+  --primary-soft:  var(--blue-50);
+  --primary-soft-fg: var(--blue-700);
+
+  --ring:          color-mix(in srgb, var(--blue-600) 35%, transparent);
+
+  --success:       var(--green-500);
+  --success-soft:  var(--green-50);
+  --warning:       var(--amber-500);
+  --warning-soft:  var(--amber-50);
+  --danger:        var(--red-500);
+  --danger-soft:   var(--red-50);
+
+  /* decorative blueprint grid line */
+  --grid-line:     color-mix(in srgb, var(--neutral-900) 5%, transparent);
+}
+
+/* ============================================================
+   DARK THEME
+   ============================================================ */
+[data-theme="dark"] {
+  --bg:            var(--neutral-950);
+  --surface:       #14181D;
+  --surface-2:     #1A1F25;
+  --surface-sunken:#0C0E11;
+
+  --text-1:        #EAECEF;
+  --text-2:        #A8B0BA;
+  --text-3:        #767E89;
+  --text-inverse:  var(--neutral-950);
+
+  --border:        #262C33;
+  --border-strong: #353C44;
+  --border-focus:  var(--blue-400);
+
+  --primary:       var(--blue-400);
+  --primary-hover: var(--blue-300);
+  --primary-active:var(--blue-200);
+  --primary-fg:    #0C141C;
+  --primary-soft:  color-mix(in srgb, var(--blue-400) 16%, transparent);
+  --primary-soft-fg: var(--blue-200);
+
+  --ring:          color-mix(in srgb, var(--blue-400) 45%, transparent);
+
+  --success:       #4FB286;
+  --success-soft:  color-mix(in srgb, #4FB286 16%, transparent);
+  --warning:       #D89B3E;
+  --warning-soft:  color-mix(in srgb, #D89B3E 16%, transparent);
+  --danger:        #E0685E;
+  --danger-soft:   color-mix(in srgb, #E0685E 16%, transparent);
+
+  --grid-line:     color-mix(in srgb, #FFFFFF 6%, transparent);
+}

@@ -11,13 +11,16 @@ This folder defines the visual language of Jamie's business as a set of stable t
 - **Downstream / feeds:** [`websites/`](../../../websites/) theming; [`shared/templates/`](../../../shared/templates/) document styling; [`_config/brand/assets/`](../assets/) (assets are exported to match these tokens).
 - **Draws on (Layer 3 reference):** [`_config/brand/voice/`](../voice/) for the personality the visuals must express.
 
+## Canonical implementation
+The **live tokens, brand assets, and reusable components** ship from the shared UI package [`packages/ui/`](../../../packages/ui/) — websites consume them via `@jamie-nisbet/ui` and `@jamie-nisbet/ui/styles.css`. The files here are the **human-readable brand contract**; [`tokens.css`](tokens.css) re-exports the package so non-package consumers (document templates, one-off HTML) can link one stylesheet. Change the package tokens and these docs together.
+
 ## Contents
-- [`colors.md`](colors.md) — palette: hex values, semantic roles, contrast rules.
-- [`typography.md`](typography.md) — typefaces (Inter / JetBrains Mono), type scale, weights.
-- [`tokens.md`](tokens.md) — spacing, radii, shadows, layout tokens.
-- [`logo.md`](logo.md) — logo brief + usage rules (logo still to be designed).
-- [`iconography.md`](iconography.md) — icon style rules (Lucide, line, 1.5px).
-- [`tokens.json`](tokens.json) / [`tokens.css`](tokens.css) — **machine-readable** tokens; the single source websites and document templates import (brand-as-code).
+- [`colors.md`](colors.md) — palette: slate-blue ramp, cool-grey neutrals, semantic aliases, contrast rules.
+- [`typography.md`](typography.md) — typefaces (Hanken Grotesk / IBM Plex Mono), type scale, weights.
+- [`tokens.md`](tokens.md) — spacing, radii, shadows, motion, layout tokens.
+- [`logo.md`](logo.md) — the wordmark + JN monogram and usage rules (locked 2026-06-15).
+- [`iconography.md`](iconography.md) — icon style rules (Lucide, line, 1.5–2px).
+- [`tokens.json`](tokens.json) / [`tokens.css`](tokens.css) — **machine-readable** tokens mirroring `packages/ui`.
 
 ## Notes
-Keep tokens named and semantic (e.g. `color-primary`, `space-4`) so both Claude and humans can reference them unambiguously across web and print. Treat these files as the contract: when a value changes here, re-export the affected files in [`assets/`](../assets/) and re-run any website/template stage that consumes them.
+Keep tokens named and semantic (e.g. `--primary`, `--surface`, `--space-5`) and design against the semantic aliases, never the raw ramps. Light is default; dark flips via `[data-theme="dark"]`. Treat these files as the contract: when a value changes, update [`packages/ui/tokens/`](../../../packages/ui/tokens/) and these docs together, then re-run any website/template stage that consumes them.

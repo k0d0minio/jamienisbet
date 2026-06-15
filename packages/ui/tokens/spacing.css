@@ -1,0 +1,26 @@
+/* ============================================================
+   SPACING — Jamie Nisbet Design System
+   4px base grid. Generous by default — whitespace is the brand.
+   ============================================================ */
+
+:root {
+  --space-0:  0;
+  --space-1:  0.25rem;   /* 4  */
+  --space-2:  0.5rem;    /* 8  */
+  --space-3:  0.75rem;   /* 12 */
+  --space-4:  1rem;      /* 16 */
+  --space-5:  1.5rem;    /* 24 */
+  --space-6:  2rem;      /* 32 */
+  --space-7:  3rem;      /* 48 */
+  --space-8:  4rem;      /* 64 */
+  --space-9:  6rem;      /* 96 */
+  --space-10: 8rem;      /* 128 */
+
+  /* layout */
+  --container-sm:  640px;
+  --container-md:  840px;
+  --container-lg:  1080px;
+  --container-xl:  1280px;
+  --gutter:        var(--space-5);
+  --section-y:     var(--space-9);
+}
