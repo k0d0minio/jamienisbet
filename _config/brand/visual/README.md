@@ -12,7 +12,7 @@ This folder defines the visual language of Jamie's business as a set of stable t
 - **Draws on (Layer 3 reference):** [`_config/brand/voice/`](../voice/) for the personality the visuals must express.
 
 ## Canonical implementation
-The **live tokens, brand assets, and reusable components** ship from the shared UI package [`packages/ui/`](../../../packages/ui/) — websites consume them via `@jamie-nisbet/ui` and `@jamie-nisbet/ui/styles.css`. The files here are the **human-readable brand contract**; [`tokens.css`](tokens.css) re-exports the package so non-package consumers (document templates, one-off HTML) can link one stylesheet. Change the package tokens and these docs together.
+The **live tokens, brand assets, and reusable components** ship from the shared UI package [`packages/ui/`](../../../packages/ui/), implemented with **Tailwind CSS v4 + shadcn/ui** — websites consume them via `@jamie-nisbet/ui` and `@jamie-nisbet/ui/styles.css`. The token *values* below are unchanged by that implementation. The files here are the **human-readable brand contract**; [`tokens.css`](tokens.css) re-exports the package's variables-only layer (`packages/ui/tokens.css`) so non-package consumers (document templates, one-off HTML) can link one stylesheet without pulling in Tailwind. Change the package tokens and these docs together.
 
 ## Contents
 - [`colors.md`](colors.md) — palette: slate-blue ramp, cool-grey neutrals, semantic aliases, contrast rules.

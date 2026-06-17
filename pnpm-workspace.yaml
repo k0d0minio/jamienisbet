@@ -1,0 +1,6 @@
+# pnpm workspace — shared packages plus the websites that consume them.
+# Folders without a package.json (e.g. the website skeletons) are simply ignored
+# until they are scaffolded.
+packages:
+  - "packages/*"
+  - "websites/*"

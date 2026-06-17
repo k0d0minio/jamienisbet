@@ -54,7 +54,7 @@ The brand voice is *quiet, casual confidence* — professional without being cor
 ## Iconography
 
 - **System: [Lucide](https://lucide.dev)** — 1.5–2px stroke, rounded caps/joins. It matches the brand's precise, unfussy line. *(This is a chosen substitute — no icon set was supplied in the brief. Swap if you have a preferred set.)*
-- **Delivery:** loaded from CDN (`lucide@0.468.0` UMD). In React surfaces use the shared helper `assets/lib/icons.js` → `<Icon name="ArrowRight" size={18} />` (PascalCase Lucide names). In static HTML (slides, docs) use `<i data-lucide="check"></i>` + `lucide.createIcons()`.
+- **Delivery:** in React apps import `lucide-react` directly (a dependency of `@jamie-nisbet/ui`). In static HTML / UMD surfaces (slides, docs, email) use the shared helper `assets/lib/icons.js` → `<Icon name="ArrowRight" size={18} />` (PascalCase Lucide names), or `<i data-lucide="check"></i>` + `lucide.createIcons()`.
 - **Usage:** icons are functional, not decorative — they sit in buttons, nav, status rows, and feature lists at `15–21px`. Tinted `--text-3` at rest, `--primary` when they carry meaning (active nav, feature accents).
 - **No emoji. No multicolour/3D icons.** Unicode arrows (`↗`) are fine inline in mono labels.
 - **Logo** is bespoke (not an icon): see `assets/logo/`. The brand leads with the **Hanken Grotesk wordmark** ("Jamie Nisbet"); the compact mark is a **typographic JN monogram** (J first) in the same family — `mark-monogram.svg` (currentColor) and `mark-monogram-solid.svg` (white JN on a slate tile) for app/sidebar/favicon use. *(Locked 2026-06-15: the earlier abstract node/stack marks were dropped at the user's request.)*
@@ -67,8 +67,9 @@ This package (`@jamie-nisbet/ui`) ships the foundations, assets, and components 
 The full design exploration (UI kits, slides, proposal doc, specimen cards) lives in the
 source Claude Design bundle and is not re-shipped here — lift patterns from it as needed.
 
-**Foundations**
-- `styles.css` — global entry point (`@import` manifest only). Consumers link this one file.
+**Foundations** — built on **Tailwind CSS v4 + shadcn/ui** (new-york, unified `radix-ui`).
+- `styles.css` — the Tailwind v4 + shadcn theme entry; React apps link this one file. It maps the brand semantic aliases onto shadcn's color tokens.
+- `tokens.css` — the variables-only layer for non-Tailwind surfaces (static HTML, email, slides).
 - `tokens/` — `colors.css`, `typography.css`, `spacing.css`, `radius.css`, `shadows.css`, `motion.css`, `fonts.css`, `base.css`.
 
 **Assets** (`assets/`)
@@ -76,11 +77,9 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 - `brand/` — `social-card.html` (1200×630 OG), `email-signature.html`.
 - `lib/icons.js` — shared Lucide → `<Icon>` helper for UMD/static surfaces.
 
-**Components** (import from the `@jamie-nisbet/ui` barrel)
-- `components/core/` — Button, IconButton, Badge, Card, Avatar, Eyebrow
-- `components/forms/` — Input, Textarea, Select, Checkbox, Switch
-- `components/navigation/` — Tabs
-- `components/feedback/` — Alert, Dialog
-- Each has `.jsx` (marked `'use client'`) + `.d.ts` + `.prompt.md`.
+**Components** (TSX, idiomatic shadcn/ui themed with the brand tokens; import from the `@jamie-nisbet/ui` barrel)
+- `src/components/ui/` — Button, Badge, Card, Avatar, Input, Label, Textarea, Select, Checkbox, Switch, Tabs, Alert, Dialog. Compositional where shadcn is (e.g. `Card` + `CardHeader` + `CardTitle`; `Tabs` + `TabsList` + `TabsTrigger`).
+- `src/components/brand/` — Eyebrow, IconButton, LogoMark / LogoMarkSolid (brand-only; no shadcn equivalent).
+- `src/lib/utils.ts` — the `cn()` class-merge helper. Types come from the TSX source.
 
 **Consuming the package** — see `README.md`. **Skill** — `SKILL.md` makes this folder usable as an Agent Skill.

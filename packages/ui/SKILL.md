@@ -7,9 +7,9 @@ user-invocable: true
 Read the `BRAND.md` file within this skill first — it holds the brand context, content fundamentals, visual foundations, and iconography rules. Then explore the other available files. (`README.md` covers how to consume the package from a website.)
 
 ## What's here
-- `styles.css` + `tokens/` — the full token system (colour, type, spacing, radius, shadow, motion, fonts). Light + dark via `[data-theme="dark"]`. Link `styles.css` and design against the semantic aliases (`--surface`, `--text-1`, `--border`, `--primary`).
-- `assets/logo/` — logo marks (JN monogram + wordmark tile variants). `assets/brand/` — social card + email signature. `assets/lib/icons.js` — Lucide `<Icon>` helper for UMD/static surfaces.
-- `components/` — reusable React primitives (Button, Card, Input, Badge, Dialog, …), each with a `.d.ts` props contract and a `.prompt.md` showing usage. Import them from the package barrel (`index.js`).
+- `styles.css` — the **Tailwind v4 + shadcn/ui** theme entry; React apps link this one file. `tokens.css` + `tokens/` — the variables-only token system (colour, type, spacing, radius, shadow, motion, fonts) for non-Tailwind surfaces. Light + dark via `[data-theme="dark"]`. Design against the semantic aliases (`--surface`, `--text-1`, `--border`, `--primary`) / the shadcn utilities (`bg-card`, `text-muted-foreground`).
+- `assets/logo/` — logo marks (JN monogram + slate-tile variant). `assets/brand/` — social card + email signature. `assets/lib/icons.js` — Lucide `<Icon>` helper for UMD/static surfaces.
+- `src/components/` — idiomatic shadcn/ui primitives (TSX, Button/Card/Input/Badge/Dialog/…) themed with the brand tokens, plus brand-only Eyebrow / IconButton / logo marks. Import from the package barrel (`@jamie-nisbet/ui`).
 
 ## How to work
 - **Voice:** quiet, casual confidence. First person ("I…"), sentence case, no emoji, no hype. Mono for labels/figures. Let numbers carry weight. (Full rules in `BRAND.md` → Content fundamentals.)

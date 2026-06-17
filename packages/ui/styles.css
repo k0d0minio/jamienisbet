@@ -1,14 +1,97 @@
 /* ============================================================
-   Jamie Nisbet Design System — global entry point.
-   Consumers link THIS file. It is an @import manifest only;
-   never add rules directly here.
+   Jamie Nisbet Design System — Tailwind v4 + shadcn/ui entry point.
+
+   React/Tailwind apps link THIS file once at the root. It loads
+   Tailwind, the brand token variables (tokens.css → tokens/*.css),
+   and maps the brand semantic aliases onto shadcn's color tokens so
+   utilities like `bg-primary` / `text-muted-foreground` render in the
+   brand palette and flip with [data-theme="dark"].
+
+   Non-Tailwind surfaces (static HTML, email) link tokens.css instead.
+
+   How brand values win: tokens.css declares its variables UNLAYERED,
+   which beats Tailwind's `@layer theme` defaults — so the brand values
+   for --font-sans, --text-*, --radius-*, --shadow-* override Tailwind's
+   defaults automatically, and the dark-mode overrides in tokens/*.css
+   still apply. Only NEW tokens (shadcn color aliases, --text-2xs,
+   success/warning) are declared below.
    ============================================================ */
 
-@import url('./tokens/fonts.css');
-@import url('./tokens/colors.css');
-@import url('./tokens/typography.css');
-@import url('./tokens/spacing.css');
-@import url('./tokens/radius.css');
-@import url('./tokens/shadows.css');
-@import url('./tokens/motion.css');
-@import url('./tokens/base.css');
+/* Webfonts first: @import must precede all other rules, and Tailwind keeps
+   external imports where authored. (tokens.css carries its own copy for the
+   standalone, non-Tailwind path.) */
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Brand token variables (fonts are loaded above). These mirror tokens.css but
+   skip its fonts.css entry to avoid a duplicate, mis-positioned font @import in
+   the bundle. tokens.css stays self-contained for non-Tailwind consumers. */
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/radius.css";
+@import "./tokens/shadows.css";
+@import "./tokens/motion.css";
+@import "./tokens/base.css";
+
+/* Brand theming is driven by [data-theme="dark"], not the `.dark` class. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Map shadcn's semantic color tokens onto the brand semantic aliases.
+   `inline` keeps the var() reference in the generated utilities, so they
+   re-resolve when --bg/--surface/--primary/... flip in dark mode. */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text-1);
+
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text-1);
+
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text-1);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-fg);
+
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--text-1);
+
+  --color-muted: var(--surface-sunken);
+  --color-muted-foreground: var(--text-3);
+
+  --color-accent: var(--primary-soft);
+  --color-accent-foreground: var(--primary-soft-fg);
+
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--neutral-0);
+
+  --color-border: var(--border);
+  --color-input: var(--border-strong);
+  --color-ring: var(--border-focus);
+
+  /* brand extensions beyond the shadcn defaults */
+  --color-success: var(--success);
+  --color-success-foreground: var(--neutral-0);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--neutral-0);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-fg);
+  --color-success-soft: var(--success-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-destructive-soft: var(--danger-soft);
+
+  /* extra type-scale step the brand adds below Tailwind's --text-xs */
+  --text-2xs: 0.6875rem;
+}
+
+@layer base {
+  /* shadcn default: unspecified borders use the brand hairline.
+     (Body bg/color/font are owned by the brand reset in tokens/base.css.) */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border);
+  }
+}

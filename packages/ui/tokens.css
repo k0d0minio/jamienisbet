@@ -1,0 +1,25 @@
+/* ============================================================
+   Jamie Nisbet Design System — token variables (framework-agnostic).
+
+   This is an @import manifest of pure CSS custom properties only —
+   no Tailwind, no component styles. Link THIS file from non-React /
+   non-Tailwind surfaces (static HTML, email, slides, the brand
+   contract re-export) to get the brand variables and base utilities.
+
+   React apps should instead import "@jamie-nisbet/ui/styles.css",
+   which layers Tailwind v4 + the shadcn theme on top of these tokens.
+   Never add rules directly here.
+
+   NOTE: these use the bare-string @import form (not `@import url(...)`)
+   so Tailwind v4 inlines them into styles.css. Both forms are valid CSS,
+   so direct browser loading (the HTML templates) still works.
+   ============================================================ */
+
+@import "./tokens/fonts.css";
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/radius.css";
+@import "./tokens/shadows.css";
+@import "./tokens/motion.css";
+@import "./tokens/base.css";

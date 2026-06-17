@@ -1,0 +1,15 @@
+{
+  "name": "jamienisbet",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Jamie Nisbet business monorepo — shared packages (@jamie-nisbet/*) and the websites that consume them.",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@10.31.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint"
+  }
+}

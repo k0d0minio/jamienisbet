@@ -10,10 +10,11 @@ landing place for future shared services (an API client, auth helpers, analytics
 wrapper, etc.) as they're extracted.
 
 ## Contents
-- [`ui/`](ui/) — **`@jamie-nisbet/ui`**: the design system in code. Design tokens
-  (`styles.css` + `tokens/`, light + dark), reusable React components (Button, Card, Input,
-  Dialog, …), and brand assets (logo marks, social card, email signature, icon helper). It is
-  the canonical implementation of the brand defined in
+- [`ui/`](ui/) — **`@jamie-nisbet/ui`**: the design system in code, built on
+  **Tailwind CSS v4 + shadcn/ui**. Brand tokens (`styles.css` = Tailwind theme entry, `tokens.css`/`tokens/` =
+  variables-only, light + dark), reusable React components (Button, Card, Input, Dialog, …)
+  themed with those tokens, and brand assets (logo marks, social card, email signature, icon
+  helper). It is the canonical implementation of the brand defined in
   [`_config/brand/visual/`](../_config/brand/visual/). See [`ui/README.md`](ui/README.md).
 
 ## How it connects to the architecture
@@ -24,5 +25,6 @@ wrapper, etc.) as they're extracted.
 ## Conventions
 - One source of truth: a package owns its concern; sites compose it, they don't fork it.
 - Each package carries its own `README.md` (router/narrative) and `package.json`.
-- Scope packages under `@jamie-nisbet/*`. Wire them as workspace dependencies when the web
-  apps are scaffolded (a root workspace `package.json` can be added then).
+- Scope packages under `@jamie-nisbet/*`. The repo is a **pnpm workspace** (root `package.json`
+  and `pnpm-workspace.yaml` cover `packages/*` and `websites/*`); run `pnpm install` at the root,
+  then wire each new site as a workspace dependency of `@jamie-nisbet/ui`.
