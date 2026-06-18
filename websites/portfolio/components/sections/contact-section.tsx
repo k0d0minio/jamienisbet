@@ -10,7 +10,7 @@ export function ContactSection() {
     <Section id="contact">
       <Container className="grid gap-12 lg:grid-cols-2 lg:gap-20">
         <div className="flex flex-col gap-5">
-          <Eyebrow rule index="04">
+          <Eyebrow rule index="05">
             Contact
           </Eyebrow>
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">

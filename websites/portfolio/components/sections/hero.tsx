@@ -19,12 +19,12 @@ export function Hero() {
             {site.role}
           </Eyebrow>
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-            I build AI features and software that ship — and earn their keep.
+            AI systems that give you your time back — and keep working as you grow.
           </h1>
           <p className="max-w-2xl text-lg text-pretty text-muted-foreground sm:text-xl">
-            I&apos;m Jamie — a senior engineer working directly with you. Practical AI and
-            software wired into the tools you already use, with clear scope and a clear price.
-            No agency layers, no surprises.
+            I&apos;m Jamie — a senior engineer working directly with you. I build AI and
+            software that takes the admin off your plate, on clean architecture that scales as
+            you grow. Clear scope, clear price, no surprises.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">

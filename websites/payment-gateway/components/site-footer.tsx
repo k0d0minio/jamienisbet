@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Eyebrow, LogoMarkSolid } from "@jamie-nisbet/ui"
-import { Mail, MapPin } from "lucide-react"
+import { ExternalLink, Lock, Mail, MapPin } from "lucide-react"
 
 import { site } from "@/lib/site"
 
@@ -14,19 +14,23 @@ export function SiteFooter() {
           <Link
             href="/"
             className="flex items-center gap-2.5"
-            aria-label={`${site.name} — home`}
+            aria-label={`${site.name} — ${site.role}`}
           >
             <LogoMarkSolid className="size-8" />
             <span className="font-semibold tracking-tight">{site.name}</span>
           </Link>
           <p className="text-sm text-muted-foreground">
-            AI and software that take the admin off your plate — built to last, from{" "}
+            Pay an invoice, deposit, or retainer securely. Run from{" "}
             {site.location}.
+          </p>
+          <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+            <Lock className="size-4" />
+            Card details are handled by Stripe — they never touch this server.
           </p>
         </div>
 
         <div className="flex flex-col gap-3">
-          <Eyebrow>Get in touch</Eyebrow>
+          <Eyebrow>Questions about a payment?</Eyebrow>
           <a
             href={`mailto:${site.email}`}
             className="inline-flex items-center gap-2 text-sm transition-colors hover:text-primary"
@@ -38,6 +42,13 @@ export function SiteFooter() {
             <MapPin className="size-4" />
             {site.location}
           </span>
+          <a
+            href={site.mainSiteUrl}
+            className="inline-flex items-center gap-2 text-sm transition-colors hover:text-primary"
+          >
+            <ExternalLink className="size-4 text-muted-foreground" />
+            jamienisbet.com
+          </a>
         </div>
       </div>
 
@@ -46,17 +57,9 @@ export function SiteFooter() {
           <p className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
             © {year} {site.name}
           </p>
-          <nav className="flex gap-4">
-            {site.nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <p className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
+            Payments by Stripe
+          </p>
         </div>
       </div>
     </footer>

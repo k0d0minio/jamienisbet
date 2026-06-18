@@ -4,7 +4,7 @@
 > **Purpose:** Jamie's own portfolio web app — the showcase that turns networking and word-of-mouth interest into qualified leads.
 
 ## What this folder accomplishes
-This holds Jamie's professional portfolio: a Next.js (App Router) site, deployed on Vercel, that presents who he is (software engineer / AI consultant, based in Mafra, Portugal), the work he has shipped, and how to reach him. Because his only lead channels today are networking and word of mouth, this site is the link he hands out — it must look like the brand and convert a warm introduction into a real conversation. It pulls every visual decision from the shared brand tokens so it is unmistakably "Jamie Nisbet".
+This holds Jamie's professional portfolio: a Next.js (App Router) site, deployed on Vercel, that presents who he is (software engineer / AI consultant, based in Portugal), the work he has shipped, and how to reach him. Because his only lead channels today are networking and word of mouth, this site is the link he hands out — it must look like the brand and convert a warm introduction into a real conversation. It pulls every visual decision from the shared brand tokens so it is unmistakably "Jamie Nisbet".
 
 ## Run it
 

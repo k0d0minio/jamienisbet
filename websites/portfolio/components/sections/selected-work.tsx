@@ -15,7 +15,7 @@ export function SelectedWork() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading
             eyebrow="Selected work"
-            index="02"
+            index="03"
             title="A few things I've shipped."
             intro="Case studies of real projects — the problem, what I did, and the result."
           />
