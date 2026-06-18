@@ -4,7 +4,9 @@
 > **Purpose:** The public front door for the affiliate program — where local sellers submit a lead with their referral code, and partners register referrals.
 
 ## What this folder accomplishes
-A public Next.js (App Router) site, deployed on Vercel, that powers Jamie's lead-generation channel without ad spend. Two jobs: (1) a local **affiliate seller** submits a customer lead tagged with their unique referral code (which makes the 10% payout unambiguous); (2) **partners** (accountants, print shops, co-working spaces, agencies) register reciprocal referrals. Submitted leads flow into [workspaces/lead-generation/](../../workspaces/lead-generation/) for triage. On-brand like every other site. Skeleton only — intent, not code.
+A public Next.js (App Router) site, deployed on Vercel, that powers Jamie's lead-generation channel without ad spend. Two jobs: (1) a local **affiliate seller** submits a customer lead tagged with their unique referral code (which makes the 10% payout unambiguous); (2) **partners** (accountants, print shops, co-working spaces, agencies) register reciprocal referrals. Submitted leads flow into [workspaces/lead-generation/](../../workspaces/lead-generation/) for triage. On-brand like every other site.
+
+Built as a single-page landing (pitch → how the 10% works → what you sell → partners → FAQ) with both capture forms presented as tabs in the `#refer` section. Modelled on [../portfolio/](../portfolio/) — same stack and brand wiring.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** public submissions (seller leads + partner referrals); the seller/partner registry and referral codes defined in [workspaces/lead-generation/stages/03_affiliate_program/](../../workspaces/lead-generation/stages/03_affiliate_program/).
@@ -12,9 +14,13 @@ A public Next.js (App Router) site, deployed on Vercel, that powers Jamie's lead
 - **Draws on (Layer 3 reference):** [_config/brand/visual/](../../_config/brand/visual/) + [_config/brand/voice/](../../_config/brand/voice/) (the seller-facing copy), [workspaces/lead-generation/references/](../../workspaces/lead-generation/references/) (the productised offer + pitch).
 
 ## Contents
-- `app/` — (planned) Next.js App Router pages: the offer, a seller lead form (with referral code), a partner referral form.
-- `theme.config` — (planned) imports brand tokens from `_config/brand/visual/`.
+- `app/` — App Router: `page.tsx` composes the landing sections; `layout.tsx` wires the brand theme; `actions/referral.ts` holds the two Server Actions; `robots.ts`, `sitemap.ts`, `icon.svg`.
+- `components/` — `site-header`/`site-footer`, `referral-forms` (the tabbed seller + partner forms), and `sections/` (hero, how-it-works, what-you-sell, partners, faq, refer-section).
+- `lib/` — `site.ts` (copy + section data) and `referral-schema.ts` (Zod schemas + form state types).
+- Brand: consumes `@jamie-nisbet/ui` via `workspace:*` and `@import "@jamie-nisbet/ui/styles.css"`; theming is light/dark via the `data-theme` attribute (no per-site token overrides) — same pattern as `../portfolio/`.
 
 ## Notes
 - One job: capture attributed leads from sellers and partners. Quoting/closing stays with Jamie (proposals); a seller may quote a landing page + contact form for ≥ €200 without approval, anything more complex needs sign-off.
-- Public site. Stack intent: Next.js App Router on Vercel — skeleton only.
+- Sellers can share `/?ref=THEIR-CODE` links — the referral code prefills on the seller form so attribution is captured at first contact.
+- **Delivery is deferred.** Both forms validate and confirm success, but submissions are only console-logged until a delivery target (e.g. `RESEND_API_KEY`, see `.env.example`) is configured and reviewed — honouring "no outbound action without review". Wire-up point: `app/actions/referral.ts`.
+- Public site, deployed on Vercel. Run locally with `pnpm --filter @jamie-nisbet/sellers-site dev`.
