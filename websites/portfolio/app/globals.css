@@ -1,0 +1,119 @@
+/* ============================================================
+   Portfolio — app stylesheet.
+
+   Links the Jamie Nisbet design system once (Tailwind v4 + brand
+   tokens + shadcn theme), tells Tailwind to scan the package source
+   for class names, and adds a small branded `.prose` layer for
+   markdown-rendered case-study bodies. No tokens are redefined here
+   (one source of truth lives in @jamie-nisbet/ui).
+   ============================================================ */
+
+@import "@jamie-nisbet/ui/styles.css";
+
+/* Tailwind must scan the design system's TSX source for the utility classes
+   its components use. Point at the real package source in the monorepo —
+   deterministic, and avoids relying on pnpm symlink resolution. */
+@source "../../../packages/ui/src";
+
+/* Sticky-header anchor offset for the single-page nav. */
+:root {
+  --header-h: 4rem;
+}
+section[id] {
+  scroll-margin-top: calc(var(--header-h) + 1.5rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---- Branded markdown (case-study bodies via react-markdown) ----
+   Uses the design-system token variables so it flips with [data-theme]. */
+.prose {
+  color: var(--text-2);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+}
+.prose > * + * {
+  margin-top: var(--space-4);
+}
+.prose h2 {
+  color: var(--text-1);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  margin-top: var(--space-7);
+}
+.prose h3 {
+  color: var(--text-1);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  margin-top: var(--space-6);
+}
+.prose p {
+  color: var(--text-2);
+}
+.prose strong {
+  color: var(--text-1);
+  font-weight: var(--weight-semibold);
+}
+.prose a {
+  color: var(--primary);
+  text-underline-offset: 3px;
+}
+.prose a:hover {
+  text-decoration: underline;
+}
+.prose ul,
+.prose ol {
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li::marker {
+  color: var(--text-3);
+}
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 0.1em 0.35em;
+}
+.prose pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow-x: auto;
+}
+.prose pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.prose blockquote {
+  border-left: 2px solid var(--border-strong);
+  padding-left: var(--space-4);
+  color: var(--text-3);
+  font-style: italic;
+}
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: var(--space-6) 0;
+}
