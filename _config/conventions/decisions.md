@@ -1,9 +1,9 @@
 # Architecture Decisions (register)
 
 > **ICM role:** Layer 3 — reference (convention)
-> **Purpose:** A terse register of the decisions that shaped this repo, so an agent loads the *what* without re-reading the full Q&A. Rationale lives in [`brainstorm.md`](../../brainstorm.md).
+> **Purpose:** A terse register of the decisions that shaped this repo, so an agent loads the *what* without re-reading the full Q&A. This register is the record.
 
-Decided 2026-06 from the `brainstorm.md` questionnaire (~50 answers). Most load-bearing first.
+Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing first.
 
 ## Structure
 - **Stage contract = split:** `README.md` (narrative) + `CONTEXT.md` (contract). Root `CLAUDE.md`
@@ -50,5 +50,3 @@ Decided 2026-06 from the `brainstorm.md` questionnaire (~50 answers). Most load-
   documents and websites.
 - **Models:** heavy for negotiation/triage; cheap for formatting/scans.
 - **Goal of "powerful":** fewer admin hours, higher close rate, never miss a deadline.
-
-Rationale & full answers: [`brainstorm.md`](../../brainstorm.md).

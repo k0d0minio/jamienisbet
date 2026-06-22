@@ -29,7 +29,6 @@ produced. Five context layers run the whole system:
 jamienisbet/
 ├── CLAUDE.md            Layer 0 — agent identity & routing (read first)
 ├── README.md           you are here — the human master map
-├── suggestions.md      ideas to make this repo more valuable
 │
 ├── _config/            THE FACTORY (global Layer 3 — stable, drawn on everywhere)
 │   ├── brand/          single source of truth: visual/ · voice/ · assets/
@@ -81,8 +80,7 @@ so everything looks and sounds like one business.
 decisions are settled — `projects/` is docs-only (client builds live in external repos), `websites/`
 hosts Jamie's own apps, `tracker/` is business-only. **Still to come (later passes):** brand identity,
 each workspace's `setup/` + `references/` content, and making `legal-and-tax` runnable first.
-Decisions are recorded in [`brainstorm.md`](brainstorm.md) and
-[`_config/conventions/decisions.md`](_config/conventions/decisions.md).
+Decisions are recorded in [`_config/conventions/decisions.md`](_config/conventions/decisions.md).
 
 ## Important
 
@@ -90,4 +88,4 @@ Legal, tax, and financial features in this repo are **decision-support, not prof
 Anything they produce should be reviewed by a licensed Portuguese *contabilista certificado* /
 lawyer before you act on it.
 
-— Start at [`CLAUDE.md`](CLAUDE.md) · ideas in [`suggestions.md`](suggestions.md)
+— Start at [`CLAUDE.md`](CLAUDE.md)

@@ -30,5 +30,3 @@ For proposal generation, I would like a hard focus on an AI that can guide me on
 I'd also like to host multiple websites here for my own personal use as well as some front facing client stuff, so brand and visual identity is key here too. My portfolio should exist within this structure too.
 
 Also I'd like for this repo to act as a todo list tracker to, I can set a claude routine to run every morning and to check what still needs getting done. This will be a mix of business and personal use so make it clear that this is a standalone entity separated from the rest of business data. It will sometimes refer to it when assigned a business related task, but some stuff will definitely be personal.
-
-If you have any other suggestions on what can be done to make this repo truly a valuable product for my business, please offer them up within a suggestions.md file.

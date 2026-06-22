@@ -31,13 +31,6 @@ export default async function PayPage({
         {/* Left: the invoice the amount traces to. */}
         <div className="flex flex-col gap-4">
           <InvoiceSummary invoice={invoice} />
-          {invoice.isDemo && (
-            <p className="text-sm text-muted-foreground">
-              This is a demo invoice shown for review. Real invoices are loaded
-              from Stripe by their id, e.g.{" "}
-              <code className="font-mono text-2xs">/pay/in_123abc</code>.
-            </p>
-          )}
         </div>
 
         {/* Right: pay, or a status notice if there's nothing to pay. */}

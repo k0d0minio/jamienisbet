@@ -14,7 +14,6 @@ function formatDate(epochSeconds: number | null): string | null {
 
 // Maps an invoice status to a brand status badge (muted tints, never neon).
 function StatusBadge({ invoice }: { invoice: InvoiceView }) {
-  if (invoice.isDemo) return <Badge variant="outline">Demo</Badge>
   switch (invoice.status) {
     case "paid":
       return <Badge variant="success">Paid</Badge>

@@ -25,4 +25,4 @@ This is Jamie's go-to-market engine: a freelance AI consultant in Mafra, Portuga
 Every stage writes to its own `output/` and stops at a human review gate before the next stage runs.
 
 ## Notes
-Each stage does exactly one job and hands off through its `output/`. Keep all artifacts plain markdown so Jamie can open and edit them. Channels here are deliberately founder-appropriate: no ad spend, low social-media dependency. Broader lead-gen ideas live in the root `suggestions.md`; this workspace only implements the ones Jamie selects.
+Each stage does exactly one job and hands off through its `output/`. Keep all artifacts plain markdown so Jamie can open and edit them. Channels here are deliberately founder-appropriate: no ad spend, low social-media dependency. This workspace implements only the lead-gen channels Jamie selects.

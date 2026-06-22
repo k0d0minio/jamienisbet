@@ -11,7 +11,7 @@ This produces the step-by-step path to actually register as a *trabalhador indep
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../02_entity_options/output/`](../02_entity_options/)
 - **Downstream / feeds:** [`../04_tax_optimization/`](../04_tax_optimization/); on registration, write entity facts (CIRS code, IVA/VIES status, start date) back to [`_config/business/entity.md`](../../../../_config/business/)
-- **Draws on (Layer 3 reference):** [`../../references/`](../../references/) (accounting-regimes, iva-vat-notes, social-security-notes), [`../../../../portugal-business-structure-analysis.md`](../../../../portugal-business-structure-analysis.md) §7
+- **Draws on (Layer 3 reference):** [`../../references/`](../../references/) (accounting-regimes, iva-vat-notes, social-security-notes), [`../../references/portugal-business-structure-analysis.md`](../../references/portugal-business-structure-analysis.md) §7
 
 ## Contents
 - [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.

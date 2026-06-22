@@ -13,7 +13,7 @@ import { createCheckoutSession } from "@/app/actions/checkout"
 
 // Load Stripe once, outside the component, to avoid recreating it on every
 // render. When the publishable key is unset, there's no Stripe to load — the
-// component renders a demo-mode notice instead of the form (keyless review path).
+// component renders a configuration notice instead of the form.
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 
@@ -29,12 +29,11 @@ export function Checkout({ invoiceId }: { invoiceId: string }) {
     return (
       <Alert variant="info">
         <Info />
-        <AlertTitle>Demo mode — payment is disabled</AlertTitle>
+        <AlertTitle>Payments aren&apos;t configured</AlertTitle>
         <AlertDescription>
-          This preview has no Stripe publishable key set, so the live card form
-          isn&apos;t mounted. Add Stripe test keys to{" "}
-          <code className="font-mono text-2xs">.env</code> to take a real test
-          payment.
+          No Stripe publishable key is set, so the card form isn&apos;t mounted.
+          Add Stripe keys to{" "}
+          <code className="font-mono text-2xs">.env</code> to take a payment.
         </AlertDescription>
       </Alert>
     )

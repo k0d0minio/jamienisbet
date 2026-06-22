@@ -9,7 +9,7 @@ The structure decision is already made and the situation is captured in [`../../
 > **DISCLAIMER:** Decision-support only — a licensed Portuguese contabilista certificado / lawyer must review.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** [`../../setup/output/config.md`](../../setup/) (locked situation); [`../../../../portugal-business-structure-analysis.md`](../../../../portugal-business-structure-analysis.md) (the decision basis)
+- **Upstream / reads from:** [`../../setup/output/config.md`](../../setup/) (locked situation); [`../../references/portugal-business-structure-analysis.md`](../../references/portugal-business-structure-analysis.md) (the decision basis)
 - **Downstream / feeds:** [`../02_entity_options/`](../02_entity_options/) (reads this `output/`)
 - **Draws on (Layer 3 reference):** [`../../references/decision-basis.md`](../../references/decision-basis.md)
 

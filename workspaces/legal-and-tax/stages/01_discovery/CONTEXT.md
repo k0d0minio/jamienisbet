@@ -3,7 +3,7 @@
 
 ## Inputs
 - Layer 4 (working): `../../setup/output/config.md` (the locked situation + decision)
-- Layer 3 (reference): `../../references/decision-basis.md`; `../../../../portugal-business-structure-analysis.md`
+- Layer 3 (reference): `../../references/decision-basis.md`; `../../references/portugal-business-structure-analysis.md`
 
 ## Process
 Walk each parameter in the locked config and confirm it still holds; test the three revisit triggers (income ~€100k+, real liability exposure, profit retention becoming possible). Record confirmation, or flag any delta that warrants re-opening the structure decision.

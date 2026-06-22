@@ -2,11 +2,10 @@ import "server-only"
 import type Stripe from "stripe"
 
 import { getStripe } from "@/lib/stripe"
-import { demoInvoice } from "@/lib/demo"
 
 // A small, presentation-ready view of a Stripe invoice. This is the *single
 // trusted source* of the amount a client pays — the figure always comes from
-// here (the real Stripe invoice, or the demo fixture), never from client input.
+// here (the real Stripe invoice), never from client input.
 export type InvoiceLine = {
   description: string
   quantity: number
@@ -20,14 +19,13 @@ export type InvoiceView = {
   currency: string
   amountDue: number // minor units (cents)
   total: number // minor units (cents)
-  status: Stripe.Invoice.Status | "demo"
+  status: Stripe.Invoice.Status
   dueDate: number | null // epoch seconds
   createdDate: number | null // epoch seconds
   customerName: string | null
   customerEmail: string | null
   lines: InvoiceLine[]
   hostedInvoiceUrl: string | null
-  isDemo: boolean
   /** Open and still owing — only then do we mount a payment form. */
   isPayable: boolean
 }
@@ -62,22 +60,18 @@ function normalize(inv: Stripe.Invoice): InvoiceView {
     customerEmail: inv.customer_email ?? null,
     lines,
     hostedInvoiceUrl: inv.hosted_invoice_url ?? null,
-    isDemo: false,
     isPayable: inv.status === "open" && amountDue > 0,
   }
 }
 
 /**
- * Resolve an invoice for the gateway. Returns the demo fixture for the `demo`
- * slug or whenever Stripe isn't configured (so pages render for review without
- * keys); otherwise retrieves the real Stripe invoice. Returns null when the id
- * doesn't resolve — the page then renders not-found.
+ * Resolve an invoice for the gateway by retrieving the real Stripe invoice.
+ * Returns null when Stripe isn't configured or the id doesn't resolve — the
+ * page then renders not-found.
  */
 export async function getInvoice(id: string): Promise<InvoiceView | null> {
   const stripe = getStripe()
-  if (id === "demo" || !stripe) {
-    return demoInvoice(id)
-  }
+  if (!stripe) return null
 
   try {
     const inv = await stripe.invoices.retrieve(id)

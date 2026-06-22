@@ -4,7 +4,7 @@
 > **Decision-support only**; figures feed analysis a contabilista must confirm.
 >
 > **Already configured.** The answers are locked in [`output/config.md`](output/config.md), derived
-> from [`portugal-business-structure-analysis.md`](../../../portugal-business-structure-analysis.md)
+> from [`portugal-business-structure-analysis.md`](../references/portugal-business-structure-analysis.md)
 > (repo root). Re-answer only if a foundational circumstance changes (a revisit trigger fires).
 
 Answer once; every stage reads the locked config rather than re-asking these fixed facts.

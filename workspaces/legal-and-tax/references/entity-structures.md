@@ -15,4 +15,4 @@ The structure decision is **made** (see [`decision-basis.md`](decision-basis.md)
 ## The deciding factor
 Everything is drawn out to live on. A company's advantage is *retaining* earnings to defer the second tax layer; pulling it all out incurs both layers. So the simplest vehicle — plain *trabalhador independente* — is also the most tax-efficient here. "Set up as a business entity" is best satisfied by this status, not an ENI or Lda.
 
-Net-in-pocket (steady state): simplified ~€29–30k vs full-extraction Lda ~€27–28k. Numbers: [`portugal-business-structure-analysis.md`](../../../portugal-business-structure-analysis.md) §4.
+Net-in-pocket (steady state): simplified ~€29–30k vs full-extraction Lda ~€27–28k. Numbers: [`portugal-business-structure-analysis.md`](portugal-business-structure-analysis.md) §4.

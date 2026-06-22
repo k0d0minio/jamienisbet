@@ -45,7 +45,7 @@ once so each run just produces a new deliverable.
 
 ### Record
 
-- [`decisions.md`](decisions.md) — terse register of the locked decisions (rationale in [`brainstorm.md`](../../brainstorm.md)).
+- [`decisions.md`](decisions.md) — terse register of the locked decisions.
 
 ## Notes
 These conventions are stable across all runs — they are the protocol, not any deliverable. When the

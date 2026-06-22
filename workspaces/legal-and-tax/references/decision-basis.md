@@ -6,7 +6,7 @@
 ## The decision (made)
 Register as a **self-employed service provider — *trabalhador independente* (recibos verdes) — under the *regime simplificado*.** Trading under the personal name **Jamie Nisbet**. **Not** an ENI designation, **not** a company (Unipessoal Lda).
 
-Full rationale, numbers, and sources: [`portugal-business-structure-analysis.md`](../../../portugal-business-structure-analysis.md) (repo root). This pipeline **operates** that decision; it does not re-open it.
+Full rationale, numbers, and sources: [`portugal-business-structure-analysis.md`](portugal-business-structure-analysis.md). This pipeline **operates** that decision; it does not re-open it.
 
 ## Why (headline)
 - All profit is drawn to live on → a company's retain-and-defer advantage never activates; extraction triggers corporate tax **plus** 28% dividend tax — more total tax, plus organised-accounting overhead.
