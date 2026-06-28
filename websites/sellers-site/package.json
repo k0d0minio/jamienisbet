@@ -2,7 +2,7 @@
   "name": "@jamie-nisbet/sellers-site",
   "version": "0.1.0",
   "private": true,
-  "description": "Public affiliate intake — local sellers submit referral-tagged leads and partners register reciprocal referrals (Next.js App Router, consumes @jamie-nisbet/ui).",
+  "description": "Public seller intake — local sellers submit referral-tagged leads (Next.js App Router, consumes @jamie-nisbet/ui).",
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {

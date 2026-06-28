@@ -14,11 +14,27 @@ export const budgetOptions = [
   "€5,000+",
 ] as const
 
-const customerContact = z
+// The lead's phone is the primary way to reach them, so it's required; a basic
+// shape check (digits, spaces, and the usual + - ( ) ) keeps obvious junk out
+// without rejecting valid international formats.
+const customerPhone = z
   .string()
   .trim()
-  .min(5, "An email or phone number so I can reach them.")
+  .min(6, "A phone number so I can reach them.")
+  .max(40)
+  .refine((v) => /^[+\d][\d\s().-]{4,}$/.test(v), {
+    message: "That phone number doesn't look right.",
+  })
+
+// Email is optional — handy to have, but the phone is enough to follow up.
+const customerEmail = z
+  .string()
+  .trim()
   .max(200)
+  .refine((v) => v === "" || z.string().email().safeParse(v).success, {
+    message: "That email doesn't look right.",
+  })
+  .optional()
 
 const need = z
   .string()
@@ -79,21 +95,13 @@ export const sellerLeadSchema = z.object({
     .min(2, "Your referral code — it's what ties the payout to you.")
     .max(40),
   customerName: z.string().trim().min(2, "The customer's name, please.").max(120),
-  customerContact,
+  // The lead's contact: phone required, email optional.
+  customerPhone,
+  customerEmail,
   need,
   budget: z.enum(budgetOptions).optional().or(z.literal("")),
   // Optional — when the customer's free to talk (business days, 9am–5pm).
   preferredCallTime,
-  // Optional — so I can confirm the lead landed with the right seller.
-  sellerName: z.string().trim().max(120).optional(),
-  sellerEmail: z
-    .string()
-    .trim()
-    .max(200)
-    .refine((v) => v === "" || z.string().email().safeParse(v).success, {
-      message: "That email doesn't look right.",
-    })
-    .optional(),
   // Honeypot: real people leave this empty.
   company: z.string().max(0).optional(),
 })
@@ -102,46 +110,15 @@ export type SellerLeadInput = z.infer<typeof sellerLeadSchema>
 export type SellerLeadField =
   | "referralCode"
   | "customerName"
-  | "customerContact"
+  | "customerPhone"
+  | "customerEmail"
   | "need"
   | "budget"
   | "preferredCallTime"
-  | "sellerName"
-  | "sellerEmail"
 
 export type SellerLeadState = {
   status: "idle" | "success" | "error"
   message?: string
   errors?: Partial<Record<SellerLeadField, string>>
   values?: Partial<Record<SellerLeadField, string>>
-}
-
-// ---- Partner referral ------------------------------------------------------
-export const partnerReferralSchema = z.object({
-  partnerName: z.string().trim().min(2, "Your name or business, please.").max(120),
-  partnerContact: z
-    .string()
-    .trim()
-    .min(5, "An email or phone so I can reach you about the referral.")
-    .max(200),
-  customerName: z.string().trim().min(2, "The customer's name, please.").max(120),
-  customerContact,
-  need,
-  // Honeypot.
-  company: z.string().max(0).optional(),
-})
-
-export type PartnerReferralInput = z.infer<typeof partnerReferralSchema>
-export type PartnerReferralField =
-  | "partnerName"
-  | "partnerContact"
-  | "customerName"
-  | "customerContact"
-  | "need"
-
-export type PartnerReferralState = {
-  status: "idle" | "success" | "error"
-  message?: string
-  errors?: Partial<Record<PartnerReferralField, string>>
-  values?: Partial<Record<PartnerReferralField, string>>
 }
