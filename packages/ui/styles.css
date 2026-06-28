@@ -34,7 +34,14 @@
 @import "./tokens/radius.css";
 @import "./tokens/shadows.css";
 @import "./tokens/motion.css";
-@import "./tokens/base.css";
+/* base.css holds element resets (body, headings, `a`, focus) — NOT token
+   variables. It must live in `@layer base` so Tailwind utilities (in the later
+   `utilities` layer) win over it. Imported unlayered, the generic `a { color:
+   var(--primary) }` rule beats `text-primary-foreground`, so primary CTAs
+   rendered as anchors (`<Button asChild><Link>`) get blue text on a blue
+   `bg-primary` fill — invisible. Layering fixes it while content links and
+   color-less variants (e.g. outline) still inherit the base link color. */
+@import "./tokens/base.css" layer(base);
 
 /* Brand theming is driven by [data-theme="dark"], not the `.dark` class. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
