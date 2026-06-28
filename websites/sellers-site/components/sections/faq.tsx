@@ -7,7 +7,7 @@ export function Faq() {
       <Container className="flex flex-col gap-12">
         <SectionHeading
           eyebrow="FAQ"
-          index="04"
+          index="05"
           title="The questions that come up first."
         />
         <dl className="grid gap-x-12 gap-y-8 sm:grid-cols-2">

@@ -18,6 +18,7 @@ export const site = {
   nav: [
     { label: "How it works", href: "/#how" },
     { label: "What you sell", href: "/#sell" },
+    { label: "Seller kit", href: "/#kit" },
     { label: "Partners", href: "/#partners" },
     { label: "FAQ", href: "/#faq" },
   ],
@@ -82,6 +83,62 @@ export const partnerPerks: string[] = [
   "Built for accountants, print shops, co-working spaces, and agencies who already serve the same customers.",
   "High trust, zero ad spend: your client deals with a named engineer, not a faceless agency.",
   "Same 10% on anything you refer that turns into paid work — attribution carries through your code.",
+]
+
+// The seller kit — ready-to-send messages a seller can copy, adapt, and send in
+// seconds. `{link}` is replaced at render time with the seller's personal referral
+// link, so attribution travels with every share. Keep these in the brand voice:
+// plain, warm, no jargon — the seller never has to explain the tech.
+export type PitchScript = {
+  channel: string
+  icon: "MessageCircle" | "Mail" | "Users"
+  title: string
+  body: string
+}
+
+export const pitchScripts: PitchScript[] = [
+  {
+    channel: "WhatsApp",
+    icon: "MessageCircle",
+    title: "Quick WhatsApp intro",
+    body: "Hey! You mentioned needing a website for the business — I know the right person. Jamie builds clean, fast sites from €200 and handles the whole thing for you. Want me to introduce you? Here's his page: {link}",
+  },
+  {
+    channel: "Email",
+    icon: "Mail",
+    title: "Warm email introduction",
+    body: "Hi [name],\n\nFollowing up on what you said about needing a website — I work with Jamie Nisbet, a software engineer near Lisbon who builds fast, professional sites and looks after the whole thing. One-page sites start at €200; bigger builds are quoted to fit.\n\nYou can read more and reach him here: {link}\n\nHappy to introduce you directly — just say the word.",
+  },
+  {
+    channel: "In person",
+    icon: "Users",
+    title: "Face-to-face, then follow up",
+    body: "\"You know what — I know exactly the right person for that. Jamie builds websites and software, dead easy to deal with, and he'll quote you straight. Let me send you his link.\" Then text them: {link}",
+  },
+]
+
+// What separates a lead worth sending from a maybe — sellers self-filter, so every
+// intro that lands is one Jamie can actually move on. Better leads, not just more.
+export const goodLeadSigns: string[] = [
+  "They've actually said they need a website, online booking, or some software — not just \"might one day\".",
+  "You can name who decides and pays — the owner or a manager, not a vague \"the business\".",
+  "There's a reason it's now: a launch, a rebrand, a busy season, or a competitor who just went online.",
+  "They have a rough budget in mind, even if it's only \"a few hundred euros\".",
+  "You can give a name and a way to reach them — an email or a phone number.",
+]
+
+// What the 10% looks like in euros, so the upside is concrete rather than abstract.
+// Figures are illustrative; the real payout is always 10% of the actual invoice.
+export type EarningExample = {
+  work: string
+  invoice: string
+  youEarn: string
+}
+
+export const earningExamples: EarningExample[] = [
+  { work: "One-page site + contact form", invoice: "€200", youEarn: "€20" },
+  { work: "Small business site, a few pages", invoice: "€800", youEarn: "€80" },
+  { work: "Booking system or web app", invoice: "€3,000", youEarn: "€300" },
 ]
 
 // Short FAQ — the questions sellers and partners actually ask.
