@@ -1,6 +1,7 @@
 import { Hero } from "@/components/sections/hero"
 import { HowItWorks } from "@/components/sections/how-it-works"
 import { WhatYouSell } from "@/components/sections/what-you-sell"
+import { SalesKit } from "@/components/sections/sales-kit"
 import { Partners } from "@/components/sections/partners"
 import { Faq } from "@/components/sections/faq"
 import { ReferSection } from "@/components/sections/refer-section"
@@ -20,6 +21,7 @@ export default async function HomePage({
       <Hero />
       <HowItWorks />
       <WhatYouSell />
+      <SalesKit referralCode={defaultReferralCode} />
       <Partners />
       <Faq />
       <ReferSection defaultReferralCode={defaultReferralCode} />

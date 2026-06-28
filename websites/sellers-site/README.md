@@ -6,7 +6,7 @@
 ## What this folder accomplishes
 A public Next.js (App Router) site, deployed on Vercel, that powers Jamie's lead-generation channel without ad spend. Two jobs: (1) a local **affiliate seller** submits a customer lead tagged with their unique referral code (which makes the 10% payout unambiguous); (2) **partners** (accountants, print shops, co-working spaces, agencies) register reciprocal referrals. Submitted leads flow into [workspaces/lead-generation/](../../workspaces/lead-generation/) for triage. On-brand like every other site.
 
-Built as a single-page landing (pitch → how the 10% works → what you sell → partners → FAQ) with both capture forms presented as tabs in the `#refer` section. Modelled on [../portfolio/](../portfolio/) — same stack and brand wiring.
+Built as a single-page landing (pitch → how the 10% works → what you sell → seller kit → partners → FAQ) with both capture forms presented as tabs in the `#refer` section. The `#kit` section equips sellers to actually sell: copy-paste pitch messages (WhatsApp / email / in-person) with their referral link baked in, a "what makes a lead worth sending" checklist, and a worked 10% earnings table. Modelled on [../portfolio/](../portfolio/) — same stack and brand wiring.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** public submissions (seller leads + partner referrals); the seller/partner registry and referral codes defined in [workspaces/lead-generation/stages/03_affiliate_program/](../../workspaces/lead-generation/stages/03_affiliate_program/).
@@ -15,8 +15,8 @@ Built as a single-page landing (pitch → how the 10% works → what you sell �
 
 ## Contents
 - `app/` — App Router: `page.tsx` composes the landing sections; `layout.tsx` wires the brand theme; `actions/referral.ts` holds the two Server Actions; `robots.ts`, `sitemap.ts`, `icon.svg`.
-- `components/` — `site-header`/`site-footer`, `referral-forms` (the tabbed seller + partner forms), and `sections/` (hero, how-it-works, what-you-sell, partners, faq, refer-section).
-- `lib/` — `site.ts` (copy + section data) and `referral-schema.ts` (Zod schemas + form state types).
+- `components/` — `site-header`/`site-footer`, `referral-forms` (the tabbed seller + partner forms), `pitch-scripts` (the copy-to-clipboard pitch cards), and `sections/` (hero, how-it-works, what-you-sell, sales-kit, partners, faq, refer-section).
+- `lib/` — `site.ts` (copy + section data, incl. `pitchScripts` / `goodLeadSigns` / `earningExamples`) and `referral-schema.ts` (Zod schemas + form state types).
 - Brand: consumes `@jamie-nisbet/ui` via `workspace:*` and `@import "@jamie-nisbet/ui/styles.css"`; theming is light/dark via the `data-theme` attribute (no per-site token overrides) — same pattern as `../portfolio/`.
 
 ## Notes

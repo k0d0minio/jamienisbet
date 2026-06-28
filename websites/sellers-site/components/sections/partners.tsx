@@ -11,7 +11,7 @@ export function Partners() {
         <div className="flex flex-col gap-6">
           <SectionHeading
             eyebrow="Partners"
-            index="03"
+            index="04"
             title="Already serve the same customers? Let's trade work."
             intro="Accountants, print shops, co-working spaces, agencies — refer the web and software work you can't do, and I'll send clients your way too."
           />
