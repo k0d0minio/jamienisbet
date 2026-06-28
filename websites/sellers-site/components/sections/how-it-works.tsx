@@ -2,25 +2,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@jamie-nisbet/ui"
 import { BadgeEuro, CreditCard, Hammer, UserPlus } from "lucide-react"
 
 import { Container, Section, SectionHeading } from "@/components/section"
-import { steps } from "@/lib/site"
+import { getI18n } from "@/lib/i18n"
 
-const icons = { UserPlus, Hammer, CreditCard, BadgeEuro }
+// Step key → icon. Keys are stable across locales (defined in the dictionaries).
+const icons: Record<string, typeof UserPlus> = {
+  refer: UserPlus,
+  build: Hammer,
+  pay: CreditCard,
+  payout: BadgeEuro,
+}
 
-export function HowItWorks() {
+export async function HowItWorks() {
+  const { dict } = await getI18n()
+
   return (
     <Section id="how" className="border-b border-border">
       <Container className="flex flex-col gap-12">
         <SectionHeading
-          eyebrow="How it works"
+          eyebrow={dict.howItWorks.eyebrow}
           index="01"
-          title="Four steps from a warm intro to your payout."
-          intro="You bring the relationship. I do the rest — and the referral code keeps the 10% unambiguously yours."
+          title={dict.howItWorks.title}
+          intro={dict.howItWorks.intro}
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step, i) => {
-            const Icon = icons[step.icon]
+          {dict.howItWorks.steps.map((step, i) => {
+            const Icon = icons[step.key] ?? UserPlus
             return (
-              <Card key={step.title} className="gap-4">
+              <Card key={step.key} className="gap-4">
                 <CardHeader className="gap-3">
                   <div className="flex items-center justify-between">
                     <div className="flex size-10 items-center justify-center rounded-md bg-primary-soft text-primary">

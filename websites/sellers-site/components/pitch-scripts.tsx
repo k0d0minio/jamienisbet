@@ -7,25 +7,42 @@ import {
 import { Mail, MessageCircle, Users } from "lucide-react"
 
 import { CopyButton } from "@/components/copy-button"
-import {
-  followUps,
-  pitchScripts,
-  type FollowUp,
-  type PitchScript,
-} from "@/lib/site"
+import type { Dictionary } from "@/lib/i18n/dictionaries/en"
 
-const icons = { MessageCircle, Mail, Users }
+type PitchScript = Dictionary["pitchScripts"][number]
+type FollowUp = Dictionary["followUps"][number]
+type CopyLabel = Dictionary["copy"]
+
+// Channel key → icon. Keys are stable across locales (set in the dictionaries).
+const icons: Record<string, typeof MessageCircle> = {
+  whatsapp: MessageCircle,
+  email: Mail,
+  inperson: Users,
+}
 
 // Bake the seller's personal link into a message so the 10% follows the share.
 function withLink(body: string, shareUrl: string) {
   return body.replaceAll("{link}", shareUrl)
 }
 
-export function PitchScripts({ shareUrl }: { shareUrl: string }) {
+export function PitchScripts({
+  shareUrl,
+  scripts,
+  copyLabel,
+}: {
+  shareUrl: string
+  scripts: PitchScript[]
+  copyLabel: CopyLabel
+}) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      {pitchScripts.map((script) => (
-        <PitchCard key={script.channel} script={script} shareUrl={shareUrl} />
+      {scripts.map((script) => (
+        <PitchCard
+          key={script.key}
+          script={script}
+          shareUrl={shareUrl}
+          copyLabel={copyLabel}
+        />
       ))}
     </div>
   )
@@ -34,11 +51,13 @@ export function PitchScripts({ shareUrl }: { shareUrl: string }) {
 function PitchCard({
   script,
   shareUrl,
+  copyLabel,
 }: {
   script: PitchScript
   shareUrl: string
+  copyLabel: CopyLabel
 }) {
-  const Icon = icons[script.icon]
+  const Icon = icons[script.key] ?? MessageCircle
   const message = withLink(script.body, shareUrl)
 
   return (
@@ -58,22 +77,31 @@ function PitchCard({
         <p className="flex-1 whitespace-pre-line text-sm text-muted-foreground">
           {message}
         </p>
-        <CopyButton text={message} />
+        <CopyButton text={message} copyLabel={copyLabel} />
       </CardContent>
     </Card>
   )
 }
 
 // The follow-up sequence — same copy-card pattern, ordered as a numbered timeline.
-export function FollowUps({ shareUrl }: { shareUrl: string }) {
+export function FollowUps({
+  shareUrl,
+  steps,
+  copyLabel,
+}: {
+  shareUrl: string
+  steps: FollowUp[]
+  copyLabel: CopyLabel
+}) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      {followUps.map((step, i) => (
+      {steps.map((step, i) => (
         <FollowUpCard
-          key={step.when}
+          key={step.key}
           step={step}
           index={i + 1}
           shareUrl={shareUrl}
+          copyLabel={copyLabel}
         />
       ))}
     </div>
@@ -84,10 +112,12 @@ function FollowUpCard({
   step,
   index,
   shareUrl,
+  copyLabel,
 }: {
   step: FollowUp
   index: number
   shareUrl: string
+  copyLabel: CopyLabel
 }) {
   const message = withLink(step.body, shareUrl)
 
@@ -106,7 +136,7 @@ function FollowUpCard({
         <p className="flex-1 whitespace-pre-line text-sm text-muted-foreground">
           {message}
         </p>
-        <CopyButton text={message} />
+        <CopyButton text={message} copyLabel={copyLabel} />
       </CardContent>
     </Card>
   )

@@ -1,10 +1,11 @@
 "use server"
 
 import {
-  sellerLeadSchema,
+  makeSellerLeadSchema,
   type SellerLeadField,
   type SellerLeadState,
 } from "@/lib/referral-schema"
+import { getDictionary, getLocale } from "@/lib/i18n"
 
 // ----------------------------------------------------------------------------
 // TODO(send-later): deliver each submission to lead-generation.
@@ -33,6 +34,11 @@ export async function submitSellerLead(
   _prev: SellerLeadState,
   formData: FormData
 ): Promise<SellerLeadState> {
+  // Validate and respond in the seller's chosen language.
+  const dict = await getDictionary(await getLocale())
+  const t = dict.form
+  const schema = makeSellerLeadSchema(t.errors)
+
   const values = {
     referralCode: field(formData, "referralCode"),
     customerName: field(formData, "customerName"),
@@ -44,7 +50,7 @@ export async function submitSellerLead(
     company: field(formData, "company"),
   }
 
-  const parsed = sellerLeadSchema.safeParse(values)
+  const parsed = schema.safeParse(values)
 
   if (!parsed.success) {
     const errors: SellerLeadState["errors"] = {}
@@ -59,7 +65,7 @@ export async function submitSellerLead(
     void company // honeypot — never echoed back to the form
     return {
       status: "error",
-      message: "Please fix the highlighted fields.",
+      message: t.errorBanner,
       errors,
       values: rest,
     }
@@ -67,7 +73,7 @@ export async function submitSellerLead(
 
   // Honeypot tripped (bot): silently accept, send nothing.
   if (parsed.data.company) {
-    return { status: "success", message: "Thanks — that's logged." }
+    return { status: "success", message: t.botSuccess }
   }
 
   if (!process.env.RESEND_API_KEY) {
@@ -80,7 +86,6 @@ export async function submitSellerLead(
 
   return {
     status: "success",
-    message:
-      "Thanks — the lead's logged against your code. I'll take it from here and be in touch.",
+    message: t.success.message,
   }
 }

@@ -2,10 +2,12 @@ import Link from "next/link"
 import { Eyebrow, LogoMarkSolid } from "@jamie-nisbet/ui"
 import { ExternalLink, Mail, MapPin } from "lucide-react"
 
-import { site } from "@/lib/site"
+import { site, navItems } from "@/lib/site"
+import type { Dictionary } from "@/lib/i18n/dictionaries/en"
 
-export function SiteFooter() {
+export function SiteFooter({ dict }: { dict: Dictionary }) {
   const year = new Date().getFullYear()
+  const tagline = dict.footer.tagline.replace("{location}", site.location)
 
   return (
     <footer className="border-t border-border">
@@ -14,19 +16,16 @@ export function SiteFooter() {
           <Link
             href="/"
             className="flex items-center gap-2.5"
-            aria-label={`${site.name} — ${site.role}`}
+            aria-label={`${site.name} — ${dict.role}`}
           >
             <LogoMarkSolid className="size-8" />
             <span className="font-semibold tracking-tight">{site.name}</span>
           </Link>
-          <p className="text-sm text-muted-foreground">
-            Refer web and software work, earn 10% on what gets built — paid when
-            the client pays. Run from {site.location}.
-          </p>
+          <p className="text-sm text-muted-foreground">{tagline}</p>
         </div>
 
         <div className="flex flex-col gap-3">
-          <Eyebrow>Get in touch</Eyebrow>
+          <Eyebrow>{dict.footer.getInTouch}</Eyebrow>
           <a
             href={`mailto:${site.email}`}
             className="inline-flex items-center gap-2 text-sm transition-colors hover:text-primary"
@@ -54,13 +53,13 @@ export function SiteFooter() {
             © {year} {site.name}
           </p>
           <nav className="flex gap-4">
-            {site.nav.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                {item.label}
+                {dict.nav[item.key]}
               </Link>
             ))}
           </nav>
