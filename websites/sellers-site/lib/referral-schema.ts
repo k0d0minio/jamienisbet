@@ -26,6 +26,50 @@ const need = z
   .min(10, "One line on what they need, please.")
   .max(2000, "That's a lot — trim it to the essentials.")
 
+// ---- Preferred call time (business days, 9am–5pm) --------------------------
+// The selector only ever offers valid slots, but the server re-checks: never
+// trust the client. A slot is "YYYY-MM-DDTHH:mm" — a weekday, on the hour or
+// half-hour, with a start time inside business hours (last slot starts 16:30).
+export const businessHours = { start: 9, end: 17 } as const
+
+const slotPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
+
+export function isBusinessSlot(value: string): boolean {
+  if (!slotPattern.test(value)) return false
+  const [datePart, timePart] = value.split("T")
+  const [year, month, day] = datePart.split("-").map(Number)
+  const [hour, minute] = timePart.split(":").map(Number)
+
+  // Build the date in local time and confirm the parts round-trip (rejects
+  // impossible dates like 2026-02-31, which Date would silently roll over).
+  const date = new Date(year, month - 1, day, hour, minute, 0, 0)
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return false
+  }
+
+  const weekday = date.getDay()
+  if (weekday === 0 || weekday === 6) return false // no Sat/Sun
+
+  if (minute !== 0 && minute !== 30) return false
+  // Start times run 09:00 through 16:30, so the meeting wraps up by 5pm.
+  if (hour < businessHours.start || hour >= businessHours.end) return false
+
+  return true
+}
+
+const preferredCallTime = z
+  .string()
+  .trim()
+  .max(20)
+  .refine((v) => v === "" || isBusinessSlot(v), {
+    message: "Pick a slot from the list — business days, 9am to 5pm.",
+  })
+  .optional()
+
 // ---- Seller lead -----------------------------------------------------------
 export const sellerLeadSchema = z.object({
   // The payout key — without it the 10% can't be attributed.
@@ -38,6 +82,8 @@ export const sellerLeadSchema = z.object({
   customerContact,
   need,
   budget: z.enum(budgetOptions).optional().or(z.literal("")),
+  // Optional — when the customer's free to talk (business days, 9am–5pm).
+  preferredCallTime,
   // Optional — so I can confirm the lead landed with the right seller.
   sellerName: z.string().trim().max(120).optional(),
   sellerEmail: z
@@ -59,6 +105,7 @@ export type SellerLeadField =
   | "customerContact"
   | "need"
   | "budget"
+  | "preferredCallTime"
   | "sellerName"
   | "sellerEmail"
 
