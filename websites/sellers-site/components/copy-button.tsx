@@ -6,13 +6,14 @@ import { Check, Copy } from "lucide-react"
 
 // Shared copy-to-clipboard button. Clipboard can be blocked (insecure context,
 // denied permission); on failure the label just stays as-is and the source text
-// remains on screen to copy by hand.
+// remains on screen to copy by hand. `copyLabel` carries the translated
+// idle/done labels.
 export function CopyButton({
   text,
-  label = "Copy message",
+  copyLabel,
 }: {
   text: string
-  label?: string
+  copyLabel: { copy: string; copied: string }
 }) {
   const [copied, setCopied] = React.useState(false)
 
@@ -36,7 +37,7 @@ export function CopyButton({
       aria-live="polite"
     >
       {copied ? <Check /> : <Copy />}
-      {copied ? "Copied" : label}
+      {copied ? copyLabel.copied : copyLabel.copy}
     </Button>
   )
 }

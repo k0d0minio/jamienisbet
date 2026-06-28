@@ -3,9 +3,15 @@ import { z } from "zod"
 // Shared by the client forms (types + light hints) and the server actions
 // (authoritative validation). No "use server" here so the types can be
 // imported into client components safely.
+//
+// Validation messages are injected per request so they can be localised — the
+// server action builds the schema with the active locale's strings (see
+// makeSellerLeadSchema). The values submitted (e.g. budget) stay canonical
+// English so the inbox is consistent regardless of the seller's language.
 
 // Rough budget options for the seller lead form (optional — sellers often
-// won't know yet). Kept as a closed list so it's clean in the inbox.
+// won't know yet). Canonical values, kept as a closed list so it's clean in the
+// inbox; the form shows a translated label for each (see dict.form.budgetOptions).
 export const budgetOptions = [
   "Not sure yet",
   "~€200 — landing page",
@@ -14,33 +20,17 @@ export const budgetOptions = [
   "€5,000+",
 ] as const
 
-// The lead's phone is the primary way to reach them, so it's required; a basic
-// shape check (digits, spaces, and the usual + - ( ) ) keeps obvious junk out
-// without rejecting valid international formats.
-const customerPhone = z
-  .string()
-  .trim()
-  .min(6, "A phone number so I can reach them.")
-  .max(40)
-  .refine((v) => /^[+\d][\d\s().-]{4,}$/.test(v), {
-    message: "That phone number doesn't look right.",
-  })
-
-// Email is optional — handy to have, but the phone is enough to follow up.
-const customerEmail = z
-  .string()
-  .trim()
-  .max(200)
-  .refine((v) => v === "" || z.string().email().safeParse(v).success, {
-    message: "That email doesn't look right.",
-  })
-  .optional()
-
-const need = z
-  .string()
-  .trim()
-  .min(10, "One line on what they need, please.")
-  .max(2000, "That's a lot — trim it to the essentials.")
+// The localisable validation messages — shape matches dict.form.errors.
+export type SellerLeadMessages = {
+  referralCodeMin: string
+  customerNameMin: string
+  phoneMin: string
+  phoneInvalid: string
+  emailInvalid: string
+  needMin: string
+  needMax: string
+  slotInvalid: string
+}
 
 // ---- Preferred call time (business days, 9am–5pm) --------------------------
 // The selector only ever offers valid slots, but the server re-checks: never
@@ -77,36 +67,55 @@ export function isBusinessSlot(value: string): boolean {
   return true
 }
 
-const preferredCallTime = z
-  .string()
-  .trim()
-  .max(20)
-  .refine((v) => v === "" || isBusinessSlot(v), {
-    message: "Pick a slot from the list — business days, 9am to 5pm.",
-  })
-  .optional()
-
 // ---- Seller lead -----------------------------------------------------------
-export const sellerLeadSchema = z.object({
-  // The payout key — without it the 10% can't be attributed.
-  referralCode: z
+// Built per request so validation messages can be localised.
+export function makeSellerLeadSchema(m: SellerLeadMessages) {
+  // The lead's phone is the primary way to reach them, so it's required; a basic
+  // shape check keeps obvious junk out without rejecting valid intl formats.
+  const customerPhone = z
     .string()
     .trim()
-    .min(2, "Your referral code — it's what ties the payout to you.")
-    .max(40),
-  customerName: z.string().trim().min(2, "The customer's name, please.").max(120),
-  // The lead's contact: phone required, email optional.
-  customerPhone,
-  customerEmail,
-  need,
-  budget: z.enum(budgetOptions).optional().or(z.literal("")),
-  // Optional — when the customer's free to talk (business days, 9am–5pm).
-  preferredCallTime,
-  // Honeypot: real people leave this empty.
-  company: z.string().max(0).optional(),
-})
+    .min(6, m.phoneMin)
+    .max(40)
+    .refine((v) => /^[+\d][\d\s().-]{4,}$/.test(v), { message: m.phoneInvalid })
 
-export type SellerLeadInput = z.infer<typeof sellerLeadSchema>
+  // Email is optional — handy to have, but the phone is enough to follow up.
+  const customerEmail = z
+    .string()
+    .trim()
+    .max(200)
+    .refine((v) => v === "" || z.string().email().safeParse(v).success, {
+      message: m.emailInvalid,
+    })
+    .optional()
+
+  const need = z.string().trim().min(10, m.needMin).max(2000, m.needMax)
+
+  const preferredCallTime = z
+    .string()
+    .trim()
+    .max(20)
+    .refine((v) => v === "" || isBusinessSlot(v), { message: m.slotInvalid })
+    .optional()
+
+  return z.object({
+    // The payout key — without it the 10% can't be attributed.
+    referralCode: z.string().trim().min(2, m.referralCodeMin).max(40),
+    customerName: z.string().trim().min(2, m.customerNameMin).max(120),
+    // The lead's contact: phone required, email optional.
+    customerPhone,
+    customerEmail,
+    need,
+    budget: z.enum(budgetOptions).optional().or(z.literal("")),
+    // Optional — when the customer's free to talk (business days, 9am–5pm).
+    preferredCallTime,
+    // Honeypot: real people leave this empty.
+    company: z.string().max(0).optional(),
+  })
+}
+
+export type SellerLeadSchema = ReturnType<typeof makeSellerLeadSchema>
+export type SellerLeadInput = z.infer<SellerLeadSchema>
 export type SellerLeadField =
   | "referralCode"
   | "customerName"

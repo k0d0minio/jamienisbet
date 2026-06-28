@@ -2,25 +2,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@jamie-nisbet/ui"
 import { FileText, Sparkles } from "lucide-react"
 
 import { Container, Section, SectionHeading } from "@/components/section"
-import { whatYouSell } from "@/lib/site"
+import { getI18n } from "@/lib/i18n"
 
-const icons = [FileText, Sparkles]
+const icons: Record<string, typeof FileText> = {
+  landing: FileText,
+  bigger: Sparkles,
+}
 
-export function WhatYouSell() {
+export async function WhatYouSell() {
+  const { dict } = await getI18n()
+
   return (
     <Section id="sell" className="border-b border-border">
       <Container className="flex flex-col gap-12">
         <SectionHeading
-          eyebrow="What you sell"
+          eyebrow={dict.whatYouSell.eyebrow}
           index="02"
-          title="Pitch the simple thing. Hand me the rest."
-          intro="Landing pages you can quote yourself, from €200. Anything bigger, just introduce me — you still earn your 10%."
+          title={dict.whatYouSell.title}
+          intro={dict.whatYouSell.intro}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          {whatYouSell.map((point, i) => {
-            const Icon = icons[i] ?? FileText
+          {dict.whatYouSell.points.map((point) => {
+            const Icon = icons[point.key] ?? FileText
             return (
-              <Card key={point.title} className="gap-4">
+              <Card key={point.key} className="gap-4">
                 <CardHeader className="gap-3">
                   <div className="flex size-10 items-center justify-center rounded-md bg-primary-soft text-primary">
                     <Icon className="size-5" />

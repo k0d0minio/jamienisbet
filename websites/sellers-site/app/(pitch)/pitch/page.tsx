@@ -11,21 +11,27 @@ import { ArrowRight, Check, Mail } from "lucide-react"
 
 import { Container, Section, SectionHeading } from "@/components/section"
 import { PrintButton } from "@/components/print-button"
-import { packages, pitch, site } from "@/lib/site"
+import { site } from "@/lib/site"
+import { getI18n } from "@/lib/i18n"
 
-export const metadata: Metadata = {
-  title: "Your website, built properly",
-  description:
-    "A landing page or web app built by a senior engineer — clear scope, clear price, live in weeks.",
-  // Seller-shared selling aid, not a page to index on its own.
-  robots: { index: false, follow: true },
+export async function generateMetadata(): Promise<Metadata> {
+  const { dict } = await getI18n()
+  return {
+    title: dict.pitch.metaTitle,
+    description: dict.pitch.metaDescription,
+    // Seller-shared selling aid, not a page to index on its own.
+    robots: { index: false, follow: true },
+  }
 }
 
-const mailto = `mailto:${site.email}?subject=${encodeURIComponent(
-  "Website enquiry"
-)}`
+export default async function PitchPage() {
+  const { dict } = await getI18n()
+  const pitch = dict.pitch
 
-export default function PitchPage() {
+  const mailto = `mailto:${site.email}?subject=${encodeURIComponent(
+    pitch.mailSubject
+  )}`
+
   return (
     <>
       {/* Hero */}
@@ -43,11 +49,11 @@ export default function PitchPage() {
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
               <a href={mailto}>
-                Start the conversation
+                {pitch.startCta}
                 <ArrowRight />
               </a>
             </Button>
-            <PrintButton />
+            <PrintButton label={dict.print} />
           </div>
         </Container>
       </Section>
@@ -56,13 +62,13 @@ export default function PitchPage() {
       <Section className="border-b border-border">
         <Container className="flex flex-col gap-12">
           <SectionHeading
-            eyebrow="What you get"
-            title="Start simple. Grow when it's worth it."
-            intro="A clean landing page to begin, with room to add pages, a booking system, or an AI feature later — only when it earns its keep."
+            eyebrow={pitch.getEyebrow}
+            title={pitch.getTitle}
+            intro={pitch.getIntro}
           />
           <div className="grid gap-4 lg:grid-cols-3">
-            {packages.map((pkg) => (
-              <Card key={pkg.name} className="gap-4">
+            {dict.packages.map((pkg) => (
+              <Card key={pkg.key} className="gap-4">
                 <CardHeader className="gap-2">
                   <div className="flex items-baseline justify-between gap-3">
                     <CardTitle className="text-lg">{pkg.name}</CardTitle>
@@ -91,7 +97,7 @@ export default function PitchPage() {
       {/* Why work with me */}
       <Section className="border-b border-border">
         <Container className="grid gap-12 lg:grid-cols-2 lg:gap-20">
-          <SectionHeading eyebrow="Why me" title={pitch.whyTitle} />
+          <SectionHeading eyebrow={pitch.whyEyebrow} title={pitch.whyTitle} />
           <ul className="flex flex-col gap-6 lg:pt-2">
             {pitch.why.map((point) => (
               <li key={point.title} className="flex flex-col gap-1.5">
@@ -111,7 +117,7 @@ export default function PitchPage() {
       {/* How it works */}
       <Section className="border-b border-border">
         <Container className="flex flex-col gap-12">
-          <SectionHeading eyebrow="How it works" title={pitch.stepsTitle} />
+          <SectionHeading eyebrow={pitch.stepsEyebrow} title={pitch.stepsTitle} />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {pitch.steps.map((step, i) => (
               <Card key={step.title} className="gap-4">
@@ -135,7 +141,7 @@ export default function PitchPage() {
         <Container className="flex max-w-[var(--container-md)] flex-col items-start gap-5">
           <Eyebrow rule>{pitch.ctaTitle}</Eyebrow>
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Let&apos;s get your site live.
+            {pitch.ctaHeading}
           </h2>
           <p className="text-lg text-pretty text-muted-foreground">
             {pitch.ctaBody}

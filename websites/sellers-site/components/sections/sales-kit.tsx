@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import Link from "next/link"
 import {
   Button,
@@ -11,15 +12,24 @@ import { ArrowRight, Check, Presentation } from "lucide-react"
 
 import { Container, Section, SectionHeading } from "@/components/section"
 import { FollowUps, PitchScripts } from "@/components/pitch-scripts"
-import {
-  earningExamples,
-  goodLeadSigns,
-  objections,
-  packages,
-  site,
-} from "@/lib/site"
+import { site } from "@/lib/site"
+import { getI18n } from "@/lib/i18n"
 
-export function SalesKit({ referralCode }: { referralCode?: string }) {
+// Render a note template, swapping {site}/{code} tokens for styled spans.
+function interpolate(
+  template: string,
+  values: Record<string, React.ReactNode>
+) {
+  return template.split(/(\{site\}|\{code\})/g).map((part, i) => {
+    const token = part.replace(/[{}]/g, "")
+    return <Fragment key={i}>{token in values ? values[token] : part}</Fragment>
+  })
+}
+
+export async function SalesKit({ referralCode }: { referralCode?: string }) {
+  const { dict } = await getI18n()
+  const kit = dict.salesKit
+
   // Open from /?ref=CODE and the seller's code carries through to the pitch page.
   const refQuery = referralCode
     ? `?ref=${encodeURIComponent(referralCode)}`
@@ -30,14 +40,18 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
   const shareUrl = site.mainSiteUrl
   const pitchHref = `/pitch${refQuery}`
 
+  const siteLabel = (
+    <span className="font-mono text-foreground">jamienisbet.com</span>
+  )
+
   return (
     <Section id="kit" className="border-b border-border">
       <Container className="flex flex-col gap-14">
         <SectionHeading
-          eyebrow="Your seller kit"
+          eyebrow={kit.eyebrow}
           index="03"
-          title="Everything you need to make the intro."
-          intro="Copy a message, send it, log the lead. No pitch to memorise, no tech to explain — that part's on me."
+          title={kit.title}
+          intro={kit.intro}
         />
 
         {/* The customer pitch page — the one thing to send a prospect. */}
@@ -48,17 +62,16 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-lg font-semibold tracking-tight">
-                The customer pitch page
+                {kit.pitchCard.title}
               </h3>
               <p className="text-sm text-pretty text-muted-foreground">
-                A clean page that sells the work, not the program — show it on
-                your phone or send the link. It prints to a one-pager too.
+                {kit.pitchCard.body}
               </p>
             </div>
           </div>
           <Button asChild className="shrink-0">
             <Link href={pitchHref}>
-              Open the pitch
+              {kit.pitchCard.cta}
               <ArrowRight />
             </Link>
           </Button>
@@ -66,43 +79,44 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
 
         {/* Ready-to-send openers */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>Ready-to-send messages</Eyebrow>
-          <PitchScripts shareUrl={shareUrl} />
+          <Eyebrow>{kit.readyEyebrow}</Eyebrow>
+          <PitchScripts
+            shareUrl={shareUrl}
+            scripts={dict.pitchScripts}
+            copyLabel={dict.copy}
+          />
           <p className="text-xs text-muted-foreground">
-            {referralCode ? (
-              <>
-                Each message links to{" "}
-                <span className="font-mono text-foreground">jamienisbet.com</span>{" "}
-                — the page customers see. Log the lead below with your code{" "}
-                <span className="font-mono text-foreground">{referralCode}</span>{" "}
-                to keep the 10% yours.
-              </>
-            ) : (
-              <>
-                Each message links to{" "}
-                <span className="font-mono">jamienisbet.com</span> — the page
-                customers see. Log the lead below with your referral code to keep
-                the 10% yours.
-              </>
-            )}
+            {referralCode
+              ? interpolate(kit.readyNoteWithCode, {
+                  site: siteLabel,
+                  code: (
+                    <span className="font-mono text-foreground">
+                      {referralCode}
+                    </span>
+                  ),
+                })
+              : interpolate(kit.readyNote, {
+                  site: <span className="font-mono">jamienisbet.com</span>,
+                })}
           </p>
         </div>
 
         {/* Follow-up sequence */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>Follow up — where most referrals close</Eyebrow>
-          <FollowUps shareUrl={shareUrl} />
-          <p className="text-xs text-muted-foreground">
-            Three light touches, then stop. A warm “later” is worth more than a
-            pushed “no”.
-          </p>
+          <Eyebrow>{kit.followEyebrow}</Eyebrow>
+          <FollowUps
+            shareUrl={shareUrl}
+            steps={dict.followUps}
+            copyLabel={dict.copy}
+          />
+          <p className="text-xs text-muted-foreground">{kit.followNote}</p>
         </div>
 
         {/* Objection handling */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>If they hesitate</Eyebrow>
+          <Eyebrow>{kit.objectionsEyebrow}</Eyebrow>
           <div className="grid gap-4 sm:grid-cols-2">
-            {objections.map((item) => (
+            {dict.objections.map((item) => (
               <Card key={item.objection} className="gap-2">
                 <CardHeader>
                   <CardTitle className="text-base">{item.objection}</CardTitle>
@@ -117,10 +131,10 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
 
         {/* Packages & prices */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>What you can quote — and what to hand me</Eyebrow>
+          <Eyebrow>{kit.packagesEyebrow}</Eyebrow>
           <div className="grid gap-4 lg:grid-cols-3">
-            {packages.map((pkg) => (
-              <Card key={pkg.name} className="gap-4">
+            {dict.packages.map((pkg) => (
+              <Card key={pkg.key} className="gap-4">
                 <CardHeader className="gap-2">
                   <div className="flex items-baseline justify-between gap-3">
                     <CardTitle className="text-lg">{pkg.name}</CardTitle>
@@ -151,9 +165,9 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
         {/* Good-lead checklist + earnings */}
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
           <div className="flex flex-col gap-5">
-            <Eyebrow>What makes a lead worth sending</Eyebrow>
+            <Eyebrow>{kit.leadsEyebrow}</Eyebrow>
             <ul className="flex flex-col gap-4">
-              {goodLeadSigns.map((sign) => (
+              {dict.goodLeadSigns.map((sign) => (
                 <li key={sign} className="flex items-start gap-3">
                   <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
                     <Check className="size-3.5" />
@@ -165,18 +179,20 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
           </div>
 
           <div className="flex flex-col gap-5">
-            <Eyebrow>What your 10% looks like</Eyebrow>
+            <Eyebrow>{kit.earningsEyebrow}</Eyebrow>
             <div className="overflow-hidden rounded-lg border border-border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/40 text-left">
-                    <th className="px-4 py-3 font-medium">The work</th>
-                    <th className="px-4 py-3 font-medium">Client pays</th>
-                    <th className="px-4 py-3 text-right font-medium">You earn</th>
+                    <th className="px-4 py-3 font-medium">{kit.table.work}</th>
+                    <th className="px-4 py-3 font-medium">{kit.table.pays}</th>
+                    <th className="px-4 py-3 text-right font-medium">
+                      {kit.table.earn}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {earningExamples.map((row) => (
+                  {dict.earningExamples.map((row) => (
                     <tr
                       key={row.work}
                       className="border-b border-border last:border-0"
@@ -195,10 +211,7 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Examples only — your 10% is always 10% of what the client actually
-              pays, settled once their payment lands.
-            </p>
+            <p className="text-xs text-muted-foreground">{kit.earningsNote}</p>
           </div>
         </div>
       </Container>

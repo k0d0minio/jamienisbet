@@ -6,10 +6,20 @@ import { Button, IconButton, LogoMark } from "@jamie-nisbet/ui"
 import { ArrowRight, Menu, X } from "lucide-react"
 
 import { ThemeToggle } from "./theme-toggle"
-import { site } from "@/lib/site"
+import { LanguageSwitcher } from "./language-switcher"
+import { site, navItems } from "@/lib/site"
+import type { Locale } from "@/lib/i18n/config"
+import type { Dictionary } from "@/lib/i18n/dictionaries/en"
 
-export function SiteHeader() {
+export function SiteHeader({
+  locale,
+  dict,
+}: {
+  locale: Locale
+  dict: Dictionary
+}) {
   const [open, setOpen] = React.useState(false)
+  const nav = navItems.map((item) => ({ href: item.href, label: dict.nav[item.key] }))
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
@@ -17,14 +27,14 @@ export function SiteHeader() {
         <Link
           href="/"
           className="flex items-center gap-2.5 font-semibold tracking-tight"
-          aria-label={`${site.name} — ${site.role}`}
+          aria-label={`${site.name} — ${dict.role}`}
         >
           <LogoMark className="size-6 text-primary" />
           <span>{site.name}</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {site.nav.map((item) => (
+          {nav.map((item) => (
             <Button key={item.href} asChild variant="ghost" size="sm">
               <Link href={item.href}>{item.label}</Link>
             </Button>
@@ -32,15 +42,16 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1">
-          <ThemeToggle />
+          <LanguageSwitcher locale={locale} label={dict.language.label} />
+          <ThemeToggle label={dict.themeToggle} />
           <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link href="/#refer">
-              Refer a customer
+              {dict.header.refer}
               <ArrowRight />
             </Link>
           </Button>
           <IconButton
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? dict.header.closeMenu : dict.header.openMenu}
             aria-expanded={open}
             className="md:hidden"
             onClick={() => setOpen((value) => !value)}
@@ -53,7 +64,7 @@ export function SiteHeader() {
       {open && (
         <nav className="border-t border-border md:hidden">
           <div className="mx-auto flex max-w-[var(--container-xl)] flex-col gap-1 px-5 py-3 sm:px-8">
-            {site.nav.map((item) => (
+            {nav.map((item) => (
               <Button
                 key={item.href}
                 asChild
@@ -70,7 +81,7 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
             >
               <Link href="/#refer">
-                Refer a customer
+                {dict.header.refer}
                 <ArrowRight />
               </Link>
             </Button>
