@@ -14,16 +14,15 @@ export function ReferSection({
     <Section id="refer">
       <Container className="grid gap-12 lg:grid-cols-2 lg:gap-20">
         <div className="flex flex-col gap-5">
-          <Eyebrow rule index="06">
+          <Eyebrow rule index="05">
             Refer
           </Eyebrow>
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
             Log a lead. Keep it yours.
           </h2>
           <p className="text-lg text-pretty text-muted-foreground">
-            Two forms: a seller lead if you have a referral code, or a partner
-            referral if you run a business that sends work my way. I&apos;ll reply
-            within a day or two.
+            Drop in your referral code and the lead&apos;s details — I&apos;ll
+            reply within a day or two.
           </p>
 
           <div className="mt-2 flex flex-col gap-3 text-sm">

@@ -20,11 +20,14 @@ import {
 } from "@/lib/site"
 
 export function SalesKit({ referralCode }: { referralCode?: string }) {
-  // Open from /?ref=CODE and the seller's code is baked into every pitch link.
+  // Open from /?ref=CODE and the seller's code carries through to the pitch page.
   const refQuery = referralCode
     ? `?ref=${encodeURIComponent(referralCode)}`
     : ""
-  const shareUrl = `${site.url}/${refQuery}`
+  // The ready-to-send messages go to customers, so they link to the
+  // client-facing site — never this seller-only one. Attribution stays with the
+  // seller through the lead they log here, not the link they share.
+  const shareUrl = site.mainSiteUrl
   const pitchHref = `/pitch${refQuery}`
 
   return (
@@ -68,17 +71,18 @@ export function SalesKit({ referralCode }: { referralCode?: string }) {
           <p className="text-xs text-muted-foreground">
             {referralCode ? (
               <>
-                Your code{" "}
+                Each message links to{" "}
+                <span className="font-mono text-foreground">jamienisbet.com</span>{" "}
+                — the page customers see. Log the lead below with your code{" "}
                 <span className="font-mono text-foreground">{referralCode}</span>{" "}
-                is already baked into each link — so the 10% stays yours.
+                to keep the 10% yours.
               </>
             ) : (
               <>
-                Open this page from your own link (
-                <span className="font-mono">
-                  refer.jamienisbet.com/?ref=YOUR-CODE
-                </span>
-                ) and your code drops into every message automatically.
+                Each message links to{" "}
+                <span className="font-mono">jamienisbet.com</span> — the page
+                customers see. Log the lead below with your referral code to keep
+                the 10% yours.
               </>
             )}
           </p>

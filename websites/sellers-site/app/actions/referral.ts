@@ -1,10 +1,7 @@
 "use server"
 
 import {
-  partnerReferralSchema,
   sellerLeadSchema,
-  type PartnerReferralField,
-  type PartnerReferralState,
   type SellerLeadField,
   type SellerLeadState,
 } from "@/lib/referral-schema"
@@ -39,12 +36,11 @@ export async function submitSellerLead(
   const values = {
     referralCode: field(formData, "referralCode"),
     customerName: field(formData, "customerName"),
-    customerContact: field(formData, "customerContact"),
+    customerPhone: field(formData, "customerPhone"),
+    customerEmail: field(formData, "customerEmail"),
     need: field(formData, "need"),
     budget: field(formData, "budget"),
     preferredCallTime: field(formData, "preferredCallTime"),
-    sellerName: field(formData, "sellerName"),
-    sellerEmail: field(formData, "sellerEmail"),
     company: field(formData, "company"),
   }
 
@@ -86,57 +82,5 @@ export async function submitSellerLead(
     status: "success",
     message:
       "Thanks — the lead's logged against your code. I'll take it from here and be in touch.",
-  }
-}
-
-export async function submitPartnerReferral(
-  _prev: PartnerReferralState,
-  formData: FormData
-): Promise<PartnerReferralState> {
-  const values = {
-    partnerName: field(formData, "partnerName"),
-    partnerContact: field(formData, "partnerContact"),
-    customerName: field(formData, "customerName"),
-    customerContact: field(formData, "customerContact"),
-    need: field(formData, "need"),
-    company: field(formData, "company"),
-  }
-
-  const parsed = partnerReferralSchema.safeParse(values)
-
-  if (!parsed.success) {
-    const errors: PartnerReferralState["errors"] = {}
-    for (const issue of parsed.error.issues) {
-      const key = issue.path[0]
-      if (typeof key === "string" && key !== "company") {
-        const f = key as PartnerReferralField
-        if (!errors[f]) errors[f] = issue.message
-      }
-    }
-    const { company, ...rest } = values
-    void company // honeypot — never echoed back to the form
-    return {
-      status: "error",
-      message: "Please fix the highlighted fields.",
-      errors,
-      values: rest,
-    }
-  }
-
-  if (parsed.data.company) {
-    return { status: "success", message: "Thanks — that's logged." }
-  }
-
-  if (!process.env.RESEND_API_KEY) {
-    console.info("[referral] partner referral (not sent — RESEND_API_KEY unset):", {
-      ...parsed.data,
-      company: undefined,
-    })
-  }
-
-  return {
-    status: "success",
-    message:
-      "Thanks — your referral's in. I'll reach out to the customer and keep you posted.",
   }
 }

@@ -19,7 +19,6 @@ export const site = {
     { label: "How it works", href: "/#how" },
     { label: "What you sell", href: "/#sell" },
     { label: "Seller kit", href: "/#kit" },
-    { label: "Partners", href: "/#partners" },
     { label: "FAQ", href: "/#faq" },
   ],
 } as const
@@ -75,14 +74,6 @@ export const whatYouSell: SellPoint[] = [
     description:
       "Multi-page sites, web apps, AI features, integrations — these I quote. Just make the intro with your code and I'll take the conversation from there. You still earn your 10%.",
   },
-]
-
-// Why a partner organisation should send work this way.
-export const partnerPerks: string[] = [
-  "Reciprocal referrals — you send web and software work, I send the clients who need what you do.",
-  "Built for accountants, print shops, co-working spaces, and agencies who already serve the same customers.",
-  "High trust, zero ad spend: your client deals with a named engineer, not a faceless agency.",
-  "Same 10% on anything you refer that turns into paid work — attribution carries through your code.",
 ]
 
 // The seller kit — ready-to-send messages a seller can copy, adapt, and send in
@@ -300,7 +291,7 @@ export const pitch = {
     "One clear next step: reply to the person who shared this, or email me directly. I'll come back within a day or two.",
 } as const
 
-// Short FAQ — the questions sellers and partners actually ask.
+// Short FAQ — the questions sellers actually ask.
 export type Faq = {
   q: string
   a: string

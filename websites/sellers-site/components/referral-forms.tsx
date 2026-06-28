@@ -13,27 +13,18 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
   Textarea,
 } from "@jamie-nisbet/ui"
 import { CircleCheck, LoaderCircle, Send, TriangleAlert } from "lucide-react"
 
-import {
-  submitPartnerReferral,
-  submitSellerLead,
-} from "@/app/actions/referral"
+import { submitSellerLead } from "@/app/actions/referral"
 import {
   budgetOptions,
   businessHours,
-  type PartnerReferralState,
   type SellerLeadState,
 } from "@/lib/referral-schema"
 
 const sellerInitial: SellerLeadState = { status: "idle" }
-const partnerInitial: PartnerReferralState = { status: "idle" }
 
 const pad = (n: number) => String(n).padStart(2, "0")
 
@@ -212,35 +203,56 @@ function SellerLeadForm({ defaultReferralCode }: { defaultReferralCode?: string 
         />
       </Field>
 
+      <Field
+        id="customerName"
+        label="Customer name"
+        error={state.errors?.customerName}
+      >
+        <Input
+          id="customerName"
+          name="customerName"
+          defaultValue={state.values?.customerName}
+          aria-invalid={Boolean(state.errors?.customerName)}
+          aria-describedby={
+            state.errors?.customerName ? "customerName-error" : undefined
+          }
+        />
+      </Field>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <Field
-          id="customerName"
-          label="Customer name"
-          error={state.errors?.customerName}
+          id="customerPhone"
+          label="Lead phone"
+          error={state.errors?.customerPhone}
+          hint="The best number to reach them on."
         >
           <Input
-            id="customerName"
-            name="customerName"
-            defaultValue={state.values?.customerName}
-            aria-invalid={Boolean(state.errors?.customerName)}
+            id="customerPhone"
+            name="customerPhone"
+            type="tel"
+            autoComplete="tel"
+            defaultValue={state.values?.customerPhone}
+            aria-invalid={Boolean(state.errors?.customerPhone)}
             aria-describedby={
-              state.errors?.customerName ? "customerName-error" : undefined
+              state.errors?.customerPhone ? "customerPhone-error" : undefined
             }
           />
         </Field>
 
         <Field
-          id="customerContact"
-          label="Customer email or phone"
-          error={state.errors?.customerContact}
+          id="customerEmail"
+          label="Lead email (optional)"
+          error={state.errors?.customerEmail}
         >
           <Input
-            id="customerContact"
-            name="customerContact"
-            defaultValue={state.values?.customerContact}
-            aria-invalid={Boolean(state.errors?.customerContact)}
+            id="customerEmail"
+            name="customerEmail"
+            type="email"
+            autoComplete="email"
+            defaultValue={state.values?.customerEmail}
+            aria-invalid={Boolean(state.errors?.customerEmail)}
             aria-describedby={
-              state.errors?.customerContact ? "customerContact-error" : undefined
+              state.errors?.customerEmail ? "customerEmail-error" : undefined
             }
           />
         </Field>
@@ -284,160 +296,8 @@ function SellerLeadForm({ defaultReferralCode }: { defaultReferralCode?: string 
         />
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field
-          id="sellerName"
-          label="Your name (optional)"
-          error={state.errors?.sellerName}
-        >
-          <Input
-            id="sellerName"
-            name="sellerName"
-            autoComplete="name"
-            defaultValue={state.values?.sellerName}
-          />
-        </Field>
-
-        <Field
-          id="sellerEmail"
-          label="Your email (optional)"
-          error={state.errors?.sellerEmail}
-          hint="So I can confirm the lead landed."
-        >
-          <Input
-            id="sellerEmail"
-            name="sellerEmail"
-            type="email"
-            autoComplete="email"
-            defaultValue={state.values?.sellerEmail}
-            aria-invalid={Boolean(state.errors?.sellerEmail)}
-            aria-describedby={
-              state.errors?.sellerEmail ? "sellerEmail-error" : undefined
-            }
-          />
-        </Field>
-      </div>
-
       <Honeypot />
       <SubmitRow pending={pending} label="Send lead" />
-    </form>
-  )
-}
-
-function PartnerReferralForm() {
-  const [state, formAction, pending] = useActionState(
-    submitPartnerReferral,
-    partnerInitial
-  )
-
-  if (state.status === "success") {
-    return (
-      <Alert variant="success">
-        <CircleCheck />
-        <AlertTitle>Referral received</AlertTitle>
-        <AlertDescription>{state.message}</AlertDescription>
-      </Alert>
-    )
-  }
-
-  return (
-    <form action={formAction} className="flex flex-col gap-5" noValidate>
-      {state.status === "error" && state.message && (
-        <Alert variant="destructive">
-          <TriangleAlert />
-          <AlertTitle>{state.message}</AlertTitle>
-        </Alert>
-      )}
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field
-          id="partnerName"
-          label="Your name or business"
-          error={state.errors?.partnerName}
-        >
-          <Input
-            id="partnerName"
-            name="partnerName"
-            autoComplete="organization"
-            defaultValue={state.values?.partnerName}
-            aria-invalid={Boolean(state.errors?.partnerName)}
-            aria-describedby={
-              state.errors?.partnerName ? "partnerName-error" : undefined
-            }
-          />
-        </Field>
-
-        <Field
-          id="partnerContact"
-          label="Your email or phone"
-          error={state.errors?.partnerContact}
-        >
-          <Input
-            id="partnerContact"
-            name="partnerContact"
-            defaultValue={state.values?.partnerContact}
-            aria-invalid={Boolean(state.errors?.partnerContact)}
-            aria-describedby={
-              state.errors?.partnerContact ? "partnerContact-error" : undefined
-            }
-          />
-        </Field>
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field
-          id="partnerCustomerName"
-          label="Customer name"
-          error={state.errors?.customerName}
-        >
-          <Input
-            id="partnerCustomerName"
-            name="customerName"
-            defaultValue={state.values?.customerName}
-            aria-invalid={Boolean(state.errors?.customerName)}
-            aria-describedby={
-              state.errors?.customerName ? "partnerCustomerName-error" : undefined
-            }
-          />
-        </Field>
-
-        <Field
-          id="partnerCustomerContact"
-          label="Customer email or phone"
-          error={state.errors?.customerContact}
-        >
-          <Input
-            id="partnerCustomerContact"
-            name="customerContact"
-            defaultValue={state.values?.customerContact}
-            aria-invalid={Boolean(state.errors?.customerContact)}
-            aria-describedby={
-              state.errors?.customerContact
-                ? "partnerCustomerContact-error"
-                : undefined
-            }
-          />
-        </Field>
-      </div>
-
-      <Field
-        id="partnerNeed"
-        label="What do they need?"
-        error={state.errors?.need}
-      >
-        <Textarea
-          id="partnerNeed"
-          name="need"
-          rows={3}
-          placeholder="A line on what the customer's after — I'll take it from there."
-          defaultValue={state.values?.need}
-          aria-invalid={Boolean(state.errors?.need)}
-          aria-describedby={state.errors?.need ? "partnerNeed-error" : undefined}
-        />
-      </Field>
-
-      <Honeypot />
-      <SubmitRow pending={pending} label="Send referral" />
     </form>
   )
 }
@@ -447,19 +307,6 @@ export function ReferralForms({
 }: {
   defaultReferralCode?: string
 }) {
-  // Sellers are the primary audience, so open on their tab.
-  return (
-    <Tabs defaultValue="seller" className="w-full gap-6">
-      <TabsList className="w-full">
-        <TabsTrigger value="seller">Seller lead</TabsTrigger>
-        <TabsTrigger value="partner">Partner referral</TabsTrigger>
-      </TabsList>
-      <TabsContent value="seller">
-        <SellerLeadForm defaultReferralCode={defaultReferralCode} />
-      </TabsContent>
-      <TabsContent value="partner">
-        <PartnerReferralForm />
-      </TabsContent>
-    </Tabs>
-  )
+  // This site is for sellers only — a single lead form, no tabs.
+  return <SellerLeadForm defaultReferralCode={defaultReferralCode} />
 }
