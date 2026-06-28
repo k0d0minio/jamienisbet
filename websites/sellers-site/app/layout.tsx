@@ -2,8 +2,6 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 import { ThemeProvider } from "@/components/theme-provider"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
 import { site } from "@/lib/site"
 
 const title = `${site.name} — ${site.role}`
@@ -41,11 +39,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-dvh flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
+          {/* Per-route-group layouts supply the chrome: the affiliate site
+              ((site)) wears the seller header/footer; the customer pitch
+              ((pitch)) wears its own minimal brand bar. */}
+          {children}
         </ThemeProvider>
       </body>
     </html>
