@@ -6,7 +6,11 @@
 ## What this folder accomplishes
 A public Next.js (App Router) site, deployed on Vercel, that powers Jamie's lead-generation channel without ad spend. Two jobs: (1) a local **affiliate seller** submits a customer lead tagged with their unique referral code (which makes the 10% payout unambiguous); (2) **partners** (accountants, print shops, co-working spaces, agencies) register reciprocal referrals. Submitted leads flow into [workspaces/lead-generation/](../../workspaces/lead-generation/) for triage. On-brand like every other site.
 
-Built as a single-page landing (pitch → how the 10% works → what you sell → seller kit → partners → FAQ) with both capture forms presented as tabs in the `#refer` section. The `#kit` section equips sellers to actually sell: copy-paste pitch messages (WhatsApp / email / in-person) with their referral link baked in, a "what makes a lead worth sending" checklist, and a worked 10% earnings table. Modelled on [../portfolio/](../portfolio/) — same stack and brand wiring.
+Two surfaces:
+- **The affiliate landing** (`/`, route group `(site)`) — seller-facing: pitch → how the 10% works → what you sell → seller kit → partners → FAQ, with both capture forms as tabs in the `#refer` section. The `#kit` section is the seller toolkit: copy-paste opener messages and a follow-up sequence (WhatsApp / email / in-person, with their referral link baked in), objection handling, a packages & price sheet, a "what makes a lead worth sending" checklist, and a worked 10% earnings table.
+- **The customer pitch** (`/pitch`, route group `(pitch)`) — a clean, customer-facing page a seller shows or sends a prospect. It sells the work (clear scope, clear price), never the commission, and prints to a one-pager (`Save as PDF`). It wears minimal brand chrome instead of the affiliate header.
+
+Modelled on [../portfolio/](../portfolio/) — same stack and brand wiring. The seller-kit and pitch copy mirror the canonical source in [workspaces/lead-generation/stages/03_affiliate_program/output/sales-kit/](../../workspaces/lead-generation/stages/03_affiliate_program/output/sales-kit/) (edit-source: change the kit there, then mirror into `lib/site.ts`).
 
 ## How it connects to the architecture
 - **Upstream / reads from:** public submissions (seller leads + partner referrals); the seller/partner registry and referral codes defined in [workspaces/lead-generation/stages/03_affiliate_program/](../../workspaces/lead-generation/stages/03_affiliate_program/).
@@ -14,9 +18,9 @@ Built as a single-page landing (pitch → how the 10% works → what you sell �
 - **Draws on (Layer 3 reference):** [_config/brand/visual/](../../_config/brand/visual/) + [_config/brand/voice/](../../_config/brand/voice/) (the seller-facing copy), [workspaces/lead-generation/references/](../../workspaces/lead-generation/references/) (the productised offer + pitch).
 
 ## Contents
-- `app/` — App Router: `page.tsx` composes the landing sections; `layout.tsx` wires the brand theme; `actions/referral.ts` holds the two Server Actions; `robots.ts`, `sitemap.ts`, `icon.svg`.
-- `components/` — `site-header`/`site-footer`, `referral-forms` (the tabbed seller + partner forms), `pitch-scripts` (the copy-to-clipboard pitch cards), and `sections/` (hero, how-it-works, what-you-sell, sales-kit, partners, faq, refer-section).
-- `lib/` — `site.ts` (copy + section data, incl. `pitchScripts` / `goodLeadSigns` / `earningExamples`) and `referral-schema.ts` (Zod schemas + form state types).
+- `app/` — App Router. Root `layout.tsx` is the shell (theme only); each route group supplies its own chrome. `(site)/` is the affiliate landing (`page.tsx` + `layout.tsx` with `site-header`/`site-footer`); `(pitch)/pitch/` is the customer pitch page (`page.tsx` + minimal `layout.tsx`). `actions/referral.ts` holds the two Server Actions; `robots.ts`, `sitemap.ts`, `icon.svg`, `not-found.tsx` live at the app root.
+- `components/` — `site-header`/`site-footer`, `referral-forms` (the tabbed seller + partner forms), `pitch-scripts` (copy-to-clipboard opener + follow-up cards), `copy-button` / `print-button` (shared client controls), and `sections/` (hero, how-it-works, what-you-sell, sales-kit, partners, faq, refer-section).
+- `lib/` — `site.ts` (copy + section data, incl. `pitchScripts` / `followUps` / `objections` / `packages` / `goodLeadSigns` / `earningExamples` / `pitch`) and `referral-schema.ts` (Zod schemas + form state types).
 - Brand: consumes `@jamie-nisbet/ui` via `workspace:*` and `@import "@jamie-nisbet/ui/styles.css"`; theming is light/dark via the `data-theme` attribute (no per-site token overrides) — same pattern as `../portfolio/`.
 
 ## Notes
