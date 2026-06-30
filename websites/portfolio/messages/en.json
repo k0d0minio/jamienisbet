@@ -32,23 +32,49 @@
   "services": {
     "eyebrow": "What I do",
     "title": "Software and AI, delivered by the person who builds it.",
-    "intro": "Four ways I help — described by the outcome, not a product name.",
+    "intro": "From a single landing page to the AI infrastructure behind your whole operation. Pick what fits and I'll prefill it on the form — so I know exactly what you need.",
+    "exampleLabel": "Example:",
+    "cta": "Start this project",
     "items": {
-      "ai": {
-        "title": "AI features",
-        "description": "Practical AI wired into the tools you already use — it handles the repetitive work so your team doesn't. Built and measured against a real outcome, not a demo."
+      "geo": {
+        "title": "GEO optimisation",
+        "description": "Get found inside AI answers, not just search results. I structure your content and data so ChatGPT, Gemini, and Perplexity cite you when your customers ask.",
+        "example": "Reworked a SaaS site's content and schema so it started turning up in AI answers for its core buying questions."
+      },
+      "landingPages": {
+        "title": "Landing pages, fully serviced",
+        "description": "Design, copywriting, hosting, and maintenance in one pair of hands. A fast, on-brand page that converts — and stays current without you chasing anyone.",
+        "example": "Designed, wrote, and now host a product launch page — one point of contact for copy tweaks and uptime."
+      },
+      "automation": {
+        "title": "AI & non-AI automation",
+        "description": "Hand the repetitive work to software. I connect your tools and automate the boring steps — with AI where it earns its place, plain code where it doesn't.",
+        "example": "Automated invoice intake and follow-ups for a small firm, saving roughly half a day of admin each week."
+      },
+      "aiInfrastructure": {
+        "title": "AI business infrastructure",
+        "description": "The foundation that makes AI useful across your business — knowledge bases, retrieval, and the plumbing that keeps models grounded in your own data.",
+        "example": "Built a private knowledge base and retrieval layer so a team's assistant answers from their docs instead of guessing."
+      },
+      "aiConsultancy": {
+        "title": "AI consultancy",
+        "description": "A straight second opinion on where AI fits — and where it doesn't. We find the few use cases worth doing and skip the hype that burns budget.",
+        "example": "Reviewed a startup's AI roadmap and trimmed it to the two features that actually moved the numbers."
+      },
+      "projectManagement": {
+        "title": "Project management",
+        "description": "Someone technical to keep a build on track — scope, timelines, and contractors coordinated, with honest status you can act on.",
+        "example": "Ran delivery on a multi-vendor web build, keeping scope and timeline aligned all the way to launch."
       },
       "software": {
-        "title": "Software & websites",
-        "description": "Web apps and sites built to last: fast, accessible, and easy to change. Clean architecture today means cheap changes tomorrow."
+        "title": "Software engineering",
+        "description": "Web apps and systems built to last: fast, accessible, documented, and easy to change. Clean architecture today means cheap changes tomorrow.",
+        "example": "Shipped a custom client portal on clean, documented architecture the team can extend themselves."
       },
-      "automations": {
-        "title": "Automations",
-        "description": "Cut the manual work. I connect your tools and let the boring parts run themselves, so your hours go back to the business and its customers."
-      },
-      "advisory": {
-        "title": "Advisory",
-        "description": "A senior engineer on call — architecture reviews, technical due diligence, or a straight second opinion before you commit."
+      "leadGen": {
+        "title": "Lead-gen channel development",
+        "description": "Build the channels that bring work in — referral systems, outreach, and the tooling behind them — so growth isn't only word of mouth.",
+        "example": "Set up a referral and outreach system that gave a consultant a repeatable source of new enquiries."
       }
     }
   },
@@ -111,6 +137,8 @@
     "email": "Email",
     "messageLabel": "What can I help with?",
     "messagePlaceholder": "A sentence or two about your project, your goal, and any timeline.",
+    "serviceLabel": "Enquiring about",
+    "serviceClear": "Clear",
     "send": "Send message",
     "sending": "Sending…",
     "sentTitle": "Message sent",

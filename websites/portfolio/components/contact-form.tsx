@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState, useSyncExternalStore } from "react"
 import { useTranslations } from "next-intl"
 import {
   Alert,
@@ -11,17 +11,41 @@ import {
   Label,
   Textarea,
 } from "@jamie-nisbet/ui"
-import { CircleCheck, LoaderCircle, Send, TriangleAlert } from "lucide-react"
+import { CircleCheck, LoaderCircle, Send, TriangleAlert, X } from "lucide-react"
 
 import { submitContact } from "@/app/actions/contact"
 import { site } from "@/lib/site"
 import type { ContactState } from "@/lib/contact-schema"
+import { isServiceId, type ServiceId } from "@/lib/services"
 
 const initialState: ContactState = { status: "idle" }
 
+// The Services section links here with ?service=<id>. Read it from the URL via
+// useSyncExternalStore so it works without a useSearchParams Suspense boundary
+// (the form stays in the static HTML) and hydrates cleanly: null on the server,
+// the real value on the client. It never changes after load, so subscribe is a
+// no-op.
+const subscribe = () => () => {}
+const getServiceParam = () =>
+  new URLSearchParams(window.location.search).get("service")
+const getServiceServerParam = () => null
+
 export function ContactForm() {
   const t = useTranslations("form")
+  const tServices = useTranslations("services")
   const [state, formAction, pending] = useActionState(submitContact, initialState)
+
+  // The picked service is reflected back to the visitor and carried into the
+  // email via the hidden field below. Untrusted, so only a known id is kept; the
+  // "Clear" button lets the visitor drop it.
+  const [cleared, setCleared] = useState(false)
+  const param = useSyncExternalStore(
+    subscribe,
+    getServiceParam,
+    getServiceServerParam
+  )
+  const service: ServiceId | null =
+    !cleared && isServiceId(param) ? param : null
 
   if (state.status === "success") {
     return (
@@ -40,6 +64,30 @@ export function ContactForm() {
           <TriangleAlert />
           <AlertTitle>{state.message}</AlertTitle>
         </Alert>
+      )}
+
+      {service && (
+        <>
+          <input type="hidden" name="service" value={service} />
+          <div className="flex items-start justify-between gap-3 rounded-md border border-primary/30 bg-primary-soft px-4 py-3">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                {t("serviceLabel")}
+              </span>
+              <span className="text-sm font-medium text-foreground">
+                {tServices(`items.${service}.title`)}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCleared(true)}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              <X className="size-3.5" />
+              {t("serviceClear")}
+            </button>
+          </div>
+        </>
       )}
 
       <div className="grid gap-2">

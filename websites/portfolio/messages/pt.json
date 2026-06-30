@@ -32,23 +32,49 @@
   "services": {
     "eyebrow": "O que faço",
     "title": "Software e IA, entregues pela pessoa que os constrói.",
-    "intro": "Quatro formas de ajudar — descritas pelo resultado, não pelo nome de um produto.",
+    "intro": "De uma única landing page à infraestrutura de IA por detrás de toda a sua operação. Escolha o que encaixa e eu preencho-o no formulário — para saber exatamente do que precisa.",
+    "exampleLabel": "Exemplo:",
+    "cta": "Iniciar este projeto",
     "items": {
-      "ai": {
-        "title": "Funcionalidades de IA",
-        "description": "IA prática integrada nas ferramentas que já usa — trata do trabalho repetitivo para que a sua equipa não tenha de o fazer. Construída e medida face a um resultado real, não a uma demonstração."
+      "geo": {
+        "title": "Otimização GEO",
+        "description": "Ser encontrado dentro das respostas de IA, não só nos resultados de pesquisa. Estruturo o seu conteúdo e dados para que o ChatGPT, o Gemini e o Perplexity o citem quando os seus clientes perguntam.",
+        "example": "Reformulei o conteúdo e o schema de um site SaaS para começar a aparecer nas respostas de IA às suas principais perguntas de compra."
+      },
+      "landingPages": {
+        "title": "Landing pages, serviço completo",
+        "description": "Design, copywriting, alojamento e manutenção num só par de mãos. Uma página rápida e fiel à marca que converte — e mantém-se atual sem ter de andar atrás de ninguém.",
+        "example": "Desenhei, escrevi e alojo agora uma página de lançamento de produto — um único ponto de contacto para ajustes de copy e disponibilidade."
+      },
+      "automation": {
+        "title": "Automação com e sem IA",
+        "description": "Entregue o trabalho repetitivo ao software. Ligo as suas ferramentas e automatizo os passos aborrecidos — com IA onde faz sentido, código simples onde não faz.",
+        "example": "Automatizei a receção e o seguimento de faturas para uma pequena empresa, poupando cerca de meio dia de trabalho administrativo por semana."
+      },
+      "aiInfrastructure": {
+        "title": "Infraestrutura de IA para o negócio",
+        "description": "A base que torna a IA útil em todo o seu negócio — bases de conhecimento, recuperação de informação e a canalização que mantém os modelos ancorados nos seus próprios dados.",
+        "example": "Construí uma base de conhecimento privada e uma camada de recuperação para que o assistente de uma equipa responda a partir dos seus documentos, em vez de adivinhar."
+      },
+      "aiConsultancy": {
+        "title": "Consultoria de IA",
+        "description": "Uma segunda opinião franca sobre onde a IA encaixa — e onde não encaixa. Encontramos os poucos casos de uso que valem a pena e deixamos de lado o exagero que esgota o orçamento.",
+        "example": "Revi o roteiro de IA de uma startup e reduzi-o às duas funcionalidades que realmente moviam os números."
+      },
+      "projectManagement": {
+        "title": "Gestão de projetos",
+        "description": "Alguém técnico para manter um projeto nos eixos — âmbito, prazos e contratados coordenados, com um ponto de situação honesto sobre o qual pode agir.",
+        "example": "Geri a entrega de um projeto web com vários fornecedores, mantendo âmbito e prazo alinhados até ao lançamento."
       },
       "software": {
-        "title": "Software e sites",
-        "description": "Aplicações web e sites feitos para durar: rápidos, acessíveis e fáceis de alterar. Uma arquitetura limpa hoje significa alterações baratas amanhã."
+        "title": "Engenharia de software",
+        "description": "Aplicações web e sistemas feitos para durar: rápidos, acessíveis, documentados e fáceis de alterar. Uma arquitetura limpa hoje significa alterações baratas amanhã.",
+        "example": "Entreguei um portal de cliente à medida sobre uma arquitetura limpa e documentada que a equipa consegue estender sozinha."
       },
-      "automations": {
-        "title": "Automações",
-        "description": "Corte o trabalho manual. Ligo as suas ferramentas e deixo as partes aborrecidas a correr sozinhas, para que as suas horas voltem para o negócio e para os seus clientes."
-      },
-      "advisory": {
-        "title": "Consultoria",
-        "description": "Um engenheiro sénior à distância de uma chamada — revisões de arquitetura, due diligence técnica ou uma segunda opinião franca antes de avançar."
+      "leadGen": {
+        "title": "Desenvolvimento de canais de angariação",
+        "description": "Construir os canais que trazem trabalho — sistemas de referência, prospeção e as ferramentas por trás deles — para que o crescimento não dependa só do passa-palavra.",
+        "example": "Montei um sistema de referências e prospeção que deu a um consultor uma fonte repetível de novos contactos."
       }
     }
   },
@@ -111,6 +137,8 @@
     "email": "Email",
     "messageLabel": "Em que posso ajudar?",
     "messagePlaceholder": "Uma frase ou duas sobre o seu projeto, o seu objetivo e eventuais prazos.",
+    "serviceLabel": "Pedido sobre",
+    "serviceClear": "Limpar",
     "send": "Enviar mensagem",
     "sending": "A enviar…",
     "sentTitle": "Mensagem enviada",

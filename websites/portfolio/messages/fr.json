@@ -32,23 +32,49 @@
   "services": {
     "eyebrow": "Ce que je fais",
     "title": "Logiciels et IA, livrés par la personne qui les construit.",
-    "intro": "Quatre façons d'aider — décrites par le résultat, pas par un nom de produit.",
+    "intro": "D'une simple landing page à l'infrastructure d'IA derrière toute votre activité. Choisissez ce qui vous convient et je le pré-remplis dans le formulaire — pour savoir exactement ce qu'il vous faut.",
+    "exampleLabel": "Exemple :",
+    "cta": "Démarrer ce projet",
     "items": {
-      "ai": {
-        "title": "Fonctionnalités d'IA",
-        "description": "De l'IA concrète intégrée aux outils que vous utilisez déjà — elle prend en charge le travail répétitif pour épargner votre équipe. Construite et mesurée face à un résultat réel, pas à une démonstration."
+      "geo": {
+        "title": "Optimisation GEO",
+        "description": "Être trouvé dans les réponses d'IA, pas seulement dans les résultats de recherche. Je structure votre contenu et vos données pour que ChatGPT, Gemini et Perplexity vous citent quand vos clients posent la question.",
+        "example": "Repris le contenu et le schema d'un site SaaS pour qu'il commence à apparaître dans les réponses d'IA à ses principales questions d'achat."
+      },
+      "landingPages": {
+        "title": "Landing pages, service complet",
+        "description": "Design, rédaction, hébergement et maintenance entre les mêmes mains. Une page rapide et fidèle à votre marque qui convertit — et reste à jour sans que vous ayez à relancer qui que ce soit.",
+        "example": "Conçu, rédigé et j'héberge désormais une page de lancement de produit — un seul interlocuteur pour les ajustements de texte et la disponibilité."
+      },
+      "automation": {
+        "title": "Automatisation avec et sans IA",
+        "description": "Confiez le travail répétitif au logiciel. Je connecte vos outils et automatise les étapes fastidieuses — avec de l'IA là où elle a sa place, du code simple là où elle n'en a pas.",
+        "example": "Automatisé la réception et les relances de factures pour une petite société, économisant environ une demi-journée d'administratif par semaine."
+      },
+      "aiInfrastructure": {
+        "title": "Infrastructure d'IA pour l'entreprise",
+        "description": "La fondation qui rend l'IA utile dans toute votre activité — bases de connaissances, recherche d'informations et la tuyauterie qui ancre les modèles dans vos propres données.",
+        "example": "Construit une base de connaissances privée et une couche de recherche pour qu'un assistant d'équipe réponde à partir de leurs documents au lieu de deviner."
+      },
+      "aiConsultancy": {
+        "title": "Conseil en IA",
+        "description": "Un deuxième avis franc sur la place de l'IA — et là où elle n'en a pas. On repère les rares cas d'usage qui en valent la peine et on laisse de côté le battage qui brûle le budget.",
+        "example": "Passé en revue la feuille de route IA d'une startup et réduite aux deux fonctionnalités qui faisaient réellement bouger les chiffres."
+      },
+      "projectManagement": {
+        "title": "Gestion de projet",
+        "description": "Quelqu'un de technique pour garder un projet sur les rails — périmètre, délais et prestataires coordonnés, avec un point d'avancement honnête sur lequel agir.",
+        "example": "Piloté la livraison d'un projet web multi-prestataires, en gardant périmètre et délai alignés jusqu'au lancement."
       },
       "software": {
-        "title": "Logiciels et sites web",
-        "description": "Applications web et sites conçus pour durer : rapides, accessibles et faciles à faire évoluer. Une architecture propre aujourd'hui, ce sont des évolutions peu coûteuses demain."
+        "title": "Ingénierie logicielle",
+        "description": "Applications web et systèmes conçus pour durer : rapides, accessibles, documentés et faciles à faire évoluer. Une architecture propre aujourd'hui, ce sont des évolutions peu coûteuses demain.",
+        "example": "Livré un portail client sur mesure sur une architecture propre et documentée que l'équipe peut étendre elle-même."
       },
-      "automations": {
-        "title": "Automatisations",
-        "description": "Supprimez le travail manuel. Je connecte vos outils et laisse les tâches fastidieuses tourner toutes seules, pour que vos heures retournent au cœur de votre activité et à vos clients."
-      },
-      "advisory": {
-        "title": "Conseil",
-        "description": "Un ingénieur expérimenté disponible — revues d'architecture, due diligence technique ou simplement un deuxième avis franc avant de vous engager."
+      "leadGen": {
+        "title": "Développement de canaux d'acquisition",
+        "description": "Construire les canaux qui amènent du travail — systèmes de recommandation, prospection et l'outillage derrière — pour que la croissance ne repose pas que sur le bouche-à-oreille.",
+        "example": "Mis en place un système de recommandation et de prospection qui a donné à un consultant une source répétable de nouvelles demandes."
       }
     }
   },
@@ -111,6 +137,8 @@
     "email": "Email",
     "messageLabel": "En quoi puis-je vous aider ?",
     "messagePlaceholder": "Une phrase ou deux sur votre projet, votre objectif et l'échéance éventuelle.",
+    "serviceLabel": "Demande concernant",
+    "serviceClear": "Effacer",
     "send": "Envoyer le message",
     "sending": "Envoi…",
     "sentTitle": "Message envoyé",
