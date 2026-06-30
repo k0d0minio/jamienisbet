@@ -1,13 +1,13 @@
-import Link from "next/link"
 import { Eyebrow, LogoMarkSolid } from "@jamie-nisbet/ui"
+import { getTranslations } from "next-intl/server"
 import { ExternalLink, Mail, MapPin } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { site, navItems } from "@/lib/site"
-import type { Dictionary } from "@/lib/i18n/dictionaries/en"
 
-export function SiteFooter({ dict }: { dict: Dictionary }) {
+export async function SiteFooter() {
+  const t = await getTranslations()
   const year = new Date().getFullYear()
-  const tagline = dict.footer.tagline.replace("{location}", site.location)
 
   return (
     <footer className="border-t border-border">
@@ -16,16 +16,18 @@ export function SiteFooter({ dict }: { dict: Dictionary }) {
           <Link
             href="/"
             className="flex items-center gap-2.5"
-            aria-label={`${site.name} — ${dict.role}`}
+            aria-label={`${site.name} — ${t("role")}`}
           >
             <LogoMarkSolid className="size-8" />
             <span className="font-semibold tracking-tight">{site.name}</span>
           </Link>
-          <p className="text-sm text-muted-foreground">{tagline}</p>
+          <p className="text-sm text-muted-foreground">
+            {t("footer.tagline", { location: site.location })}
+          </p>
         </div>
 
         <div className="flex flex-col gap-3">
-          <Eyebrow>{dict.footer.getInTouch}</Eyebrow>
+          <Eyebrow>{t("footer.getInTouch")}</Eyebrow>
           <a
             href={`mailto:${site.email}`}
             className="inline-flex items-center gap-2 text-sm transition-colors hover:text-primary"
@@ -59,7 +61,7 @@ export function SiteFooter({ dict }: { dict: Dictionary }) {
                 href={item.href}
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                {dict.nav[item.key]}
+                {t(`nav.${item.key}`)}
               </Link>
             ))}
           </nav>

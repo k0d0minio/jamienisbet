@@ -1,12 +1,12 @@
-import Link from "next/link"
 import { Button, Eyebrow } from "@jamie-nisbet/ui"
+import { getTranslations } from "next-intl/server"
 import { ArrowRight } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Container } from "@/components/section"
-import { getI18n } from "@/lib/i18n"
 
 export async function Hero() {
-  const { dict } = await getI18n()
+  const t = await getTranslations()
 
   return (
     <section className="relative overflow-hidden border-b border-border">
@@ -18,23 +18,23 @@ export async function Hero() {
       <Container className="relative py-20 sm:py-28 lg:py-32">
         <div className="flex max-w-[var(--container-md)] flex-col gap-6">
           <Eyebrow rule primary>
-            {dict.role}
+            {t("role")}
           </Eyebrow>
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-            {dict.hero.title}
+            {t("hero.title")}
           </h1>
           <p className="max-w-2xl text-lg text-pretty text-muted-foreground sm:text-xl">
-            {dict.hero.intro}
+            {t("hero.intro")}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
               <Link href="/#refer">
-                {dict.hero.refer}
+                {t("hero.refer")}
                 <ArrowRight />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/#how">{dict.hero.how}</Link>
+              <Link href="/#how">{t("hero.how")}</Link>
             </Button>
           </div>
         </div>

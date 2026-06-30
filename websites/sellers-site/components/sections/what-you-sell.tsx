@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@jamie-nisbet/ui"
+import { getTranslations } from "next-intl/server"
 import { FileText, Sparkles } from "lucide-react"
 
 import { Container, Section, SectionHeading } from "@/components/section"
-import { getI18n } from "@/lib/i18n"
 
 const icons: Record<string, typeof FileText> = {
   landing: FileText,
@@ -10,19 +10,24 @@ const icons: Record<string, typeof FileText> = {
 }
 
 export async function WhatYouSell() {
-  const { dict } = await getI18n()
+  const t = await getTranslations("whatYouSell")
+  const points = t.raw("points") as {
+    key: string
+    title: string
+    description: string
+  }[]
 
   return (
     <Section id="sell" className="border-b border-border">
       <Container className="flex flex-col gap-12">
         <SectionHeading
-          eyebrow={dict.whatYouSell.eyebrow}
+          eyebrow={t("eyebrow")}
           index="02"
-          title={dict.whatYouSell.title}
-          intro={dict.whatYouSell.intro}
+          title={t("title")}
+          intro={t("intro")}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          {dict.whatYouSell.points.map((point) => {
+          {points.map((point) => {
             const Icon = icons[point.key] ?? FileText
             return (
               <Card key={point.key} className="gap-4">

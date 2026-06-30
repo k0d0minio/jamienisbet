@@ -1,5 +1,7 @@
 "use server"
 
+import { Resend } from "resend"
+
 import {
   makeSellerLeadSchema,
   type SellerLeadField,
@@ -7,25 +9,10 @@ import {
 } from "@/lib/referral-schema"
 import { getDictionary, getLocale } from "@/lib/i18n"
 
-// ----------------------------------------------------------------------------
-// TODO(send-later): deliver each submission to lead-generation.
-//
-// Both forms are fully built and validated; delivery is intentionally deferred
-// until a target is configured and reviewed. This honours the repo rule
-// "no outbound action without review" — nothing leaves the server yet. When
-// ready, send the parsed payload (e.g. via Resend to LEAD_TO_EMAIL, or write a
-// lead file into workspaces/lead-generation/) here, keeping the referral code
-// intact so attribution carries through to payout.
-//
-//   import { Resend } from "resend"
-//   const resend = new Resend(process.env.RESEND_API_KEY)
-//   await resend.emails.send({
-//     from: process.env.LEAD_FROM_EMAIL!,
-//     to: process.env.LEAD_TO_EMAIL!,
-//     subject: `New referral — ${parsed.data.customerName}`,
-//     text: JSON.stringify(parsed.data, null, 2),
-//   })
-// ----------------------------------------------------------------------------
+// Hardcoded for now — only the API key comes from the environment. We can move
+// these into env vars later (see .env.example).
+const TO_EMAIL = "jamie.nisbet@outlook.be"
+const FROM_EMAIL = "Jamie Nisbet Consultancy <noreply@mail.jamienisbet.com>"
 
 const field = (formData: FormData, name: string) =>
   String(formData.get(name) ?? "")
@@ -76,12 +63,46 @@ export async function submitSellerLead(
     return { status: "success", message: t.botSuccess }
   }
 
+  const { company: _company, ...lead } = parsed.data
+  void _company // honeypot — never forwarded
+
   if (!process.env.RESEND_API_KEY) {
-    // Not wired yet — log so nothing is lost while testing locally.
-    console.info("[referral] seller lead (not sent — RESEND_API_KEY unset):", {
-      ...parsed.data,
-      company: undefined,
-    })
+    // No key configured — log so nothing is lost while testing locally.
+    console.info("[referral] seller lead (not sent — RESEND_API_KEY unset):", lead)
+    return {
+      status: "success",
+      message: t.success.message,
+    }
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: TO_EMAIL,
+    replyTo: lead.customerEmail || undefined,
+    subject: `New referral — ${lead.customerName} (code: ${lead.referralCode})`,
+    text: [
+      `Referral code:       ${lead.referralCode}`,
+      `Customer name:       ${lead.customerName}`,
+      `Customer phone:      ${lead.customerPhone}`,
+      `Customer email:      ${lead.customerEmail || "—"}`,
+      `Budget:              ${lead.budget || "—"}`,
+      `Preferred call time: ${lead.preferredCallTime || "—"}`,
+      "",
+      "Need:",
+      lead.need,
+    ].join("\n"),
+  })
+
+  if (error) {
+    console.error("[referral] Resend send failed:", error)
+    const { company, ...rest } = values
+    void company
+    return {
+      status: "error",
+      message: t.errorBanner,
+      values: rest,
+    }
   }
 
   return {

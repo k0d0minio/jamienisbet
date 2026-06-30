@@ -4,17 +4,14 @@ import { ExternalLink } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { site } from "@/lib/site"
-import { getI18n } from "@/lib/i18n"
 
 // Minimal, customer-facing chrome for the pitch page — the brand mark, a language
 // switcher (so a seller can show the pitch in the customer's language), and a
 // theme toggle. Header and footer are `print:hidden` so saving the page as a PDF
 // yields a clean one-pager.
-export default async function PitchLayout({
+export default function PitchLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const { locale, dict } = await getI18n()
-
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border print:hidden">
@@ -24,8 +21,8 @@ export default async function PitchLayout({
             {site.name}
           </span>
           <div className="flex items-center gap-1">
-            <LanguageSwitcher locale={locale} label={dict.language.label} />
-            <ThemeToggle label={dict.themeToggle} />
+            <LanguageSwitcher />
+            <ThemeToggle />
           </div>
         </div>
       </header>

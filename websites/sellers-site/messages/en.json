@@ -1,0 +1,367 @@
+{
+  "ogLocale": "en_GB",
+  "role": "Affiliate program",
+  "meta": {
+    "description": "Earn 10% sending me web and software work you already talk about. You make the warm intro; I scope, build, and ship. You're paid when the client pays."
+  },
+  "language": {
+    "label": "Change language"
+  },
+  "nav": {
+    "how": "How it works",
+    "sell": "What you sell",
+    "kit": "Seller kit",
+    "faq": "FAQ"
+  },
+  "header": {
+    "refer": "Refer a customer",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "footer": {
+    "tagline": "Refer web and software work, earn 10% on what gets built — paid when the client pays. Run from {location}.",
+    "getInTouch": "Get in touch"
+  },
+  "themeToggle": "Toggle light or dark theme",
+  "copy": {
+    "copy": "Copy message",
+    "copied": "Copied"
+  },
+  "print": "Save as PDF",
+  "hero": {
+    "title": "Earn 10% sending me work you already talk about.",
+    "intro": "Someone you know needs a website? Make the intro. I scope it, build it, and ship it — you earn 10% of what I invoice, paid when the client pays. No tech knowledge needed, no risk on you.",
+    "refer": "Refer a customer",
+    "how": "How it works"
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "title": "Four steps from a warm intro to your payout.",
+    "intro": "You bring the relationship. I do the rest — and the referral code keeps the 10% unambiguously yours.",
+    "steps": [
+      {
+        "key": "refer",
+        "title": "You refer",
+        "description": "Someone you know needs a website or software. You make the intro here with your referral code — that code is what ties the payout to you."
+      },
+      {
+        "key": "build",
+        "title": "I scope & build",
+        "description": "I take it from there: I talk to the customer, agree a clear scope and price, and build it. You're not on the hook for any of the delivery."
+      },
+      {
+        "key": "pay",
+        "title": "The client pays",
+        "description": "The customer pays my invoice for the work. Simple landing pages start at €200; bigger builds are quoted to fit."
+      },
+      {
+        "key": "payout",
+        "title": "You're paid 10%",
+        "description": "You get 10% of what I invoice, paid once the client's payment lands — not before. One clear statement per referrer, no chasing."
+      }
+    ]
+  },
+  "whatYouSell": {
+    "eyebrow": "What you sell",
+    "title": "Pitch the simple thing. Hand me the rest.",
+    "intro": "Landing pages you can quote yourself, from €200. Anything bigger, just introduce me — you still earn your 10%.",
+    "points": [
+      {
+        "key": "landing",
+        "title": "Landing page + contact form",
+        "description": "The easy sell: a clean, fast one-page site with a contact form, from €200. You can quote anything at or above €200 yourself — no approval needed."
+      },
+      {
+        "key": "bigger",
+        "title": "Something bigger? Introduce me",
+        "description": "Multi-page sites, web apps, AI features, integrations — these I quote. Just make the intro with your code and I'll take the conversation from there. You still earn your 10%."
+      }
+    ]
+  },
+  "salesKit": {
+    "eyebrow": "Your seller kit",
+    "title": "Everything you need to make the intro.",
+    "intro": "Copy a message, send it, log the lead. No pitch to memorise, no tech to explain — that part's on me.",
+    "pitchCard": {
+      "title": "The customer pitch page",
+      "body": "A clean page that sells the work, not the program — show it on your phone or send the link. It prints to a one-pager too.",
+      "cta": "Open the pitch"
+    },
+    "readyEyebrow": "Ready-to-send messages",
+    "readyNoteWithCode": "Each message links to {site} — the page customers see. Log the lead below with your code {code} to keep the 10% yours.",
+    "readyNote": "Each message links to {site} — the page customers see. Log the lead below with your referral code to keep the 10% yours.",
+    "followEyebrow": "Follow up — where most referrals close",
+    "followNote": "Three light touches, then stop. A warm “later” is worth more than a pushed “no”.",
+    "objectionsEyebrow": "If they hesitate",
+    "packagesEyebrow": "What you can quote — and what to hand me",
+    "leadsEyebrow": "What makes a lead worth sending",
+    "earningsEyebrow": "What your 10% looks like",
+    "table": {
+      "work": "The work",
+      "pays": "Client pays",
+      "earn": "You earn"
+    },
+    "earningsNote": "Examples only — your 10% is always 10% of what the client actually pays, settled once their payment lands."
+  },
+  "pitchScripts": [
+    {
+      "key": "whatsapp",
+      "channel": "WhatsApp",
+      "title": "Quick WhatsApp intro",
+      "body": "Hey! You mentioned needing a website for the business — I know the right person. Jamie builds clean, fast sites from €200 and handles the whole thing for you. Want me to introduce you? Here's his page: {link}"
+    },
+    {
+      "key": "email",
+      "channel": "Email",
+      "title": "Warm email introduction",
+      "body": "Hi [name],\n\nFollowing up on what you said about needing a website — I work with Jamie Nisbet, a software engineer near Lisbon who builds fast, professional sites and looks after the whole thing. One-page sites start at €200; bigger builds are quoted to fit.\n\nYou can read more and reach him here: {link}\n\nHappy to introduce you directly — just say the word."
+    },
+    {
+      "key": "inperson",
+      "channel": "In person",
+      "title": "Face-to-face, then follow up",
+      "body": "\"You know what — I know exactly the right person for that. Jamie builds websites and software, dead easy to deal with, and he'll quote you straight. Let me send you his link.\" Then text them: {link}"
+    }
+  ],
+  "followUps": [
+    {
+      "key": "sameday",
+      "when": "Same day",
+      "context": "Once you've logged the lead",
+      "body": "Just sent your details over to Jamie — he'll reach out in a day or two. Anything you want him to know first? Tell me and I'll pass it on."
+    },
+    {
+      "key": "day3",
+      "when": "After ~3 days",
+      "context": "If they've gone quiet",
+      "body": "Did Jamie manage to reach you? No rush — just making sure his message didn't land in spam. Here's his page again if it's easier: {link}"
+    },
+    {
+      "key": "week1",
+      "when": "After ~1 week",
+      "context": "The soft close",
+      "body": "No pressure at all — if now's not the right time for the website, just say and I'll leave it. If it is, Jamie can usually have a simple one live within a couple of weeks."
+    }
+  ],
+  "objections": [
+    {
+      "objection": "“It's too expensive.”",
+      "answer": "A one-page site starts at €200, once, and works for years. Set that against the customers a business loses with no site — or a broken one. If €200 is still too much, it's probably not the right time, and that's fine."
+    },
+    {
+      "objection": "“I'll just use Wix myself.”",
+      "answer": "They can, and sometimes that's the right call. The difference is the weekends spent fighting a template that still looks like one. I do it properly, once, and they get their time back. If they enjoy the DIY, don't push."
+    },
+    {
+      "objection": "“I already know someone.”",
+      "answer": "No hard sell. Just mention I'm a senior engineer who handles the whole thing for a clear fixed price — handy if their guy goes quiet or it gets technical. Leave the link; people remember it when the first option falls through."
+    },
+    {
+      "objection": "“Not right now / maybe later.”",
+      "answer": "Fine — don't chase. Ask what would make it the right time (a launch, a busy season, a rebrand) and check back then. A soft “want the link for whenever?” keeps the door open without pressure."
+    },
+    {
+      "objection": "“What if it goes wrong? I'm not technical.”",
+      "answer": "That's the point — they never touch the technical side. I scope it, build it, and support it; they deal with one person, not an agency. And you're not on the hook for any of it either."
+    }
+  ],
+  "packages": [
+    {
+      "key": "landing",
+      "name": "Landing page + contact form",
+      "price": "from €200",
+      "blurb": "The easy first sell — one clean, fast page that does its job.",
+      "includes": [
+        "Loads fast, looks right on a phone",
+        "A contact form that emails every enquiry through",
+        "Their logo, colours, and words, set up properly",
+        "Live on their domain, ready to share"
+      ],
+      "sellerNote": "Quote this yourself at €200 or more — no approval needed."
+    },
+    {
+      "key": "multipage",
+      "name": "Multi-page site",
+      "price": "quoted to fit",
+      "blurb": "A few pages — about, services, contact — for a growing business.",
+      "includes": [
+        "Several pages with one shared, on-brand design",
+        "Contact form and basic enquiry handling",
+        "Set up to be found on Google",
+        "A short handover so they know how it works"
+      ],
+      "sellerNote": "Introduce me — I scope and quote it. You still earn 10%."
+    },
+    {
+      "key": "app",
+      "name": "App, booking, or automation",
+      "price": "quoted to fit",
+      "blurb": "The bigger builds, priced against the outcome at €120/hour.",
+      "includes": [
+        "Built to the customer's actual workflow",
+        "Wired into the tools they already use",
+        "A booking system, web app, AI feature, or automation",
+        "Ongoing support if they want it"
+      ],
+      "sellerNote": "Just make the intro — I take it from here. Your 10% still applies."
+    }
+  ],
+  "goodLeadSigns": [
+    "They've actually said they need a website, online booking, or some software — not just \"might one day\".",
+    "You can name who decides and pays — the owner or a manager, not a vague \"the business\".",
+    "There's a reason it's now: a launch, a rebrand, a busy season, or a competitor who just went online.",
+    "They have a rough budget in mind, even if it's only \"a few hundred euros\".",
+    "You can give a name and a way to reach them — an email or a phone number."
+  ],
+  "earningExamples": [
+    {
+      "work": "One-page site + contact form",
+      "invoice": "€200",
+      "youEarn": "€20"
+    },
+    {
+      "work": "Small business site, a few pages",
+      "invoice": "€800",
+      "youEarn": "€80"
+    },
+    {
+      "work": "Booking system or web app",
+      "invoice": "€3,000",
+      "youEarn": "€300"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "When do I get paid?",
+      "a": "When the client's payment reaches me — not when I send the invoice. You get 10% of what I invoice on that project, settled in one clear statement per referrer."
+    },
+    {
+      "q": "What stops two people claiming the same lead?",
+      "a": "Your referral code. The first valid code logged against a new customer wins. If two codes land on the same customer, it surfaces for me to sort out fairly — so always log the lead here first."
+    },
+    {
+      "q": "What can I quote myself?",
+      "a": "Landing pages with a contact form, at €200 or more — quote those freely. Anything more involved (multiple pages, an app, AI, integrations), just introduce me and I'll quote it."
+    },
+    {
+      "q": "Do I have to understand the tech?",
+      "a": "No. Your job is the warm intro and the simple landing-page sale. I handle scope, price, build, and support. If a customer asks something technical, point them to me."
+    }
+  ],
+  "faqTitle": "The questions that come up first.",
+  "refer": {
+    "eyebrow": "Refer",
+    "title": "Log a lead. Keep it yours.",
+    "intro": "Drop in your referral code and the lead's details — I'll reply within a day or two.",
+    "firstWins": "The first valid referral code on a new customer wins — so log it here before anyone else does.",
+    "questions": "Questions first?"
+  },
+  "form": {
+    "success": {
+      "title": "Lead logged",
+      "message": "Thanks — the lead's logged against your code. I'll take it from here and be in touch."
+    },
+    "botSuccess": "Thanks — that's logged.",
+    "errorBanner": "Please fix the highlighted fields.",
+    "referralCode": {
+      "label": "Your referral code",
+      "hint": "The code I gave you — it's how the 10% finds you."
+    },
+    "customerName": "Customer name",
+    "customerPhone": {
+      "label": "Lead phone",
+      "hint": "The best number to reach them on."
+    },
+    "customerEmail": "Lead email (optional)",
+    "need": {
+      "label": "What do they need?",
+      "placeholder": "One line — e.g. a one-page site with a contact form for a new café."
+    },
+    "budget": {
+      "label": "Rough budget (optional)",
+      "placeholder": "Pick a range, or leave it to me"
+    },
+    "callTime": {
+      "label": "Best time to call (optional)",
+      "hint": "Business days, 9am–5pm — pick a slot that suits the customer.",
+      "pickDay": "Pick a day",
+      "pickTime": "Pick a time"
+    },
+    "submit": "Send lead",
+    "submitting": "Sending…",
+    "budgetOptions": {
+      "Not sure yet": "Not sure yet",
+      "~€200 — landing page": "~€200 — landing page",
+      "€500–€1,000": "€500–€1,000",
+      "€1,000–€5,000": "€1,000–€5,000",
+      "€5,000+": "€5,000+"
+    },
+    "errors": {
+      "referralCodeMin": "Your referral code — it's what ties the payout to you.",
+      "customerNameMin": "The customer's name, please.",
+      "phoneMin": "A phone number so I can reach them.",
+      "phoneInvalid": "That phone number doesn't look right.",
+      "emailInvalid": "That email doesn't look right.",
+      "needMin": "One line on what they need, please.",
+      "needMax": "That's a lot — trim it to the essentials.",
+      "slotInvalid": "Pick a slot from the list — business days, 9am to 5pm."
+    }
+  },
+  "pitch": {
+    "metaTitle": "Your website, built properly",
+    "metaDescription": "A landing page or web app built by a senior engineer — clear scope, clear price, live in weeks.",
+    "eyebrow": "Websites & software",
+    "title": "A site that works — clear scope, clear price, live in weeks.",
+    "intro": "Most small businesses lose customers to a website that's missing, slow, or stuck in a half-finished template. You don't need a big agency or a year-long project — just one good page that works on a phone, loads fast, and lets people reach you. Built properly, once.",
+    "startCta": "Start the conversation",
+    "mailSubject": "Website enquiry",
+    "getEyebrow": "What you get",
+    "getTitle": "Start simple. Grow when it's worth it.",
+    "getIntro": "A clean landing page to begin, with room to add pages, a booking system, or an AI feature later — only when it earns its keep.",
+    "whyEyebrow": "Why me",
+    "whyTitle": "Why work with me",
+    "why": [
+      {
+        "title": "A senior engineer, working directly with you",
+        "description": "No agency layers, no account managers — you talk to the person building it."
+      },
+      {
+        "title": "Clear scope, clear price, no surprises",
+        "description": "You know what you're getting and what it costs before we start. Changes are a conversation, not a hidden line item."
+      },
+      {
+        "title": "Small shop, serious delivery",
+        "description": "One person you can reach, with contractors on standby for bigger builds — so you get responsiveness and capacity."
+      }
+    ],
+    "stepsEyebrow": "How it works",
+    "stepsTitle": "How it works",
+    "steps": [
+      {
+        "title": "We talk",
+        "description": "Ten minutes on what you need and who it's for."
+      },
+      {
+        "title": "I scope and price it",
+        "description": "A fixed price for a landing page; a clear quote for anything bigger."
+      },
+      {
+        "title": "I build it",
+        "description": "You see it come together — you don't touch the technical side."
+      },
+      {
+        "title": "You're live, and supported",
+        "description": "It ships on your domain, and I'm here if it needs a change."
+      }
+    ],
+    "ctaTitle": "Ready when you are",
+    "ctaHeading": "Let's get your site live.",
+    "ctaBody": "One clear next step: reply to the person who shared this, or email me directly. I'll come back within a day or two."
+  },
+  "notFound": {
+    "eyebrow": "Not found",
+    "title": "That page wandered off.",
+    "body": "The link might be old or mistyped. Let's get you back on track.",
+    "cta": "Back home"
+  }
+}

@@ -1,6 +1,13 @@
 "use server"
 
+import { Resend } from "resend"
+
 import { contactSchema, type ContactState } from "@/lib/contact-schema"
+
+// Hardcoded for now — only the API key comes from the environment. We can move
+// these into env vars later (see .env.example).
+const TO_EMAIL = "jamie.nisbet@outlook.be"
+const FROM_EMAIL = "Jamie Nisbet Consultancy <noreply@mail.jamienisbet.com>"
 
 export async function submitContact(
   _prev: ContactState,
@@ -36,27 +43,36 @@ export async function submitContact(
     return { status: "success", message: "Thanks — I'll be in touch soon." }
   }
 
-  // ----------------------------------------------------------------------
-  // TODO(send-later): deliver the enquiry via Resend.
-  //
-  // The form is fully built; sending is intentionally deferred until
-  // RESEND_API_KEY is configured (see .env.example). This honours the repo
-  // rule "no outbound action without review" — nothing leaves the server yet.
-  //
-  //   import { Resend } from "resend"
-  //   const resend = new Resend(process.env.RESEND_API_KEY)
-  //   await resend.emails.send({
-  //     from: process.env.CONTACT_FROM_EMAIL!,
-  //     to: process.env.CONTACT_TO_EMAIL!,
-  //     replyTo: parsed.data.email,
-  //     subject: `New enquiry from ${parsed.data.name}`,
-  //     text: parsed.data.message,
-  //   })
-  // ----------------------------------------------------------------------
-
   if (!process.env.RESEND_API_KEY) {
-    // Not wired yet — log so nothing is lost while testing locally.
+    // No key configured — log so nothing is lost while testing locally.
     console.info("[contact] received (not sent — RESEND_API_KEY unset):", parsed.data)
+    return {
+      status: "success",
+      message: "Thanks — your message is in. I'll get back to you within a day or two.",
+    }
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: TO_EMAIL,
+    replyTo: parsed.data.email,
+    subject: `New enquiry from ${parsed.data.name}`,
+    text: [
+      `Name: ${parsed.data.name}`,
+      `Email: ${parsed.data.email}`,
+      "",
+      parsed.data.message,
+    ].join("\n"),
+  })
+
+  if (error) {
+    console.error("[contact] Resend send failed:", error)
+    return {
+      status: "error",
+      message: "Something went wrong sending your message. Please try again, or email me directly.",
+      values: { name: values.name, email: values.email, message: values.message },
+    }
   }
 
   return {

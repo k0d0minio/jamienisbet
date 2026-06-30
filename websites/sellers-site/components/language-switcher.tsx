@@ -1,49 +1,40 @@
 "use client"
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@jamie-nisbet/ui"
 
-import {
-  locales,
-  localeShort,
-  persistLocale,
-  type Locale,
-} from "@/lib/i18n/config"
+import { usePathname, useRouter } from "@/i18n/navigation"
+import { routing, localeShort, type Locale } from "@/i18n/routing"
 
-// Compact EN · PT · FR switcher. Writes the locale to a long-lived cookie, then
-// refreshes so the server re-renders every section in the new language. No URL
-// change — the choice rides the cookie, which is enough for a seller kit.
-export function LanguageSwitcher({
-  locale,
-  label,
-}: {
-  locale: Locale
-  label: string
-}) {
+// Compact EN · PT · FR switcher. Swaps only the locale segment of the current
+// URL, preserving the path and query — no cookie writes, the choice rides the URL.
+export function LanguageSwitcher() {
+  const t = useTranslations("language")
+  const pathname = usePathname() // locale-less pathname
+  const params = useParams()
+  const active = params.locale as Locale
   const router = useRouter()
-  const [pending, startTransition] = React.useTransition()
 
   function choose(next: Locale) {
-    if (next === locale) return
-    persistLocale(next)
-    startTransition(() => router.refresh())
+    if (next === active) return
+    // Swaps ONLY the locale segment, preserving the current path + query.
+    router.replace(pathname, { locale: next })
   }
 
   return (
     <div
       role="group"
-      aria-label={label}
+      aria-label={t("label")}
       className="inline-flex items-center rounded-md border border-border p-0.5"
     >
-      {locales.map((code) => (
+      {routing.locales.map((code) => (
         <Button
           key={code}
           type="button"
           size="sm"
-          variant={code === locale ? "secondary" : "ghost"}
-          aria-pressed={code === locale}
-          disabled={pending}
+          variant={code === active ? "secondary" : "ghost"}
+          aria-pressed={code === active}
           className="h-7 px-2 text-xs font-medium"
           onClick={() => choose(code)}
         >

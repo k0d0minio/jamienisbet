@@ -1,15 +1,17 @@
 "use client"
 
 import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
 import { IconButton } from "@jamie-nisbet/ui"
 import { Moon, Sun } from "lucide-react"
 
-export function ThemeToggle({ label }: { label: string }) {
+export function ThemeToggle() {
+  const t = useTranslations()
   const { setTheme, resolvedTheme } = useTheme()
 
   return (
     <IconButton
-      aria-label={label}
+      aria-label={t("themeToggle")}
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       {/* Both icons render identically on server and client; the design system's

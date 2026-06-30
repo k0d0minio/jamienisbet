@@ -1,3 +1,5 @@
+import { setRequestLocale } from "next-intl/server"
+
 import { Hero } from "@/components/sections/hero"
 import { HowItWorks } from "@/components/sections/how-it-works"
 import { WhatYouSell } from "@/components/sections/what-you-sell"
@@ -6,10 +8,15 @@ import { Faq } from "@/components/sections/faq"
 import { ReferSection } from "@/components/sections/refer-section"
 
 export default async function HomePage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>
   searchParams: Promise<{ ref?: string | string[] }>
 }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+
   // Sellers share links like /?ref=THEIR-CODE — prefill the form so the
   // referral code (the payout key) is captured without them retyping it.
   const { ref } = await searchParams

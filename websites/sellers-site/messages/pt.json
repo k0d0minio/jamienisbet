@@ -1,0 +1,367 @@
+{
+  "ogLocale": "pt_PT",
+  "role": "Programa de afiliados",
+  "meta": {
+    "description": "Ganha 10% enviando-me trabalho de web e software de que já falas no dia a dia. Tu fazes a apresentação; eu defino o âmbito, construo e entrego. És pago quando o cliente paga."
+  },
+  "language": {
+    "label": "Mudar de idioma"
+  },
+  "nav": {
+    "how": "Como funciona",
+    "sell": "O que vendes",
+    "kit": "Kit do vendedor",
+    "faq": "Perguntas"
+  },
+  "header": {
+    "refer": "Indicar um cliente",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
+  },
+  "footer": {
+    "tagline": "Indica trabalho de web e software, ganha 10% sobre o que for construído — pago quando o cliente paga. Gerido a partir de {location}.",
+    "getInTouch": "Falar comigo"
+  },
+  "themeToggle": "Alternar tema claro ou escuro",
+  "copy": {
+    "copy": "Copiar mensagem",
+    "copied": "Copiado"
+  },
+  "print": "Guardar em PDF",
+  "hero": {
+    "title": "Ganha 10% enviando-me trabalho de que já falas.",
+    "intro": "Conheces alguém que precisa de um site? Faz a apresentação. Eu defino o âmbito, construo e entrego — ganhas 10% do que eu faturo, pago quando o cliente paga. Sem conhecimentos técnicos, sem risco para ti.",
+    "refer": "Indicar um cliente",
+    "how": "Como funciona"
+  },
+  "howItWorks": {
+    "eyebrow": "Como funciona",
+    "title": "Quatro passos, da apresentação ao teu pagamento.",
+    "intro": "Tu trazes a relação. Eu faço o resto — e o teu código de indicação garante que os 10% são, sem dúvida, teus.",
+    "steps": [
+      {
+        "key": "refer",
+        "title": "Tu indicas",
+        "description": "Alguém que conheces precisa de um site ou software. Fazes aqui a apresentação com o teu código de indicação — é esse código que liga o pagamento a ti."
+      },
+      {
+        "key": "build",
+        "title": "Eu defino e construo",
+        "description": "A partir daí é comigo: falo com o cliente, acordo um âmbito e um preço claros, e construo. Não ficas responsável por nada da entrega."
+      },
+      {
+        "key": "pay",
+        "title": "O cliente paga",
+        "description": "O cliente paga a minha fatura pelo trabalho. As landing pages simples começam em €200; projetos maiores são orçamentados à medida."
+      },
+      {
+        "key": "payout",
+        "title": "Recebes 10%",
+        "description": "Recebes 10% do que eu faturo, pago quando o pagamento do cliente chega — não antes. Uma conta clara por cada pessoa que indica, sem andar atrás de ninguém."
+      }
+    ]
+  },
+  "whatYouSell": {
+    "eyebrow": "O que vendes",
+    "title": "Vende o simples. O resto passas-me a mim.",
+    "intro": "Landing pages que podes orçamentar tu mesmo, a partir de €200. Qualquer coisa maior, basta apresentares-me — continuas a ganhar os teus 10%.",
+    "points": [
+      {
+        "key": "landing",
+        "title": "Landing page + formulário de contacto",
+        "description": "A venda fácil: um site de uma página, limpo e rápido, com formulário de contacto, a partir de €200. Podes orçamentar tu mesmo qualquer valor igual ou superior a €200 — sem precisares de aprovação."
+      },
+      {
+        "key": "bigger",
+        "title": "Algo maior? Apresenta-me",
+        "description": "Sites de várias páginas, aplicações web, funcionalidades de IA, integrações — esses sou eu que orçamento. Faz só a apresentação com o teu código e eu conduzo a conversa a partir daí. Continuas a ganhar os teus 10%."
+      }
+    ]
+  },
+  "salesKit": {
+    "eyebrow": "O teu kit de vendedor",
+    "title": "Tudo o que precisas para fazer a apresentação.",
+    "intro": "Copia uma mensagem, envia, regista o contacto. Não há discurso para decorar nem tecnologia para explicar — essa parte é comigo.",
+    "pitchCard": {
+      "title": "A página de apresentação ao cliente",
+      "body": "Uma página limpa que vende o trabalho, não o programa — mostra-a no telemóvel ou envia o link. Também imprime numa única folha.",
+      "cta": "Abrir a apresentação"
+    },
+    "readyEyebrow": "Mensagens prontas a enviar",
+    "readyNoteWithCode": "Cada mensagem aponta para {site} — a página que os clientes veem. Regista o contacto abaixo com o teu código {code} para garantir que os 10% são teus.",
+    "readyNote": "Cada mensagem aponta para {site} — a página que os clientes veem. Regista o contacto abaixo com o teu código de indicação para garantir que os 10% são teus.",
+    "followEyebrow": "Acompanhamento — onde a maioria das indicações fecha",
+    "followNote": "Três toques leves, depois para. Um “mais tarde” caloroso vale mais do que um “não” forçado.",
+    "objectionsEyebrow": "Se hesitarem",
+    "packagesEyebrow": "O que podes orçamentar — e o que me passas a mim",
+    "leadsEyebrow": "O que faz de um contacto valer a pena enviar",
+    "earningsEyebrow": "Como ficam os teus 10%",
+    "table": {
+      "work": "O trabalho",
+      "pays": "O cliente paga",
+      "earn": "Ganhas"
+    },
+    "earningsNote": "Apenas exemplos — os teus 10% são sempre 10% do que o cliente paga de facto, liquidados quando o pagamento chega."
+  },
+  "pitchScripts": [
+    {
+      "key": "whatsapp",
+      "channel": "WhatsApp",
+      "title": "Apresentação rápida por WhatsApp",
+      "body": "Olá! Disseste que precisavas de um site para o negócio — conheço a pessoa certa. O Jamie faz sites limpos e rápidos a partir de €200 e trata de tudo por ti. Queres que vos apresente? Aqui fica a página dele: {link}"
+    },
+    {
+      "key": "email",
+      "channel": "Email",
+      "title": "Apresentação calorosa por email",
+      "body": "Olá [nome],\n\nA seguir ao que disseste sobre precisares de um site — trabalho com o Jamie Nisbet, um engenheiro de software perto de Lisboa que faz sites rápidos e profissionais e trata de tudo. Sites de uma página começam em €200; projetos maiores são orçamentados à medida.\n\nPodes saber mais e contactá-lo aqui: {link}\n\nFico feliz por vos apresentar diretamente — é só dizeres."
+    },
+    {
+      "key": "inperson",
+      "channel": "Pessoalmente",
+      "title": "Cara a cara, depois acompanha",
+      "body": "\"Olha, conheço exatamente a pessoa certa para isso. O Jamie faz sites e software, é facílimo de lidar com ele, e dá-te um orçamento honesto. Deixa-me enviar-te o link dele.\" Depois envia-lhe: {link}"
+    }
+  ],
+  "followUps": [
+    {
+      "key": "sameday",
+      "when": "No mesmo dia",
+      "context": "Depois de registares o contacto",
+      "body": "Acabei de passar os teus dados ao Jamie — ele entra em contacto dentro de um ou dois dias. Há algo que queiras que ele saiba primeiro? Diz-me e eu passo a mensagem."
+    },
+    {
+      "key": "day3",
+      "when": "Ao fim de ~3 dias",
+      "context": "Se ficaram em silêncio",
+      "body": "O Jamie conseguiu falar contigo? Sem pressa — só quero garantir que a mensagem dele não foi parar ao spam. Aqui fica a página dele outra vez, se for mais fácil: {link}"
+    },
+    {
+      "key": "week1",
+      "when": "Ao fim de ~1 semana",
+      "context": "O fecho suave",
+      "body": "Sem qualquer pressão — se agora não é a melhor altura para o site, diz só e eu deixo ficar. Se for, o Jamie costuma ter um site simples no ar em poucas semanas."
+    }
+  ],
+  "objections": [
+    {
+      "objection": "“É demasiado caro.”",
+      "answer": "Um site de uma página começa em €200, uma vez, e funciona durante anos. Compara isso com os clientes que um negócio perde sem site — ou com um site avariado. Se €200 ainda for demais, provavelmente não é a altura certa, e não há problema nenhum."
+    },
+    {
+      "objection": "“Eu faço sozinho no Wix.”",
+      "answer": "Podem, e às vezes é mesmo a melhor opção. A diferença são os fins de semana a lutar com um template que continua a parecer um template. Eu faço bem, de uma vez, e ganham o tempo de volta. Se gostam do faça-você-mesmo, não insistas."
+    },
+    {
+      "objection": "“Já conheço alguém.”",
+      "answer": "Sem venda forçada. Menciona só que sou um engenheiro sénior que trata de tudo por um preço fixo e claro — útil se o tal alguém desaparecer ou se a coisa se complicar tecnicamente. Deixa o link; as pessoas lembram-se dele quando a primeira opção falha."
+    },
+    {
+      "objection": "“Agora não / talvez mais tarde.”",
+      "answer": "Tudo bem — não andes atrás. Pergunta o que tornaria esta a altura certa (um lançamento, uma época forte, um rebranding) e volta a falar nessa altura. Um simples “queres o link para quando der jeito?” mantém a porta aberta sem pressão."
+    },
+    {
+      "objection": "“E se correr mal? Não percebo de tecnologia.”",
+      "answer": "É precisamente esse o ponto — nunca tocam na parte técnica. Eu defino, construo e dou apoio; lidam com uma só pessoa, não com uma agência. E tu também não ficas responsável por nada."
+    }
+  ],
+  "packages": [
+    {
+      "key": "landing",
+      "name": "Landing page + formulário de contacto",
+      "price": "a partir de €200",
+      "blurb": "A primeira venda fácil — uma página limpa e rápida que cumpre o seu papel.",
+      "includes": [
+        "Carrega rápido, fica bem no telemóvel",
+        "Um formulário de contacto que envia todos os pedidos por email",
+        "O logótipo, as cores e os textos deles, configurados como deve ser",
+        "No ar, no domínio deles, pronto a partilhar"
+      ],
+      "sellerNote": "Orçamenta tu mesmo a partir de €200 — sem precisar de aprovação."
+    },
+    {
+      "key": "multipage",
+      "name": "Site de várias páginas",
+      "price": "orçamentado à medida",
+      "blurb": "Algumas páginas — sobre, serviços, contacto — para um negócio em crescimento.",
+      "includes": [
+        "Várias páginas com um único design coerente e alinhado com a marca",
+        "Formulário de contacto e gestão básica de pedidos",
+        "Preparado para ser encontrado no Google",
+        "Uma breve passagem de testemunho para perceberem como funciona"
+      ],
+      "sellerNote": "Apresenta-me — eu defino e orçamento. Continuas a ganhar 10%."
+    },
+    {
+      "key": "app",
+      "name": "Aplicação, reservas ou automação",
+      "price": "orçamentado à medida",
+      "blurb": "Os projetos maiores, com preço face ao resultado, a €120/hora.",
+      "includes": [
+        "Construído à volta do fluxo de trabalho real do cliente",
+        "Integrado com as ferramentas que já usam",
+        "Um sistema de reservas, aplicação web, funcionalidade de IA ou automação",
+        "Apoio contínuo, se quiserem"
+      ],
+      "sellerNote": "Faz só a apresentação — eu trato do resto. Os teus 10% mantêm-se."
+    }
+  ],
+  "goodLeadSigns": [
+    "Disseram mesmo que precisam de um site, reservas online ou algum software — não só “talvez um dia”.",
+    "Consegues identificar quem decide e paga — o dono ou um gerente, não um vago “o negócio”.",
+    "Há um motivo para ser agora: um lançamento, um rebranding, uma época forte ou um concorrente que acabou de ir para online.",
+    "Têm um orçamento aproximado em mente, ainda que seja só “algumas centenas de euros”.",
+    "Consegues dar um nome e uma forma de os contactar — um email ou um telefone."
+  ],
+  "earningExamples": [
+    {
+      "work": "Site de uma página + formulário de contacto",
+      "invoice": "€200",
+      "youEarn": "€20"
+    },
+    {
+      "work": "Site de pequeno negócio, algumas páginas",
+      "invoice": "€800",
+      "youEarn": "€80"
+    },
+    {
+      "work": "Sistema de reservas ou aplicação web",
+      "invoice": "€3.000",
+      "youEarn": "€300"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Quando é que sou pago?",
+      "a": "Quando o pagamento do cliente chega até mim — não quando envio a fatura. Recebes 10% do que eu faturo nesse projeto, liquidados numa conta clara por cada pessoa que indica."
+    },
+    {
+      "q": "O que impede duas pessoas de reclamarem o mesmo contacto?",
+      "a": "O teu código de indicação. O primeiro código válido registado para um novo cliente ganha. Se dois códigos caírem sobre o mesmo cliente, aparece-me para eu resolver com justiça — por isso regista sempre o contacto aqui primeiro."
+    },
+    {
+      "q": "O que posso orçamentar sozinho?",
+      "a": "Landing pages com formulário de contacto, a €200 ou mais — orçamenta essas à vontade. Qualquer coisa mais complexa (várias páginas, uma aplicação, IA, integrações), basta apresentares-me e eu orçamento."
+    },
+    {
+      "q": "Tenho de perceber de tecnologia?",
+      "a": "Não. O teu papel é a apresentação calorosa e a venda simples da landing page. Eu trato do âmbito, do preço, da construção e do apoio. Se um cliente fizer uma pergunta técnica, encaminha-o para mim."
+    }
+  ],
+  "faqTitle": "As perguntas que surgem primeiro.",
+  "refer": {
+    "eyebrow": "Indicar",
+    "title": "Regista um contacto. Mantém-no teu.",
+    "intro": "Coloca o teu código de indicação e os dados do contacto — respondo dentro de um ou dois dias.",
+    "firstWins": "O primeiro código de indicação válido sobre um novo cliente ganha — por isso regista-o aqui antes de mais alguém.",
+    "questions": "Dúvidas primeiro?"
+  },
+  "form": {
+    "success": {
+      "title": "Contacto registado",
+      "message": "Obrigado — o contacto ficou registado com o teu código. Eu trato do resto e entro em contacto."
+    },
+    "botSuccess": "Obrigado — ficou registado.",
+    "errorBanner": "Por favor, corrige os campos assinalados.",
+    "referralCode": {
+      "label": "O teu código de indicação",
+      "hint": "O código que te dei — é assim que os 10% chegam até ti."
+    },
+    "customerName": "Nome do cliente",
+    "customerPhone": {
+      "label": "Telefone do contacto",
+      "hint": "O melhor número para falar com eles."
+    },
+    "customerEmail": "Email do contacto (opcional)",
+    "need": {
+      "label": "Do que é que precisam?",
+      "placeholder": "Uma linha — ex.: um site de uma página com formulário de contacto para um café novo."
+    },
+    "budget": {
+      "label": "Orçamento aproximado (opcional)",
+      "placeholder": "Escolhe um intervalo ou deixa comigo"
+    },
+    "callTime": {
+      "label": "Melhor altura para ligar (opcional)",
+      "hint": "Dias úteis, das 9h às 17h — escolhe um horário que sirva ao cliente.",
+      "pickDay": "Escolhe um dia",
+      "pickTime": "Escolhe uma hora"
+    },
+    "submit": "Enviar contacto",
+    "submitting": "A enviar…",
+    "budgetOptions": {
+      "Not sure yet": "Ainda não sei",
+      "~€200 — landing page": "~€200 — landing page",
+      "€500–€1,000": "€500–€1.000",
+      "€1,000–€5,000": "€1.000–€5.000",
+      "€5,000+": "€5.000+"
+    },
+    "errors": {
+      "referralCodeMin": "O teu código de indicação — é o que liga o pagamento a ti.",
+      "customerNameMin": "O nome do cliente, por favor.",
+      "phoneMin": "Um número de telefone para eu poder contactá-los.",
+      "phoneInvalid": "Esse número de telefone não parece certo.",
+      "emailInvalid": "Esse email não parece certo.",
+      "needMin": "Uma linha sobre o que precisam, por favor.",
+      "needMax": "É muito — reduz ao essencial.",
+      "slotInvalid": "Escolhe um horário da lista — dias úteis, das 9h às 17h."
+    }
+  },
+  "pitch": {
+    "metaTitle": "O teu site, feito como deve ser",
+    "metaDescription": "Uma landing page ou aplicação web feita por um engenheiro sénior — âmbito claro, preço claro, no ar em semanas.",
+    "eyebrow": "Sites e software",
+    "title": "Um site que funciona — âmbito claro, preço claro, no ar em semanas.",
+    "intro": "A maioria dos pequenos negócios perde clientes por causa de um site que não existe, é lento ou está preso num template inacabado. Não precisa de uma grande agência nem de um projeto de um ano — só de uma boa página que funcione no telemóvel, carregue rápido e deixe as pessoas chegarem até si. Feita como deve ser, de uma vez.",
+    "startCta": "Começar a conversa",
+    "mailSubject": "Pedido de site",
+    "getEyebrow": "O que recebe",
+    "getTitle": "Comece simples. Cresça quando valer a pena.",
+    "getIntro": "Uma landing page limpa para começar, com espaço para acrescentar páginas, um sistema de reservas ou uma funcionalidade de IA mais tarde — só quando compensar.",
+    "whyEyebrow": "Porquê eu",
+    "whyTitle": "Porquê trabalhar comigo",
+    "why": [
+      {
+        "title": "Um engenheiro sénior, a trabalhar diretamente consigo",
+        "description": "Sem camadas de agência, sem gestores de conta — fala diretamente com quem o constrói."
+      },
+      {
+        "title": "Âmbito claro, preço claro, sem surpresas",
+        "description": "Sabe o que vai receber e quanto custa antes de começarmos. As alterações são uma conversa, não uma linha escondida na fatura."
+      },
+      {
+        "title": "Estrutura pequena, entrega a sério",
+        "description": "Uma pessoa com quem fala, com colaboradores de prontidão para projetos maiores — para ter rapidez e capacidade."
+      }
+    ],
+    "stepsEyebrow": "Como funciona",
+    "stepsTitle": "Como funciona",
+    "steps": [
+      {
+        "title": "Falamos",
+        "description": "Dez minutos sobre o que precisa e para quem é."
+      },
+      {
+        "title": "Defino e dou o preço",
+        "description": "Um preço fixo para uma landing page; um orçamento claro para algo maior."
+      },
+      {
+        "title": "Construo",
+        "description": "Vê tudo a ganhar forma — não toca na parte técnica."
+      },
+      {
+        "title": "Fica no ar, e com apoio",
+        "description": "Vai para o ar no seu domínio, e estou aqui se precisar de uma alteração."
+      }
+    ],
+    "ctaTitle": "Quando quiser",
+    "ctaHeading": "Vamos pôr o seu site no ar.",
+    "ctaBody": "Um passo seguinte simples: responda a quem partilhou isto, ou envie-me um email diretamente. Respondo dentro de um ou dois dias."
+  },
+  "notFound": {
+    "eyebrow": "Não encontrado",
+    "title": "Esta página desapareceu.",
+    "body": "O link pode estar desatualizado ou mal escrito. Vamos pôr-te de novo no caminho.",
+    "cta": "Voltar ao início"
+  }
+}
