@@ -7,11 +7,10 @@ import {
 import { Mail, MessageCircle, Users } from "lucide-react"
 
 import { CopyButton } from "@/components/copy-button"
-import type { Dictionary } from "@/lib/i18n/dictionaries/en"
 
-type PitchScript = Dictionary["pitchScripts"][number]
-type FollowUp = Dictionary["followUps"][number]
-type CopyLabel = Dictionary["copy"]
+type PitchScript = { key: string; channel: string; title: string; body: string }
+type FollowUp = { key: string; when: string; context: string; body: string }
+type CopyLabel = { copy: string; copied: string }
 
 // Channel key → icon. Keys are stable across locales (set in the dictionaries).
 const icons: Record<string, typeof MessageCircle> = {

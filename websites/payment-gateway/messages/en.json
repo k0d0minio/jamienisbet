@@ -1,0 +1,103 @@
+{
+  "ogLocale": "en_GB",
+  "role": "Payments",
+  "meta": {
+    "description": "Pay an invoice, deposit, or retainer securely. Open your payment link, check the figures, and pay by card — handled by Stripe."
+  },
+  "language": {
+    "label": "Change language"
+  },
+  "themeToggle": "Toggle light or dark theme",
+  "header": {
+    "mainSite": "jamienisbet.com"
+  },
+  "footer": {
+    "tagline": "Pay an invoice, deposit, or retainer securely. Run from {location}.",
+    "secured": "Card details are handled by Stripe — they never touch this server.",
+    "questions": "Questions about a payment?",
+    "mainSite": "jamienisbet.com",
+    "copyright": "© {year} {name}",
+    "poweredBy": "Payments by Stripe"
+  },
+  "home": {
+    "eyebrow": "Payments",
+    "title": "Pay your invoice, securely.",
+    "intro": "Open the payment link from your invoice email to see the figures and pay by card. There's nothing to set up — the link takes you straight to the right invoice. If you don't have a link, just reply to my email and I'll send one over.",
+    "stepLabel": "Step",
+    "assurances": [
+      {
+        "icon": "FileText",
+        "title": "You pay against a real invoice",
+        "description": "Every payment link is tied to an invoice I've already sent you — same number, same amount. Nothing is quoted or added here."
+      },
+      {
+        "icon": "ShieldCheck",
+        "title": "Card details go straight to Stripe",
+        "description": "The card form is Stripe's, embedded on the page. Your details never touch my server, and the payment is SCA-ready."
+      },
+      {
+        "icon": "Receipt",
+        "title": "You get a receipt, I get notified",
+        "description": "Stripe emails you a receipt the moment it clears, and the invoice is marked paid — no chasing, no back-and-forth."
+      }
+    ]
+  },
+  "pay": {
+    "metaTitle": "Pay invoice",
+    "paySecurely": "Pay securely",
+    "cardsToStripe": "Card details go straight to Stripe.",
+    "paid": {
+      "title": "This invoice is paid",
+      "description": "Nothing more to do — thank you. A receipt was sent to you by email when it cleared."
+    },
+    "notOpen": {
+      "title": "This invoice isn't open for payment",
+      "description": "If you think this is a mistake, reply to my email and I'll sort it out."
+    }
+  },
+  "checkout": {
+    "notConfiguredTitle": "Payments aren't configured",
+    "notConfiguredBefore": "No Stripe publishable key is set, so the card form isn't mounted. Add Stripe keys to ",
+    "notConfiguredAfter": " to take a payment."
+  },
+  "invoiceSummary": {
+    "invoice": "Invoice",
+    "billedTo": "Billed to",
+    "issued": "Issued {date}",
+    "due": "Due {date}",
+    "description": "Description",
+    "qty": "Qty",
+    "amount": "Amount",
+    "totalDue": "Total due",
+    "status": {
+      "paid": "Paid",
+      "awaiting": "Awaiting payment"
+    }
+  },
+  "return": {
+    "metaTitle": "Payment status",
+    "eyebrow": "Payment",
+    "complete": {
+      "title": "Payment received — thank you",
+      "descriptionWithEmail": "Your payment cleared, and a receipt is on its way to {email}. The invoice is now marked paid; there's nothing more to do.",
+      "description": "Your payment cleared. The invoice is now marked paid; there's nothing more to do.",
+      "back": "Back to jamienisbet.com"
+    },
+    "open": {
+      "title": "Payment not completed",
+      "description": "The payment was cancelled or didn't go through. You can try again — nothing has been charged.",
+      "back": "Back to the invoice"
+    },
+    "unknown": {
+      "title": "We couldn't confirm this payment",
+      "description": "If you completed a payment, you'll still get a receipt by email. Otherwise, head back to the invoice to try again.",
+      "back": "Back to the invoice"
+    }
+  },
+  "notFound": {
+    "eyebrow": "Not found",
+    "title": "We couldn't find that invoice.",
+    "intro": "The payment link might be old, mistyped, or already settled. Reply to my email and I'll send you a fresh one.",
+    "email": "Email {email}"
+  }
+}

@@ -1,11 +1,14 @@
 import { Badge, Card, CardContent, CardFooter, CardHeader, Eyebrow, LogoMarkSolid } from "@jamie-nisbet/ui"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import type { InvoiceView } from "@/lib/invoice"
 import { formatStripeAmount } from "@/lib/format"
+import { localeHtmlLang, type Locale } from "@/i18n/routing"
+import { site } from "@/lib/site"
 
-function formatDate(epochSeconds: number | null): string | null {
+function formatDate(epochSeconds: number | null, locale: Locale): string | null {
   if (!epochSeconds) return null
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(localeHtmlLang[locale], {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -13,12 +16,20 @@ function formatDate(epochSeconds: number | null): string | null {
 }
 
 // Maps an invoice status to a brand status badge (muted tints, never neon).
-function StatusBadge({ invoice }: { invoice: InvoiceView }) {
+// Translatable labels only for the two customer-facing states; raw Stripe status
+// strings (void/uncollectible/etc.) are technical terms shown verbatim.
+function StatusBadge({
+  invoice,
+  labels,
+}: {
+  invoice: InvoiceView
+  labels: { paid: string; awaiting: string }
+}) {
   switch (invoice.status) {
     case "paid":
-      return <Badge variant="success">Paid</Badge>
+      return <Badge variant="success">{labels.paid}</Badge>
     case "open":
-      return <Badge variant="secondary">Awaiting payment</Badge>
+      return <Badge variant="secondary">{labels.awaiting}</Badge>
     case "void":
     case "uncollectible":
       return <Badge variant="destructive">{invoice.status}</Badge>
@@ -27,9 +38,11 @@ function StatusBadge({ invoice }: { invoice: InvoiceView }) {
   }
 }
 
-export function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
-  const due = formatDate(invoice.dueDate)
-  const issued = formatDate(invoice.createdDate)
+export async function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
+  const t = await getTranslations("invoiceSummary")
+  const locale = (await getLocale()) as Locale
+  const due = formatDate(invoice.dueDate, locale)
+  const issued = formatDate(invoice.createdDate, locale)
 
   return (
     <Card>
@@ -37,14 +50,17 @@ export function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2.5">
             <LogoMarkSolid className="size-8" />
-            <span className="font-semibold tracking-tight">Jamie Nisbet</span>
+            <span className="font-semibold tracking-tight">{site.name}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <Eyebrow>Invoice</Eyebrow>
+            <Eyebrow>{t("invoice")}</Eyebrow>
             <p className="text-xl font-semibold tracking-tight">{invoice.number}</p>
           </div>
         </div>
-        <StatusBadge invoice={invoice} />
+        <StatusBadge
+          invoice={invoice}
+          labels={{ paid: t("status.paid"), awaiting: t("status.awaiting") }}
+        />
       </CardHeader>
 
       <CardContent className="flex flex-col gap-6">
@@ -53,7 +69,7 @@ export function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
           {invoice.customerName && (
             <div className="flex flex-col gap-0.5">
               <span className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
-                Billed to
+                {t("billedTo")}
               </span>
               <span className="text-sm">{invoice.customerName}</span>
               {invoice.customerEmail && (
@@ -66,11 +82,13 @@ export function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
           <div className="flex flex-col gap-0.5 sm:text-right">
             {issued && (
               <span className="text-sm text-muted-foreground">
-                Issued {issued}
+                {t("issued", { date: issued })}
               </span>
             )}
             {due && (
-              <span className="text-sm text-muted-foreground">Due {due}</span>
+              <span className="text-sm text-muted-foreground">
+                {t("due", { date: due })}
+              </span>
             )}
           </div>
         </div>
@@ -81,13 +99,13 @@ export function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
             <thead>
               <tr className="border-b border-border bg-muted/40 text-left">
                 <th className="px-4 py-2.5 font-mono text-2xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
-                  Description
+                  {t("description")}
                 </th>
                 <th className="px-4 py-2.5 text-right font-mono text-2xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
-                  Qty
+                  {t("qty")}
                 </th>
                 <th className="px-4 py-2.5 text-right font-mono text-2xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
-                  Amount
+                  {t("amount")}
                 </th>
               </tr>
             </thead>
@@ -99,7 +117,7 @@ export function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
                     {line.quantity}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
-                    {formatStripeAmount(line.amount, invoice.currency)}
+                    {formatStripeAmount(line.amount, invoice.currency, locale)}
                   </td>
                 </tr>
               ))}
@@ -110,10 +128,10 @@ export function InvoiceSummary({ invoice }: { invoice: InvoiceView }) {
 
       <CardFooter className="flex items-baseline justify-between border-t border-border pt-6">
         <span className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
-          Total due
+          {t("totalDue")}
         </span>
         <span className="text-2xl font-semibold tracking-tight tabular-nums">
-          {formatStripeAmount(invoice.amountDue, invoice.currency)}
+          {formatStripeAmount(invoice.amountDue, invoice.currency, locale)}
         </span>
       </CardFooter>
     </Card>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
+import { useTranslations } from "next-intl"
 import {
   Alert,
   AlertDescription,
@@ -13,18 +14,20 @@ import {
 import { CircleCheck, LoaderCircle, Send, TriangleAlert } from "lucide-react"
 
 import { submitContact } from "@/app/actions/contact"
+import { site } from "@/lib/site"
 import type { ContactState } from "@/lib/contact-schema"
 
 const initialState: ContactState = { status: "idle" }
 
 export function ContactForm() {
+  const t = useTranslations("form")
   const [state, formAction, pending] = useActionState(submitContact, initialState)
 
   if (state.status === "success") {
     return (
       <Alert variant="success">
         <CircleCheck />
-        <AlertTitle>Message sent</AlertTitle>
+        <AlertTitle>{t("sentTitle")}</AlertTitle>
         <AlertDescription>{state.message}</AlertDescription>
       </Alert>
     )
@@ -40,7 +43,7 @@ export function ContactForm() {
       )}
 
       <div className="grid gap-2">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name">{t("name")}</Label>
         <Input
           id="name"
           name="name"
@@ -57,7 +60,7 @@ export function ContactForm() {
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t("email")}</Label>
         <Input
           id="email"
           name="email"
@@ -75,12 +78,12 @@ export function ContactForm() {
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="message">What can I help with?</Label>
+        <Label htmlFor="message">{t("messageLabel")}</Label>
         <Textarea
           id="message"
           name="message"
           rows={5}
-          placeholder="A sentence or two about your project, your goal, and any timeline."
+          placeholder={t("messagePlaceholder")}
           defaultValue={state.values?.message}
           aria-invalid={Boolean(state.errors?.message)}
           aria-describedby={state.errors?.message ? "message-error" : undefined}
@@ -95,7 +98,7 @@ export function ContactForm() {
       {/* Honeypot — hidden from people, tempting to bots. */}
       <div aria-hidden className="hidden">
         <label>
-          Company
+          {t("honeypotLabel")}
           <input name="company" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
@@ -103,15 +106,15 @@ export function ContactForm() {
       <div className="flex flex-wrap items-center gap-4">
         <Button type="submit" disabled={pending} className="w-fit">
           {pending ? <LoaderCircle className="animate-spin" /> : <Send />}
-          {pending ? "Sending…" : "Send message"}
+          {pending ? t("sending") : t("send")}
         </Button>
         <p className="text-xs text-muted-foreground">
-          Prefer email? Write to{" "}
+          {t("preferEmailLead")}{" "}
           <a
-            href="mailto:contact@jamienisbet.com"
+            href={`mailto:${site.email}`}
             className="text-primary underline-offset-4 hover:underline"
           >
-            contact@jamienisbet.com
+            {site.email}
           </a>
           .
         </p>

@@ -1,0 +1,103 @@
+{
+  "ogLocale": "fr_FR",
+  "role": "Paiements",
+  "meta": {
+    "description": "Réglez une facture, un acompte ou une provision en toute sécurité. Ouvrez votre lien de paiement, vérifiez les montants et payez par carte — géré par Stripe."
+  },
+  "language": {
+    "label": "Changer de langue"
+  },
+  "themeToggle": "Basculer entre le thème clair et sombre",
+  "header": {
+    "mainSite": "jamienisbet.com"
+  },
+  "footer": {
+    "tagline": "Réglez une facture, un acompte ou une provision en toute sécurité. Depuis {location}.",
+    "secured": "Les données de carte sont gérées par Stripe — elles ne transitent jamais par ce serveur.",
+    "questions": "Une question sur un paiement ?",
+    "mainSite": "jamienisbet.com",
+    "copyright": "© {year} {name}",
+    "poweredBy": "Paiements par Stripe"
+  },
+  "home": {
+    "eyebrow": "Paiements",
+    "title": "Réglez votre facture, en toute sécurité.",
+    "intro": "Ouvrez le lien de paiement reçu dans l'e-mail de votre facture pour voir les montants et payer par carte. Rien à configurer — le lien vous mène directement à la bonne facture. Si vous n'avez pas de lien, répondez simplement à mon e-mail et je vous en envoie un.",
+    "stepLabel": "Étape",
+    "assurances": [
+      {
+        "icon": "FileText",
+        "title": "Vous payez sur la base d'une vraie facture",
+        "description": "Chaque lien de paiement est rattaché à une facture que je vous ai déjà envoyée — même numéro, même montant. Rien n'est chiffré ni ajouté ici."
+      },
+      {
+        "icon": "ShieldCheck",
+        "title": "Les données de carte vont directement à Stripe",
+        "description": "Le formulaire de carte est celui de Stripe, intégré à la page. Vos données ne transitent jamais par mon serveur et le paiement est prêt pour la DSP2 (SCA)."
+      },
+      {
+        "icon": "Receipt",
+        "title": "Vous recevez un reçu, je suis averti",
+        "description": "Stripe vous envoie un reçu dès que le paiement est confirmé, et la facture est marquée comme payée — sans relances ni allers-retours."
+      }
+    ]
+  },
+  "pay": {
+    "metaTitle": "Régler la facture",
+    "paySecurely": "Payer en toute sécurité",
+    "cardsToStripe": "Les données de carte vont directement à Stripe.",
+    "paid": {
+      "title": "Cette facture est réglée",
+      "description": "Rien de plus à faire — merci. Un reçu vous a été envoyé par e-mail au moment de la confirmation."
+    },
+    "notOpen": {
+      "title": "Cette facture n'est pas ouverte au paiement",
+      "description": "Si vous pensez qu'il s'agit d'une erreur, répondez à mon e-mail et je m'en occupe."
+    }
+  },
+  "checkout": {
+    "notConfiguredTitle": "Les paiements ne sont pas configurés",
+    "notConfiguredBefore": "Aucune clé publique Stripe n'est définie, le formulaire de carte n'est donc pas affiché. Ajoutez les clés Stripe à ",
+    "notConfiguredAfter": " pour encaisser un paiement."
+  },
+  "invoiceSummary": {
+    "invoice": "Facture",
+    "billedTo": "Facturé à",
+    "issued": "Émise le {date}",
+    "due": "Échéance le {date}",
+    "description": "Description",
+    "qty": "Qté",
+    "amount": "Montant",
+    "totalDue": "Total à régler",
+    "status": {
+      "paid": "Payée",
+      "awaiting": "En attente de paiement"
+    }
+  },
+  "return": {
+    "metaTitle": "État du paiement",
+    "eyebrow": "Paiement",
+    "complete": {
+      "title": "Paiement reçu — merci",
+      "descriptionWithEmail": "Votre paiement a été confirmé, et un reçu est en route vers {email}. La facture est désormais marquée comme payée ; rien de plus à faire.",
+      "description": "Votre paiement a été confirmé. La facture est désormais marquée comme payée ; rien de plus à faire.",
+      "back": "Retour à jamienisbet.com"
+    },
+    "open": {
+      "title": "Paiement non finalisé",
+      "description": "Le paiement a été annulé ou n'a pas abouti. Vous pouvez réessayer — rien n'a été débité.",
+      "back": "Retour à la facture"
+    },
+    "unknown": {
+      "title": "Nous n'avons pas pu confirmer ce paiement",
+      "description": "Si vous avez finalisé un paiement, vous recevrez tout de même un reçu par e-mail. Sinon, revenez à la facture pour réessayer.",
+      "back": "Retour à la facture"
+    }
+  },
+  "notFound": {
+    "eyebrow": "Introuvable",
+    "title": "Nous n'avons pas trouvé cette facture.",
+    "intro": "Le lien de paiement est peut-être ancien, mal saisi ou déjà réglé. Répondez à mon e-mail et je vous en envoie un nouveau.",
+    "email": "Écrire à {email}"
+  }
+}

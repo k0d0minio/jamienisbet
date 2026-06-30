@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import {
   Card,
   CardContent,
@@ -6,20 +7,22 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { Container, Section, SectionHeading } from "@/components/section"
-import { outcomes } from "@/lib/site"
 
-export function Outcomes() {
+export async function Outcomes() {
+  const t = await getTranslations("outcomes")
+  const items = t.raw("items") as { title: string; description: string }[]
+
   return (
     <Section className="border-b border-border">
       <Container className="flex flex-col gap-12">
         <SectionHeading
-          eyebrow="What this gets you"
+          eyebrow={t("eyebrow")}
           index="02"
-          title="Less admin. Systems that hold up."
-          intro="What working together actually changes — for the business and for the tech behind it."
+          title={t("title")}
+          intro={t("intro")}
         />
         <div className="grid gap-4 sm:grid-cols-3">
-          {outcomes.map((outcome) => (
+          {items.map((outcome) => (
             <Card key={outcome.title} className="gap-4">
               <CardHeader>
                 <CardTitle className="text-xl">{outcome.title}</CardTitle>

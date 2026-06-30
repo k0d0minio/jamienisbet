@@ -1,0 +1,103 @@
+{
+  "ogLocale": "pt_PT",
+  "role": "Pagamentos",
+  "meta": {
+    "description": "Pague uma fatura, sinal ou avença em segurança. Abra o seu link de pagamento, confirme os valores e pague com cartão — tratado pela Stripe."
+  },
+  "language": {
+    "label": "Mudar de idioma"
+  },
+  "themeToggle": "Alternar entre tema claro e escuro",
+  "header": {
+    "mainSite": "jamienisbet.com"
+  },
+  "footer": {
+    "tagline": "Pague uma fatura, sinal ou avença em segurança. A partir de {location}.",
+    "secured": "Os dados do cartão são tratados pela Stripe — nunca passam por este servidor.",
+    "questions": "Dúvidas sobre um pagamento?",
+    "mainSite": "jamienisbet.com",
+    "copyright": "© {year} {name}",
+    "poweredBy": "Pagamentos pela Stripe"
+  },
+  "home": {
+    "eyebrow": "Pagamentos",
+    "title": "Pague a sua fatura, em segurança.",
+    "intro": "Abra o link de pagamento do e-mail da sua fatura para ver os valores e pagar com cartão. Não há nada a configurar — o link leva-o diretamente à fatura certa. Se não tiver um link, basta responder ao meu e-mail que lhe envio um.",
+    "stepLabel": "Passo",
+    "assurances": [
+      {
+        "icon": "FileText",
+        "title": "Paga com base numa fatura real",
+        "description": "Cada link de pagamento está associado a uma fatura que já lhe enviei — mesmo número, mesmo valor. Aqui nada é orçamentado nem acrescentado."
+      },
+      {
+        "icon": "ShieldCheck",
+        "title": "Os dados do cartão vão diretamente para a Stripe",
+        "description": "O formulário do cartão é da Stripe, integrado na página. Os seus dados nunca passam pelo meu servidor e o pagamento está pronto para a SCA."
+      },
+      {
+        "icon": "Receipt",
+        "title": "Recebe um recibo e eu fico notificado",
+        "description": "A Stripe envia-lhe um recibo assim que o pagamento é confirmado e a fatura fica marcada como paga — sem cobranças nem trocas de mensagens."
+      }
+    ]
+  },
+  "pay": {
+    "metaTitle": "Pagar fatura",
+    "paySecurely": "Pague em segurança",
+    "cardsToStripe": "Os dados do cartão vão diretamente para a Stripe.",
+    "paid": {
+      "title": "Esta fatura está paga",
+      "description": "Não há mais nada a fazer — obrigado. Foi-lhe enviado um recibo por e-mail no momento da confirmação."
+    },
+    "notOpen": {
+      "title": "Esta fatura não está disponível para pagamento",
+      "description": "Se acha que se trata de um engano, responda ao meu e-mail que eu trato disso."
+    }
+  },
+  "checkout": {
+    "notConfiguredTitle": "Os pagamentos não estão configurados",
+    "notConfiguredBefore": "Não está definida nenhuma chave pública da Stripe, por isso o formulário do cartão não é apresentado. Adicione as chaves da Stripe ao ",
+    "notConfiguredAfter": " para receber um pagamento."
+  },
+  "invoiceSummary": {
+    "invoice": "Fatura",
+    "billedTo": "Faturado a",
+    "issued": "Emitida a {date}",
+    "due": "Vencimento a {date}",
+    "description": "Descrição",
+    "qty": "Qtd.",
+    "amount": "Valor",
+    "totalDue": "Total a pagar",
+    "status": {
+      "paid": "Paga",
+      "awaiting": "A aguardar pagamento"
+    }
+  },
+  "return": {
+    "metaTitle": "Estado do pagamento",
+    "eyebrow": "Pagamento",
+    "complete": {
+      "title": "Pagamento recebido — obrigado",
+      "descriptionWithEmail": "O seu pagamento foi confirmado e está a caminho um recibo para {email}. A fatura está agora marcada como paga; não há mais nada a fazer.",
+      "description": "O seu pagamento foi confirmado. A fatura está agora marcada como paga; não há mais nada a fazer.",
+      "back": "Voltar a jamienisbet.com"
+    },
+    "open": {
+      "title": "Pagamento não concluído",
+      "description": "O pagamento foi cancelado ou não foi concluído. Pode tentar novamente — nada foi cobrado.",
+      "back": "Voltar à fatura"
+    },
+    "unknown": {
+      "title": "Não foi possível confirmar este pagamento",
+      "description": "Se concluiu um pagamento, ainda assim receberá um recibo por e-mail. Caso contrário, volte à fatura para tentar de novo.",
+      "back": "Voltar à fatura"
+    }
+  },
+  "notFound": {
+    "eyebrow": "Não encontrado",
+    "title": "Não conseguimos encontrar essa fatura.",
+    "intro": "O link de pagamento pode estar desatualizado, mal escrito ou já liquidado. Responda ao meu e-mail que lhe envio um novo.",
+    "email": "Enviar e-mail para {email}"
+  }
+}

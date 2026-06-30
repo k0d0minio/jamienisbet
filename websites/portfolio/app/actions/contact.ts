@@ -1,8 +1,13 @@
 "use server"
 
 import { Resend } from "resend"
+import { getTranslations } from "next-intl/server"
 
-import { contactSchema, type ContactState } from "@/lib/contact-schema"
+import {
+  makeContactSchema,
+  type ContactMessages,
+  type ContactState,
+} from "@/lib/contact-schema"
 
 // Hardcoded for now — only the API key comes from the environment. We can move
 // these into env vars later (see .env.example).
@@ -13,6 +18,10 @@ export async function submitContact(
   _prev: ContactState,
   formData: FormData
 ): Promise<ContactState> {
+  // Runs in request context, so next-intl resolves the active locale.
+  const t = await getTranslations("form")
+  const schema = makeContactSchema(t.raw("errors") as ContactMessages)
+
   const values = {
     name: String(formData.get("name") ?? ""),
     email: String(formData.get("email") ?? ""),
@@ -20,7 +29,7 @@ export async function submitContact(
     company: String(formData.get("company") ?? ""),
   }
 
-  const parsed = contactSchema.safeParse(values)
+  const parsed = schema.safeParse(values)
 
   if (!parsed.success) {
     const errors: ContactState["errors"] = {}
@@ -32,7 +41,7 @@ export async function submitContact(
     }
     return {
       status: "error",
-      message: "Please fix the highlighted fields.",
+      message: t("errors.fixFields"),
       errors,
       values: { name: values.name, email: values.email, message: values.message },
     }
@@ -40,16 +49,13 @@ export async function submitContact(
 
   // Honeypot tripped (bot): silently accept, send nothing.
   if (parsed.data.company) {
-    return { status: "success", message: "Thanks — I'll be in touch soon." }
+    return { status: "success", message: t("status.successShort") }
   }
 
   if (!process.env.RESEND_API_KEY) {
     // No key configured — log so nothing is lost while testing locally.
     console.info("[contact] received (not sent — RESEND_API_KEY unset):", parsed.data)
-    return {
-      status: "success",
-      message: "Thanks — your message is in. I'll get back to you within a day or two.",
-    }
+    return { status: "success", message: t("status.success") }
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -70,13 +76,10 @@ export async function submitContact(
     console.error("[contact] Resend send failed:", error)
     return {
       status: "error",
-      message: "Something went wrong sending your message. Please try again, or email me directly.",
+      message: t("status.sendFailed"),
       values: { name: values.name, email: values.email, message: values.message },
     }
   }
 
-  return {
-    status: "success",
-    message: "Thanks — your message is in. I'll get back to you within a day or two.",
-  }
+  return { status: "success", message: t("status.success") }
 }

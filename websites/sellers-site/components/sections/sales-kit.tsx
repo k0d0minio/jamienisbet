@@ -1,5 +1,4 @@
 import { Fragment } from "react"
-import Link from "next/link"
 import {
   Button,
   Card,
@@ -8,12 +7,13 @@ import {
   CardTitle,
   Eyebrow,
 } from "@jamie-nisbet/ui"
+import { getTranslations } from "next-intl/server"
 import { ArrowRight, Check, Presentation } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Container, Section, SectionHeading } from "@/components/section"
 import { FollowUps, PitchScripts } from "@/components/pitch-scripts"
 import { site } from "@/lib/site"
-import { getI18n } from "@/lib/i18n"
 
 // Render a note template, swapping {site}/{code} tokens for styled spans.
 function interpolate(
@@ -26,9 +26,30 @@ function interpolate(
   })
 }
 
+type PitchScript = { key: string; channel: string; title: string; body: string }
+type FollowUp = { key: string; when: string; context: string; body: string }
+type Objection = { objection: string; answer: string }
+type Package = {
+  key: string
+  name: string
+  price: string
+  blurb: string
+  includes: string[]
+  sellerNote: string
+}
+type EarningExample = { work: string; invoice: string; youEarn: string }
+
 export async function SalesKit({ referralCode }: { referralCode?: string }) {
-  const { dict } = await getI18n()
-  const kit = dict.salesKit
+  const t = await getTranslations()
+  const kit = await getTranslations("salesKit")
+  const copyLabel = t.raw("copy") as { copy: string; copied: string }
+
+  const pitchScripts = t.raw("pitchScripts") as PitchScript[]
+  const followUps = t.raw("followUps") as FollowUp[]
+  const objections = t.raw("objections") as Objection[]
+  const packages = t.raw("packages") as Package[]
+  const goodLeadSigns = t.raw("goodLeadSigns") as string[]
+  const earningExamples = t.raw("earningExamples") as EarningExample[]
 
   // Open from /?ref=CODE and the seller's code carries through to the pitch page.
   const refQuery = referralCode
@@ -48,10 +69,10 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
     <Section id="kit" className="border-b border-border">
       <Container className="flex flex-col gap-14">
         <SectionHeading
-          eyebrow={kit.eyebrow}
+          eyebrow={kit("eyebrow")}
           index="03"
-          title={kit.title}
-          intro={kit.intro}
+          title={kit("title")}
+          intro={kit("intro")}
         />
 
         {/* The customer pitch page — the one thing to send a prospect. */}
@@ -62,16 +83,16 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-lg font-semibold tracking-tight">
-                {kit.pitchCard.title}
+                {kit("pitchCard.title")}
               </h3>
               <p className="text-sm text-pretty text-muted-foreground">
-                {kit.pitchCard.body}
+                {kit("pitchCard.body")}
               </p>
             </div>
           </div>
           <Button asChild className="shrink-0">
             <Link href={pitchHref}>
-              {kit.pitchCard.cta}
+              {kit("pitchCard.cta")}
               <ArrowRight />
             </Link>
           </Button>
@@ -79,15 +100,15 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
 
         {/* Ready-to-send openers */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>{kit.readyEyebrow}</Eyebrow>
+          <Eyebrow>{kit("readyEyebrow")}</Eyebrow>
           <PitchScripts
             shareUrl={shareUrl}
-            scripts={dict.pitchScripts}
-            copyLabel={dict.copy}
+            scripts={pitchScripts}
+            copyLabel={copyLabel}
           />
           <p className="text-xs text-muted-foreground">
             {referralCode
-              ? interpolate(kit.readyNoteWithCode, {
+              ? interpolate(kit.raw("readyNoteWithCode") as string, {
                   site: siteLabel,
                   code: (
                     <span className="font-mono text-foreground">
@@ -95,7 +116,7 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
                     </span>
                   ),
                 })
-              : interpolate(kit.readyNote, {
+              : interpolate(kit.raw("readyNote") as string, {
                   site: <span className="font-mono">jamienisbet.com</span>,
                 })}
           </p>
@@ -103,20 +124,20 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
 
         {/* Follow-up sequence */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>{kit.followEyebrow}</Eyebrow>
+          <Eyebrow>{kit("followEyebrow")}</Eyebrow>
           <FollowUps
             shareUrl={shareUrl}
-            steps={dict.followUps}
-            copyLabel={dict.copy}
+            steps={followUps}
+            copyLabel={copyLabel}
           />
-          <p className="text-xs text-muted-foreground">{kit.followNote}</p>
+          <p className="text-xs text-muted-foreground">{kit("followNote")}</p>
         </div>
 
         {/* Objection handling */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>{kit.objectionsEyebrow}</Eyebrow>
+          <Eyebrow>{kit("objectionsEyebrow")}</Eyebrow>
           <div className="grid gap-4 sm:grid-cols-2">
-            {dict.objections.map((item) => (
+            {objections.map((item) => (
               <Card key={item.objection} className="gap-2">
                 <CardHeader>
                   <CardTitle className="text-base">{item.objection}</CardTitle>
@@ -131,9 +152,9 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
 
         {/* Packages & prices */}
         <div className="flex flex-col gap-5">
-          <Eyebrow>{kit.packagesEyebrow}</Eyebrow>
+          <Eyebrow>{kit("packagesEyebrow")}</Eyebrow>
           <div className="grid gap-4 lg:grid-cols-3">
-            {dict.packages.map((pkg) => (
+            {packages.map((pkg) => (
               <Card key={pkg.key} className="gap-4">
                 <CardHeader className="gap-2">
                   <div className="flex items-baseline justify-between gap-3">
@@ -165,9 +186,9 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
         {/* Good-lead checklist + earnings */}
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
           <div className="flex flex-col gap-5">
-            <Eyebrow>{kit.leadsEyebrow}</Eyebrow>
+            <Eyebrow>{kit("leadsEyebrow")}</Eyebrow>
             <ul className="flex flex-col gap-4">
-              {dict.goodLeadSigns.map((sign) => (
+              {goodLeadSigns.map((sign) => (
                 <li key={sign} className="flex items-start gap-3">
                   <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
                     <Check className="size-3.5" />
@@ -179,20 +200,20 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
           </div>
 
           <div className="flex flex-col gap-5">
-            <Eyebrow>{kit.earningsEyebrow}</Eyebrow>
+            <Eyebrow>{kit("earningsEyebrow")}</Eyebrow>
             <div className="overflow-hidden rounded-lg border border-border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/40 text-left">
-                    <th className="px-4 py-3 font-medium">{kit.table.work}</th>
-                    <th className="px-4 py-3 font-medium">{kit.table.pays}</th>
+                    <th className="px-4 py-3 font-medium">{kit("table.work")}</th>
+                    <th className="px-4 py-3 font-medium">{kit("table.pays")}</th>
                     <th className="px-4 py-3 text-right font-medium">
-                      {kit.table.earn}
+                      {kit("table.earn")}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {dict.earningExamples.map((row) => (
+                  {earningExamples.map((row) => (
                     <tr
                       key={row.work}
                       className="border-b border-border last:border-0"
@@ -211,7 +232,7 @@ export async function SalesKit({ referralCode }: { referralCode?: string }) {
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-muted-foreground">{kit.earningsNote}</p>
+            <p className="text-xs text-muted-foreground">{kit("earningsNote")}</p>
           </div>
         </div>
       </Container>

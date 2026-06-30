@@ -2,6 +2,7 @@
 
 import { getInvoice } from "@/lib/invoice"
 import { getStripe, siteOrigin } from "@/lib/stripe"
+import { routing, type Locale } from "@/i18n/routing"
 
 // Create an embedded Checkout Session for an existing invoice and return its
 // client_secret. The amount is re-resolved server-side from the invoice (the
@@ -11,7 +12,14 @@ import { getStripe, siteOrigin } from "@/lib/stripe"
 // tag it with metadata.invoice_id. The webhook reconciles back to the Stripe
 // invoice on completion (marks it paid). This is the standard way to collect an
 // invoice through Embedded Checkout while keeping the form on-brand and on-site.
-export async function createCheckoutSession(invoiceId: string): Promise<string> {
+//
+// `locale` is the active app locale: it sets Stripe's hosted form language (our
+// codes en/pt/fr happen to be valid Stripe Checkout locales) and prefixes the
+// return URL so the status page stays in the same language.
+export async function createCheckoutSession(
+  invoiceId: string,
+  locale: Locale = routing.defaultLocale,
+): Promise<string> {
   const stripe = getStripe()
   if (!stripe) {
     // No live keys — the embedded component never calls this (it shows the
@@ -41,9 +49,12 @@ export async function createCheckoutSession(invoiceId: string): Promise<string> 
     ],
     customer_email: invoice.customerEmail ?? undefined,
     // Carried through to the webhook so it can mark the right invoice paid.
+    // Match Stripe's hosted UI language to the page. Our locale codes (en/pt/fr)
+    // are all valid Stripe Checkout locales, so this passes through directly.
+    locale,
     metadata: { invoice_id: invoice.id },
     payment_intent_data: { metadata: { invoice_id: invoice.id } },
-    return_url: `${siteOrigin()}/pay/${invoice.id}/return?session_id={CHECKOUT_SESSION_ID}`,
+    return_url: `${siteOrigin()}/${locale}/pay/${invoice.id}/return?session_id={CHECKOUT_SESSION_ID}`,
   })
 
   if (!session.client_secret) {

@@ -1,10 +1,13 @@
-import Link from "next/link"
 import { Eyebrow, LogoMarkSolid } from "@jamie-nisbet/ui"
+import { getTranslations } from "next-intl/server"
 import { ExternalLink, Lock, Mail, MapPin } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
+import { LanguageSwitcher } from "./language-switcher"
 import { site } from "@/lib/site"
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const t = await getTranslations()
   const year = new Date().getFullYear()
 
   return (
@@ -14,23 +17,22 @@ export function SiteFooter() {
           <Link
             href="/"
             className="flex items-center gap-2.5"
-            aria-label={`${site.name} — ${site.role}`}
+            aria-label={`${site.name} — ${t("role")}`}
           >
             <LogoMarkSolid className="size-8" />
             <span className="font-semibold tracking-tight">{site.name}</span>
           </Link>
           <p className="text-sm text-muted-foreground">
-            Pay an invoice, deposit, or retainer securely. Run from{" "}
-            {site.location}.
+            {t("footer.tagline", { location: site.location })}
           </p>
           <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
             <Lock className="size-4" />
-            Card details are handled by Stripe — they never touch this server.
+            {t("footer.secured")}
           </p>
         </div>
 
         <div className="flex flex-col gap-3">
-          <Eyebrow>Questions about a payment?</Eyebrow>
+          <Eyebrow>{t("footer.questions")}</Eyebrow>
           <a
             href={`mailto:${site.email}`}
             className="inline-flex items-center gap-2 text-sm transition-colors hover:text-primary"
@@ -47,18 +49,21 @@ export function SiteFooter() {
             className="inline-flex items-center gap-2 text-sm transition-colors hover:text-primary"
           >
             <ExternalLink className="size-4 text-muted-foreground" />
-            jamienisbet.com
+            {t("footer.mainSite")}
           </a>
+          <div className="mt-1">
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
 
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-[var(--container-xl)] flex-col gap-2 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
-            © {year} {site.name}
+            {t("footer.copyright", { year, name: site.name })}
           </p>
           <p className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
-            Payments by Stripe
+            {t("footer.poweredBy")}
           </p>
         </div>
       </div>

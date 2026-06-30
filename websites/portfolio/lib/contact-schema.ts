@@ -1,25 +1,35 @@
 import { z } from "zod"
 
-// Shared by the client form (types + light hints) and the server action
-// (authoritative validation). No "use server" here so the type can be
-// imported into client components safely.
-export const contactSchema = z.object({
-  name: z.string().trim().min(2, "Please tell me your name.").max(100),
-  email: z
-    .string()
-    .trim()
-    .min(1, "An email so I can reply.")
-    .email("That email doesn't look right."),
-  message: z
-    .string()
-    .trim()
-    .min(10, "A sentence or two about your project, please.")
-    .max(4000, "That's a lot — trim it down a touch."),
-  // Honeypot: real people leave this empty.
-  company: z.string().max(0).optional(),
-})
+// Validation messages are locale-dependent, so the schema is built per request
+// from the "form.errors" message namespace (passed in by the server action via
+// t.raw). The client form only needs the types below.
+export type ContactMessages = {
+  nameMin: string
+  emailRequired: string
+  emailInvalid: string
+  messageMin: string
+  messageMax: string
+}
 
-export type ContactInput = z.infer<typeof contactSchema>
+export function makeContactSchema(m: ContactMessages) {
+  return z.object({
+    name: z.string().trim().min(2, m.nameMin).max(100),
+    email: z
+      .string()
+      .trim()
+      .min(1, m.emailRequired)
+      .email(m.emailInvalid),
+    message: z
+      .string()
+      .trim()
+      .min(10, m.messageMin)
+      .max(4000, m.messageMax),
+    // Honeypot: real people leave this empty.
+    company: z.string().max(0).optional(),
+  })
+}
+
+export type ContactInput = z.infer<ReturnType<typeof makeContactSchema>>
 
 export type ContactState = {
   status: "idle" | "success" | "error"

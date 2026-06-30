@@ -1,12 +1,14 @@
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { Button } from "@jamie-nisbet/ui"
 import { ArrowRight } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Container, Section, SectionHeading } from "@/components/section"
 import { CaseStudyCard } from "@/components/case-study-card"
 import { getFeaturedCaseStudies } from "@/lib/work"
 
-export function SelectedWork() {
+export async function SelectedWork() {
+  const t = await getTranslations("selectedWork")
   const studies = getFeaturedCaseStudies()
 
   return (
@@ -14,15 +16,15 @@ export function SelectedWork() {
       <Container className="flex flex-col gap-12">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading
-            eyebrow="Selected work"
+            eyebrow={t("eyebrow")}
             index="03"
-            title="A few things I've shipped."
-            intro="Case studies of real projects — the problem, what I did, and the result."
+            title={t("title")}
+            intro={t("intro")}
           />
           {studies.length > 0 && (
             <Button asChild variant="ghost" className="w-fit shrink-0">
               <Link href="/work">
-                All work
+                {t("allWork")}
                 <ArrowRight />
               </Link>
             </Button>
@@ -34,10 +36,20 @@ export function SelectedWork() {
             {studies.map((study) => (
               <CaseStudyCard key={study.slug} study={study} />
             ))}
-            {studies.length < 3 && <MoreComing />}
+            {studies.length < 3 && (
+              <MoreComing
+                title={t("moreComingTitle")}
+                promptLead={t("moreComingPromptLead")}
+                promptLink={t("moreComingPromptLink")}
+              />
+            )}
           </div>
         ) : (
-          <EmptyWork />
+          <EmptyWork
+            title={t("emptyTitle")}
+            body={t("emptyBody")}
+            getInTouch={t("getInTouch")}
+          />
         )}
       </Container>
     </Section>
@@ -45,32 +57,45 @@ export function SelectedWork() {
 }
 
 // Shown while the work section is still filling up — signals it's growing, not empty.
-function MoreComing() {
+function MoreComing({
+  title,
+  promptLead,
+  promptLink,
+}: {
+  title: string
+  promptLead: string
+  promptLink: string
+}) {
   return (
     <Link
       href="/#contact"
       className="group flex min-h-44 flex-col justify-center gap-2 rounded-lg border border-dashed border-border p-6 text-center transition-colors hover:border-border-strong hover:bg-muted"
     >
-      <p className="font-medium">More case studies on the way</p>
+      <p className="font-medium">{title}</p>
       <p className="text-sm text-muted-foreground">
-        Got a project in mind?{" "}
-        <span className="text-primary group-hover:underline">Let&apos;s talk →</span>
+        {promptLead}{" "}
+        <span className="text-primary group-hover:underline">{promptLink}</span>
       </p>
     </Link>
   )
 }
 
-function EmptyWork() {
+function EmptyWork({
+  title,
+  body,
+  getInTouch,
+}: {
+  title: string
+  body: string
+  getInTouch: string
+}) {
   return (
     <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border p-8">
-      <p className="font-medium">Case studies are on the way.</p>
-      <p className="max-w-prose text-sm text-muted-foreground">
-        I&apos;m writing up recent projects now. In the meantime, tell me what you&apos;re
-        working on — I&apos;m happy to share relevant examples directly.
-      </p>
+      <p className="font-medium">{title}</p>
+      <p className="max-w-prose text-sm text-muted-foreground">{body}</p>
       <Button asChild variant="outline" className="mt-1">
         <Link href="/#contact">
-          Get in touch
+          {getInTouch}
           <ArrowRight />
         </Link>
       </Button>

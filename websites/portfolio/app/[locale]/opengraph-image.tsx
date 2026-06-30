@@ -1,13 +1,25 @@
 import { ImageResponse } from "next/og"
+import { getTranslations } from "next-intl/server"
 
 import { site } from "@/lib/site"
+import { routing } from "@/i18n/routing"
 
-export const alt = `${site.name} — ${site.role}`
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }))
+}
+
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
 // Dynamic Open Graph card in the brand palette (slate #3A5A78 on dark surface).
-export default function OpengraphImage() {
+export default async function OpengraphImage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  const t = await getTranslations({ locale })
+
   return new ImageResponse(
     (
       <div
@@ -60,10 +72,10 @@ export default function OpengraphImage() {
               maxWidth: 920,
             }}
           >
-            AI features and software that ship — and earn their keep.
+            {t("og.headline")}
           </div>
           <div style={{ fontSize: 30, color: "#A8B0BA" }}>
-            {`${site.role} · ${site.location}`}
+            {`${t("role")} · ${site.location}`}
           </div>
         </div>
       </div>

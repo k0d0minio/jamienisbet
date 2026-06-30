@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useMemo, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import {
   Alert,
   AlertDescription,
@@ -23,11 +24,7 @@ import {
   businessHours,
   type SellerLeadState,
 } from "@/lib/referral-schema"
-import type { Locale } from "@/lib/i18n/config"
-import { localeHtmlLang } from "@/lib/i18n/config"
-import type { Dictionary } from "@/lib/i18n/dictionaries/en"
-
-type FormDict = Dictionary["form"]
+import { localeHtmlLang, type Locale } from "@/i18n/routing"
 
 const sellerInitial: SellerLeadState = { status: "idle" }
 
@@ -77,12 +74,11 @@ function businessTimeSlots() {
 function BusinessCallTimePicker({
   defaultValue,
   locale,
-  dict,
 }: {
   defaultValue?: string
   locale: Locale
-  dict: FormDict["callTime"]
 }) {
+  const t = useTranslations("form.callTime")
   const [defaultDate, defaultTime] = (defaultValue ?? "").split("T")
   const [date, setDate] = useState(defaultDate ?? "")
   const [time, setTime] = useState(defaultTime ?? "")
@@ -98,7 +94,7 @@ function BusinessCallTimePicker({
       <input type="hidden" name="preferredCallTime" value={value} />
       <Select value={date} onValueChange={setDate}>
         <SelectTrigger id="preferredCallTime" className="w-full">
-          <SelectValue placeholder={dict.pickDay} />
+          <SelectValue placeholder={t("pickDay")} />
         </SelectTrigger>
         <SelectContent>
           {days.map((day) => (
@@ -110,7 +106,7 @@ function BusinessCallTimePicker({
       </Select>
       <Select value={time} onValueChange={setTime}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder={dict.pickTime} />
+          <SelectValue placeholder={t("pickTime")} />
         </SelectTrigger>
         <SelectContent>
           {times.map((slot) => (
@@ -185,12 +181,11 @@ function SubmitRow({
 function SellerLeadForm({
   defaultReferralCode,
   locale,
-  dict,
 }: {
   defaultReferralCode?: string
   locale: Locale
-  dict: FormDict
 }) {
+  const t = useTranslations("form")
   const [state, formAction, pending] = useActionState(
     submitSellerLead,
     sellerInitial
@@ -200,7 +195,7 @@ function SellerLeadForm({
     return (
       <Alert variant="success">
         <CircleCheck />
-        <AlertTitle>{dict.success.title}</AlertTitle>
+        <AlertTitle>{t("success.title")}</AlertTitle>
         <AlertDescription>{state.message}</AlertDescription>
       </Alert>
     )
@@ -217,9 +212,9 @@ function SellerLeadForm({
 
       <Field
         id="referralCode"
-        label={dict.referralCode.label}
+        label={t("referralCode.label")}
         error={state.errors?.referralCode}
-        hint={dict.referralCode.hint}
+        hint={t("referralCode.hint")}
       >
         <Input
           id="referralCode"
@@ -235,7 +230,7 @@ function SellerLeadForm({
 
       <Field
         id="customerName"
-        label={dict.customerName}
+        label={t("customerName")}
         error={state.errors?.customerName}
       >
         <Input
@@ -252,9 +247,9 @@ function SellerLeadForm({
       <div className="grid gap-5 sm:grid-cols-2">
         <Field
           id="customerPhone"
-          label={dict.customerPhone.label}
+          label={t("customerPhone.label")}
           error={state.errors?.customerPhone}
-          hint={dict.customerPhone.hint}
+          hint={t("customerPhone.hint")}
         >
           <Input
             id="customerPhone"
@@ -271,7 +266,7 @@ function SellerLeadForm({
 
         <Field
           id="customerEmail"
-          label={dict.customerEmail}
+          label={t("customerEmail")}
           error={state.errors?.customerEmail}
         >
           <Input
@@ -290,29 +285,29 @@ function SellerLeadForm({
 
       <Field
         id="need"
-        label={dict.need.label}
+        label={t("need.label")}
         error={state.errors?.need}
       >
         <Textarea
           id="need"
           name="need"
           rows={3}
-          placeholder={dict.need.placeholder}
+          placeholder={t("need.placeholder")}
           defaultValue={state.values?.need}
           aria-invalid={Boolean(state.errors?.need)}
           aria-describedby={state.errors?.need ? "need-error" : undefined}
         />
       </Field>
 
-      <Field id="budget" label={dict.budget.label}>
+      <Field id="budget" label={t("budget.label")}>
         <Select name="budget" defaultValue={state.values?.budget || undefined}>
           <SelectTrigger id="budget" className="w-full">
-            <SelectValue placeholder={dict.budget.placeholder} />
+            <SelectValue placeholder={t("budget.placeholder")} />
           </SelectTrigger>
           <SelectContent>
             {budgetOptions.map((option) => (
               <SelectItem key={option} value={option}>
-                {dict.budgetOptions[option]}
+                {t(`budgetOptions.${option}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -321,22 +316,21 @@ function SellerLeadForm({
 
       <Field
         id="preferredCallTime"
-        label={dict.callTime.label}
+        label={t("callTime.label")}
         error={state.errors?.preferredCallTime}
-        hint={dict.callTime.hint}
+        hint={t("callTime.hint")}
       >
         <BusinessCallTimePicker
           defaultValue={state.values?.preferredCallTime}
           locale={locale}
-          dict={dict.callTime}
         />
       </Field>
 
       <Honeypot />
       <SubmitRow
         pending={pending}
-        label={dict.submit}
-        submittingLabel={dict.submitting}
+        label={t("submit")}
+        submittingLabel={t("submitting")}
       />
     </form>
   )
@@ -344,19 +338,15 @@ function SellerLeadForm({
 
 export function ReferralForms({
   defaultReferralCode,
-  locale,
-  dict,
 }: {
   defaultReferralCode?: string
-  locale: Locale
-  dict: FormDict
 }) {
+  const locale = useLocale() as Locale
   // This site is for sellers only — a single lead form, no tabs.
   return (
     <SellerLeadForm
       defaultReferralCode={defaultReferralCode}
       locale={locale}
-      dict={dict}
     />
   )
 }

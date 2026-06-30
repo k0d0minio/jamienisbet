@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { Eyebrow } from "@jamie-nisbet/ui"
 import { Mail, MapPin } from "lucide-react"
 
@@ -5,21 +6,20 @@ import { Container, Section } from "@/components/section"
 import { ContactForm } from "@/components/contact-form"
 import { site } from "@/lib/site"
 
-export function ContactSection() {
+export async function ContactSection() {
+  const t = await getTranslations("contact")
+
   return (
     <Section id="contact">
       <Container className="grid gap-12 lg:grid-cols-2 lg:gap-20">
         <div className="flex flex-col gap-5">
           <Eyebrow rule index="05">
-            Contact
+            {t("eyebrow")}
           </Eyebrow>
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Let&apos;s talk about your project.
+            {t("title")}
           </h2>
-          <p className="text-lg text-pretty text-muted-foreground">
-            Tell me what you&apos;re trying to do. I&apos;ll reply within a day or two with a few
-            questions or, if it&apos;s a fit, a way forward. No hard sell.
-          </p>
+          <p className="text-lg text-pretty text-muted-foreground">{t("intro")}</p>
 
           <div className="mt-2 flex flex-col gap-2 text-sm">
             <a
@@ -36,9 +36,9 @@ export function ContactSection() {
           </div>
 
           <p className="mt-2 rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-            My standard rate is{" "}
-            <span className="font-medium text-foreground">€120/hour</span>, usually quoted as a
-            fixed price for the scope — with options, so you can pick what fits.
+            {t("rateLead")}{" "}
+            <span className="font-medium text-foreground">{t("rateAmount")}</span>
+            {t("rateTrail")}
           </p>
         </div>
 

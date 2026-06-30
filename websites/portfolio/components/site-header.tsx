@@ -1,14 +1,18 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { Button, IconButton, LogoMark } from "@jamie-nisbet/ui"
 import { ArrowRight, Menu, X } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { ThemeToggle } from "./theme-toggle"
+import { LanguageSwitcher } from "./language-switcher"
 import { site } from "@/lib/site"
 
 export function SiteHeader() {
+  const tNav = useTranslations("nav")
+  const tHeader = useTranslations("header")
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -17,7 +21,7 @@ export function SiteHeader() {
         <Link
           href="/"
           className="flex items-center gap-2.5 font-semibold tracking-tight"
-          aria-label={`${site.name} — home`}
+          aria-label={tHeader("home", { name: site.name })}
         >
           <LogoMark className="size-6 text-primary" />
           <span>{site.name}</span>
@@ -26,21 +30,22 @@ export function SiteHeader() {
         <nav className="hidden items-center gap-1 md:flex">
           {site.nav.map((item) => (
             <Button key={item.href} asChild variant="ghost" size="sm">
-              <Link href={item.href}>{item.label}</Link>
+              <Link href={item.href}>{tNav(item.id)}</Link>
             </Button>
           ))}
         </nav>
 
         <div className="flex items-center gap-1">
+          <LanguageSwitcher />
           <ThemeToggle />
           <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link href="/#contact">
-              Start a project
+              {tHeader("startProject")}
               <ArrowRight />
             </Link>
           </Button>
           <IconButton
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? tHeader("closeMenu") : tHeader("openMenu")}
             aria-expanded={open}
             className="md:hidden"
             onClick={() => setOpen((value) => !value)}
@@ -61,7 +66,7 @@ export function SiteHeader() {
                 className="justify-start"
                 onClick={() => setOpen(false)}
               >
-                <Link href={item.href}>{item.label}</Link>
+                <Link href={item.href}>{tNav(item.id)}</Link>
               </Button>
             ))}
             <Button
@@ -70,7 +75,7 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
             >
               <Link href="/#contact">
-                Start a project
+                {tHeader("startProject")}
                 <ArrowRight />
               </Link>
             </Button>

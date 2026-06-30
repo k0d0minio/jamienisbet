@@ -1,17 +1,21 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import { notFound } from "next/navigation"
+import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Badge, Button, Eyebrow } from "@jamie-nisbet/ui"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Container } from "@/components/section"
 import { Markdown } from "@/components/markdown"
 import { getCaseStudy, getCaseStudySlugs } from "@/lib/work"
+import { routing } from "@/i18n/routing"
 
-type Params = { params: Promise<{ slug: string }> }
+type Params = { params: Promise<{ locale: string; slug: string }> }
 
 export function generateStaticParams() {
-  return getCaseStudySlugs().map((slug) => ({ slug }))
+  return routing.locales.flatMap((locale) =>
+    getCaseStudySlugs().map((slug) => ({ locale, slug }))
+  )
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -22,7 +26,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function CaseStudyPage({ params }: Params) {
-  const { slug } = await params
+  const { locale, slug } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations("caseStudy")
   const study = getCaseStudy(slug)
   if (!study) notFound()
 
@@ -33,7 +39,7 @@ export default async function CaseStudyPage({ params }: Params) {
           <Button asChild variant="ghost" size="sm" className="-ml-3 w-fit">
             <Link href="/work">
               <ArrowLeft />
-              All work
+              {t("allWork")}
             </Link>
           </Button>
           <Eyebrow rule index={String(study.year)}>
@@ -46,13 +52,13 @@ export default async function CaseStudyPage({ params }: Params) {
         </div>
 
         <dl className="grid gap-6 border-y border-border py-6 sm:grid-cols-3">
-          <Meta label="Services">
-            <BadgeRow items={study.services} />
+          <Meta label={t("services")}>
+            <BadgeRow items={study.services} emptyLabel={t("empty")} />
           </Meta>
-          <Meta label="Stack">
-            <BadgeRow items={study.stack} />
+          <Meta label={t("stack")}>
+            <BadgeRow items={study.stack} emptyLabel={t("empty")} />
           </Meta>
-          <Meta label="Outcome">
+          <Meta label={t("outcome")}>
             <p className="text-sm text-foreground">{study.outcome}</p>
           </Meta>
         </dl>
@@ -61,12 +67,12 @@ export default async function CaseStudyPage({ params }: Params) {
 
         <div className="flex flex-col gap-4 rounded-lg border border-border bg-muted p-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-pretty">
-            Got a project like this?{" "}
-            <span className="text-muted-foreground">Let&apos;s talk about it.</span>
+            {t("ctaLead")}{" "}
+            <span className="text-muted-foreground">{t("ctaTrail")}</span>
           </p>
           <Button asChild className="w-fit shrink-0">
             <Link href="/#contact">
-              Start a project
+              {t("ctaButton")}
               <ArrowRight />
             </Link>
           </Button>
@@ -87,8 +93,9 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
   )
 }
 
-function BadgeRow({ items }: { items: string[] }) {
-  if (items.length === 0) return <p className="text-sm text-muted-foreground">—</p>
+function BadgeRow({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
+  if (items.length === 0)
+    return <p className="text-sm text-muted-foreground">{emptyLabel}</p>
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((item) => (

@@ -1,0 +1,162 @@
+{
+  "role": "Ingénieur logiciel et consultant en IA",
+  "meta": {
+    "description": "Un ingénieur expérimenté qui crée de l'IA et des logiciels pour vous décharger de l'administratif — sur une architecture propre, conçue pour évoluer. Périmètre clair, prix clair, sans surprise."
+  },
+  "language": {
+    "label": "Changer de langue"
+  },
+  "themeToggle": "Basculer entre thème clair et sombre",
+  "nav": {
+    "work": "Travaux",
+    "about": "À propos",
+    "contact": "Contact"
+  },
+  "header": {
+    "home": "{name} — accueil",
+    "startProject": "Démarrer un projet",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
+  },
+  "footer": {
+    "tagline": "De l'IA et des logiciels qui vous déchargent de l'administratif — conçus pour durer, depuis {location}.",
+    "getInTouch": "Prendre contact",
+    "copyright": "© {year} {name}"
+  },
+  "hero": {
+    "title": "Des systèmes d'IA qui vous redonnent votre temps — et qui continuent à fonctionner à mesure que vous grandissez.",
+    "intro": "Je suis Jamie — un ingénieur expérimenté qui travaille directement avec vous. Je crée de l'IA et des logiciels qui vous déchargent de l'administratif, sur une architecture propre qui évolue avec vous. Périmètre clair, prix clair, sans surprise.",
+    "startProject": "Démarrer un projet",
+    "seeWork": "Voir les travaux"
+  },
+  "services": {
+    "eyebrow": "Ce que je fais",
+    "title": "Logiciels et IA, livrés par la personne qui les construit.",
+    "intro": "Quatre façons d'aider — décrites par le résultat, pas par un nom de produit.",
+    "items": {
+      "ai": {
+        "title": "Fonctionnalités d'IA",
+        "description": "De l'IA concrète intégrée aux outils que vous utilisez déjà — elle prend en charge le travail répétitif pour épargner votre équipe. Construite et mesurée face à un résultat réel, pas à une démonstration."
+      },
+      "software": {
+        "title": "Logiciels et sites web",
+        "description": "Applications web et sites conçus pour durer : rapides, accessibles et faciles à faire évoluer. Une architecture propre aujourd'hui, ce sont des évolutions peu coûteuses demain."
+      },
+      "automations": {
+        "title": "Automatisations",
+        "description": "Supprimez le travail manuel. Je connecte vos outils et laisse les tâches fastidieuses tourner toutes seules, pour que vos heures retournent au cœur de votre activité et à vos clients."
+      },
+      "advisory": {
+        "title": "Conseil",
+        "description": "Un ingénieur expérimenté disponible — revues d'architecture, due diligence technique ou simplement un deuxième avis franc avant de vous engager."
+      }
+    }
+  },
+  "outcomes": {
+    "eyebrow": "Ce que cela vous apporte",
+    "title": "Moins d'administratif. Des systèmes qui tiennent.",
+    "intro": "Ce que travailler ensemble change vraiment — pour l'activité et pour la technique qui la sous-tend.",
+    "items": [
+      {
+        "title": "Votre temps retrouvé",
+        "description": "L'administratif et les corvées qui dévorent votre semaine, pris en charge — pour que vos heures aillent aux clients et à la croissance."
+      },
+      {
+        "title": "Des systèmes qui durent",
+        "description": "Une architecture propre, documentée et bien définie qui évolue avec vous — pas une démonstration qui casse en un mois."
+      },
+      {
+        "title": "Vous restez informé",
+        "description": "Un ingénieur expérimenté joignable, honnête sur les compromis et les coûts, avec l'ensemble du projet qui vous appartient."
+      }
+    ]
+  },
+  "selectedWork": {
+    "eyebrow": "Travaux sélectionnés",
+    "title": "Quelques réalisations livrées.",
+    "intro": "Études de cas de projets réels — le problème, ce que j'ai fait et le résultat.",
+    "allWork": "Tous les travaux",
+    "moreComingTitle": "D'autres études de cas à venir",
+    "moreComingPromptLead": "Un projet en tête ?",
+    "moreComingPromptLink": "Discutons-en →",
+    "emptyTitle": "Les études de cas arrivent.",
+    "emptyBody": "Je rédige mes projets récents en ce moment. En attendant, dites-moi sur quoi vous travaillez — je serai ravi de partager directement des exemples pertinents.",
+    "getInTouch": "Prendre contact"
+  },
+  "about": {
+    "eyebrow": "À propos",
+    "title": "Un ingénieur expérimenté que vous pouvez réellement joindre.",
+    "p1": "Je suis Jamie Nisbet, ingénieur logiciel et consultant en IA basé au {location}. J'ai passé des années à créer des logiciels pour le web, et je conçois aujourd'hui des systèmes d'IA pensés pour durer — bien définis, documentés et conçus pour évoluer, et non des démonstrations bricolées qui cassent un mois plus tard.",
+    "p2": "Je travaille en petite structure, et c'est un choix. Vous échangez avec la personne qui écrit le code, les décisions sont donc rapides et rien ne se perd en route. Pour les projets plus importants, je fais appel à des collaborateurs de confiance — vous gardez la réactivité et gagnez en capacité.",
+    "p3": "L'essentiel de ce que je construis a une seule mission : vous décharger de l'administratif et des corvées, pour que votre temps retourne à votre activité et à vos clients. Je tiens à faire ce qui est utile, à expliquer le pourquoi et à être franc sur les compromis et les coûts. Si une idée est mauvaise, je vous le dirai.",
+    "howIWorkTitle": "Ma façon de travailler",
+    "howIWork": [
+      "Vous parlez à la personne qui le construit — sans strates d'agence, sans chargés de compte.",
+      "Périmètre clair et prix clair avant de commencer ; les changements sont une discussion, pas une ligne cachée.",
+      "Je suis honnête sur les compromis, les coûts et ce que j'ignore — je préfère sous-promettre.",
+      "Bâti sur une architecture claire et documentée — elle évolue avec vous et vous appartient, sans dépendance.",
+      "Une personne joignable, avec des collaborateurs prêts à renforcer les projets plus importants."
+    ]
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Parlons de votre projet.",
+    "intro": "Dites-moi ce que vous cherchez à faire. Je réponds sous un à deux jours avec quelques questions ou, si c'est pertinent, une marche à suivre. Sans pression commerciale.",
+    "rateLead": "Mon tarif habituel est de",
+    "rateAmount": "120 €/heure",
+    "rateTrail": ", généralement proposé sous forme de prix fixe pour le périmètre — avec des options, pour choisir ce qui vous convient."
+  },
+  "form": {
+    "name": "Nom",
+    "email": "Email",
+    "messageLabel": "En quoi puis-je vous aider ?",
+    "messagePlaceholder": "Une phrase ou deux sur votre projet, votre objectif et l'échéance éventuelle.",
+    "send": "Envoyer le message",
+    "sending": "Envoi…",
+    "sentTitle": "Message envoyé",
+    "preferEmailLead": "Vous préférez l'email ? Écrivez à",
+    "honeypotLabel": "Société",
+    "errors": {
+      "nameMin": "Indiquez-moi votre nom, s'il vous plaît.",
+      "emailRequired": "Un email pour que je puisse répondre.",
+      "emailInvalid": "Cet email ne semble pas valide.",
+      "messageMin": "Une phrase ou deux sur votre projet, s'il vous plaît.",
+      "messageMax": "C'est beaucoup — raccourcissez un peu.",
+      "fixFields": "Veuillez corriger les champs signalés."
+    },
+    "status": {
+      "success": "Merci — votre message est bien arrivé. Je vous recontacte sous un à deux jours.",
+      "successShort": "Merci — je vous recontacte bientôt.",
+      "sendFailed": "Une erreur s'est produite lors de l'envoi de votre message. Réessayez ou écrivez-moi directement."
+    }
+  },
+  "work": {
+    "metaTitle": "Travaux",
+    "metaDescription": "Projets sélectionnés de Jamie Nisbet — le problème, ce que j'ai fait et le résultat.",
+    "eyebrow": "Travaux",
+    "title": "Travaux sélectionnés",
+    "intro": "Études de cas de projets réels — le problème, ce que j'ai fait et le résultat.",
+    "emptyLead": "Les études de cas arrivent.",
+    "emptyLinkLead": "Prenez contact",
+    "emptyLinkTrail": "en attendant."
+  },
+  "caseStudy": {
+    "allWork": "Tous les travaux",
+    "services": "Services",
+    "stack": "Technologies",
+    "outcome": "Résultat",
+    "empty": "—",
+    "ctaLead": "Un projet de ce genre ?",
+    "ctaTrail": "Parlons-en.",
+    "ctaButton": "Démarrer un projet"
+  },
+  "notFound": {
+    "eyebrow": "Introuvable",
+    "title": "Cette page s'est égarée.",
+    "body": "Le lien est peut-être ancien ou mal saisi. Remettons-vous sur la bonne voie.",
+    "backHome": "Retour à l'accueil"
+  },
+  "og": {
+    "headline": "Des fonctionnalités d'IA et des logiciels qui sont livrés — et qui rapportent."
+  }
+}

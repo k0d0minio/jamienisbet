@@ -1,0 +1,162 @@
+{
+  "role": "Software engineer & AI consultant",
+  "meta": {
+    "description": "A senior engineer who builds AI and software that takes the admin off your plate — on clean architecture built to scale. Clear scope, clear price, no surprises."
+  },
+  "language": {
+    "label": "Change language"
+  },
+  "themeToggle": "Toggle light or dark theme",
+  "nav": {
+    "work": "Work",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "header": {
+    "home": "{name} — home",
+    "startProject": "Start a project",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "footer": {
+    "tagline": "AI and software that take the admin off your plate — built to last, from {location}.",
+    "getInTouch": "Get in touch",
+    "copyright": "© {year} {name}"
+  },
+  "hero": {
+    "title": "AI systems that give you your time back — and keep working as you grow.",
+    "intro": "I'm Jamie — a senior engineer working directly with you. I build AI and software that takes the admin off your plate, on clean architecture that scales as you grow. Clear scope, clear price, no surprises.",
+    "startProject": "Start a project",
+    "seeWork": "See work"
+  },
+  "services": {
+    "eyebrow": "What I do",
+    "title": "Software and AI, delivered by the person who builds it.",
+    "intro": "Four ways I help — described by the outcome, not a product name.",
+    "items": {
+      "ai": {
+        "title": "AI features",
+        "description": "Practical AI wired into the tools you already use — it handles the repetitive work so your team doesn't. Built and measured against a real outcome, not a demo."
+      },
+      "software": {
+        "title": "Software & websites",
+        "description": "Web apps and sites built to last: fast, accessible, and easy to change. Clean architecture today means cheap changes tomorrow."
+      },
+      "automations": {
+        "title": "Automations",
+        "description": "Cut the manual work. I connect your tools and let the boring parts run themselves, so your hours go back to the business and its customers."
+      },
+      "advisory": {
+        "title": "Advisory",
+        "description": "A senior engineer on call — architecture reviews, technical due diligence, or a straight second opinion before you commit."
+      }
+    }
+  },
+  "outcomes": {
+    "eyebrow": "What this gets you",
+    "title": "Less admin. Systems that hold up.",
+    "intro": "What working together actually changes — for the business and for the tech behind it.",
+    "items": [
+      {
+        "title": "Your time back",
+        "description": "The admin and busywork that eats your week, handled — so your hours go to customers and growth."
+      },
+      {
+        "title": "Systems that last",
+        "description": "Clean, documented, well-defined architecture that scales as you grow — not a demo that breaks in a month."
+      },
+      {
+        "title": "You stay in the loop",
+        "description": "One senior engineer you can reach, honest about trade-offs and cost, with the whole build yours to keep."
+      }
+    ]
+  },
+  "selectedWork": {
+    "eyebrow": "Selected work",
+    "title": "A few things I've shipped.",
+    "intro": "Case studies of real projects — the problem, what I did, and the result.",
+    "allWork": "All work",
+    "moreComingTitle": "More case studies on the way",
+    "moreComingPromptLead": "Got a project in mind?",
+    "moreComingPromptLink": "Let's talk →",
+    "emptyTitle": "Case studies are on the way.",
+    "emptyBody": "I'm writing up recent projects now. In the meantime, tell me what you're working on — I'm happy to share relevant examples directly.",
+    "getInTouch": "Get in touch"
+  },
+  "about": {
+    "eyebrow": "About",
+    "title": "A senior engineer you can actually reach.",
+    "p1": "I'm Jamie Nisbet, a software engineer and AI consultant based in {location}. I've spent years building software for the web, and I now design AI systems meant to run for the long term — well-defined, documented, and built to scale, not bolted-on demos that break a month later.",
+    "p2": "I work as a small shop on purpose. You deal with the person writing the code, so decisions are quick and nothing gets lost in translation. For bigger builds I bring in trusted contractors — you keep the responsiveness and gain the capacity.",
+    "p3": "Most of what I build has one job: take the admin and busywork off your plate, so your time goes back to the business and its customers. I care about doing the useful thing, explaining the why, and being straight about trade-offs and cost. If something's a bad idea, I'll tell you.",
+    "howIWorkTitle": "How I work",
+    "howIWork": [
+      "You talk to the person building it — no agency layers, no account managers.",
+      "Clear scope and a clear price before we start; changes are a conversation, not a hidden line item.",
+      "I'm honest about trade-offs, cost, and what I don't know — I'd rather under-promise.",
+      "Built on clear, documented architecture — it scales as you grow and it's yours to keep, no lock-in.",
+      "One person you can reach, with contractors on standby for bigger builds."
+    ]
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Let's talk about your project.",
+    "intro": "Tell me what you're trying to do. I'll reply within a day or two with a few questions or, if it's a fit, a way forward. No hard sell.",
+    "rateLead": "My standard rate is",
+    "rateAmount": "€120/hour",
+    "rateTrail": ", usually quoted as a fixed price for the scope — with options, so you can pick what fits."
+  },
+  "form": {
+    "name": "Name",
+    "email": "Email",
+    "messageLabel": "What can I help with?",
+    "messagePlaceholder": "A sentence or two about your project, your goal, and any timeline.",
+    "send": "Send message",
+    "sending": "Sending…",
+    "sentTitle": "Message sent",
+    "preferEmailLead": "Prefer email? Write to",
+    "honeypotLabel": "Company",
+    "errors": {
+      "nameMin": "Please tell me your name.",
+      "emailRequired": "An email so I can reply.",
+      "emailInvalid": "That email doesn't look right.",
+      "messageMin": "A sentence or two about your project, please.",
+      "messageMax": "That's a lot — trim it down a touch.",
+      "fixFields": "Please fix the highlighted fields."
+    },
+    "status": {
+      "success": "Thanks — your message is in. I'll get back to you within a day or two.",
+      "successShort": "Thanks — I'll be in touch soon.",
+      "sendFailed": "Something went wrong sending your message. Please try again, or email me directly."
+    }
+  },
+  "work": {
+    "metaTitle": "Work",
+    "metaDescription": "Selected projects by Jamie Nisbet — the problem, what I did, and the result.",
+    "eyebrow": "Work",
+    "title": "Selected work",
+    "intro": "Case studies of real projects — the problem, what I did, and the result.",
+    "emptyLead": "Case studies are on the way.",
+    "emptyLinkLead": "Get in touch",
+    "emptyLinkTrail": "in the meantime."
+  },
+  "caseStudy": {
+    "allWork": "All work",
+    "services": "Services",
+    "stack": "Stack",
+    "outcome": "Outcome",
+    "empty": "—",
+    "ctaLead": "Got a project like this?",
+    "ctaTrail": "Let's talk about it.",
+    "ctaButton": "Start a project"
+  },
+  "notFound": {
+    "eyebrow": "Not found",
+    "title": "That page wandered off.",
+    "body": "The link might be old or mistyped. Let's get you back on track.",
+    "backHome": "Back home"
+  },
+  "og": {
+    "headline": "AI features and software that ship — and earn their keep."
+  }
+}

@@ -7,9 +7,11 @@ import {
   EmbeddedCheckoutProvider,
 } from "@stripe/react-stripe-js"
 import { Alert, AlertDescription, AlertTitle } from "@jamie-nisbet/ui"
+import { useTranslations } from "next-intl"
 import { Info } from "lucide-react"
 
 import { createCheckoutSession } from "@/app/actions/checkout"
+import type { Locale } from "@/i18n/routing"
 
 // Load Stripe once, outside the component, to avoid recreating it on every
 // render. When the publishable key is unset, there's no Stripe to load — the
@@ -17,23 +19,32 @@ import { createCheckoutSession } from "@/app/actions/checkout"
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 
-export function Checkout({ invoiceId }: { invoiceId: string }) {
+export function Checkout({
+  invoiceId,
+  locale,
+}: {
+  invoiceId: string
+  locale: Locale
+}) {
+  const t = useTranslations("checkout")
+
   // Bind the session to this invoice. The Embedded Checkout provider calls this
-  // with no arguments, so we close over the id here.
+  // with no arguments, so we close over the id + locale here. The locale is
+  // forwarded to Stripe so its hosted form matches the page language.
   const fetchClientSecret = useCallback(
-    () => createCheckoutSession(invoiceId),
-    [invoiceId]
+    () => createCheckoutSession(invoiceId, locale),
+    [invoiceId, locale]
   )
 
   if (!stripePromise) {
     return (
       <Alert variant="info">
         <Info />
-        <AlertTitle>Payments aren&apos;t configured</AlertTitle>
+        <AlertTitle>{t("notConfiguredTitle")}</AlertTitle>
         <AlertDescription>
-          No Stripe publishable key is set, so the card form isn&apos;t mounted.
-          Add Stripe keys to{" "}
-          <code className="font-mono text-2xs">.env</code> to take a payment.
+          {t("notConfiguredBefore")}
+          <code className="font-mono text-2xs">.env</code>
+          {t("notConfiguredAfter")}
         </AlertDescription>
       </Alert>
     )

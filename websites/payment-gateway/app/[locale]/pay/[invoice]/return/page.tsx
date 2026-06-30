@@ -1,26 +1,37 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Alert, AlertDescription, AlertTitle, Button, Eyebrow } from "@jamie-nisbet/ui"
 import { ArrowLeft, CheckCircle2, CircleAlert } from "lucide-react"
 
 import { Container, Section } from "@/components/section"
+import { Link } from "@/i18n/navigation"
 import { getStripe } from "@/lib/stripe"
 
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "Payment status",
-  robots: { index: false, follow: false },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; invoice: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: "return" })
+  return {
+    title: t("metaTitle"),
+    robots: { index: false, follow: false },
+  }
 }
 
 export default async function ReturnPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ invoice: string }>
+  params: Promise<{ locale: string; invoice: string }>
   searchParams: Promise<{ session_id?: string }>
 }) {
-  const { invoice: invoiceId } = await params
+  const { locale, invoice: invoiceId } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations("return")
   const { session_id: sessionId } = await searchParams
   const stripe = getStripe()
 
@@ -40,22 +51,23 @@ export default async function ReturnPage({
   return (
     <Section>
       <Container size="md" className="flex flex-col items-start gap-6">
-        <Eyebrow rule>Payment</Eyebrow>
+        <Eyebrow rule>{t("eyebrow")}</Eyebrow>
 
         {status === "complete" ? (
           <>
             <Alert variant="success">
               <CheckCircle2 />
-              <AlertTitle>Payment received — thank you</AlertTitle>
+              <AlertTitle>{t("complete.title")}</AlertTitle>
               <AlertDescription>
-                Your payment cleared{email ? `, and a receipt is on its way to ${email}` : ""}.
-                The invoice is now marked paid; there&apos;s nothing more to do.
+                {email
+                  ? t("complete.descriptionWithEmail", { email })
+                  : t("complete.description")}
               </AlertDescription>
             </Alert>
             <Button asChild variant="ghost">
               <a href="https://jamienisbet.com">
                 <ArrowLeft />
-                Back to jamienisbet.com
+                {t("complete.back")}
               </a>
             </Button>
           </>
@@ -63,16 +75,13 @@ export default async function ReturnPage({
           <>
             <Alert variant="warning">
               <CircleAlert />
-              <AlertTitle>Payment not completed</AlertTitle>
-              <AlertDescription>
-                The payment was cancelled or didn&apos;t go through. You can try
-                again — nothing has been charged.
-              </AlertDescription>
+              <AlertTitle>{t("open.title")}</AlertTitle>
+              <AlertDescription>{t("open.description")}</AlertDescription>
             </Alert>
             <Button asChild>
               <Link href={`/pay/${invoiceId}`}>
                 <ArrowLeft />
-                Back to the invoice
+                {t("open.back")}
               </Link>
             </Button>
           </>
@@ -80,16 +89,13 @@ export default async function ReturnPage({
           <>
             <Alert variant="info">
               <CircleAlert />
-              <AlertTitle>We couldn&apos;t confirm this payment</AlertTitle>
-              <AlertDescription>
-                If you completed a payment, you&apos;ll still get a receipt by
-                email. Otherwise, head back to the invoice to try again.
-              </AlertDescription>
+              <AlertTitle>{t("unknown.title")}</AlertTitle>
+              <AlertDescription>{t("unknown.description")}</AlertDescription>
             </Alert>
             <Button asChild variant="secondary">
               <Link href={`/pay/${invoiceId}`}>
                 <ArrowLeft />
-                Back to the invoice
+                {t("unknown.back")}
               </Link>
             </Button>
           </>

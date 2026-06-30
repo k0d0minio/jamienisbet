@@ -1,10 +1,11 @@
+import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Eyebrow } from "@jamie-nisbet/ui"
 import { FileText, Receipt, ShieldCheck } from "lucide-react"
 
 import { Container, Section } from "@/components/section"
-import { assurances, type Assurance } from "@/lib/site"
+import type { Assurance, AssuranceIcon } from "@/lib/site"
 
-const icons: Record<Assurance["icon"], typeof FileText> = {
+const icons: Record<AssuranceIcon, typeof FileText> = {
   FileText,
   ShieldCheck,
   Receipt,
@@ -12,20 +13,26 @@ const icons: Record<Assurance["icon"], typeof FileText> = {
 
 // Payments is reached from an invoice link, not browsed — so the index is a
 // short, reassuring explainer rather than a marketing page.
-export default function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations("home")
+  const assurances = t.raw("assurances") as Assurance[]
+
   return (
     <Section>
       <Container size="lg" className="flex flex-col gap-16">
         <div className="flex max-w-[var(--container-md)] flex-col gap-5">
-          <Eyebrow rule>Payments</Eyebrow>
+          <Eyebrow rule>{t("eyebrow")}</Eyebrow>
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            Pay your invoice, securely.
+            {t("title")}
           </h1>
           <p className="text-lg text-pretty text-muted-foreground">
-            Open the payment link from your invoice email to see the figures and
-            pay by card. There&apos;s nothing to set up — the link takes you
-            straight to the right invoice. If you don&apos;t have a link, just
-            reply to my email and I&apos;ll send one over.
+            {t("intro")}
           </p>
         </div>
 
@@ -39,7 +46,9 @@ export default function HomePage() {
               >
                 <div className="flex items-center gap-3">
                   <Icon className="size-5 text-primary" />
-                  <Eyebrow index={String(i + 1).padStart(2, "0")}>Step</Eyebrow>
+                  <Eyebrow index={String(i + 1).padStart(2, "0")}>
+                    {t("stepLabel")}
+                  </Eyebrow>
                 </div>
                 <h2 className="text-lg font-semibold tracking-tight text-balance">
                   {item.title}

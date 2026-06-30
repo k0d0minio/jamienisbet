@@ -1,0 +1,162 @@
+{
+  "role": "Engenheiro de software e consultor de IA",
+  "meta": {
+    "description": "Um engenheiro sénior que cria IA e software para lhe tirar a parte administrativa de cima — sobre uma arquitetura limpa, feita para crescer. Âmbito claro, preço claro, sem surpresas."
+  },
+  "language": {
+    "label": "Mudar de idioma"
+  },
+  "themeToggle": "Alternar entre tema claro e escuro",
+  "nav": {
+    "work": "Trabalho",
+    "about": "Sobre",
+    "contact": "Contacto"
+  },
+  "header": {
+    "home": "{name} — início",
+    "startProject": "Iniciar um projeto",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
+  },
+  "footer": {
+    "tagline": "IA e software que lhe tiram a parte administrativa de cima — feitos para durar, a partir de {location}.",
+    "getInTouch": "Entrar em contacto",
+    "copyright": "© {year} {name}"
+  },
+  "hero": {
+    "title": "Sistemas de IA que lhe devolvem o seu tempo — e continuam a trabalhar à medida que cresce.",
+    "intro": "Sou o Jamie — um engenheiro sénior a trabalhar diretamente consigo. Crio IA e software que lhe tiram a parte administrativa de cima, sobre uma arquitetura limpa que cresce consigo. Âmbito claro, preço claro, sem surpresas.",
+    "startProject": "Iniciar um projeto",
+    "seeWork": "Ver trabalho"
+  },
+  "services": {
+    "eyebrow": "O que faço",
+    "title": "Software e IA, entregues pela pessoa que os constrói.",
+    "intro": "Quatro formas de ajudar — descritas pelo resultado, não pelo nome de um produto.",
+    "items": {
+      "ai": {
+        "title": "Funcionalidades de IA",
+        "description": "IA prática integrada nas ferramentas que já usa — trata do trabalho repetitivo para que a sua equipa não tenha de o fazer. Construída e medida face a um resultado real, não a uma demonstração."
+      },
+      "software": {
+        "title": "Software e sites",
+        "description": "Aplicações web e sites feitos para durar: rápidos, acessíveis e fáceis de alterar. Uma arquitetura limpa hoje significa alterações baratas amanhã."
+      },
+      "automations": {
+        "title": "Automações",
+        "description": "Corte o trabalho manual. Ligo as suas ferramentas e deixo as partes aborrecidas a correr sozinhas, para que as suas horas voltem para o negócio e para os seus clientes."
+      },
+      "advisory": {
+        "title": "Consultoria",
+        "description": "Um engenheiro sénior à distância de uma chamada — revisões de arquitetura, due diligence técnica ou uma segunda opinião franca antes de avançar."
+      }
+    }
+  },
+  "outcomes": {
+    "eyebrow": "O que isto lhe traz",
+    "title": "Menos administração. Sistemas que aguentam.",
+    "intro": "O que trabalhar em conjunto realmente muda — para o negócio e para a tecnologia que o sustenta.",
+    "items": [
+      {
+        "title": "O seu tempo de volta",
+        "description": "A administração e a azáfama que lhe consomem a semana, tratadas — para que as suas horas vão para clientes e crescimento."
+      },
+      {
+        "title": "Sistemas que duram",
+        "description": "Arquitetura limpa, documentada e bem definida que cresce consigo — não uma demonstração que se parte num mês."
+      },
+      {
+        "title": "Mantém-se a par",
+        "description": "Um engenheiro sénior com quem pode contactar, honesto quanto a compromissos e custos, com todo o projeto a ficar seu."
+      }
+    ]
+  },
+  "selectedWork": {
+    "eyebrow": "Trabalho selecionado",
+    "title": "Algumas coisas que entreguei.",
+    "intro": "Casos de estudo de projetos reais — o problema, o que fiz e o resultado.",
+    "allWork": "Todo o trabalho",
+    "moreComingTitle": "Mais casos de estudo a caminho",
+    "moreComingPromptLead": "Tem um projeto em mente?",
+    "moreComingPromptLink": "Vamos conversar →",
+    "emptyTitle": "Os casos de estudo estão a caminho.",
+    "emptyBody": "Estou a documentar projetos recentes neste momento. Entretanto, diga-me no que está a trabalhar — terei todo o gosto em partilhar exemplos relevantes diretamente.",
+    "getInTouch": "Entrar em contacto"
+  },
+  "about": {
+    "eyebrow": "Sobre",
+    "title": "Um engenheiro sénior com quem pode mesmo falar.",
+    "p1": "Sou o Jamie Nisbet, engenheiro de software e consultor de IA sediado em {location}. Passei anos a criar software para a web e agora desenho sistemas de IA pensados para funcionar a longo prazo — bem definidos, documentados e feitos para crescer, e não demonstrações improvisadas que se partem um mês depois.",
+    "p2": "Trabalho como uma pequena estrutura de propósito. Lida com a pessoa que escreve o código, por isso as decisões são rápidas e nada se perde na tradução. Para projetos maiores trago colaboradores de confiança — mantém a agilidade e ganha capacidade.",
+    "p3": "Quase tudo o que construo tem uma função: tirar-lhe a administração e a azáfama de cima, para que o seu tempo volte para o negócio e para os seus clientes. Importo-me em fazer o que é útil, explicar o porquê e ser franco quanto a compromissos e custos. Se algo for má ideia, eu digo-lho.",
+    "howIWorkTitle": "Como trabalho",
+    "howIWork": [
+      "Fala com a pessoa que o constrói — sem camadas de agência, sem gestores de conta.",
+      "Âmbito claro e preço claro antes de começarmos; as alterações são uma conversa, não uma rubrica escondida.",
+      "Sou honesto quanto a compromissos, custos e ao que não sei — prefiro prometer menos.",
+      "Assente numa arquitetura clara e documentada — cresce consigo e é sua para guardar, sem dependências.",
+      "Uma pessoa com quem pode contactar, com colaboradores de prontidão para projetos maiores."
+    ]
+  },
+  "contact": {
+    "eyebrow": "Contacto",
+    "title": "Vamos falar sobre o seu projeto.",
+    "intro": "Diga-me o que está a tentar fazer. Respondo no prazo de um ou dois dias com algumas perguntas ou, se fizer sentido, um caminho a seguir. Sem pressões de venda.",
+    "rateLead": "A minha tarifa habitual é de",
+    "rateAmount": "€120/hora",
+    "rateTrail": ", normalmente apresentada como preço fixo para o âmbito — com opções, para escolher o que lhe convém."
+  },
+  "form": {
+    "name": "Nome",
+    "email": "Email",
+    "messageLabel": "Em que posso ajudar?",
+    "messagePlaceholder": "Uma frase ou duas sobre o seu projeto, o seu objetivo e eventuais prazos.",
+    "send": "Enviar mensagem",
+    "sending": "A enviar…",
+    "sentTitle": "Mensagem enviada",
+    "preferEmailLead": "Prefere email? Escreva para",
+    "honeypotLabel": "Empresa",
+    "errors": {
+      "nameMin": "Diga-me o seu nome, por favor.",
+      "emailRequired": "Um email para eu poder responder.",
+      "emailInvalid": "Esse email não parece estar correto.",
+      "messageMin": "Uma frase ou duas sobre o seu projeto, por favor.",
+      "messageMax": "É bastante — reduza um pouco.",
+      "fixFields": "Corrija os campos assinalados, por favor."
+    },
+    "status": {
+      "success": "Obrigado — a sua mensagem chegou. Respondo no prazo de um ou dois dias.",
+      "successShort": "Obrigado — entrarei em contacto em breve.",
+      "sendFailed": "Algo correu mal ao enviar a sua mensagem. Tente novamente ou envie-me um email diretamente."
+    }
+  },
+  "work": {
+    "metaTitle": "Trabalho",
+    "metaDescription": "Projetos selecionados de Jamie Nisbet — o problema, o que fiz e o resultado.",
+    "eyebrow": "Trabalho",
+    "title": "Trabalho selecionado",
+    "intro": "Casos de estudo de projetos reais — o problema, o que fiz e o resultado.",
+    "emptyLead": "Os casos de estudo estão a caminho.",
+    "emptyLinkLead": "Entre em contacto",
+    "emptyLinkTrail": "entretanto."
+  },
+  "caseStudy": {
+    "allWork": "Todo o trabalho",
+    "services": "Serviços",
+    "stack": "Tecnologias",
+    "outcome": "Resultado",
+    "empty": "—",
+    "ctaLead": "Tem um projeto como este?",
+    "ctaTrail": "Vamos falar sobre isso.",
+    "ctaButton": "Iniciar um projeto"
+  },
+  "notFound": {
+    "eyebrow": "Não encontrado",
+    "title": "Esta página perdeu-se.",
+    "body": "O link pode estar desatualizado ou mal escrito. Vamos pô-lo de volta no caminho.",
+    "backHome": "Voltar ao início"
+  },
+  "og": {
+    "headline": "Funcionalidades de IA e software que são entregues — e que compensam."
+  }
+}

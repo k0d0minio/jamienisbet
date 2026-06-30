@@ -2,12 +2,14 @@
 
 import { Resend } from "resend"
 
+import { getLocale, getTranslations } from "next-intl/server"
+
 import {
   makeSellerLeadSchema,
   type SellerLeadField,
+  type SellerLeadMessages,
   type SellerLeadState,
 } from "@/lib/referral-schema"
-import { getDictionary, getLocale } from "@/lib/i18n"
 
 // Hardcoded for now — only the API key comes from the environment. We can move
 // these into env vars later (see .env.example).
@@ -22,9 +24,9 @@ export async function submitSellerLead(
   formData: FormData
 ): Promise<SellerLeadState> {
   // Validate and respond in the seller's chosen language.
-  const dict = await getDictionary(await getLocale())
-  const t = dict.form
-  const schema = makeSellerLeadSchema(t.errors)
+  const locale = await getLocale()
+  const t = await getTranslations({ locale, namespace: "form" })
+  const schema = makeSellerLeadSchema(t.raw("errors") as SellerLeadMessages)
 
   const values = {
     referralCode: field(formData, "referralCode"),
@@ -52,7 +54,7 @@ export async function submitSellerLead(
     void company // honeypot — never echoed back to the form
     return {
       status: "error",
-      message: t.errorBanner,
+      message: t("errorBanner"),
       errors,
       values: rest,
     }
@@ -60,7 +62,7 @@ export async function submitSellerLead(
 
   // Honeypot tripped (bot): silently accept, send nothing.
   if (parsed.data.company) {
-    return { status: "success", message: t.botSuccess }
+    return { status: "success", message: t("botSuccess") }
   }
 
   const { company: _company, ...lead } = parsed.data
@@ -71,7 +73,7 @@ export async function submitSellerLead(
     console.info("[referral] seller lead (not sent — RESEND_API_KEY unset):", lead)
     return {
       status: "success",
-      message: t.success.message,
+      message: t("success.message"),
     }
   }
 
@@ -100,13 +102,13 @@ export async function submitSellerLead(
     void company
     return {
       status: "error",
-      message: t.errorBanner,
+      message: t("errorBanner"),
       values: rest,
     }
   }
 
   return {
     status: "success",
-    message: t.success.message,
+    message: t("success.message"),
   }
 }

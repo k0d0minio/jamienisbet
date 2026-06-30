@@ -7,29 +7,55 @@ import {
   CardTitle,
   Eyebrow,
 } from "@jamie-nisbet/ui"
+import { getTranslations, setRequestLocale } from "next-intl/server"
 import { ArrowRight, Check, Mail } from "lucide-react"
 
 import { Container, Section, SectionHeading } from "@/components/section"
 import { PrintButton } from "@/components/print-button"
 import { site } from "@/lib/site"
-import { getI18n } from "@/lib/i18n"
 
-export async function generateMetadata(): Promise<Metadata> {
-  const { dict } = await getI18n()
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: "pitch" })
   return {
-    title: dict.pitch.metaTitle,
-    description: dict.pitch.metaDescription,
+    title: t("metaTitle"),
+    description: t("metaDescription"),
     // Seller-shared selling aid, not a page to index on its own.
     robots: { index: false, follow: true },
   }
 }
 
-export default async function PitchPage() {
-  const { dict } = await getI18n()
-  const pitch = dict.pitch
+type WhyPoint = { title: string; description: string }
+type Step = { title: string; description: string }
+type Package = {
+  key: string
+  name: string
+  price: string
+  blurb: string
+  includes: string[]
+  sellerNote: string
+}
+
+export default async function PitchPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+
+  const t = await getTranslations("pitch")
+  const root = await getTranslations()
+  const why = t.raw("why") as WhyPoint[]
+  const steps = t.raw("steps") as Step[]
+  const packages = root.raw("packages") as Package[]
 
   const mailto = `mailto:${site.email}?subject=${encodeURIComponent(
-    pitch.mailSubject
+    t("mailSubject")
   )}`
 
   return (
@@ -38,22 +64,22 @@ export default async function PitchPage() {
       <Section className="border-b border-border">
         <Container className="flex max-w-[var(--container-md)] flex-col gap-6">
           <Eyebrow rule primary>
-            {pitch.eyebrow}
+            {t("eyebrow")}
           </Eyebrow>
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            {pitch.title}
+            {t("title")}
           </h1>
           <p className="text-lg text-pretty text-muted-foreground sm:text-xl">
-            {pitch.intro}
+            {t("intro")}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
               <a href={mailto}>
-                {pitch.startCta}
+                {t("startCta")}
                 <ArrowRight />
               </a>
             </Button>
-            <PrintButton label={dict.print} />
+            <PrintButton />
           </div>
         </Container>
       </Section>
@@ -62,12 +88,12 @@ export default async function PitchPage() {
       <Section className="border-b border-border">
         <Container className="flex flex-col gap-12">
           <SectionHeading
-            eyebrow={pitch.getEyebrow}
-            title={pitch.getTitle}
-            intro={pitch.getIntro}
+            eyebrow={t("getEyebrow")}
+            title={t("getTitle")}
+            intro={t("getIntro")}
           />
           <div className="grid gap-4 lg:grid-cols-3">
-            {dict.packages.map((pkg) => (
+            {packages.map((pkg) => (
               <Card key={pkg.key} className="gap-4">
                 <CardHeader className="gap-2">
                   <div className="flex items-baseline justify-between gap-3">
@@ -97,9 +123,9 @@ export default async function PitchPage() {
       {/* Why work with me */}
       <Section className="border-b border-border">
         <Container className="grid gap-12 lg:grid-cols-2 lg:gap-20">
-          <SectionHeading eyebrow={pitch.whyEyebrow} title={pitch.whyTitle} />
+          <SectionHeading eyebrow={t("whyEyebrow")} title={t("whyTitle")} />
           <ul className="flex flex-col gap-6 lg:pt-2">
-            {pitch.why.map((point) => (
+            {why.map((point) => (
               <li key={point.title} className="flex flex-col gap-1.5">
                 <span className="flex items-center gap-2 font-semibold tracking-tight">
                   <Check className="size-4 text-primary" />
@@ -117,9 +143,9 @@ export default async function PitchPage() {
       {/* How it works */}
       <Section className="border-b border-border">
         <Container className="flex flex-col gap-12">
-          <SectionHeading eyebrow={pitch.stepsEyebrow} title={pitch.stepsTitle} />
+          <SectionHeading eyebrow={t("stepsEyebrow")} title={t("stepsTitle")} />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {pitch.steps.map((step, i) => (
+            {steps.map((step, i) => (
               <Card key={step.title} className="gap-4">
                 <CardHeader className="gap-3">
                   <span className="font-mono text-2xs tracking-[0.12em] text-muted-foreground">
@@ -139,12 +165,12 @@ export default async function PitchPage() {
       {/* Call to action */}
       <Section>
         <Container className="flex max-w-[var(--container-md)] flex-col items-start gap-5">
-          <Eyebrow rule>{pitch.ctaTitle}</Eyebrow>
+          <Eyebrow rule>{t("ctaTitle")}</Eyebrow>
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            {pitch.ctaHeading}
+            {t("ctaHeading")}
           </h2>
           <p className="text-lg text-pretty text-muted-foreground">
-            {pitch.ctaBody}
+            {t("ctaBody")}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">

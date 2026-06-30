@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Alert, AlertDescription, AlertTitle, Eyebrow } from "@jamie-nisbet/ui"
 import { CheckCircle2, Lock } from "lucide-react"
 
@@ -7,21 +8,32 @@ import { Container, Section } from "@/components/section"
 import { InvoiceSummary } from "@/components/invoice-summary"
 import { Checkout } from "@/components/embedded-checkout"
 import { getInvoice } from "@/lib/invoice"
+import type { Locale } from "@/i18n/routing"
 
 // Payment pages are per-invoice and must never be statically cached.
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "Pay invoice",
-  robots: { index: false, follow: false },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; invoice: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: "pay" })
+  return {
+    title: t("metaTitle"),
+    robots: { index: false, follow: false },
+  }
 }
 
 export default async function PayPage({
   params,
 }: {
-  params: Promise<{ invoice: string }>
+  params: Promise<{ locale: string; invoice: string }>
 }) {
-  const { invoice: invoiceId } = await params
+  const { locale, invoice: invoiceId } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations("pay")
   const invoice = await getInvoice(invoiceId)
   if (!invoice) notFound()
 
@@ -38,31 +50,25 @@ export default async function PayPage({
           {invoice.isPayable ? (
             <>
               <div className="flex flex-col gap-1">
-                <Eyebrow rule>Pay securely</Eyebrow>
+                <Eyebrow rule>{t("paySecurely")}</Eyebrow>
                 <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                   <Lock className="size-4" />
-                  Card details go straight to Stripe.
+                  {t("cardsToStripe")}
                 </p>
               </div>
-              <Checkout invoiceId={invoice.id} />
+              <Checkout invoiceId={invoice.id} locale={locale as Locale} />
             </>
           ) : invoice.status === "paid" ? (
             <Alert variant="success">
               <CheckCircle2 />
-              <AlertTitle>This invoice is paid</AlertTitle>
-              <AlertDescription>
-                Nothing more to do — thank you. A receipt was sent to you by
-                email when it cleared.
-              </AlertDescription>
+              <AlertTitle>{t("paid.title")}</AlertTitle>
+              <AlertDescription>{t("paid.description")}</AlertDescription>
             </Alert>
           ) : (
             <Alert variant="info">
               <Lock />
-              <AlertTitle>This invoice isn&apos;t open for payment</AlertTitle>
-              <AlertDescription>
-                If you think this is a mistake, reply to my email and I&apos;ll
-                sort it out.
-              </AlertDescription>
+              <AlertTitle>{t("notOpen.title")}</AlertTitle>
+              <AlertDescription>{t("notOpen.description")}</AlertDescription>
             </Alert>
           )}
         </div>

@@ -1,28 +1,28 @@
-import Link from "next/link"
 import { Button, Eyebrow } from "@jamie-nisbet/ui"
+import { getTranslations } from "next-intl/server"
 import { ArrowRight } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Container, Section } from "@/components/section"
-import { getI18n } from "@/lib/i18n"
 
 export default async function NotFound() {
-  const { dict } = await getI18n()
+  const t = await getTranslations("notFound")
 
   return (
     <Section>
       <Container size="md" className="flex flex-col items-start gap-5">
         <Eyebrow rule index="404">
-          {dict.notFound.eyebrow}
+          {t("eyebrow")}
         </Eyebrow>
         <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {dict.notFound.title}
+          {t("title")}
         </h1>
         <p className="text-lg text-pretty text-muted-foreground">
-          {dict.notFound.body}
+          {t("body")}
         </p>
         <Button asChild className="mt-1">
           <Link href="/">
-            {dict.notFound.cta}
+            {t("cta")}
             <ArrowRight />
           </Link>
         </Button>
