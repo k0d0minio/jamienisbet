@@ -3,6 +3,7 @@
 import { Resend } from "resend"
 
 import { getLocale, getTranslations } from "next-intl/server"
+import { createReferralLead } from "@jamie-nisbet/services"
 
 import {
   makeSellerLeadSchema,
@@ -68,9 +69,28 @@ export async function submitSellerLead(
   const { company: _company, ...lead } = parsed.data
   void _company // honeypot — never forwarded
 
+  // The database is the source of truth — persist the lead first. If this fails
+  // we don't lose it: we fall through to the email notification below and only
+  // then treat a failed email as fatal.
+  let persisted = false
+  try {
+    await createReferralLead({
+      referralCode: lead.referralCode,
+      customerName: lead.customerName,
+      customerPhone: lead.customerPhone,
+      customerEmail: lead.customerEmail || null,
+      need: lead.need,
+      budget: lead.budget || null,
+      preferredCallTime: lead.preferredCallTime || null,
+    })
+    persisted = true
+  } catch (err) {
+    console.error("[referral] DB write failed — falling back to email only:", err)
+  }
+
   if (!process.env.RESEND_API_KEY) {
     // No key configured — log so nothing is lost while testing locally.
-    console.info("[referral] seller lead (not sent — RESEND_API_KEY unset):", lead)
+    console.info("[referral] seller lead (email not sent — RESEND_API_KEY unset):", lead)
     return {
       status: "success",
       message: t("success.message"),
@@ -98,12 +118,16 @@ export async function submitSellerLead(
 
   if (error) {
     console.error("[referral] Resend send failed:", error)
-    const { company, ...rest } = values
-    void company
-    return {
-      status: "error",
-      message: t("errorBanner"),
-      values: rest,
+    // The lead is safe in the database — the email is only a notification, so a
+    // send failure is non-fatal. Only surface an error if nothing was persisted.
+    if (!persisted) {
+      const { company, ...rest } = values
+      void company
+      return {
+        status: "error",
+        message: t("errorBanner"),
+        values: rest,
+      }
     }
   }
 

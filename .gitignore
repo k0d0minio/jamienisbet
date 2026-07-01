@@ -20,3 +20,5 @@ state/dashboard.md
 .DS_Store
 *.log
 .idea/
+.vercel
+.env*

@@ -1,0 +1,14 @@
+/* ============================================================
+   Admin dashboard — app stylesheet.
+
+   Links the Jamie Nisbet design system once (Tailwind v4 + brand
+   tokens + shadcn theme) and tells Tailwind to scan the package
+   source for class names. No tokens are redefined here — one source
+   of truth lives in @jamie-nisbet/ui.
+   ============================================================ */
+
+@import "@jamie-nisbet/ui/styles.css";
+
+/* Tailwind must scan the design system's TSX source for the utility classes
+   its components use. Point at the real package source in the monorepo. */
+@source "../../../packages/ui/src";

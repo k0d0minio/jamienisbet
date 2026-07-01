@@ -21,5 +21,10 @@ This is the product, not the recipe: the concrete deliverables of a run, each an
 - `compliance-calendar.md` — planned. From Stage 05; the artifact tracker/finance consume.
 - (Do NOT create these files yet — described as planned.)
 
+### Ad-hoc notes (created 2026-07-01)
+
+- [`bar-management-decision.md`](bar-management-decision.md) — trial-period decision: invoice the bar's 75% profit-share from the trabalhador independente during the 3-month trial; migrate to a Unipessoal Lda if it sticks.
+- [`contabilista-brief.md`](contabilista-brief.md) — the questions to settle with the contabilista before filing *início de atividade* / signing the bar contract (coefficient 0.35 vs 0.75, start date, IVA, single-client rule, bar structure).
+
 ## Notes
 Layer 4 changes every run; references and setup do not. Treat each artifact as reviewed-and-frozen only after the human approves it at the stage's review gate. Date-stamp on consolidation so downstream systems know which run is current.

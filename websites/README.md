@@ -14,7 +14,7 @@ This is the home for Jamie's **own** front-facing and internal web apps. Each is
 ## Contents
 - `portfolio/` — Jamie's own portfolio, the proof-of-work showcase (**build first**).
 - `payment-gateway/` — Stripe-powered payment surface where clients pay invoices/retainers.
-- `admin-dashboard/` — private internal control panel: pipeline, deals, invoices, metrics.
+- `admin-dashboard/` — private internal control panel: owner-only, password-gated. Reads/operates the shared Neon database via [`@jamie-nisbet/services`](../packages/services/). Today it surfaces captured leads (contact + referrals); billing, invoicing, and proposals follow.
 - `sellers-site/` — public affiliate + partner referral intake (the 10% program's front door).
 
 ## Brand-as-code

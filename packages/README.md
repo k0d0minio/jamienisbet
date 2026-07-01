@@ -16,6 +16,11 @@ wrapper, etc.) as they're extracted.
   themed with those tokens, and brand assets (logo marks, social card, email signature, icon
   helper). It is the canonical implementation of the brand defined in
   [`_config/brand/visual/`](../_config/brand/visual/). See [`ui/README.md`](ui/README.md).
+- [`services/`](services/) — **`@jamie-nisbet/services`**: the database models and business
+  logic shared across the estate, built on **Drizzle ORM + Neon Postgres**. Typed schema (under
+  a dedicated `biz` Postgres schema), a lazy DB client, and query helpers (lead capture today;
+  billing/invoicing/proposals later). Source-only like `ui`, consumed via `transpilePackages`.
+  See [`services/README.md`](services/README.md).
 
 ## How it connects to the architecture
 - **Upstream / reads from:** the brand contract in [`_config/brand/`](../_config/brand/) (visual + voice).

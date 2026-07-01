@@ -1,8 +1,8 @@
 {
-  "name": "@jamie-nisbet/portfolio",
+  "name": "@jamie-nisbet/admin",
   "version": "0.1.0",
   "private": true,
-  "description": "Jamie Nisbet's portfolio website — the proof-of-work showcase (Next.js App Router, consumes @jamie-nisbet/ui).",
+  "description": "Owner-only admin environment — operate the business off the shared Neon database (Next.js App Router, consumes @jamie-nisbet/ui and @jamie-nisbet/services).",
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
@@ -15,17 +15,10 @@
   "dependencies": {
     "@jamie-nisbet/services": "workspace:*",
     "@jamie-nisbet/ui": "workspace:*",
-    "gray-matter": "^4.0.3",
     "lucide-react": "^1.20.0",
     "next": "^16.2.9",
-    "next-intl": "^4.13.0",
-    "next-themes": "^0.4.6",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1",
-    "resend": "^6.16.0",
-    "zod": "^4.4.3"
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.1",

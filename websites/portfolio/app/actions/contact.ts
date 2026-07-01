@@ -2,6 +2,7 @@
 
 import { Resend } from "resend"
 import { getTranslations } from "next-intl/server"
+import { createContactSubmission } from "@jamie-nisbet/services"
 
 import {
   makeContactSchema,
@@ -52,9 +53,25 @@ export async function submitContact(
     return { status: "success", message: t("status.successShort") }
   }
 
+  // The database is the source of truth — persist the lead first. If this fails
+  // we don't lose the enquiry: we fall through to the email notification below,
+  // and only then treat a failed email as fatal.
+  let persisted = false
+  try {
+    await createContactSubmission({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      message: parsed.data.message,
+      source: "portfolio",
+    })
+    persisted = true
+  } catch (err) {
+    console.error("[contact] DB write failed — falling back to email only:", err)
+  }
+
   if (!process.env.RESEND_API_KEY) {
     // No key configured — log so nothing is lost while testing locally.
-    console.info("[contact] received (not sent — RESEND_API_KEY unset):", parsed.data)
+    console.info("[contact] received (email not sent — RESEND_API_KEY unset):", parsed.data)
     return { status: "success", message: t("status.success") }
   }
 
@@ -74,10 +91,14 @@ export async function submitContact(
 
   if (error) {
     console.error("[contact] Resend send failed:", error)
-    return {
-      status: "error",
-      message: t("status.sendFailed"),
-      values: { name: values.name, email: values.email, message: values.message },
+    // The lead is safe in the database — the email is only a notification, so a
+    // send failure is non-fatal. Only surface an error if nothing was persisted.
+    if (!persisted) {
+      return {
+        status: "error",
+        message: t("status.sendFailed"),
+        values: { name: values.name, email: values.email, message: values.message },
+      }
     }
   }
 
