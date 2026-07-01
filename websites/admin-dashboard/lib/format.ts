@@ -9,3 +9,18 @@ export function formatDateTime(value: Date | string | null): string {
   const date = typeof value === "string" ? new Date(value) : value
   return formatter.format(date)
 }
+
+// Turns a locale-invariant service id (e.g. "aiInfrastructure") into a readable
+// label ("AI Infrastructure"). Purely cosmetic — the id stays the source of truth.
+export function formatServiceId(value: string | null): string {
+  if (!value) return "—"
+  const words = value
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .split(" ")
+    .map((word) =>
+      word.toLowerCase() === "ai"
+        ? "AI"
+        : word.charAt(0).toUpperCase() + word.slice(1)
+    )
+  return words.join(" ")
+}

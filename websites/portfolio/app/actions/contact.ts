@@ -74,6 +74,8 @@ export async function submitContact(
       email: parsed.data.email,
       message: parsed.data.message,
       source: "portfolio",
+      // Store the locale-invariant id (not the translated label) so it's stable.
+      service: isServiceId(serviceId) ? serviceId : null,
     })
     persisted = true
   } catch (err) {

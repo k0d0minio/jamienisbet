@@ -13,6 +13,9 @@ export const contactSubmissions = biz.table("contact_submissions", {
   message: text("message").notNull(),
   // Which site/form produced the lead — future-proofs a shared inbox.
   source: varchar("source", { length: 50 }).notNull().default("portfolio"),
+  // Locale-invariant service id the visitor was enquiring about (from the
+  // portfolio Services section), or null for a plain enquiry.
+  service: varchar("service", { length: 40 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 })
 

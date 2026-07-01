@@ -8,6 +8,13 @@
       "when": 1782910136628,
       "tag": "0000_cold_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782912344960,
+      "tag": "0001_freezing_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

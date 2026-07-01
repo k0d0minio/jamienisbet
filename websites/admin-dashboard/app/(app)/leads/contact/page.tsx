@@ -4,6 +4,7 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  Badge,
   Card,
   CardContent,
 } from "@jamie-nisbet/ui"
@@ -12,7 +13,7 @@ import {
   type ContactSubmission,
 } from "@jamie-nisbet/services"
 
-import { formatDateTime } from "@/lib/format"
+import { formatDateTime, formatServiceId } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Contact submissions" }
 export const dynamic = "force-dynamic"
@@ -52,6 +53,7 @@ export default async function ContactLeadsPage() {
                     <th className="px-4 py-3 font-medium">Received</th>
                     <th className="px-4 py-3 font-medium">Name</th>
                     <th className="px-4 py-3 font-medium">Email</th>
+                    <th className="px-4 py-3 font-medium">Service</th>
                     <th className="px-4 py-3 font-medium">Message</th>
                   </tr>
                 </thead>
@@ -69,6 +71,15 @@ export default async function ContactLeadsPage() {
                         >
                           {row.email}
                         </a>
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.service ? (
+                          <Badge variant="secondary">
+                            {formatServiceId(row.service)}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </td>
                       <td className="max-w-md px-4 py-3 whitespace-pre-wrap">
                         {row.message}
