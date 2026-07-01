@@ -9,6 +9,7 @@ import {
   type ContactMessages,
   type ContactState,
 } from "@/lib/contact-schema"
+import { isServiceId } from "@/lib/services"
 
 // Hardcoded for now — only the API key comes from the environment. We can move
 // these into env vars later (see .env.example).
@@ -53,6 +54,16 @@ export async function submitContact(
     return { status: "success", message: t("status.successShort") }
   }
 
+  // The Services section sends along which service the visitor clicked. It's an
+  // id from an untrusted field, so map it to its title (only if known) for the
+  // email; unknown/absent → just a plain enquiry.
+  const serviceId = String(formData.get("service") ?? "")
+  let serviceLabel: string | null = null
+  if (isServiceId(serviceId)) {
+    const tServices = await getTranslations("services")
+    serviceLabel = tServices(`items.${serviceId}.title`)
+  }
+
   // The database is the source of truth — persist the lead first. If this fails
   // we don't lose the enquiry: we fall through to the email notification below,
   // and only then treat a failed email as fatal.
@@ -71,7 +82,10 @@ export async function submitContact(
 
   if (!process.env.RESEND_API_KEY) {
     // No key configured — log so nothing is lost while testing locally.
-    console.info("[contact] received (email not sent — RESEND_API_KEY unset):", parsed.data)
+    console.info("[contact] received (email not sent — RESEND_API_KEY unset):", {
+      ...parsed.data,
+      service: serviceLabel,
+    })
     return { status: "success", message: t("status.success") }
   }
 
@@ -80,10 +94,13 @@ export async function submitContact(
     from: FROM_EMAIL,
     to: TO_EMAIL,
     replyTo: parsed.data.email,
-    subject: `New enquiry from ${parsed.data.name}`,
+    subject: serviceLabel
+      ? `New enquiry (${serviceLabel}) from ${parsed.data.name}`
+      : `New enquiry from ${parsed.data.name}`,
     text: [
       `Name: ${parsed.data.name}`,
       `Email: ${parsed.data.email}`,
+      ...(serviceLabel ? [`Service: ${serviceLabel}`] : []),
       "",
       parsed.data.message,
     ].join("\n"),
