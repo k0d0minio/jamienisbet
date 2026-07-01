@@ -12,25 +12,35 @@ import {
   type ReferralLead,
 } from "@jamie-nisbet/services"
 
+import { ArchiveToggle } from "@/components/archive-toggle"
+import { LeadActions } from "@/components/lead-actions"
 import { StatusSelect } from "@/components/status-select"
 import { formatDateTime } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Referral leads" }
 export const dynamic = "force-dynamic"
 
-export default async function ReferralLeadsPage() {
+export default async function ReferralLeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>
+}) {
+  const archived = (await searchParams).archived === "1"
   let rows: ReferralLead[] = []
   let error: string | null = null
 
   try {
-    rows = await listReferralLeads()
+    rows = await listReferralLeads({ archived })
   } catch (err) {
     error = err instanceof Error ? err.message : "Could not reach the database."
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Referral leads</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold">Referral leads</h1>
+        <ArchiveToggle basePath="/leads/referrals" archived={archived} />
+      </div>
 
       {error ? (
         <Alert variant="destructive">
@@ -40,7 +50,7 @@ export default async function ReferralLeadsPage() {
       ) : rows.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            No referral leads yet.
+            {archived ? "Nothing archived." : "No referral leads yet."}
           </CardContent>
         </Card>
       ) : (
@@ -58,6 +68,7 @@ export default async function ReferralLeadsPage() {
                     <th className="px-4 py-3 font-medium">Budget</th>
                     <th className="px-4 py-3 font-medium">Call time</th>
                     <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -95,6 +106,13 @@ export default async function ReferralLeadsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <StatusSelect id={row.id} value={row.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <LeadActions
+                          id={row.id}
+                          kind="referral"
+                          archived={archived}
+                        />
                       </td>
                     </tr>
                   ))}

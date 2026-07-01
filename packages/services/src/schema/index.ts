@@ -17,6 +17,8 @@ export const contactSubmissions = biz.table("contact_submissions", {
   // portfolio Services section), or null for a plain enquiry.
   service: varchar("service", { length: 40 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  // Soft archive: null = active, a timestamp = archived (hidden by default).
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
 })
 
 // Sellers-site referral leads. Field sizes mirror the Zod constraints in
@@ -33,4 +35,6 @@ export const referralLeads = biz.table("referral_leads", {
   preferredCallTime: varchar("preferred_call_time", { length: 20 }),
   status: varchar("status", { length: 20 }).notNull().default("new"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  // Soft archive: null = active, a timestamp = archived (hidden by default).
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
 })

@@ -15,6 +15,13 @@
       "when": 1782912344960,
       "tag": "0001_freezing_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782912782428,
+      "tag": "0002_furry_paibok",
+      "breakpoints": true
     }
   ]
 }
