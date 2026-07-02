@@ -1,0 +1,95 @@
+name: DB migrations
+
+# Keeps the shared Neon Postgres database in sync with the Drizzle schema in
+# packages/services. Two jobs:
+#   - validate: runs on every PR. Pure checks, NO database writes. Confirms the
+#     committed migrations are internally consistent and that the schema has no
+#     ungenerated changes (i.e. someone edited the schema but forgot to run
+#     `pnpm db:generate`).
+#   - migrate:  runs on push to main. Applies pending migrations to production.
+#
+# Secret required: DATABASE_URL (the production Neon connection string) — add it
+# under Settings → Secrets and variables → Actions. Only the migrate job uses it.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/services/**"
+      - ".github/workflows/db-migrations.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/services/**"
+      - ".github/workflows/db-migrations.yml"
+
+# Never run two production migrations at once.
+concurrency:
+  group: db-migrate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate migrations (no DB writes)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/services
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      # Checks the migration journal for collisions / broken sequencing.
+      - name: Check migration consistency
+        run: pnpm exec drizzle-kit check
+
+      # Regenerates migrations from the schema; if anything changes, the schema
+      # was edited without committing a matching migration. `generate` never
+      # touches a database, so no DATABASE_URL is needed here.
+      - name: Check for un-generated schema changes (drift)
+        run: |
+          pnpm exec drizzle-kit generate
+          if ! git diff --quiet -- drizzle; then
+            echo "::error::Schema has changes with no committed migration."
+            echo "Run 'pnpm --filter @jamie-nisbet/services db:generate' and commit the result."
+            git --no-pager diff -- drizzle
+            exit 1
+          fi
+          echo "No drift: migrations are up to date with the schema."
+
+  migrate:
+    name: Apply migrations to production
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/services
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Run migrations
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
