@@ -2,3 +2,7 @@
 export { db, getDb } from "./client"
 export * from "./schema"
 export * from "./queries/clients"
+export * from "./queries/deals"
+export * from "./queries/documents"
+export * from "./queries/generations"
+export * from "./queries/workshop"

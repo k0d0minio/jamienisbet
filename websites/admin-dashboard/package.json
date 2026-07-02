@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@jamie-nisbet/icm": "workspace:*",
     "@jamie-nisbet/services": "workspace:*",
     "@jamie-nisbet/ui": "workspace:*",
     "ai": "^7.0.11",
@@ -21,7 +22,8 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "server-only": "^0.0.1",
-    "stripe": "^18.2.1"
+    "stripe": "^18.2.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.1",

@@ -1,4 +1,12 @@
-import { pgSchema, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  integer,
+  pgSchema,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core"
 
 // A dedicated Postgres schema keeps this repo's tables isolated inside the shared
 // Neon database. Created by the first generated migration.
@@ -63,4 +71,97 @@ export const clients = biz.table("clients", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   // Soft archive: null = active, a timestamp = archived (hidden by default).
   archivedAt: timestamp("archived_at", { withTimezone: true }),
+})
+
+// ---------------------------------------------------------------------------
+// The ICM pipeline tables — the dashboard-side Layer 4. A client can carry
+// several opportunities; each is a deal, and every AI-generated artifact for a
+// deal is a document row that starts life as a draft and only becomes usable
+// downstream once Jamie approves it (the repo's "no outbound action without a
+// human-reviewed output" boundary, enforced in data rather than prose).
+
+// One opportunity being worked for a client. Lifecycle mirrors the deal set in
+// _config/conventions/state-and-status.md: new → qualified → proposed → won |
+// lost. There is deliberately no "stage" column — where a deal sits in the
+// document pipeline is derived from which documents exist and are approved
+// (see the dashboard's next-action logic), so the two can never drift.
+export const deals = biz.table("deals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  clientId: uuid("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 200 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("new"),
+  // Expected or agreed value in EUR minor units (cents) — same convention as
+  // the Stripe amounts the money helpers already format.
+  valueMinor: integer("value_minor").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+// A generated (or hand-edited) pipeline artifact. Exactly one of content_md /
+// content_html is populated: markdown for documents, HTML for mockups.
+// Regeneration never overwrites — it inserts the next version for the same
+// (deal, kind), so the review trail stays intact.
+export const documents = biz.table("documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  dealId: uuid("deal_id")
+    .notNull()
+    .references(() => deals.id, { onDelete: "cascade" }),
+  // A DocumentKind from @jamie-nisbet/icm (triage_assessment, proposal, …).
+  kind: varchar("kind", { length: 30 }).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  contentMd: text("content_md"),
+  contentHtml: text("content_html"),
+  version: integer("version").notNull().default(1),
+  // draft → in_review → approved | rejected. Approval is a DB fact — nothing
+  // downstream (stage advance, invoice, sync, export) consumes a non-approved
+  // document.
+  status: varchar("status", { length: 20 }).notNull().default("draft"),
+  // Private documents (negotiation strategy) are internal coaching material —
+  // the UI brands them, and they are never exported or sent.
+  isPrivate: boolean("is_private").notNull().default(false),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  // Repo sync-back: where in the ICM folders the approved artifact was
+  // committed, and when. Null until synced.
+  syncPath: text("sync_path"),
+  syncedAt: timestamp("synced_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+// Provenance for every AI run — which model, which stage contract, which repo
+// files went into the context, and what it cost. Makes each artifact auditable
+// and points a repeatedly-wrong output back at the Layer-3 file to fix
+// ("fix the source, not the symptom").
+export const generations = biz.table("generations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  dealId: uuid("deal_id")
+    .notNull()
+    .references(() => deals.id, { onDelete: "cascade" }),
+  documentId: uuid("document_id").references(() => documents.id, {
+    onDelete: "set null",
+  }),
+  kind: varchar("kind", { length: 30 }).notNull(),
+  model: varchar("model", { length: 80 }).notNull(),
+  stageContractPath: text("stage_contract_path"),
+  // JSON array of the repo files loaded into the context.
+  contextFiles: text("context_files"),
+  inputTokens: integer("input_tokens"),
+  outputTokens: integer("output_tokens"),
+  latencyMs: integer("latency_ms"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+// The technical-workshop chat, persisted per deal — the brainstorm is part of
+// the deal's record and is the working material a project outline is
+// crystallised from.
+export const workshopMessages = biz.table("workshop_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  dealId: uuid("deal_id")
+    .notNull()
+    .references(() => deals.id, { onDelete: "cascade" }),
+  role: varchar("role", { length: 12 }).notNull(), // "user" | "assistant"
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 })

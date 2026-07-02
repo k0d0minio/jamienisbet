@@ -15,6 +15,9 @@ These are the reusable "recipes" for every official document the business produc
 - [`proposal.md`](proposal.md) — scope, approach, tiered options, terms; the main sales document.
 - [`quote.md`](quote.md) — itemised good/better/best price with the foreign-client IVA note.
 - [`work-order.md`](work-order.md) — the agreed scope of a specific piece of work.
+- [`brd.md`](brd.md) — business requirements document: the customer-consumable translation of an
+  approved project outline (goals, deliverables, acceptance criteria, assumptions) — business
+  language only, no internal rates or effort maths. Filled by the admin dashboard's ICM pipeline.
 - [`contract.md`](contract.md) — master engagement terms (IP, payment, liability, PT law); lawyer-review base.
 - [`invoice.md`](invoice.md) — billing document; NIF/IBAN pending entity setup; reverse-charge / out-of-scope IVA.
 - `email/` — [`outreach.md`](email/outreach.md), [`follow-up.md`](email/follow-up.md), [`chase.md`](email/chase.md) (invoice chaser).

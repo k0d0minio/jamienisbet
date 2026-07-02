@@ -10,7 +10,13 @@ import {
   CardContent,
   CardDescription,
 } from "@jamie-nisbet/ui"
-import { listClients } from "@jamie-nisbet/services"
+import {
+  countDocumentsAwaitingReview,
+  getGenerationTotals,
+  listClients,
+  listDeals,
+  type GenerationTotals,
+} from "@jamie-nisbet/services"
 
 import { getFinancialSummary, type FinancialSummary } from "@/lib/finance"
 import { formatMoney } from "@/lib/money"
@@ -29,17 +35,33 @@ function balanceLabel(entries: FinancialSummary["available"]): string {
 // closed outcome — the live pipeline.
 const IN_PIPELINE = ["contacted", "qualified", "proposed"]
 
+// Deal statuses whose value counts as open pipeline (not yet won or lost).
+const OPEN_DEAL = ["new", "qualified", "proposed"]
+
 export default async function DashboardPage() {
   let clientCount = 0
   let newCount = 0
   let inPipeline = 0
+  let pipelineValueMinor = 0
+  let awaitingReview = 0
+  let aiTotals: GenerationTotals | null = null
   let error: string | null = null
 
   try {
-    const clients = await listClients()
+    const [clients, deals, reviewCount, totals] = await Promise.all([
+      listClients(),
+      listDeals(),
+      countDocumentsAwaitingReview(),
+      getGenerationTotals(),
+    ])
     clientCount = clients.length
     newCount = clients.filter((c) => c.status === "new").length
     inPipeline = clients.filter((c) => IN_PIPELINE.includes(c.status)).length
+    pipelineValueMinor = deals
+      .filter((d) => OPEN_DEAL.includes(d.status))
+      .reduce((sum, d) => sum + d.valueMinor, 0)
+    awaitingReview = reviewCount
+    aiTotals = totals
   } catch (err) {
     error = err instanceof Error ? err.message : "Could not reach the database."
   }
@@ -91,6 +113,44 @@ export default async function DashboardPage() {
           </Link>
         </div>
       )}
+
+      {/* The ICM pipeline at a glance: open deal value, documents stuck at the
+          review gate (the human is the bottleneck by design), and what the AI
+          engine has burned. */}
+      {!error ? (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardDescription>Open pipeline value</CardDescription>
+              <CardTitle className="text-3xl">
+                {pipelineValueMinor > 0
+                  ? formatMoney(pipelineValueMinor, "eur")
+                  : "—"}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardDescription>Drafts awaiting review</CardDescription>
+              <CardTitle className="text-3xl">{awaitingReview}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardDescription>AI generation runs</CardDescription>
+              <CardTitle className="text-3xl">{aiTotals?.runs ?? 0}</CardTitle>
+              {aiTotals && aiTotals.runs > 0 ? (
+                <CardDescription>
+                  {Math.round(
+                    (aiTotals.inputTokens + aiTotals.outputTokens) / 1000
+                  )}
+                  k tokens total
+                </CardDescription>
+              ) : null}
+            </CardHeader>
+          </Card>
+        </div>
+      ) : null}
 
       {summary ? (
         <div className="grid gap-4 sm:grid-cols-3">

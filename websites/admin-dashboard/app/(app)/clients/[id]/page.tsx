@@ -10,13 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@jamie-nisbet/ui"
-import { getClient } from "@jamie-nisbet/services"
+import { getClient, listDealsForClient } from "@jamie-nisbet/services"
 
 import { ClientActions } from "@/components/client-actions"
 import { ClientProfileForm } from "@/components/client-profile-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
+import { DealCreateForm } from "@/components/deal-create-form"
 import { formatDateTime, formatServiceId } from "@/lib/format"
+import { dealStatusVariant } from "@/lib/kinds"
+import { formatMoney } from "@/lib/money"
 
 export const metadata: Metadata = { title: "Client" }
 export const dynamic = "force-dynamic"
@@ -41,29 +44,6 @@ function Detail({ label, children }: { label: string; children?: React.ReactNode
   )
 }
 
-// A roadmap section — the pipeline surfaces that get built onto the profile next
-// (see the services README). Shown as a labelled, clearly "not yet" placeholder
-// so the workflow reads end-to-end even before each piece lands.
-function ComingSoon({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-base">{title}</CardTitle>
-          <Badge variant="outline">Coming soon</Badge>
-        </div>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-    </Card>
-  )
-}
-
 export default async function ClientDetailPage({
   params,
 }: {
@@ -72,6 +52,8 @@ export default async function ClientDetailPage({
   const { id } = await params
   const client = await getClient(id)
   if (!client) notFound()
+
+  const deals = await listDealsForClient(client.id)
 
   const archived = client.archivedAt !== null
 
@@ -168,21 +150,56 @@ export default async function ClientDetailPage({
         </Card>
       </div>
 
-      {/* The pipeline the profile gets fleshed out with, intake → delivery. */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <ComingSoon
-          title="Projects"
-          description="Scope and track delivery for this client."
-        />
-        <ComingSoon
-          title="Quotes & proposals"
-          description="Draft, send, and track quotes and proposals."
-        />
-        <ComingSoon
-          title="Invoices"
-          description="Raise and reconcile invoices from Invoices (Stripe)."
-        />
-      </div>
+      {/* The pipeline itself: each opportunity is a deal, and a deal's page is
+          where the ICM engine drafts triage, outlines, proposals, quotes, BRDs
+          and mockups — each behind its review gate. Invoices stay on the
+          Invoices (Stripe) surface. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Deals</CardTitle>
+          <CardDescription>
+            One deal per opportunity. Open a deal to run its pipeline — triage,
+            workshop, proposal, quote, mockups — with every document reviewed
+            before it moves anything forward.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {deals.length > 0 ? (
+            <ul className="divide-y">
+              {deals.map((deal) => (
+                <li key={deal.id}>
+                  <Link
+                    href={`/deals/${deal.id}`}
+                    className="flex flex-wrap items-center justify-between gap-2 py-3 hover:bg-muted/40"
+                  >
+                    <span className="text-sm font-medium">{deal.title}</span>
+                    <span className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">
+                        {deal.valueMinor > 0
+                          ? formatMoney(deal.valueMinor, "eur")
+                          : "—"}
+                      </span>
+                      <Badge
+                        variant={dealStatusVariant(deal.status)}
+                        className="capitalize"
+                      >
+                        {deal.status}
+                      </Badge>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No deals yet — open one to start this client&apos;s pipeline.
+            </p>
+          )}
+          <div className="border-t pt-4">
+            <DealCreateForm clientId={client.id} />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
