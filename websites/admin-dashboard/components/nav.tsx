@@ -8,6 +8,9 @@ const links = [
   { href: "/", label: "Dashboard" },
   { href: "/leads/contact", label: "Contact" },
   { href: "/leads/referrals", label: "Referrals" },
+  { href: "/finances", label: "Finances" },
+  { href: "/invoices", label: "Invoices" },
+  { href: "/payment-links", label: "Payment links" },
 ]
 
 export function Nav() {
