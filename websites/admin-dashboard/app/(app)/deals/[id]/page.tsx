@@ -20,6 +20,7 @@ import {
 import { DealStatusSelect } from "@/components/deal-status-select"
 import { DealDetailsForm } from "@/components/deal-details-form"
 import { GeneratePanel } from "@/components/generate-panel"
+import { MockupPanel } from "@/components/mockup-panel"
 import { WorkshopChat } from "@/components/workshop-chat"
 import { formatDateTime } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
@@ -108,6 +109,31 @@ export default async function DealPage({
               role: m.role,
               content: m.content,
             }))}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Mockups — branded HTML concepts the client can react to. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Mockups</CardTitle>
+          <CardDescription>
+            Self-contained HTML concepts styled from the design-system tokens.
+            Fan out three directions, pick one, iterate — each pass is a new
+            version in Documents.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MockupPanel
+            dealId={deal.id}
+            mockups={documents
+              .filter((d) => d.kind === "mockup")
+              .map((d) => ({
+                id: d.id,
+                version: d.version,
+                status: d.status,
+                title: d.title,
+              }))}
           />
         </CardContent>
       </Card>
