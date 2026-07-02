@@ -10,6 +10,13 @@ export function formatDateTime(value: Date | string | null): string {
   return formatter.format(date)
 }
 
+// Stripe returns timestamps as epoch seconds; render them the same way as the
+// DB timestamps above.
+export function formatEpoch(seconds: number | null): string {
+  if (!seconds) return "—"
+  return formatter.format(new Date(seconds * 1000))
+}
+
 // Turns a locale-invariant service id (e.g. "aiInfrastructure") into a readable
 // label ("AI Infrastructure"). Purely cosmetic — the id stays the source of truth.
 export function formatServiceId(value: string | null): string {
