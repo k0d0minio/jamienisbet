@@ -20,7 +20,10 @@ and the wordmark lockup from [`_config/brand/visual/`](../../../_config/brand/vi
    or write one using the template's own variables.
 4. Declare each variable listed below (key, type `string`, and a fallback — Resend won't send if
    a variable without a fallback is missing).
-5. **Publish** the template, then copy its template ID into the relevant `.env.local`.
+5. **Publish** the template, then copy its template ID into [`template-ids.ts`](template-ids.ts).
+   Template IDs aren't secrets (they only work paired with `RESEND_API_KEY`), so they're checked
+   into that one file rather than duplicated as an env var per site per template — add a new key
+   there as the template set grows, instead of wiring a new env var through every site.
 
 Variable syntax in the body is Resend's triple-brace form: `{{{VARIABLE_NAME}}}`.
 
@@ -28,10 +31,10 @@ Variable syntax in the body is Resend's triple-brace form: `{{{VARIABLE_NAME}}}`
 
 ### Wired into website code (sent automatically, no per-send review — same as today)
 
-| File | Used by | Env var for the template ID | Variables |
+| File | Used by | Key in `template-ids.ts` | Variables |
 |---|---|---|---|
-| [`contact-form-notification.html`](contact-form-notification.html) | `websites/portfolio` contact form → `app/actions/contact.ts` | `RESEND_CONTACT_NOTIFICATION_TEMPLATE_ID` | `SUBJECT`, `NAME`, `EMAIL`, `SERVICE`, `MESSAGE` |
-| [`referral-lead-notification.html`](referral-lead-notification.html) | `websites/sellers-site` referral form → `app/actions/referral.ts` | `RESEND_REFERRAL_NOTIFICATION_TEMPLATE_ID` | `SUBJECT`, `REFERRAL_CODE`, `CUSTOMER_NAME`, `CUSTOMER_PHONE`, `CUSTOMER_EMAIL`, `BUDGET`, `PREFERRED_CALL_TIME`, `NEED` |
+| [`contact-form-notification.html`](contact-form-notification.html) | `websites/portfolio` contact form → `app/actions/contact.ts` | `contactFormNotification` | `SUBJECT`, `NAME`, `EMAIL`, `SERVICE`, `MESSAGE` |
+| [`referral-lead-notification.html`](referral-lead-notification.html) | `websites/sellers-site` referral form → `app/actions/referral.ts` | `referralLeadNotification` | `SUBJECT`, `REFERRAL_CODE`, `CUSTOMER_NAME`, `CUSTOMER_PHONE`, `CUSTOMER_EMAIL`, `BUDGET`, `PREFERRED_CALL_TIME`, `NEED` |
 
 These two replace the internal notification Jamie already receives automatically today — the
 refactor is template-vs-inline-text only, it doesn't change what gets sent or when.

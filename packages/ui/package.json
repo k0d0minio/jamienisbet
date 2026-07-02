@@ -17,6 +17,11 @@
     "./tokens.css": "./tokens.css",
     "./tokens/*": "./tokens/*",
     "./assets/*": "./assets/*",
+    "./emails/*.html": "./emails/*.html",
+    "./emails/template-ids": {
+      "types": "./emails/template-ids.ts",
+      "default": "./emails/template-ids.ts"
+    },
     "./lib/utils": "./src/lib/utils.ts",
     "./components/*": "./src/components/*"
   },
@@ -26,6 +31,7 @@
     "tokens.css",
     "tokens",
     "assets",
+    "emails",
     "components.json",
     "README.md",
     "BRAND.md",

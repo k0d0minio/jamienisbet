@@ -4,6 +4,7 @@ import { Resend } from "resend"
 
 import { getLocale, getTranslations } from "next-intl/server"
 import { createClientFromReferral } from "@jamie-nisbet/services"
+import { EMAIL_TEMPLATE_IDS } from "@jamie-nisbet/ui/emails/template-ids"
 
 import {
   makeSellerLeadSchema,
@@ -17,9 +18,7 @@ import {
 const TO_EMAIL = "jamie.nisbet@outlook.be"
 const FROM_EMAIL = "Jamie Nisbet Consultancy <noreply@mail.jamienisbet.com>"
 
-// Resend Template ID for packages/ui/emails/referral-lead-notification.html —
-// see packages/ui/emails/README.md for how to publish it and get this value.
-const REFERRAL_NOTIFICATION_TEMPLATE_ID = process.env.RESEND_REFERRAL_NOTIFICATION_TEMPLATE_ID
+const REFERRAL_NOTIFICATION_TEMPLATE_ID = EMAIL_TEMPLATE_IDS.referralLeadNotification
 
 const field = (formData: FormData, name: string) =>
   String(formData.get(name) ?? "")
@@ -95,7 +94,7 @@ export async function submitSellerLead(
   if (!process.env.RESEND_API_KEY || !REFERRAL_NOTIFICATION_TEMPLATE_ID) {
     // No key/template configured — log so nothing is lost while testing locally.
     console.info(
-      "[referral] seller lead (email not sent — RESEND_API_KEY or RESEND_REFERRAL_NOTIFICATION_TEMPLATE_ID unset):",
+      "[referral] seller lead (email not sent — RESEND_API_KEY unset, or referralLeadNotification is missing an ID in packages/ui/emails/template-ids.ts):",
       lead
     )
     return {
