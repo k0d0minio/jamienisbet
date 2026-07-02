@@ -17,6 +17,10 @@ import {
 const TO_EMAIL = "jamie.nisbet@outlook.be"
 const FROM_EMAIL = "Jamie Nisbet Consultancy <noreply@mail.jamienisbet.com>"
 
+// Resend Template ID for packages/ui/emails/referral-lead-notification.html —
+// see packages/ui/emails/README.md for how to publish it and get this value.
+const REFERRAL_NOTIFICATION_TEMPLATE_ID = process.env.RESEND_REFERRAL_NOTIFICATION_TEMPLATE_ID
+
 const field = (formData: FormData, name: string) =>
   String(formData.get(name) ?? "")
 
@@ -88,9 +92,12 @@ export async function submitSellerLead(
     console.error("[referral] DB write failed — falling back to email only:", err)
   }
 
-  if (!process.env.RESEND_API_KEY) {
-    // No key configured — log so nothing is lost while testing locally.
-    console.info("[referral] seller lead (email not sent — RESEND_API_KEY unset):", lead)
+  if (!process.env.RESEND_API_KEY || !REFERRAL_NOTIFICATION_TEMPLATE_ID) {
+    // No key/template configured — log so nothing is lost while testing locally.
+    console.info(
+      "[referral] seller lead (email not sent — RESEND_API_KEY or RESEND_REFERRAL_NOTIFICATION_TEMPLATE_ID unset):",
+      lead
+    )
     return {
       status: "success",
       message: t("success.message"),
@@ -102,18 +109,19 @@ export async function submitSellerLead(
     from: FROM_EMAIL,
     to: TO_EMAIL,
     replyTo: lead.customerEmail || undefined,
-    subject: `New referral — ${lead.customerName} (code: ${lead.referralCode})`,
-    text: [
-      `Referral code:       ${lead.referralCode}`,
-      `Customer name:       ${lead.customerName}`,
-      `Customer phone:      ${lead.customerPhone}`,
-      `Customer email:      ${lead.customerEmail || "—"}`,
-      `Budget:              ${lead.budget || "—"}`,
-      `Preferred call time: ${lead.preferredCallTime || "—"}`,
-      "",
-      "Need:",
-      lead.need,
-    ].join("\n"),
+    template: {
+      id: REFERRAL_NOTIFICATION_TEMPLATE_ID,
+      variables: {
+        SUBJECT: `New referral — ${lead.customerName} (code: ${lead.referralCode})`,
+        REFERRAL_CODE: lead.referralCode,
+        CUSTOMER_NAME: lead.customerName,
+        CUSTOMER_PHONE: lead.customerPhone,
+        CUSTOMER_EMAIL: lead.customerEmail || "—",
+        BUDGET: lead.budget || "—",
+        PREFERRED_CALL_TIME: lead.preferredCallTime || "—",
+        NEED: lead.need,
+      },
+    },
   })
 
   if (error) {

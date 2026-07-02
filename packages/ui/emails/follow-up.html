@@ -1,0 +1,61 @@
+<!--
+  Resend Template — Follow-up after a conversation
+  Client-facing. For MANUAL use from the Resend dashboard only — compose with this
+  client's variables, preview, and send by hand. Do not call this from code without
+  a human review step (see workspaces/proposals/ and shared/templates/email/follow-up.md).
+  Paste into Resend Dashboard → Emails → Templates → New → Import HTML.
+  See ../README.md for the variable list and setup steps.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Good to talk</title>
+</head>
+<body style="margin:0;padding:0;background:#F7F8F9;font-family:'Hanken Grotesk',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Quick recap of what I heard</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F8F9;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#FFFFFF;border:1px solid #E2E5E9;border-radius:12px;">
+<tr><td style="padding:40px;">
+
+  <div style="width:32px;height:4px;background:#3A5A78;border-radius:2px;margin:0 0 16px;"></div>
+  <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;color:#15181C;">Jamie Nisbet</div>
+  <div style="font-family:'IBM Plex Mono',ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6B747F;margin-top:6px;">Follow up</div>
+
+  <div style="height:1px;background:#E2E5E9;margin:24px 0;"></div>
+
+  <p style="font-size:16px;line-height:1.5;color:#15181C;margin:0 0 16px;">Hi {{{CLIENT_NAME}}},</p>
+
+  <p style="font-size:16px;line-height:1.65;color:#15181C;margin:0 0 16px;">
+    Good to talk{{{CONTEXT}}}. Quick recap of what I heard:
+  </p>
+
+  <div style="margin:0 0 20px;padding:16px 20px;background:#F7F8F9;border:1px solid #E2E5E9;border-radius:8px;">
+    <p style="font-size:14px;line-height:1.65;color:#15181C;margin:0;white-space:pre-wrap;">{{{RECAP}}}</p>
+  </div>
+
+  <p style="font-size:16px;line-height:1.65;color:#15181C;margin:0 0 24px;">
+    {{{NEXT_STEP}}}
+  </p>
+
+  <p style="font-size:16px;line-height:1.65;color:#15181C;margin:0 0 24px;">
+    Anything I've got wrong, just say.
+  </p>
+
+  <p style="font-size:16px;line-height:1.65;color:#15181C;margin:0;">
+    Best,<br>Jamie
+  </p>
+
+  <div style="border-top:1px solid #E2E5E9;margin-top:32px;padding-top:20px;font-family:'IBM Plex Mono',ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.06em;color:#6B747F;">
+    Jamie Nisbet — Software engineer / AI consultant<br>
+    <a href="mailto:contact@jamienisbet.com" style="color:#3A5A78;text-decoration:none;">contact@jamienisbet.com</a> &middot; <a href="https://jamienisbet.com" style="color:#3A5A78;text-decoration:none;">jamienisbet.com</a>
+  </div>
+
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

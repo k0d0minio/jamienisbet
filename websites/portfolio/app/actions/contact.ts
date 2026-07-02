@@ -16,6 +16,10 @@ import { isServiceId } from "@/lib/services"
 const TO_EMAIL = "jamie.nisbet@outlook.be"
 const FROM_EMAIL = "Jamie Nisbet Consultancy <noreply@mail.jamienisbet.com>"
 
+// Resend Template ID for packages/ui/emails/contact-form-notification.html —
+// see packages/ui/emails/README.md for how to publish it and get this value.
+const CONTACT_NOTIFICATION_TEMPLATE_ID = process.env.RESEND_CONTACT_NOTIFICATION_TEMPLATE_ID
+
 export async function submitContact(
   _prev: ContactState,
   formData: FormData
@@ -82,12 +86,12 @@ export async function submitContact(
     console.error("[contact] DB write failed — falling back to email only:", err)
   }
 
-  if (!process.env.RESEND_API_KEY) {
-    // No key configured — log so nothing is lost while testing locally.
-    console.info("[contact] received (email not sent — RESEND_API_KEY unset):", {
-      ...parsed.data,
-      service: serviceLabel,
-    })
+  if (!process.env.RESEND_API_KEY || !CONTACT_NOTIFICATION_TEMPLATE_ID) {
+    // No key/template configured — log so nothing is lost while testing locally.
+    console.info(
+      "[contact] received (email not sent — RESEND_API_KEY or RESEND_CONTACT_NOTIFICATION_TEMPLATE_ID unset):",
+      { ...parsed.data, service: serviceLabel }
+    )
     return { status: "success", message: t("status.success") }
   }
 
@@ -96,16 +100,18 @@ export async function submitContact(
     from: FROM_EMAIL,
     to: TO_EMAIL,
     replyTo: parsed.data.email,
-    subject: serviceLabel
-      ? `New enquiry (${serviceLabel}) from ${parsed.data.name}`
-      : `New enquiry from ${parsed.data.name}`,
-    text: [
-      `Name: ${parsed.data.name}`,
-      `Email: ${parsed.data.email}`,
-      ...(serviceLabel ? [`Service: ${serviceLabel}`] : []),
-      "",
-      parsed.data.message,
-    ].join("\n"),
+    template: {
+      id: CONTACT_NOTIFICATION_TEMPLATE_ID,
+      variables: {
+        SUBJECT: serviceLabel
+          ? `New enquiry (${serviceLabel}) from ${parsed.data.name}`
+          : `New enquiry from ${parsed.data.name}`,
+        NAME: parsed.data.name,
+        EMAIL: parsed.data.email,
+        SERVICE: serviceLabel ?? "General enquiry",
+        MESSAGE: parsed.data.message,
+      },
+    },
   })
 
   if (error) {
