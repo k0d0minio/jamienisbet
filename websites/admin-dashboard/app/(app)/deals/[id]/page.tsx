@@ -19,6 +19,8 @@ import {
 
 import { DealStatusSelect } from "@/components/deal-status-select"
 import { DealDetailsForm } from "@/components/deal-details-form"
+import { GeneratePanel } from "@/components/generate-panel"
+import { WorkshopChat } from "@/components/workshop-chat"
 import { formatDateTime } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 import { documentStatusVariant, kindLabel } from "@/lib/kinds"
@@ -41,6 +43,17 @@ export default async function DealPage({
     listWorkshopMessages(deal.id),
   ])
 
+  // The upstream approvals that unlock each generator (UX only — the API
+  // re-enforces every gate).
+  const hasApproved = (kind: string) =>
+    documents.some((d) => d.kind === kind && d.status === "approved")
+  const gates = {
+    approvedTriage: hasApproved("triage_assessment"),
+    approvedOutline: hasApproved("project_outline"),
+    approvedStrategy: hasApproved("negotiation_strategy"),
+    approvedProposal: hasApproved("proposal"),
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -61,6 +74,43 @@ export default async function DealPage({
         </div>
         <DealStatusSelect id={deal.id} value={deal.status} />
       </div>
+
+      {/* The ICM engine — each button executes one stage contract against this
+          deal's working material and drops a draft below. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Generate</CardTitle>
+          <CardDescription>
+            Each step runs its ICM stage contract with only the context that
+            stage names. Locked steps unlock when the upstream document is
+            approved.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GeneratePanel dealId={deal.id} gates={gates} />
+        </CardContent>
+      </Card>
+
+      {/* The brainstorm surface — persisted per deal. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Technical workshop</CardTitle>
+          <CardDescription>
+            Private sparring on how to build it. Crystallise the thread into a
+            project outline when the direction is right.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WorkshopChat
+            dealId={deal.id}
+            initialMessages={workshop.map((m) => ({
+              id: m.id,
+              role: m.role,
+              content: m.content,
+            }))}
+          />
+        </CardContent>
+      </Card>
 
       {/* Documents — every artifact the pipeline has produced for this deal,
           newest first. Each row is a version; approval state is the review
