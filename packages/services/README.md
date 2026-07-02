@@ -57,7 +57,9 @@ Today: a single **`clients`** table. Every intake — a portfolio contact enquir
 referral — creates one client row (the form only sets the `source` and which intake fields are
 populated); there is no separate table per form. Each client then gets fleshed out through the
 intake → delivery pipeline (`status`: `new` → `contacted` → `qualified` → `proposed` → `won` →
-`delivered`, or `lost`), with contact details and owner notes.
+`delivered`, or `lost`), with contact details and owner notes. A client can also be linked to its
+Stripe customer via `stripe_customer_id` (unique) — set by the admin's billing flow, which owns the
+Stripe side; `setClientStripeCustomerId` persists the link.
 
 Structured so the rest of the pipeline — projects, quotes, proposals, invoicing — becomes
 additional tables in `schema/` (keyed to `clients`) and query modules in `queries/`.

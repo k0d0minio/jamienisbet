@@ -149,6 +149,21 @@ export async function updateClient(
   return row
 }
 
+// Record (or clear) the Stripe Customer this client is linked to. Kept off the
+// hand-editable ClientProfilePatch on purpose: the id is managed by the billing
+// sync, never typed in. Pass null to unlink.
+export async function setClientStripeCustomerId(
+  id: string,
+  stripeCustomerId: string | null
+): Promise<Client | undefined> {
+  const [row] = await getDb()
+    .update(clients)
+    .set({ stripeCustomerId })
+    .where(eq(clients.id, id))
+    .returning()
+  return row
+}
+
 // ---- Archive / restore / delete --------------------------------------------
 // Archive is a reversible soft-hide (sets archived_at); delete is permanent.
 

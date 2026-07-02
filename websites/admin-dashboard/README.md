@@ -28,10 +28,17 @@ is read live from Stripe, and nothing about an amount comes from the browser.
 
 - **Finances** (`/finances`) — available + pending balance, total outstanding, and recent payments.
 - **Invoices** (`/invoices`) — list every Stripe invoice with status/amount/hosted link, and raise
-  a new one. Honoring the repo's *no outbound action without review* rule, a new invoice is created
-  as a **draft**; emailing it to the client is a deliberate second step ("Finalize & send").
+  a new one **against a client picked from the database** (no free-text customer details). Raising
+  it resolves — and, first time, creates + links — that client's Stripe customer, storing the id on
+  the client row (`clients.stripe_customer_id`) so the two stay joined. Honoring the repo's *no
+  outbound action without review* rule, a new invoice is created as a **draft**; emailing it to the
+  client is a deliberate second step ("Finalize & send").
 - **Payment links** (`/payment-links`) — mint a reusable, fixed-amount payment link (copy to share),
   or deactivate one.
+
+Clients and Stripe customers are kept in sync from here: editing a linked client's name/email/phone
+pushes the change to their Stripe customer, and a client can be linked ahead of billing from their
+profile page. See [`lib/clients-stripe.ts`](lib/clients-stripe.ts).
 
 With `STRIPE_SECRET_KEY` unset the app still runs: these pages show a "not configured" notice and
 the leads surfaces are unaffected. The client-facing pay page lives in

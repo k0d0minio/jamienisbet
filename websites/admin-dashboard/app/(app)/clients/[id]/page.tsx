@@ -15,6 +15,7 @@ import { getClient } from "@jamie-nisbet/services"
 import { ClientActions } from "@/components/client-actions"
 import { ClientProfileForm } from "@/components/client-profile-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
+import { ClientStripeLink } from "@/components/client-stripe-link"
 import { formatDateTime, formatServiceId } from "@/lib/format"
 
 export const metadata: Metadata = { title: "Client" }
@@ -105,8 +106,17 @@ export default async function ClientDetailPage({
               Contact details and working notes. Provenance stays read-only in Intake.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
             <ClientProfileForm client={client} />
+            <div className="border-t pt-4">
+              <div className="mb-2 text-xs text-muted-foreground">
+                Stripe customer
+              </div>
+              <ClientStripeLink
+                id={client.id}
+                stripeCustomerId={client.stripeCustomerId}
+              />
+            </div>
           </CardContent>
         </Card>
 
