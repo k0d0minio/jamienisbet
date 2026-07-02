@@ -1,4 +1,4 @@
-# admin-dashboard (`@jamie-nisbet/admin`)
+# admin-dashboard (`@jamie-nisbet/admin`) — "Consultancy JN"
 
 > **ICM role:** Layer 1 — a web app under [`websites/`](../README.md).
 > **Purpose:** The owner-only environment for operating the business off the shared Neon
@@ -10,6 +10,10 @@ A Next.js 16 (App Router) app, owner-only, that reads and operates the business 
 shared Neon Postgres database via [`@jamie-nisbet/services`](../../packages/services/). It is
 the counterpart to the public sites: where the portfolio and sellers forms **capture** intakes,
 the admin is where each becomes a **client** that gets worked.
+
+It is **mobile-first and installable** — branded **Consultancy JN**, it ships a web app
+manifest, icons, and a service worker so it can be added to a phone home screen and launched
+fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 
 **Today:** a unified **Clients** surface — every portfolio contact and sellers referral is one
 client row, opened into a profile (contact details, notes) and moved along an intake → delivery
@@ -50,22 +54,55 @@ Single owner, single password. `ADMIN_PASSWORD` unlocks the app; a signed (HMAC 
 `ADMIN_SESSION_SECRET`) httpOnly session cookie keeps you in. [`proxy.ts`](proxy.ts) gates
 every route and bounces unauthenticated requests to `/login`. See [`lib/auth.ts`](lib/auth.ts).
 
+The gate's matcher skips any path containing a `.` (static files), so the PWA assets
+(`/manifest.webmanifest`, `/sw.js`, `/offline.html`, `/icon.svg`, `/apple-icon.png`,
+`/icon-192.png`, `/icon-512.png`) are all publicly reachable **by design** — a phone must be
+able to fetch the manifest and icons to install the app before you sign in. None of them expose
+business data.
+
+## Mobile & PWA
+
+The app is built mobile-first and installs to a phone home screen as **Consultancy JN**.
+
+- **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — a sticky top bar (brand + sign
+  out) on every size, inline text links on desktop, and a fixed icon **tab bar** pinned to the
+  bottom on phones (the primary way to move around when installed). Content is padded to clear
+  the tab bar and respects the home-indicator safe area.
+- **Manifest** ([`app/manifest.ts`](app/manifest.ts)) — name/short-name `Consultancy JN`,
+  `standalone` display, brand-blue theme (`#3A5A78`), and PNG icons.
+- **Icons** — one favicon SVG ([`public/icon.svg`](public/icon.svg)) plus PNGs rendered on the
+  fly from the JN monogram via `next/og` `ImageResponse` ([`lib/app-icon.tsx`](lib/app-icon.tsx)):
+  `/icon-192.png`, `/icon-512.png` (also maskable), and `/apple-icon.png` (180×180 for iOS). No
+  build-time image pipeline or committed binaries.
+- **Service worker** ([`public/sw.js`](public/sw.js), registered by
+  [`components/service-worker-register.tsx`](components/service-worker-register.tsx)) — makes the
+  app installable and serves [`public/offline.html`](public/offline.html) for navigations when the
+  network is gone. It **does not cache app responses** — this is a live, per-request dashboard, so
+  caching authenticated pages would risk stale or wrong-session data.
+- Theme colour, standalone launch, and the apple-touch-icon are wired in the root
+  [`app/layout.tsx`](app/layout.tsx) (`metadata` + `viewport`).
+
 ## Layout
 
 ```
 app/
-  layout.tsx            # root <html> + design-system styles
+  layout.tsx            # root <html> + design-system styles + PWA metadata/viewport + SW register
+  manifest.ts           # /manifest.webmanifest (PWA install manifest — "Consultancy JN")
+  icon-192.png/         # generated PNG icons (next/og ImageResponse); dotted paths bypass the auth gate
+  icon-512.png/
+  apple-icon.png/       # 180×180 apple-touch-icon for iOS home screen
   login/                # /login page + login/logout server actions
   (app)/                # authenticated area (route group — no URL segment)
-    layout.tsx          # nav chrome
+    layout.tsx          # nav chrome (mobile-first spacing + tab-bar clearance)
     page.tsx            # dashboard (client counts + Stripe billing summary)
     clients/            # clients table (list) + status control; actions.ts (status/profile/archive/delete)
     clients/[id]/       # client profile: editable details + notes, read-only intake, pipeline scaffold
     finances/           # Stripe financial overview (balance, outstanding, payments)
     invoices/           # Stripe invoice list + create-draft form; actions.ts (send/void)
     payment-links/      # Stripe payment-link list + create form; actions.ts (create/deactivate)
-components/             # login form, nav, client status select + row actions + profile form, billing forms
-lib/                    # auth, formatting, stripe client, money, finance reads
+components/             # login form, nav (top bar + mobile tab bar), service-worker register, billing forms
+lib/                    # auth, formatting, stripe client, money, finance reads, app-icon (PNG renderer)
+public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 
 ## Local development
