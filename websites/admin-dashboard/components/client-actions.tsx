@@ -1,40 +1,32 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 
 import { Button } from "@jamie-nisbet/ui"
 
-import {
-  archiveContact,
-  archiveReferral,
-  removeContact,
-  removeReferral,
-} from "@/app/(app)/leads/actions"
+import { archiveClient, removeClient } from "@/app/(app)/clients/actions"
 
-type Kind = "contact" | "referral"
-
-const setArchived = (kind: Kind, id: string, archived: boolean) =>
-  kind === "contact"
-    ? archiveContact(id, archived)
-    : archiveReferral(id, archived)
-
-const remove = (kind: Kind, id: string) =>
-  kind === "contact" ? removeContact(id) : removeReferral(id)
-
-export function LeadActions({
+export function ClientActions({
   id,
-  kind,
   archived,
+  // When true (the detail page), a delete sends the user back to the list since
+  // the record they're viewing no longer exists.
+  redirectOnDelete = false,
 }: {
   id: string
-  kind: Kind
   archived: boolean
+  redirectOnDelete?: boolean
 }) {
   const [pending, startTransition] = useTransition()
+  const router = useRouter()
 
   function onDelete() {
-    if (!confirm("Permanently delete this lead? This can't be undone.")) return
-    startTransition(() => remove(kind, id))
+    if (!confirm("Permanently delete this client? This can't be undone.")) return
+    startTransition(async () => {
+      await removeClient(id)
+      if (redirectOnDelete) router.push("/clients")
+    })
   }
 
   return (
@@ -45,7 +37,7 @@ export function LeadActions({
         size="sm"
         disabled={pending}
         onClick={() =>
-          startTransition(() => setArchived(kind, id, !archived))
+          startTransition(() => archiveClient(id, !archived))
         }
       >
         {archived ? "Restore" : "Archive"}

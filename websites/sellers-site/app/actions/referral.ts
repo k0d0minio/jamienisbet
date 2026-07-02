@@ -3,7 +3,7 @@
 import { Resend } from "resend"
 
 import { getLocale, getTranslations } from "next-intl/server"
-import { createReferralLead } from "@jamie-nisbet/services"
+import { createClientFromReferral } from "@jamie-nisbet/services"
 
 import {
   makeSellerLeadSchema,
@@ -69,12 +69,12 @@ export async function submitSellerLead(
   const { company: _company, ...lead } = parsed.data
   void _company // honeypot — never forwarded
 
-  // The database is the source of truth — persist the lead first. If this fails
+  // The database is the source of truth — create the client first. If this fails
   // we don't lose it: we fall through to the email notification below and only
   // then treat a failed email as fatal.
   let persisted = false
   try {
-    await createReferralLead({
+    await createClientFromReferral({
       referralCode: lead.referralCode,
       customerName: lead.customerName,
       customerPhone: lead.customerPhone,

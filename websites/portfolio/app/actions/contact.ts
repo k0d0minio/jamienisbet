@@ -2,7 +2,7 @@
 
 import { Resend } from "resend"
 import { getTranslations } from "next-intl/server"
-import { createContactSubmission } from "@jamie-nisbet/services"
+import { createClientFromContact } from "@jamie-nisbet/services"
 
 import {
   makeContactSchema,
@@ -64,12 +64,12 @@ export async function submitContact(
     serviceLabel = tServices(`items.${serviceId}.title`)
   }
 
-  // The database is the source of truth — persist the lead first. If this fails
+  // The database is the source of truth — create the client first. If this fails
   // we don't lose the enquiry: we fall through to the email notification below,
   // and only then treat a failed email as fatal.
   let persisted = false
   try {
-    await createContactSubmission({
+    await createClientFromContact({
       name: parsed.data.name,
       email: parsed.data.email,
       message: parsed.data.message,

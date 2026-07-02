@@ -10,10 +10,7 @@ import {
   CardContent,
   CardDescription,
 } from "@jamie-nisbet/ui"
-import {
-  listContactSubmissions,
-  listReferralLeads,
-} from "@jamie-nisbet/services"
+import { listClients } from "@jamie-nisbet/services"
 
 import { getFinancialSummary, type FinancialSummary } from "@/lib/finance"
 import { formatMoney } from "@/lib/money"
@@ -28,20 +25,21 @@ function balanceLabel(entries: FinancialSummary["available"]): string {
   return first ? formatMoney(first.amount, first.currency) : "—"
 }
 
+// Statuses where a client is actively being worked between first contact and a
+// closed outcome — the live pipeline.
+const IN_PIPELINE = ["contacted", "qualified", "proposed"]
+
 export default async function DashboardPage() {
-  let contactCount = 0
-  let referralCount = 0
-  let openReferrals = 0
+  let clientCount = 0
+  let newCount = 0
+  let inPipeline = 0
   let error: string | null = null
 
   try {
-    const [contacts, referrals] = await Promise.all([
-      listContactSubmissions(),
-      listReferralLeads(),
-    ])
-    contactCount = contacts.length
-    referralCount = referrals.length
-    openReferrals = referrals.filter((r) => r.status === "new").length
+    const clients = await listClients()
+    clientCount = clients.length
+    newCount = clients.filter((c) => c.status === "new").length
+    inPipeline = clients.filter((c) => IN_PIPELINE.includes(c.status)).length
   } catch (err) {
     error = err instanceof Error ? err.message : "Could not reach the database."
   }
@@ -67,28 +65,30 @@ export default async function DashboardPage() {
         </Alert>
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
-          <Link href="/leads/contact">
+          <Link href="/clients">
             <Card>
               <CardHeader>
-                <CardDescription>Contact submissions</CardDescription>
-                <CardTitle className="text-3xl">{contactCount}</CardTitle>
+                <CardDescription>Clients</CardDescription>
+                <CardTitle className="text-3xl">{clientCount}</CardTitle>
               </CardHeader>
             </Card>
           </Link>
-          <Link href="/leads/referrals">
+          <Link href="/clients">
             <Card>
               <CardHeader>
-                <CardDescription>Referral leads</CardDescription>
-                <CardTitle className="text-3xl">{referralCount}</CardTitle>
+                <CardDescription>New intake</CardDescription>
+                <CardTitle className="text-3xl">{newCount}</CardTitle>
               </CardHeader>
             </Card>
           </Link>
-          <Card>
-            <CardHeader>
-              <CardDescription>Open referrals (new)</CardDescription>
-              <CardTitle className="text-3xl">{openReferrals}</CardTitle>
-            </CardHeader>
-          </Card>
+          <Link href="/clients">
+            <Card>
+              <CardHeader>
+                <CardDescription>In pipeline</CardDescription>
+                <CardTitle className="text-3xl">{inPipeline}</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
       )}
 
@@ -130,9 +130,10 @@ export default async function DashboardPage() {
           <CardTitle>Getting started</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Leads captured by the portfolio and referral forms land here. Raise and send
-          invoices, share payment links, and watch your Stripe balance under Finances,
-          Invoices, and Payment links.
+          Every portfolio and referral intake becomes a client under Clients — open one
+          to work its pipeline from first contact to delivery. Raise and send invoices,
+          share payment links, and watch your Stripe balance under Finances, Invoices,
+          and Payment links.
         </CardContent>
       </Card>
     </div>

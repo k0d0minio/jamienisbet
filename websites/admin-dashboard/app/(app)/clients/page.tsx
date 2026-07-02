@@ -1,36 +1,43 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 
 import {
   Alert,
   AlertDescription,
   AlertTitle,
+  Badge,
   Card,
   CardContent,
 } from "@jamie-nisbet/ui"
-import {
-  listReferralLeads,
-  type ReferralLead,
-} from "@jamie-nisbet/services"
+import { listClients, type Client } from "@jamie-nisbet/services"
 
 import { ArchiveToggle } from "@/components/archive-toggle"
-import { LeadActions } from "@/components/lead-actions"
-import { StatusSelect } from "@/components/status-select"
+import { ClientActions } from "@/components/client-actions"
+import { ClientStatusSelect } from "@/components/client-status-select"
 import { formatDateTime } from "@/lib/format"
 
-export const metadata: Metadata = { title: "Referral leads" }
+export const metadata: Metadata = { title: "Clients" }
 export const dynamic = "force-dynamic"
 
-export default async function ReferralLeadsPage({
+// Every intake — portfolio contact or sellers referral — is a client. Source
+// tells them apart at a glance.
+function sourceLabel(source: string): string {
+  if (source === "portfolio") return "Contact"
+  if (source === "referral") return "Referral"
+  return "Manual"
+}
+
+export default async function ClientsPage({
   searchParams,
 }: {
   searchParams: Promise<{ archived?: string }>
 }) {
   const archived = (await searchParams).archived === "1"
-  let rows: ReferralLead[] = []
+  let rows: Client[] = []
   let error: string | null = null
 
   try {
-    rows = await listReferralLeads({ archived })
+    rows = await listClients({ archived })
   } catch (err) {
     error = err instanceof Error ? err.message : "Could not reach the database."
   }
@@ -38,8 +45,8 @@ export default async function ReferralLeadsPage({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Referral leads</h1>
-        <ArchiveToggle basePath="/leads/referrals" archived={archived} />
+        <h1 className="text-2xl font-semibold">Clients</h1>
+        <ArchiveToggle basePath="/clients" archived={archived} />
       </div>
 
       {error ? (
@@ -50,7 +57,7 @@ export default async function ReferralLeadsPage({
       ) : rows.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            {archived ? "Nothing archived." : "No referral leads yet."}
+            {archived ? "Nothing archived." : "No clients yet."}
           </CardContent>
         </Card>
       ) : (
@@ -61,12 +68,9 @@ export default async function ReferralLeadsPage({
                 <thead className="border-b text-left text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 font-medium">Received</th>
-                    <th className="px-4 py-3 font-medium">Code</th>
-                    <th className="px-4 py-3 font-medium">Customer</th>
+                    <th className="px-4 py-3 font-medium">Client</th>
+                    <th className="px-4 py-3 font-medium">Source</th>
                     <th className="px-4 py-3 font-medium">Contact</th>
-                    <th className="px-4 py-3 font-medium">Need</th>
-                    <th className="px-4 py-3 font-medium">Budget</th>
-                    <th className="px-4 py-3 font-medium">Call time</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium text-right">Actions</th>
                   </tr>
@@ -77,42 +81,48 @@ export default async function ReferralLeadsPage({
                       <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                         {formatDateTime(row.createdAt)}
                       </td>
-                      <td className="px-4 py-3 font-mono">{row.referralCode}</td>
-                      <td className="px-4 py-3 font-medium">{row.customerName}</td>
                       <td className="px-4 py-3">
-                        <div>
-                          <a
-                            className="underline underline-offset-2"
-                            href={`tel:${row.customerPhone}`}
-                          >
-                            {row.customerPhone}
-                          </a>
-                        </div>
-                        {row.customerEmail ? (
-                          <a
-                            className="text-muted-foreground underline underline-offset-2"
-                            href={`mailto:${row.customerEmail}`}
-                          >
-                            {row.customerEmail}
-                          </a>
+                        <Link
+                          href={`/clients/${row.id}`}
+                          className="font-medium underline-offset-2 hover:underline"
+                        >
+                          {row.name}
+                        </Link>
+                        {row.company ? (
+                          <div className="text-muted-foreground">{row.company}</div>
                         ) : null}
                       </td>
-                      <td className="max-w-xs px-4 py-3 whitespace-pre-wrap">
-                        {row.need}
-                      </td>
-                      <td className="px-4 py-3">{row.budget || "—"}</td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        {formatDateTime(row.preferredCallTime)}
+                      <td className="px-4 py-3">
+                        <Badge variant="secondary">{sourceLabel(row.source)}</Badge>
                       </td>
                       <td className="px-4 py-3">
-                        <StatusSelect id={row.id} value={row.status} />
+                        {row.email ? (
+                          <div>
+                            <a
+                              className="underline underline-offset-2"
+                              href={`mailto:${row.email}`}
+                            >
+                              {row.email}
+                            </a>
+                          </div>
+                        ) : null}
+                        {row.phone ? (
+                          <a
+                            className="text-muted-foreground underline underline-offset-2"
+                            href={`tel:${row.phone}`}
+                          >
+                            {row.phone}
+                          </a>
+                        ) : null}
+                        {!row.email && !row.phone ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : null}
                       </td>
                       <td className="px-4 py-3">
-                        <LeadActions
-                          id={row.id}
-                          kind="referral"
-                          archived={archived}
-                        />
+                        <ClientStatusSelect id={row.id} value={row.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <ClientActions id={row.id} archived={archived} />
                       </td>
                     </tr>
                   ))}

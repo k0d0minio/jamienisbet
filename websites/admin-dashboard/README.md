@@ -8,13 +8,16 @@
 
 A Next.js 16 (App Router) app, owner-only, that reads and operates the business data in the
 shared Neon Postgres database via [`@jamie-nisbet/services`](../../packages/services/). It is
-the counterpart to the public sites: where the portfolio and sellers forms **capture** leads,
-the admin is where they **live** and get worked.
+the counterpart to the public sites: where the portfolio and sellers forms **capture** intakes,
+the admin is where each becomes a **client** that gets worked.
 
-**Today:** captured leads — contact submissions and referral leads (with a status pipeline) —
-plus a **Stripe billing** surface: a live financial overview (balance, outstanding, recent
-payments), invoicing (raise a draft → finalize & send), and shareable payment links.
-**Next:** hourly billing and proposal building (added as new sections + tables).
+**Today:** a unified **Clients** surface — every portfolio contact and sellers referral is one
+client row, opened into a profile (contact details, notes) and moved along an intake → delivery
+**status pipeline** (`new` → `contacted` → `qualified` → `proposed` → `won` → `delivered`, or
+`lost`) — plus a **Stripe billing** surface: a live financial overview (balance, outstanding,
+recent payments), invoicing (raise a draft → finalize & send), and shareable payment links.
+**Next:** the per-client pipeline is fleshed out with projects, quotes/proposals, and linked
+invoices (added as new sections + tables keyed to `clients`).
 
 ## Stripe billing
 
@@ -48,14 +51,13 @@ app/
   login/                # /login page + login/logout server actions
   (app)/                # authenticated area (route group — no URL segment)
     layout.tsx          # nav chrome
-    page.tsx            # dashboard (lead counts + Stripe billing summary)
-    leads/contact/      # contact submissions table
-    leads/referrals/    # referral leads table + status control
-    leads/actions.ts    # updateReferralStatus server action
+    page.tsx            # dashboard (client counts + Stripe billing summary)
+    clients/            # clients table (list) + status control; actions.ts (status/profile/archive/delete)
+    clients/[id]/       # client profile: editable details + notes, read-only intake, pipeline scaffold
     finances/           # Stripe financial overview (balance, outstanding, payments)
     invoices/           # Stripe invoice list + create-draft form; actions.ts (send/void)
     payment-links/      # Stripe payment-link list + create form; actions.ts (create/deactivate)
-components/             # login form, nav, status select, billing forms + row actions
+components/             # login form, nav, client status select + row actions + profile form, billing forms
 lib/                    # auth, formatting, stripe client, money, finance reads
 ```
 

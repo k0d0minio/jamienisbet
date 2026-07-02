@@ -21,7 +21,7 @@ build step — consumers transpile the TypeScript via `transpilePackages` (same 
 src/
   client.ts          # lazy Drizzle client from DATABASE_URL — getDb() / db
   schema/index.ts    # Drizzle tables under the `biz` Postgres schema
-  queries/leads.ts   # typed create/list/update helpers for the lead tables
+  queries/clients.ts # typed intake/list/update helpers for the clients table
   index.ts           # barrel
 drizzle/             # generated SQL migrations
 drizzle.config.ts    # drizzle-kit config (scoped to the `biz` schema)
@@ -36,7 +36,7 @@ Add `"@jamie-nisbet/services": "workspace:*"` to a site's `package.json`, add it
 `transpilePackages` in that site's `next.config.ts`, and set `DATABASE_URL` in the environment.
 
 ```ts
-import { createContactSubmission, listReferralLeads } from "@jamie-nisbet/services"
+import { createClientFromContact, listClients } from "@jamie-nisbet/services"
 ```
 
 ## Migrations
@@ -53,6 +53,11 @@ The first migration creates the `biz` schema and its tables.
 
 ## Scope
 
-Today: lead capture (`contact_submissions`, `referral_leads`). Structured so future concerns —
-hourly billing, Stripe invoicing, proposals — become additional tables in `schema/` and query
-modules in `queries/`.
+Today: a single **`clients`** table. Every intake — a portfolio contact enquiry or a sellers-site
+referral — creates one client row (the form only sets the `source` and which intake fields are
+populated); there is no separate table per form. Each client then gets fleshed out through the
+intake → delivery pipeline (`status`: `new` → `contacted` → `qualified` → `proposed` → `won` →
+`delivered`, or `lost`), with contact details and owner notes.
+
+Structured so the rest of the pipeline — projects, quotes, proposals, invoicing — becomes
+additional tables in `schema/` (keyed to `clients`) and query modules in `queries/`.

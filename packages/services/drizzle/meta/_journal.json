@@ -22,6 +22,13 @@
       "when": 1782912782428,
       "tag": "0002_furry_paibok",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782981229315,
+      "tag": "0003_clients_table",
+      "breakpoints": true
     }
   ]
 }
