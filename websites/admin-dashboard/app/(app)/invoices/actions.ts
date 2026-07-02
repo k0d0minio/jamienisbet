@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 
+import { getClient } from "@jamie-nisbet/services"
+
+import { ensureStripeCustomer } from "@/lib/clients-stripe"
 import { parseAmountToMinor } from "@/lib/money"
 import { getStripe } from "@/lib/stripe"
 
@@ -10,27 +13,19 @@ export type InvoiceFormState = { error?: string; success?: string }
 function revalidateBilling() {
   revalidatePath("/invoices")
   revalidatePath("/finances")
+  revalidatePath("/clients")
   revalidatePath("/")
 }
 
-// Find an existing customer by email (so repeat invoices reuse one record) or
-// create a new one. Email is the natural key Stripe dedupes on for invoicing.
-async function resolveCustomerId(
-  stripe: NonNullable<ReturnType<typeof getStripe>>,
-  name: string,
-  email: string
-): Promise<string> {
-  const existing = await stripe.customers.list({ email, limit: 1 })
-  if (existing.data[0]) return existing.data[0].id
-  const created = await stripe.customers.create({ name: name || undefined, email })
-  return created.id
-}
-
 /**
- * Create a *draft* invoice from the form. Drafts are never emailed — sending is
- * a deliberate second step ("Finalize & send"), which keeps a review gate
- * between raising a figure and putting it in front of a client (the repo's
- * "no outbound action without review" boundary).
+ * Create a *draft* invoice for a chosen client. The client is picked from the
+ * ones in the database rather than typed in, so every invoice is addressed to a
+ * real record: ensureStripeCustomer resolves (and links) that client's Stripe
+ * customer before the invoice is raised.
+ *
+ * Drafts are never emailed — sending is a deliberate second step ("Finalize &
+ * send"), which keeps a review gate between raising a figure and putting it in
+ * front of a client (the repo's "no outbound action without review" boundary).
  */
 export async function createInvoice(
   _prev: InvoiceFormState,
@@ -39,22 +34,29 @@ export async function createInvoice(
   const stripe = getStripe()
   if (!stripe) return { error: "Stripe is not configured in this environment." }
 
-  const name = String(formData.get("customerName") ?? "").trim()
-  const email = String(formData.get("customerEmail") ?? "").trim()
+  const clientId = String(formData.get("clientId") ?? "").trim()
   const description = String(formData.get("description") ?? "").trim()
   const currency = String(formData.get("currency") ?? "eur").trim().toLowerCase()
   const daysUntilDue = Number(formData.get("daysUntilDue") ?? 14)
   const amount = parseAmountToMinor(String(formData.get("amount") ?? ""))
 
-  if (!email) return { error: "A customer email is required." }
+  if (!clientId) return { error: "Choose a client to invoice." }
   if (!description) return { error: "A line-item description is required." }
   if (amount === null) return { error: "Enter a valid amount greater than zero." }
   if (!Number.isFinite(daysUntilDue) || daysUntilDue < 0) {
     return { error: "Days until due must be zero or more." }
   }
 
+  const client = await getClient(clientId)
+  if (!client) return { error: "That client no longer exists." }
+  // send_invoice needs somewhere to send it; a client with no email can't be
+  // invoiced until one is added on their profile.
+  if (!client.email) {
+    return { error: `${client.name} has no email — add one on their profile first.` }
+  }
+
   try {
-    const customer = await resolveCustomerId(stripe, name, email)
+    const customer = await ensureStripeCustomer(stripe, client)
 
     // Create the draft invoice first, then attach the line item to it directly
     // (avoids pending-invoice-item ambiguity across API versions).
@@ -75,7 +77,9 @@ export async function createInvoice(
     })
 
     revalidateBilling()
-    return { success: `Draft invoice created for ${email}. Review it, then send.` }
+    return {
+      success: `Draft invoice created for ${client.name} (${client.email}). Review it, then send.`,
+    }
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Could not create the invoice." }
   }

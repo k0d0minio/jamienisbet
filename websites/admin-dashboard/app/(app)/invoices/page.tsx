@@ -10,12 +10,17 @@ import {
   CardTitle,
 } from "@jamie-nisbet/ui"
 
+import { listClients } from "@jamie-nisbet/services"
+
 import { listInvoices, type InvoiceRow } from "@/lib/finance"
 import { formatEpoch } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 import { isStripeConfigured } from "@/lib/stripe"
 import { InvoiceActions } from "@/components/invoice-actions"
-import { InvoiceCreateForm } from "@/components/invoice-create-form"
+import {
+  InvoiceCreateForm,
+  type InvoiceClientOption,
+} from "@/components/invoice-create-form"
 import { InvoiceStatusBadge } from "@/components/invoice-status-badge"
 
 export const metadata: Metadata = { title: "Invoices" }
@@ -45,6 +50,22 @@ export default async function InvoicesPage() {
     error = err instanceof Error ? err.message : "Could not reach Stripe."
   }
 
+  // Clients populate the invoice picker. A DB hiccup here shouldn't take down the
+  // whole page — fall back to an empty list (the form then shows an "add a client
+  // first" hint).
+  let clientOptions: InvoiceClientOption[] = []
+  try {
+    const clients = await listClients()
+    clientOptions = clients.map((c) => ({
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      company: c.company,
+    }))
+  } catch {
+    clientOptions = []
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">Invoices</h1>
@@ -54,7 +75,7 @@ export default async function InvoicesPage() {
           <CardTitle>New invoice</CardTitle>
         </CardHeader>
         <CardContent>
-          <InvoiceCreateForm />
+          <InvoiceCreateForm clients={clientOptions} />
         </CardContent>
       </Card>
 

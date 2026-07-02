@@ -29,6 +29,13 @@
       "when": 1782981229315,
       "tag": "0003_clients_table",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782982750456,
+      "tag": "0004_link_client_to_stripe_customer",
+      "breakpoints": true
     }
   ]
 }

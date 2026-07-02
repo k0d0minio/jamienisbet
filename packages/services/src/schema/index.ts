@@ -51,6 +51,15 @@ export const clients = biz.table("clients", {
   // Owner-only working notes, appended as the relationship develops.
   notes: text("notes"),
 
+  // ---- Billing -------------------------------------------------------------
+  // The linked Stripe Customer id (`cus_…`). Set the first time this client is
+  // billed (or linked by hand), it ties this row to the customer record that
+  // owns their invoices/payments in Stripe. Stripe stays the source of truth
+  // for money; this column is just the join key. Kept in sync from here — edits
+  // to name/email/phone are pushed to the linked customer. Null = not yet
+  // linked. `unique` so one Neon client maps to at most one Stripe customer.
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
+
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   // Soft archive: null = active, a timestamp = archived (hidden by default).
   archivedAt: timestamp("archived_at", { withTimezone: true }),
