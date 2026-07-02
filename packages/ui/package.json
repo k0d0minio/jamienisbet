@@ -17,7 +17,11 @@
     "./tokens.css": "./tokens.css",
     "./tokens/*": "./tokens/*",
     "./assets/*": "./assets/*",
-    "./emails/*": "./emails/*",
+    "./emails/*.html": "./emails/*.html",
+    "./emails/template-ids": {
+      "types": "./emails/template-ids.ts",
+      "default": "./emails/template-ids.ts"
+    },
     "./lib/utils": "./src/lib/utils.ts",
     "./components/*": "./src/components/*"
   },
