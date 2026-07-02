@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm"
+import { and, desc, eq, inArray, sql } from "drizzle-orm"
 
 import { getDb } from "../client"
 import { documents } from "../schema"
@@ -144,4 +144,14 @@ export async function recordDocumentSync(
 
 export async function deleteDocument(id: string): Promise<void> {
   await getDb().delete(documents).where(eq(documents.id, id))
+}
+
+/** How many documents sit before the review gate — the dashboard's "waiting
+ * on you" counter. */
+export async function countDocumentsAwaitingReview(): Promise<number> {
+  const [row] = await getDb()
+    .select({ count: sql<number>`count(*)` })
+    .from(documents)
+    .where(inArray(documents.status, ["draft", "in_review"]))
+  return Number(row.count)
 }

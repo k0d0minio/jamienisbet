@@ -20,11 +20,14 @@ import {
 import { DealStatusSelect } from "@/components/deal-status-select"
 import { DealDetailsForm } from "@/components/deal-details-form"
 import { GeneratePanel } from "@/components/generate-panel"
+import { InvoiceFromQuoteButton } from "@/components/invoice-from-quote-button"
 import { MockupPanel } from "@/components/mockup-panel"
 import { WorkshopChat } from "@/components/workshop-chat"
 import { formatDateTime } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 import { documentStatusVariant, kindLabel } from "@/lib/kinds"
+import { nextActionFor } from "@/lib/next-action"
+import { isStripeConfigured } from "@/lib/stripe"
 
 export const metadata: Metadata = { title: "Deal" }
 export const dynamic = "force-dynamic"
@@ -55,6 +58,10 @@ export default async function DealPage({
     approvedProposal: hasApproved("proposal"),
   }
 
+  const nextAction = nextActionFor(
+    documents.map((d) => ({ id: d.id, kind: d.kind, status: d.status }))
+  )
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -75,6 +82,32 @@ export default async function DealPage({
         </div>
         <DealStatusSelect id={deal.id} value={deal.status} />
       </div>
+
+      {/* Where the macro-pipeline says this deal is, and the one thing to do
+          next. */}
+      <Card className="border-primary/40">
+        <CardHeader>
+          <CardDescription>Next action</CardDescription>
+          <CardTitle className="text-lg">
+            {nextAction.kind === "review" && nextAction.documentId ? (
+              <Link
+                href={`/deals/${deal.id}/documents/${nextAction.documentId}`}
+                className="underline-offset-4 hover:underline"
+              >
+                {nextAction.title} →
+              </Link>
+            ) : (
+              nextAction.title
+            )}
+          </CardTitle>
+          <CardDescription>{nextAction.description}</CardDescription>
+        </CardHeader>
+        {nextAction.kind === "invoice" && isStripeConfigured() ? (
+          <CardContent>
+            <InvoiceFromQuoteButton dealId={deal.id} />
+          </CardContent>
+        ) : null}
+      </Card>
 
       {/* The ICM engine — each button executes one stage contract against this
           deal's working material and drops a draft below. */}
