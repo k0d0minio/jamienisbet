@@ -3,6 +3,7 @@
 import { Resend } from "resend"
 import { getTranslations } from "next-intl/server"
 import { createClientFromContact } from "@jamie-nisbet/services"
+import { EMAIL_TEMPLATE_IDS } from "@jamie-nisbet/ui/emails/template-ids"
 
 import {
   makeContactSchema,
@@ -16,9 +17,7 @@ import { isServiceId } from "@/lib/services"
 const TO_EMAIL = "jamie.nisbet@outlook.be"
 const FROM_EMAIL = "Jamie Nisbet Consultancy <noreply@mail.jamienisbet.com>"
 
-// Resend Template ID for packages/ui/emails/contact-form-notification.html —
-// see packages/ui/emails/README.md for how to publish it and get this value.
-const CONTACT_NOTIFICATION_TEMPLATE_ID = process.env.RESEND_CONTACT_NOTIFICATION_TEMPLATE_ID
+const CONTACT_NOTIFICATION_TEMPLATE_ID = EMAIL_TEMPLATE_IDS.contactFormNotification
 
 export async function submitContact(
   _prev: ContactState,
@@ -89,7 +88,7 @@ export async function submitContact(
   if (!process.env.RESEND_API_KEY || !CONTACT_NOTIFICATION_TEMPLATE_ID) {
     // No key/template configured — log so nothing is lost while testing locally.
     console.info(
-      "[contact] received (email not sent — RESEND_API_KEY or RESEND_CONTACT_NOTIFICATION_TEMPLATE_ID unset):",
+      "[contact] received (email not sent — RESEND_API_KEY unset, or contactFormNotification is missing an ID in packages/ui/emails/template-ids.ts):",
       { ...parsed.data, service: serviceLabel }
     )
     return { status: "success", message: t("status.success") }
