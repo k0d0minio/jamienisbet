@@ -15,6 +15,7 @@
   "dependencies": {
     "@jamie-nisbet/services": "workspace:*",
     "@jamie-nisbet/ui": "workspace:*",
+    "@vercel/analytics": "^2.0.1",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.20.0",
     "next": "^16.2.9",
