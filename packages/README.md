@@ -21,6 +21,12 @@ wrapper, etc.) as they're extracted.
   a dedicated `biz` Postgres schema), a lazy DB client, and query helpers (lead capture today;
   billing/invoicing/proposals later). Source-only like `ui`, consumed via `transpilePackages`.
   See [`services/README.md`](services/README.md).
+- [`icm/`](icm/) — **`@jamie-nisbet/icm`**: the ICM runtime for the admin dashboard's AI
+  pipeline. Maps each generatable document kind onto its governing stage `CONTEXT.md`, loads
+  only the Layer-3 files that contract names (templates, brand voice, rates, rubrics), and
+  carries the model policy from
+  [`_config/conventions/model-and-scaling.md`](../_config/conventions/model-and-scaling.md)
+  as code. Server-only, source-only. See [`icm/README.md`](icm/README.md).
 
 ## How it connects to the architecture
 - **Upstream / reads from:** the brand contract in [`_config/brand/`](../_config/brand/) (visual + voice).

@@ -19,9 +19,40 @@ fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 client row, opened into a profile (contact details, notes) and moved along an intake → delivery
 **status pipeline** (`new` → `contacted` → `qualified` → `proposed` → `won` → `delivered`, or
 `lost`) — plus a **Stripe billing** surface: a live financial overview (balance, outstanding,
-recent payments), invoicing (raise a draft → finalize & send), and shareable payment links.
-**Next:** the per-client pipeline is fleshed out with projects, quotes/proposals, and linked
-invoices (added as new sections + tables keyed to `clients`).
+recent payments), invoicing (raise a draft → finalize & send), and shareable payment links —
+plus the **ICM deal pipeline** (below): per-client deals whose documents are AI-generated
+against the repo's stage contracts and human-approved before anything consumes them.
+
+## The ICM deal pipeline
+
+Each client carries **deals** (one per opportunity). A deal's page is the runtime for the ICM
+workspaces: every generator executes one stage contract
+([`@jamie-nisbet/icm`](../../packages/icm/) loads the stage's `CONTEXT.md` plus exactly the
+Layer-3 files it names) through the **Vercel AI Gateway**, and every output lands as a
+versioned **draft** document that Jamie reviews, edits, and approves in place.
+
+- **Run triage** — project-triage stages 02+03 in one structured run: scored assessment
+  (+ GO/REDIRECT/NO-GO) and the customer-ready feedback page.
+- **Technical workshop** — a persisted per-deal brainstorm chat on *how* to build it;
+  **Crystallise** turns the transcript into a project outline document.
+- **Negotiation strategy** — stage 03, generated as a **private** document (coaching material,
+  never exportable). Its approval is the CRITICAL gate that unlocks the proposal.
+- **Proposal → quote → BRD** — filled from `shared/templates/` with brand voice and the
+  configured rates/floor; each requires its upstream approval (enforced server-side, 409 on a
+  miss).
+- **Mockups** — self-contained, inert HTML concepts styled from the `@jamie-nisbet/ui` tokens;
+  fan out 3 directions or iterate a version; previewed in a sandboxed iframe.
+- **Review gate** — `draft → approved | rejected` on every document. Only approved documents
+  feed dependent generators, the quote→draft-invoice hand-off, export/download, or the **repo
+  sync-back** (approval commits the artifact into the ICM folders via the GitHub API, keeping
+  the repo the canonical business record).
+- **Provenance** — every run records model, stage contract, context files, and token usage;
+  a stage-aware **Next action** card says where the deal is in the macro-pipeline.
+
+With `AI_GATEWAY_API_KEY` unset the AI routes return a "not configured" response and the rest
+of the admin still works; with `GITHUB_TOKEN`/`GITHUB_REPO` unset, approval works and sync is
+skipped. Models are swappable per tier via `AI_MODEL_HEAVY/STANDARD/FAST` (see
+[`.env.example`](.env.example)).
 
 ## Stripe billing
 
@@ -96,19 +127,25 @@ app/
     layout.tsx          # nav chrome (mobile-first spacing + tab-bar clearance)
     page.tsx            # dashboard (client counts + Stripe billing summary)
     clients/            # clients table (list) + status control; actions.ts (status/profile/archive/delete)
-    clients/[id]/       # client profile: editable details + notes, read-only intake, pipeline scaffold
+    clients/[id]/       # client profile: editable details + notes, read-only intake, deals rail
+    deals/              # actions.ts (deal CRUD, document review gate, workshop, quote→draft invoice)
+    deals/[id]/         # deal workspace: next action, generators, workshop chat, mockups, documents
+    deals/[id]/documents/[docId]/  # review surface: edit/approve/reject, versions, provenance, sync
     finances/           # Stripe financial overview (balance, outstanding, payments)
     invoices/           # Stripe invoice list + create-draft form; actions.ts (send/void)
     payment-links/      # Stripe payment-link list + create form; actions.ts (create/deactivate)
-components/             # login form, nav (top bar + mobile tab bar), service-worker register, billing forms
-lib/                    # auth, formatting, stripe client, money, finance reads, app-icon (PNG renderer)
+  api/ai/               # ICM generators (generate/triage/workshop/mockup) — session-checked, gateway-backed
+  api/documents/[id]/export/  # download an APPROVED document (never drafts/private)
+components/             # login form, nav (top bar + mobile tab bar), service-worker register, billing + pipeline UI
+lib/                    # auth, api-auth, formatting, stripe client, money, finance reads, deal context (Layer-4
+                        # assembly + gates), next-action, repo-sync, kinds, app-icon (PNG renderer)
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 
 ## Local development
 
 ```bash
-cp .env.example .env.local   # DATABASE_URL, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, STRIPE_SECRET_KEY (test)
+cp .env.example .env.local   # DATABASE_URL, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, STRIPE_SECRET_KEY (test), AI_GATEWAY_API_KEY
 pnpm --filter @jamie-nisbet/admin dev
 ```
 
@@ -118,6 +155,6 @@ Requires the `biz` schema to exist — run the migration in
 ## Deploy
 
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
-`DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, and `STRIPE_SECRET_KEY` (the
-same Stripe account the payment-gateway uses). Consumes the shared packages as source
+`DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
+same Stripe account the payment-gateway uses), `AI_GATEWAY_API_KEY`, and optionally `GITHUB_TOKEN`/`GITHUB_REPO` for the approval sync-back. Consumes the shared packages as source
 (`transpilePackages` in [`next.config.ts`](next.config.ts)).

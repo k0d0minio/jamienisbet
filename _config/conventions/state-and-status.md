@@ -32,6 +32,28 @@ Where each entity's front-matter lives:
 - **project:** `discovery` → `build` → `delivery` → `closed`
 - **invoice:** `draft` → `sent` → `paid` | `overdue`
 
+## The admin dashboard's live store (Neon) and how it maps
+The admin dashboard ([`websites/admin-dashboard/`](../../websites/admin-dashboard/)) runs the
+pipeline **live** against Neon Postgres (`biz` schema) and syncs approved artifacts back into
+these folders (see below). Two extra status sets exist there, and they map onto the sets above:
+
+- **`biz.clients.status`** (relationship summary): `new → contacted → qualified → proposed →
+  won → delivered | lost`. This is the *client* relationship; `contacted` and `delivered` are
+  dashboard-only refinements with no front-matter equivalent (`contacted` folds into `new`,
+  `delivered` into `won` when written as front-matter).
+- **`biz.deals.status`** (per-opportunity): exactly the lead/deal set above —
+  `new → qualified → proposed → won | lost`. One client can carry several deals.
+- **`biz.documents.status`** (review gate): `draft → in_review → approved | rejected`. This is
+  the ICM review gate as data — an AI-generated document is a Layer-4 draft until Jamie
+  approves it, and **only approved documents** feed anything downstream (dependent
+  generators, the Stripe draft invoice, export, repo sync-back).
+
+**Repo sync-back:** on approval the dashboard commits the artifact into the ICM folders
+(stage-owned kinds to their `workspaces/*/stages/*/output/` home, dashboard-native kinds to
+`shared/clients/<slug>/documents/`), so the repo stays the canonical business record and
+agent runs and dashboard runs stay interoperable. Neon is the live working store; git is the
+reviewed record.
+
 ## Retainer clients
 `retainer: true` marks an ongoing relationship (Jamie has a live one). Retainers bill on a recurring
 cadence rather than per-deal; finance and proposals treat them as a distinct path.
