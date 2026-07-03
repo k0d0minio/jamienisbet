@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button, Textarea } from "@jamie-nisbet/ui"
 
 import { clearBrainstormAction } from "@/app/(app)/deals/actions"
+import { Markdown } from "@/components/markdown"
 
 export type ChatMessage = {
   id: string
@@ -145,7 +146,11 @@ export function BrainstormChat({
             <p className="mb-1 text-xs font-medium text-muted-foreground">
               {m.role === "user" ? "You" : "Brainstorm"}
             </p>
-            <p className="whitespace-pre-wrap text-sm">{m.content}</p>
+            {m.role === "user" ? (
+              <p className="whitespace-pre-wrap text-sm">{m.content}</p>
+            ) : (
+              <Markdown>{m.content}</Markdown>
+            )}
           </div>
         ))}
         {partial !== null ? (
@@ -153,9 +158,13 @@ export function BrainstormChat({
             <p className="mb-1 text-xs font-medium text-muted-foreground">
               Brainstorm
             </p>
-            <p className="whitespace-pre-wrap text-sm">
-              {partial || "Thinking (researching the web can take a minute)…"}
-            </p>
+            {partial ? (
+              <Markdown>{partial}</Markdown>
+            ) : (
+              <p className="text-sm">
+                Thinking (researching the web can take a minute)…
+              </p>
+            )}
           </div>
         ) : null}
       </div>
