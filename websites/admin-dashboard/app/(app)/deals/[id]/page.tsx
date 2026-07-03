@@ -15,19 +15,19 @@ import {
   getDeal,
   listDocumentsForDeal,
   listWorkshopMessages,
+  parsePaymentSchedule,
 } from "@jamie-nisbet/services"
 
 import { DealStatusSelect } from "@/components/deal-status-select"
 import { DealDetailsForm } from "@/components/deal-details-form"
-import { GeneratePanel } from "@/components/generate-panel"
-import { InvoiceFromQuoteButton } from "@/components/invoice-from-quote-button"
-import { MockupPanel } from "@/components/mockup-panel"
-import { WorkshopChat } from "@/components/workshop-chat"
+import { BrainstormChat } from "@/components/brainstorm-chat"
+import { PaymentPlan, type MilestoneView } from "@/components/payment-plan"
+import { ProposalBuilder } from "@/components/proposal-builder"
 import { formatDateTime } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 import { documentStatusVariant, kindLabel } from "@/lib/kinds"
 import { nextActionFor } from "@/lib/next-action"
-import { isStripeConfigured } from "@/lib/stripe"
+import { getStripe, isStripeConfigured } from "@/lib/stripe"
 
 export const metadata: Metadata = { title: "Deal" }
 export const dynamic = "force-dynamic"
@@ -41,25 +41,45 @@ export default async function DealPage({
   const deal = await getDeal(id)
   if (!deal) notFound()
 
-  const [client, documents, workshop] = await Promise.all([
+  const [client, documents, brainstorm] = await Promise.all([
     getClient(deal.clientId),
     listDocumentsForDeal(deal.id),
     listWorkshopMessages(deal.id),
   ])
 
-  // The upstream approvals that unlock each generator (UX only — the API
-  // re-enforces every gate).
-  const hasApproved = (kind: string) =>
-    documents.some((d) => d.kind === kind && d.status === "approved")
-  const gates = {
-    approvedTriage: hasApproved("triage_assessment"),
-    approvedOutline: hasApproved("project_outline"),
-    approvedStrategy: hasApproved("negotiation_strategy"),
-    approvedProposal: hasApproved("proposal"),
-  }
+  const milestones = parsePaymentSchedule(deal)
+  const proposalApproved = documents.some(
+    (d) => d.kind === "proposal" && d.status === "approved"
+  )
+
+  // Live invoice status per milestone, read from Stripe (the source of truth
+  // for money). Best-effort: a Stripe hiccup shows the milestone without a
+  // status rather than hiding the step.
+  const stripe = getStripe()
+  const milestoneViews: MilestoneView[] = await Promise.all(
+    milestones.map(async (m) => {
+      let invoiceStatus: string | null = null
+      if (m.stripeInvoiceId && stripe) {
+        try {
+          const invoice = await stripe.invoices.retrieve(m.stripeInvoiceId)
+          invoiceStatus = invoice.status ?? null
+        } catch {
+          invoiceStatus = null
+        }
+      }
+      return {
+        id: m.id,
+        label: m.label,
+        amountMinor: m.amountMinor,
+        stripeInvoiceId: m.stripeInvoiceId ?? null,
+        invoiceStatus,
+      }
+    })
+  )
 
   const nextAction = nextActionFor(
-    documents.map((d) => ({ id: d.id, kind: d.kind, status: d.status }))
+    documents.map((d) => ({ id: d.id, kind: d.kind, status: d.status })),
+    milestones
   )
 
   return (
@@ -83,8 +103,7 @@ export default async function DealPage({
         <DealStatusSelect id={deal.id} value={deal.status} />
       </div>
 
-      {/* Where the macro-pipeline says this deal is, and the one thing to do
-          next. */}
+      {/* Where the deal is in the three steps, and the one thing to do next. */}
       <Card className="border-primary/40">
         <CardHeader>
           <CardDescription>Next action</CardDescription>
@@ -102,42 +121,21 @@ export default async function DealPage({
           </CardTitle>
           <CardDescription>{nextAction.description}</CardDescription>
         </CardHeader>
-        {nextAction.kind === "invoice" && isStripeConfigured() ? (
-          <CardContent>
-            <InvoiceFromQuoteButton dealId={deal.id} />
-          </CardContent>
-        ) : null}
       </Card>
 
-      {/* The ICM engine — each button executes one stage contract against this
-          deal's working material and drops a draft below. */}
+      {/* Step 1 — brainstorm the ask, draft the pitch for the meeting. */}
       <Card>
         <CardHeader>
-          <CardTitle>Generate</CardTitle>
+          <CardTitle>1 · Brainstorm &amp; pitch</CardTitle>
           <CardDescription>
-            Each step runs its ICM stage contract with only the context that
-            stage names. Locked steps unlock when the upstream document is
-            approved.
+            Think the lead&apos;s ask through with a web-connected research
+            partner, then draft the pitch you&apos;ll present over a coffee.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GeneratePanel dealId={deal.id} gates={gates} />
-        </CardContent>
-      </Card>
-
-      {/* The brainstorm surface — persisted per deal. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Technical workshop</CardTitle>
-          <CardDescription>
-            Private sparring on how to build it. Crystallise the thread into a
-            project outline when the direction is right.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WorkshopChat
+          <BrainstormChat
             dealId={deal.id}
-            initialMessages={workshop.map((m) => ({
+            initialMessages={brainstorm.map((m) => ({
               id: m.id,
               role: m.role,
               content: m.content,
@@ -146,47 +144,54 @@ export default async function DealPage({
         </CardContent>
       </Card>
 
-      {/* Mockups — branded HTML concepts the client can react to. */}
+      {/* Step 2 — after the meeting: what was agreed becomes the proposal. */}
       <Card>
         <CardHeader>
-          <CardTitle>Mockups</CardTitle>
+          <CardTitle>2 · Proposal</CardTitle>
           <CardDescription>
-            Self-contained HTML concepts styled from the design-system tokens.
-            Fan out three directions, pick one, iterate — each pass is a new
-            version in Documents.
+            The meeting happened — write down what you agreed and the payment
+            structure. The draft covers cost, business and technical
+            requirements, terms, and the how-we-work-together brief.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MockupPanel
+          <ProposalBuilder dealId={deal.id} />
+        </CardContent>
+      </Card>
+
+      {/* Step 3 — the approved proposal's payment schedule, invoiced. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>3 · Get paid</CardTitle>
+          <CardDescription>
+            One Stripe draft invoice per milestone of the approved proposal —
+            finalize &amp; send each from Invoices when it falls due.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PaymentPlan
             dealId={deal.id}
-            mockups={documents
-              .filter((d) => d.kind === "mockup")
-              .map((d) => ({
-                id: d.id,
-                version: d.version,
-                status: d.status,
-                title: d.title,
-              }))}
+            milestones={milestoneViews}
+            unlocked={proposalApproved}
+            stripeConfigured={isStripeConfigured()}
           />
         </CardContent>
       </Card>
 
-      {/* Documents — every artifact the pipeline has produced for this deal,
-          newest first. Each row is a version; approval state is the review
-          gate. */}
+      {/* Documents — the pitch and proposal drafts, newest first. Each row is
+          a version; approval state is the review gate. */}
       <Card>
         <CardHeader>
           <CardTitle>Documents</CardTitle>
           <CardDescription>
-            Every generated artifact starts as a draft. Open one to review, edit,
-            and approve it — only approved versions feed the next step.
+            Every draft starts here. Open one to review, edit, and approve it —
+            nothing is sent or invoiced until you approve.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {documents.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Nothing generated yet — run a step above to draft the first
-              document.
+              Nothing drafted yet — step 1 produces the first document.
             </p>
           ) : (
             <ul className="divide-y">
@@ -203,9 +208,6 @@ export default async function DealPage({
                       <span className="text-xs text-muted-foreground">
                         v{doc.version}
                       </span>
-                      {doc.isPrivate ? (
-                        <Badge variant="outline">Private</Badge>
-                      ) : null}
                     </span>
                     <span className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground">
@@ -223,7 +225,7 @@ export default async function DealPage({
         </CardContent>
       </Card>
 
-      {/* Deal facts — editable; value is what the pipeline metrics sum. */}
+      {/* Deal facts — editable; value follows the proposal's payment total. */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Details</CardTitle>
@@ -235,8 +237,8 @@ export default async function DealPage({
             valueMinor={deal.valueMinor}
           />
           <p className="mt-3 text-xs text-muted-foreground">
-            Created {formatDateTime(deal.createdAt)} · Workshop messages:{" "}
-            {workshop.length}
+            Created {formatDateTime(deal.createdAt)} · Brainstorm messages:{" "}
+            {brainstorm.length}
           </p>
         </CardContent>
       </Card>

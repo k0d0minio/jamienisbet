@@ -114,7 +114,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* The ICM pipeline at a glance: open deal value, documents stuck at the
+      {/* The lead pipeline at a glance: open deal value, documents stuck at the
           review gate (the human is the bottleneck by design), and what the AI
           engine has burned. */}
       {!error ? (

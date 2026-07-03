@@ -22,7 +22,6 @@ import {
 
 import { DocumentEditor } from "@/components/document-editor"
 import { DocumentReviewActions } from "@/components/document-review-actions"
-import { MockupFrame } from "@/components/mockup-frame"
 import { formatDateTime } from "@/lib/format"
 import {
   DISCLAIMER_KINDS,
@@ -47,8 +46,7 @@ export default async function DocumentPage({
     listDocumentsForDeal(deal.id),
   ])
   const versions = siblings.filter((d) => d.kind === doc.kind)
-  const isHtml = doc.contentHtml !== null
-  const content = (isHtml ? doc.contentHtml : doc.contentMd) ?? ""
+  const content = doc.contentMd ?? doc.contentHtml ?? ""
   const editable = doc.status === "draft" || doc.status === "in_review"
   const contextFiles: string[] = generation?.contextFiles
     ? JSON.parse(generation.contextFiles)
@@ -77,16 +75,6 @@ export default async function DocumentPage({
         <DocumentReviewActions id={doc.id} status={doc.status} />
       </div>
 
-      {doc.isPrivate ? (
-        <Alert>
-          <AlertTitle>Private — internal only</AlertTitle>
-          <AlertDescription>
-            Coaching material for Jamie. Never send or show this to the client;
-            it is excluded from export.
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
       {DISCLAIMER_KINDS.includes(doc.kind) ? (
         <Alert>
           <AlertTitle>Decision-support only</AlertTitle>
@@ -98,38 +86,9 @@ export default async function DocumentPage({
         </Alert>
       ) : null}
 
-      {isHtml ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Preview</CardTitle>
-            <CardDescription>
-              Rendered in a sandbox (no scripts, no network).
-              {doc.status === "approved" && !doc.isPrivate ? (
-                <>
-                  {" "}
-                  <a
-                    className="underline hover:text-foreground"
-                    href={`/api/documents/${doc.id}/export`}
-                  >
-                    Download HTML
-                  </a>
-                </>
-              ) : (
-                " Approve it to unlock download/share."
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MockupFrame html={content} />
-          </CardContent>
-        </Card>
-      ) : null}
-
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">
-            {isHtml ? "Source" : "Document"}
-          </CardTitle>
+          <CardTitle className="text-base">Document</CardTitle>
           {editable ? (
             <CardDescription>
               Drafts are yours to edit — the saved text is exactly what approval
@@ -141,7 +100,21 @@ export default async function DocumentPage({
               {doc.approvedAt
                 ? ` (${formatDateTime(doc.approvedAt)})`
                 : ""}{" "}
-              and locked. Reopen it or generate a new version to change it.
+              and locked.
+              {doc.status === "approved" ? (
+                <>
+                  {" "}
+                  <a
+                    className="underline hover:text-foreground"
+                    href={`/api/documents/${doc.id}/export`}
+                  >
+                    Download
+                  </a>{" "}
+                  it to send, or reopen / draft a new version to change it.
+                </>
+              ) : (
+                " Reopen it or draft a new version to change it."
+              )}
             </CardDescription>
           )}
         </CardHeader>
@@ -150,7 +123,7 @@ export default async function DocumentPage({
             id={doc.id}
             title={doc.title}
             content={content}
-            isHtml={isHtml}
+            isHtml={false}
             editable={editable}
           />
         </CardContent>
@@ -172,15 +145,7 @@ export default async function DocumentPage({
                 </div>
                 <div>
                   <dt className="text-xs text-muted-foreground">
-                    Stage contract
-                  </dt>
-                  <dd className="font-mono text-xs">
-                    {generation.stageContractPath ?? "— (dashboard-native kind)"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-muted-foreground">
-                    Context files (Layer 2–3)
+                    Context files (Layer 3)
                   </dt>
                   <dd>
                     {contextFiles.length ? (

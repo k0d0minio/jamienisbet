@@ -10,5 +10,5 @@ export {
   type ModelTier,
   type StageSpec,
 } from "./stages"
-export { modelFor, modelForTier } from "./models"
+export { modelFor, modelForTier, researchModel } from "./models"
 export { assembleStageContext, type StageContext } from "./context"

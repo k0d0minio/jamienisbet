@@ -95,12 +95,19 @@ export const deals = biz.table("deals", {
   // Expected or agreed value in EUR minor units (cents) — same convention as
   // the Stripe amounts the money helpers already format.
   valueMinor: integer("value_minor").notNull().default(0),
+  // The proposal's payment structure, as agreed with the client: a JSON array
+  // of milestones ({ id, label, amountMinor, stripeInvoiceId }). Written when
+  // the proposal is drafted; the "get paid" step raises one Stripe draft
+  // invoice per milestone and records the invoice id back here, so the
+  // proposal's payment terms and the actual invoicing can never drift apart.
+  // Null = no proposal drafted yet. See PaymentMilestone in queries/deals.ts.
+  paymentSchedule: text("payment_schedule"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 })
 
-// A generated (or hand-edited) pipeline artifact. Exactly one of content_md /
-// content_html is populated: markdown for documents, HTML for mockups.
+// A generated (or hand-edited) pipeline artifact (content_md carries the
+// document; content_html is legacy from the retired mockup kind).
 // Regeneration never overwrites — it inserts the next version for the same
 // (deal, kind), so the review trail stays intact.
 export const documents = biz.table("documents", {
@@ -108,7 +115,7 @@ export const documents = biz.table("documents", {
   dealId: uuid("deal_id")
     .notNull()
     .references(() => deals.id, { onDelete: "cascade" }),
-  // A DocumentKind from @jamie-nisbet/icm (triage_assessment, proposal, …).
+  // A DocumentKind from @jamie-nisbet/icm ("pitch" | "proposal").
   kind: varchar("kind", { length: 30 }).notNull(),
   title: varchar("title", { length: 200 }).notNull(),
   contentMd: text("content_md"),
@@ -118,8 +125,8 @@ export const documents = biz.table("documents", {
   // downstream (stage advance, invoice, sync, export) consumes a non-approved
   // document.
   status: varchar("status", { length: 20 }).notNull().default("draft"),
-  // Private documents (negotiation strategy) are internal coaching material —
-  // the UI brands them, and they are never exported or sent.
+  // Legacy flag from retired private kinds — no current kind sets it; kept
+  // so the export route can keep refusing anything historical marked private.
   isPrivate: boolean("is_private").notNull().default(false),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   // Repo sync-back: where in the ICM folders the approved artifact was

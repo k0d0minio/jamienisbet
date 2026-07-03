@@ -1,6 +1,6 @@
 // Model policy — the code mirror of _config/conventions/model-and-scaling.md:
-// heavy reasoning (Opus-class) for negotiation strategy and triage assessment,
-// cheaper/faster tiers for formatting and mechanical work. Model ids are
+// heavy reasoning (Opus-class) for the judgment-dense pitch, cheaper/faster
+// tiers for formatting and mechanical work. Model ids are
 // Vercel AI Gateway slugs ("creator/model"), overridable per tier via env so
 // models can be swapped without a code change.
 
@@ -24,4 +24,11 @@ export function modelForTier(tier: ModelTier): string {
 
 export function modelFor(kind: DocumentKind): string {
   return modelForTier(stageSpecs[kind].modelTier)
+}
+
+// The brainstorm's web-research tool runs on a natively search-connected
+// model (Perplexity Sonar via the same gateway) — the chat model itself stays
+// on the standard tier and calls this one when it needs the live web.
+export function researchModel(): string {
+  return process.env.AI_MODEL_RESEARCH || "perplexity/sonar-pro"
 }
