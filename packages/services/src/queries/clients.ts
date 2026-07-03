@@ -164,6 +164,30 @@ export async function setClientStripeCustomerId(
   return row
 }
 
+// Connect (or disconnect) the client's GitHub delivery repository. Like the
+// Stripe link this is managed by an explicit action — the repo is chosen from a
+// picker or freshly created, never hand-typed into the profile — so it stays off
+// ClientProfilePatch. Pass null repo to disconnect. `defaultBranch` is the branch
+// resolved at connect time, cached so the AI runs don't look it up every time.
+export async function setClientRepo(
+  id: string,
+  repo: { githubRepo: string; githubDefaultBranch: string | null } | null
+): Promise<Client | undefined> {
+  const [row] = await getDb()
+    .update(clients)
+    .set(
+      repo
+        ? {
+            githubRepo: repo.githubRepo,
+            githubDefaultBranch: repo.githubDefaultBranch,
+          }
+        : { githubRepo: null, githubDefaultBranch: null }
+    )
+    .where(eq(clients.id, id))
+    .returning()
+  return row
+}
+
 // ---- Archive / restore / delete --------------------------------------------
 // Archive is a reversible soft-hide (sets archived_at); delete is permanent.
 

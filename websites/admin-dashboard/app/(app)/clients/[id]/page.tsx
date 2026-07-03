@@ -14,12 +14,15 @@ import { getClient, listDealsForClient } from "@jamie-nisbet/services"
 
 import { ClientActions } from "@/components/client-actions"
 import { ClientProfileForm } from "@/components/client-profile-form"
+import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
 import { DealCreateForm } from "@/components/deal-create-form"
 import { formatDateTime, formatServiceId } from "@/lib/format"
+import { isGithubConfigured } from "@/lib/github"
 import { dealStatusVariant } from "@/lib/kinds"
 import { formatMoney } from "@/lib/money"
+import { clientSlug } from "@/lib/repo-sync"
 
 export const metadata: Metadata = { title: "Client" }
 export const dynamic = "force-dynamic"
@@ -90,6 +93,18 @@ export default async function ClientDetailPage({
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <ClientProfileForm client={client} />
+            <div className="border-t pt-4">
+              <div className="mb-2 text-xs text-muted-foreground">
+                Delivery repo
+              </div>
+              <ClientRepoLink
+                id={client.id}
+                githubRepo={client.githubRepo}
+                githubDefaultBranch={client.githubDefaultBranch}
+                configured={isGithubConfigured()}
+                suggestedName={clientSlug(client.name)}
+              />
+            </div>
             <div className="border-t pt-4">
               <div className="mb-2 text-xs text-muted-foreground">
                 Stripe customer

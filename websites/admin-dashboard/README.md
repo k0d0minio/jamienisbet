@@ -22,6 +22,15 @@ client row, opened into a profile (contact details, notes) and moved along an in
 recent payments), invoicing (raise a draft → finalize & send), and shareable payment links —
 plus the **lead pipeline** (below): per-client deals worked in exactly three steps.
 
+Each client profile also carries a **delivery repo** link ([`lib/github.ts`](lib/github.ts),
+[`components/client-repo-link.tsx`](components/client-repo-link.tsx)): when a client comes in,
+connect an existing GitHub repo or create a fresh one right there. Once connected, the pipeline's
+AI runs load a bounded **snapshot** of it (README, file tree, stack) as Layer-4 working material,
+so the brainstorm, pitch, and proposal are grounded in the client's actual codebase rather than a
+greenfield guess. The repo is stored on the client row (`clients.github_repo`), mirroring the prose
+pointer in `shared/clients/<slug>/repo-link.md`. Needs `GITHUB_TOKEN` (see [`.env.example`](.env.example));
+with it unset the profile shows a "not configured" note and the rest of the admin is unaffected.
+
 ## The lead pipeline — three steps, one deal
 
 Each client carries **deals** (one per opportunity). A deal's page is one pipeline that mirrors
@@ -134,7 +143,7 @@ app/
     layout.tsx          # nav chrome (mobile-first spacing + tab-bar clearance)
     page.tsx            # dashboard (client counts + Stripe billing summary)
     clients/            # clients table (list) + status control; actions.ts (status/profile/archive/delete)
-    clients/[id]/       # client profile: editable details + notes, read-only intake, deals rail
+    clients/[id]/       # client profile: editable details + notes, delivery-repo link, read-only intake, deals rail
     deals/              # actions.ts (deal CRUD, document review gate, brainstorm, milestone→draft invoice)
     deals/[id]/         # the 3-step deal pipeline: next action, brainstorm & pitch, proposal, get paid, documents
     deals/[id]/documents/[docId]/  # review surface: edit/approve/reject, versions, provenance, sync
@@ -145,7 +154,7 @@ app/
   api/documents/[id]/export/  # download an APPROVED document (never drafts)
 components/             # login form, nav (top bar + mobile tab bar), service-worker register, billing + pipeline UI
 lib/                    # auth, api-auth, formatting, stripe client, money, finance reads, deal context (Layer-4
-                        # assembly), next-action, repo-sync, kinds, app-icon (PNG renderer)
+                        # assembly), next-action, repo-sync, github (client delivery repos), kinds, app-icon
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 
@@ -163,5 +172,8 @@ Requires the `biz` schema to exist — run the migration in
 
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
-same Stripe account the payment-gateway uses), `AI_GATEWAY_API_KEY`, and optionally `GITHUB_TOKEN`/`GITHUB_REPO` for the approval sync-back. Consumes the shared packages as source
-(`transpilePackages` in [`next.config.ts`](next.config.ts)).
+same Stripe account the payment-gateway uses), `AI_GATEWAY_API_KEY`, and optionally
+`GITHUB_TOKEN`/`GITHUB_REPO` for the approval sync-back **and** the client delivery-repo
+connect/create/analysis (plus `GITHUB_REPO_OWNER` to home new client repos under a specific
+user/org). Consumes the shared packages as source (`transpilePackages` in
+[`next.config.ts`](next.config.ts)).

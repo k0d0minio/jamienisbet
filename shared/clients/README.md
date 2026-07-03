@@ -19,7 +19,10 @@ This is the single source of truth for Jamie's clients and prospects. Since lead
   - `deals.md` — opportunities with status (`new`→`qualified`→`proposed`→`won`|`lost`).
   - `scope.md` — the agreed scope (the baton from proposals).
   - `finances.md` — quoted / billed / paid, mirroring the finance ledgers.
-  - `repo-link.md` — pointer to the client's external delivery repo.
+  - `repo-link.md` — pointer to the client's external delivery repo. The admin dashboard mirrors
+    this pointer on the client's database row (`clients.github_repo`), where it can be connected to
+    an existing repo or a freshly created one, and from which the lead pipeline's AI runs load a
+    snapshot of the repo for codebase-aware suggestions — keep the two in step.
 
 ## Notes
 Slugs follow [`_config/conventions/client-and-slug.md`](../../_config/conventions/client-and-slug.md): lowercase snake_case from the legal name, assigned by `new-client.sh`, collisions surfaced for human review. State front-matter and status sets follow [`state-and-status.md`](../../_config/conventions/state-and-status.md). One client folder, many projects: link each rather than duplicating its detail here. The actual delivery build lives in the client's **own external repo** — this repo keeps only scope + financial docs + the pointer. Client data is personal data — handle per [`governance.md`](../../_config/conventions/governance.md) (GDPR/RGPD), keeping only what the business needs. Any NIF/VAT or rate here is decision-support and must be confirmed against official records and reviewed by a licensed Portuguese contabilista certificado before it drives an invoice.

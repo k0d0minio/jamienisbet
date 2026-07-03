@@ -19,6 +19,7 @@ import {
 
 import { formatMoney } from "@/lib/money"
 import { kindLabel } from "@/lib/kinds"
+import { getRepoSnapshot } from "@/lib/github"
 
 /**
  * Layer-4 assembly for the pipeline's AI runs — the client, the deal, and the
@@ -60,6 +61,22 @@ function documentSection(doc: Document): string {
   return `## ${kindLabel(doc.kind)} (approved, v${doc.version})\n\n${
     doc.contentMd ?? doc.contentHtml ?? ""
   }`
+}
+
+/**
+ * Snapshot of the client's connected delivery repo (README, file tree, stack),
+ * or null when none is connected / GitHub is unconfigured / the read fails. This
+ * is what makes the pipeline's suggestions codebase-aware: the same snapshot
+ * feeds the brainstorm, pitch, and proposal runs. Best-effort by design — a repo
+ * hiccup never blocks a generation.
+ */
+async function repoSection(client: Client): Promise<string | null> {
+  if (!client.githubRepo) return null
+  try {
+    return await getRepoSnapshot(client.githubRepo, client.githubDefaultBranch)
+  } catch {
+    return null
+  }
 }
 
 async function brainstormSection(dealId: string): Promise<string | null> {
@@ -138,6 +155,10 @@ export async function buildGenerationRequest(
     dealSection(deal),
   ]
 
+  // The client's codebase, when they have one connected — grounds the whole run.
+  const repo = await repoSection(client)
+  if (repo) sections.push(repo)
+
   if (kind === "pitch") {
     const brainstorm = await brainstormSection(dealId)
     if (brainstorm) sections.push(brainstorm)
@@ -169,7 +190,11 @@ export async function buildGenerationRequest(
     model: modelFor(kind),
     system: stage.system,
     prompt: sections.join("\n\n"),
-    contextFiles: stage.files,
+    // Record the client repo alongside the Layer-3 files when its snapshot went
+    // into the context, so provenance shows exactly what grounded the run.
+    contextFiles: repo
+      ? [...stage.files, `github:${client.githubRepo}`]
+      : stage.files,
     title: spec.title,
   }
 }
@@ -189,16 +214,21 @@ export async function buildBrainstormContext(dealId: string): Promise<{
   if (!client) throw new Error("That deal's client no longer exists.")
 
   const pitch = await getLatestApprovedDocument(dealId, "pitch")
+  const repo = await repoSection(client)
 
   const system = [
     `You are Jamie Nisbet's brainstorm partner. Jamie is a software engineer / AI consultant (standard rate €120/hour, ~30 hours/week capacity, trusted contractors on standby for larger builds). You are preparing his PITCH for one specific lead — the informal first meeting happens over a coffee or a drink, so the goal is a sharp, well-researched point of view on the lead's ask, not a slide deck.`,
     `You have a webResearch tool connected to the live web. USE IT — before proposing a direction, research the lead's market, existing/competing solutions, relevant tools and pricing, anything that changes the shape or the price of the build. Say what you found and cite where it came from.`,
+    repo
+      ? `The lead has a connected delivery repository (below). Ground your thinking in what actually exists there — its stack, structure, and current state — so effort bands and directions reflect the real codebase, not a greenfield guess.`
+      : null,
     `Behave like a sharp colleague at a whiteboard: propose concrete solutions, name real trade-offs and risks, give rough effort bands in hours, and surface the questions that most change the design. Push back when an approach is over-built for the client's budget. Be concise — this is a chat, not a document.`,
     `When Jamie is happy with the direction he will hit "Draft pitch", which turns this thread into his meeting-prep pitch document — so keep the thread concrete enough to be drafted from.`,
     "",
     "# Working material",
     clientSection(client),
     dealSection(deal),
+    repo,
     pitch ? documentSection(pitch) : null,
   ]
     .filter((s): s is string => s !== null)
