@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ChevronLeft } from "lucide-react"
 
 import {
   Alert,
@@ -20,6 +21,7 @@ import {
   listDocumentsForDeal,
 } from "@jamie-nisbet/services"
 
+import { DealStageNav } from "@/components/deal-stage-nav"
 import { DocumentEditor } from "@/components/document-editor"
 import { DocumentReviewActions } from "@/components/document-review-actions"
 import { formatDateTime } from "@/lib/format"
@@ -54,13 +56,15 @@ export default async function DocumentPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <div className="flex flex-col gap-4">
         <Link
-          href={`/deals/${deal.id}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          href={`/deals/${deal.id}/documents`}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          ← {deal.title}
+          <ChevronLeft className="size-4" aria-hidden />
+          <span className="truncate">{deal.title}</span>
         </Link>
+        <DealStageNav dealId={deal.id} />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">

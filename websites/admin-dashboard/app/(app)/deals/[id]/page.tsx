@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ChevronLeft, ChevronRight, Check, FileText, Settings } from "lucide-react"
 
 import {
   Badge,
@@ -9,28 +10,35 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  cn,
 } from "@jamie-nisbet/ui"
 import {
   getClient,
   getDeal,
   listDocumentsForDeal,
-  listWorkshopMessages,
   parsePaymentSchedule,
 } from "@jamie-nisbet/services"
 
 import { DealStatusSelect } from "@/components/deal-status-select"
-import { DealDetailsForm } from "@/components/deal-details-form"
-import { BrainstormChat } from "@/components/brainstorm-chat"
-import { PaymentPlan, type MilestoneView } from "@/components/payment-plan"
-import { ProposalBuilder } from "@/components/proposal-builder"
-import { formatDateTime } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
-import { documentStatusVariant, kindLabel } from "@/lib/kinds"
 import { nextActionFor } from "@/lib/next-action"
-import { getStripe, isStripeConfigured } from "@/lib/stripe"
+import {
+  DEAL_STAGES,
+  dealStageStatuses,
+  type DealStageStatus,
+} from "@/lib/deal-stages"
 
 export const metadata: Metadata = { title: "Deal" }
 export const dynamic = "force-dynamic"
+
+const STATUS_BADGE: Record<
+  DealStageStatus,
+  { label: string; variant: "success" | "default" | "outline" }
+> = {
+  done: { label: "Done", variant: "success" },
+  current: { label: "Now", variant: "default" },
+  todo: { label: "To do", variant: "outline" },
+}
 
 export default async function DealPage({
   params,
@@ -41,60 +49,54 @@ export default async function DealPage({
   const deal = await getDeal(id)
   if (!deal) notFound()
 
-  const [client, documents, brainstorm] = await Promise.all([
+  const [client, documents] = await Promise.all([
     getClient(deal.clientId),
     listDocumentsForDeal(deal.id),
-    listWorkshopMessages(deal.id),
   ])
 
   const milestones = parsePaymentSchedule(deal)
-  const proposalApproved = documents.some(
-    (d) => d.kind === "proposal" && d.status === "approved"
+  const approvedKinds = new Set(
+    documents.filter((d) => d.status === "approved").map((d) => d.kind)
   )
 
-  // Live invoice status per milestone, read from Stripe (the source of truth
-  // for money). Best-effort: a Stripe hiccup shows the milestone without a
-  // status rather than hiding the step.
-  const stripe = getStripe()
-  const milestoneViews: MilestoneView[] = await Promise.all(
-    milestones.map(async (m) => {
-      let invoiceStatus: string | null = null
-      if (m.stripeInvoiceId && stripe) {
-        try {
-          const invoice = await stripe.invoices.retrieve(m.stripeInvoiceId)
-          invoiceStatus = invoice.status ?? null
-        } catch {
-          invoiceStatus = null
-        }
-      }
-      return {
-        id: m.id,
-        label: m.label,
-        amountMinor: m.amountMinor,
-        stripeInvoiceId: m.stripeInvoiceId ?? null,
-        invoiceStatus,
-      }
-    })
-  )
+  const statuses = dealStageStatuses({
+    pitchApproved: approvedKinds.has("pitch"),
+    proposalApproved: approvedKinds.has("proposal"),
+    hasMilestones: milestones.length > 0,
+    allMilestonesInvoiced:
+      milestones.length > 0 && milestones.every((m) => m.stripeInvoiceId),
+  })
 
   const nextAction = nextActionFor(
     documents.map((d) => ({ id: d.id, kind: d.kind, status: d.status })),
     milestones
   )
 
+  // The stage the "next action" points at — so the big card deep-links straight
+  // into the page where the work happens.
+  const nextHref =
+    nextAction.kind === "review" && nextAction.documentId
+      ? `/deals/${deal.id}/documents/${nextAction.documentId}`
+      : nextAction.kind === "brainstorm"
+        ? `/deals/${deal.id}/brainstorm`
+        : nextAction.kind === "proposal"
+          ? `/deals/${deal.id}/proposal`
+          : nextAction.kind === "invoice"
+            ? `/deals/${deal.id}/get-paid`
+            : null
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Link
-          href={`/clients/${deal.clientId}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← {client?.name ?? "Client"}
-        </Link>
-      </div>
+      <Link
+        href={`/clients/${deal.clientId}`}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+        {client?.name ?? "Client"}
+      </Link>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold">{deal.title}</h1>
           <Badge variant="secondary">
             {deal.valueMinor > 0 ? formatMoney(deal.valueMinor, "eur") : "—"}
@@ -103,145 +105,127 @@ export default async function DealPage({
         <DealStatusSelect id={deal.id} value={deal.status} />
       </div>
 
-      {/* Where the deal is in the three steps, and the one thing to do next. */}
-      <Card className="border-primary/40">
-        <CardHeader>
-          <CardDescription>Next action</CardDescription>
-          <CardTitle className="text-lg">
-            {nextAction.kind === "review" && nextAction.documentId ? (
+      {/* The one thing to do next — a full-width tap target that jumps straight
+          to the page where that work happens. */}
+      {nextHref ? (
+        <Link href={nextHref} className="block">
+          <Card className="border-primary/40 transition-colors hover:border-primary">
+            <CardHeader>
+              <CardDescription>Next action</CardDescription>
+              <CardTitle className="flex items-center justify-between gap-3 text-lg">
+                <span>{nextAction.title}</span>
+                <ChevronRight
+                  className="size-5 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
+              </CardTitle>
+              <CardDescription>{nextAction.description}</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+      ) : (
+        <Card className="border-primary/40">
+          <CardHeader>
+            <CardDescription>Next action</CardDescription>
+            <CardTitle className="text-lg">{nextAction.title}</CardTitle>
+            <CardDescription>{nextAction.description}</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {/* The three stages — each a large tappable row that opens its own page.
+          Status pills say where the deal stands at a glance. */}
+      <div className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">Stages</h2>
+        <div className="flex flex-col gap-3">
+          {DEAL_STAGES.map((stage) => {
+            const status = statuses[stage.slug]
+            const badge = STATUS_BADGE[status]
+            return (
               <Link
-                href={`/deals/${deal.id}/documents/${nextAction.documentId}`}
-                className="underline-offset-4 hover:underline"
+                key={stage.slug}
+                href={`/deals/${deal.id}/${stage.slug}`}
+                className="block"
               >
-                {nextAction.title} →
+                <Card
+                  className={cn(
+                    "py-0 transition-colors hover:border-primary/60",
+                    status === "current" && "border-primary/40"
+                  )}
+                >
+                  <CardContent className="flex items-center gap-4 p-4">
+                    <span
+                      className={cn(
+                        "flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
+                        status === "done"
+                          ? "bg-success-soft text-success"
+                          : status === "current"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                      )}
+                      aria-hidden
+                    >
+                      {status === "done" ? (
+                        <Check className="size-4" />
+                      ) : (
+                        stage.step
+                      )}
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">{stage.title}</span>
+                        <Badge variant={badge.variant}>{badge.label}</Badge>
+                      </span>
+                      <span className="line-clamp-2 text-sm text-muted-foreground">
+                        {stage.blurb}
+                      </span>
+                    </span>
+                    <ChevronRight
+                      className="size-5 shrink-0 text-muted-foreground"
+                      aria-hidden
+                    />
+                  </CardContent>
+                </Card>
               </Link>
-            ) : (
-              nextAction.title
-            )}
-          </CardTitle>
-          <CardDescription>{nextAction.description}</CardDescription>
-        </CardHeader>
-      </Card>
+            )
+          })}
+        </div>
+      </div>
 
-      {/* Step 1 — brainstorm the ask, draft the pitch for the meeting. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>1 · Brainstorm &amp; pitch</CardTitle>
-          <CardDescription>
-            Think the lead&apos;s ask through with a web-connected research
-            partner, then draft the pitch you&apos;ll present over a coffee.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <BrainstormChat
-            dealId={deal.id}
-            initialMessages={brainstorm.map((m) => ({
-              id: m.id,
-              role: m.role,
-              content: m.content,
-            }))}
-          />
-        </CardContent>
-      </Card>
+      {/* Supporting pages — the drafts and the editable deal facts. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link href={`/deals/${deal.id}/documents`} className="block">
+          <Card className="py-0 transition-colors hover:border-primary/60">
+            <CardContent className="flex items-center gap-3 p-4">
+              <FileText className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+              <span className="flex flex-1 flex-col">
+                <span className="font-medium">Documents</span>
+                <span className="text-sm text-muted-foreground">
+                  {documents.length === 0
+                    ? "Nothing drafted yet"
+                    : `${documents.length} draft${documents.length === 1 ? "" : "s"}`}
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+            </CardContent>
+          </Card>
+        </Link>
 
-      {/* Step 2 — after the meeting: what was agreed becomes the proposal. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>2 · Proposal</CardTitle>
-          <CardDescription>
-            The meeting happened — write down what you agreed and the payment
-            structure. The draft covers cost, business and technical
-            requirements, terms, and the how-we-work-together brief.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProposalBuilder dealId={deal.id} />
-        </CardContent>
-      </Card>
-
-      {/* Step 3 — the approved proposal's payment schedule, invoiced. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>3 · Get paid</CardTitle>
-          <CardDescription>
-            One Stripe draft invoice per milestone of the approved proposal —
-            finalize &amp; send each from Invoices when it falls due.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PaymentPlan
-            dealId={deal.id}
-            milestones={milestoneViews}
-            unlocked={proposalApproved}
-            stripeConfigured={isStripeConfigured()}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Documents — the pitch and proposal drafts, newest first. Each row is
-          a version; approval state is the review gate. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Documents</CardTitle>
-          <CardDescription>
-            Every draft starts here. Open one to review, edit, and approve it —
-            nothing is sent or invoiced until you approve.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {documents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing drafted yet — step 1 produces the first document.
-            </p>
-          ) : (
-            <ul className="divide-y">
-              {documents.map((doc) => (
-                <li key={doc.id}>
-                  <Link
-                    href={`/deals/${deal.id}/documents/${doc.id}`}
-                    className="flex flex-wrap items-center justify-between gap-2 py-3 hover:bg-muted/40"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-sm font-medium">
-                        {kindLabel(doc.kind)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        v{doc.version}
-                      </span>
-                    </span>
-                    <span className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground">
-                        {formatDateTime(doc.updatedAt)}
-                      </span>
-                      <Badge variant={documentStatusVariant(doc.status)}>
-                        {doc.status.replace("_", " ")}
-                      </Badge>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Deal facts — editable; value follows the proposal's payment total. */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DealDetailsForm
-            id={deal.id}
-            title={deal.title}
-            valueMinor={deal.valueMinor}
-          />
-          <p className="mt-3 text-xs text-muted-foreground">
-            Created {formatDateTime(deal.createdAt)} · Brainstorm messages:{" "}
-            {brainstorm.length}
-          </p>
-        </CardContent>
-      </Card>
+        <Link href={`/deals/${deal.id}/details`} className="block">
+          <Card className="py-0 transition-colors hover:border-primary/60">
+            <CardContent className="flex items-center gap-3 p-4">
+              <Settings className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+              <span className="flex flex-1 flex-col">
+                <span className="font-medium">Details</span>
+                <span className="text-sm text-muted-foreground">
+                  Title &amp; deal value
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
     </div>
   )
 }
