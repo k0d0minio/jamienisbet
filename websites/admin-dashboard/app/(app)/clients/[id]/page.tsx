@@ -150,17 +150,16 @@ export default async function ClientDetailPage({
         </Card>
       </div>
 
-      {/* The pipeline itself: each opportunity is a deal, and a deal's page is
-          where the ICM engine drafts triage, outlines, proposals, quotes, BRDs
-          and mockups — each behind its review gate. Invoices stay on the
-          Invoices (Stripe) surface. */}
+      {/* The pipeline itself: each opportunity is a deal, and a deal's page
+          runs the three steps — brainstorm & pitch, proposal, get paid — with
+          every document reviewed before it moves anything forward. */}
       <Card>
         <CardHeader>
           <CardTitle>Deals</CardTitle>
           <CardDescription>
-            One deal per opportunity. Open a deal to run its pipeline — triage,
-            workshop, proposal, quote, mockups — with every document reviewed
-            before it moves anything forward.
+            One deal per opportunity. Open a deal to run its three steps —
+            brainstorm &amp; pitch, proposal, get paid — with every document
+            reviewed before anything is sent or invoiced.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">

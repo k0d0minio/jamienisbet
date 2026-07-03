@@ -3,17 +3,12 @@ import "server-only"
 import type { Document } from "@jamie-nisbet/services"
 import { isDocumentKind, stageSpecs } from "@jamie-nisbet/icm"
 
-// Repo sync-back: on approval, commit the artifact into the ICM folders so the
-// git repo stays the canonical business record and agent-run work stays
-// interoperable with dashboard-run work. This is the ONE dashboard action that
-// writes outside the database, and it only ever fires AFTER the human review
-// gate — an approved document is by definition a human-reviewed output, so the
-// outbound boundary (_config/conventions/scripts-and-integrations.md) holds.
-//
-// Stage-owned kinds overwrite their conventional output file (the workspace
-// convention is "the current document lives at output/<client>/…"; history is
-// git's job). Dashboard-native kinds write versioned files under the client's
-// documents/ folder.
+// Repo sync-back: on approval, commit the artifact into the client's folder
+// (shared/clients/<slug>/documents/) so the git repo stays the canonical
+// business record. This is the ONE dashboard action that writes outside the
+// database, and it only ever fires AFTER the human review gate — an approved
+// document is by definition a human-reviewed output, so the outbound boundary
+// (_config/conventions/scripts-and-integrations.md) holds.
 
 /** Same derivation scripts/new-client.sh uses: lowercase snake_case. */
 export function clientSlug(name: string): string {

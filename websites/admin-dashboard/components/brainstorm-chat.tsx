@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 
 import { Button, Textarea } from "@jamie-nisbet/ui"
 
-import { clearWorkshopAction } from "@/app/(app)/deals/actions"
+import { clearBrainstormAction } from "@/app/(app)/deals/actions"
 
 export type ChatMessage = {
   id: string
@@ -14,12 +14,13 @@ export type ChatMessage = {
 }
 
 /**
- * The technical workshop — a persisted, per-deal brainstorm on HOW to build
- * the thing. The transcript is server-owned (the API loads and saves it), so
+ * Step 1 — the brainstorm: a persisted, per-deal chat with a web-connected
+ * research partner, used to think through the lead's ask before the first
+ * meeting. The transcript is server-owned (the API loads and saves it), so
  * this component only ever sends the newest message and renders the stream.
- * "Crystallise" turns the whole transcript into a project-outline draft.
+ * "Draft pitch" turns the whole thread into the meeting-prep pitch document.
  */
-export function WorkshopChat({
+export function BrainstormChat({
   dealId,
   initialMessages,
 }: {
@@ -30,7 +31,7 @@ export function WorkshopChat({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [input, setInput] = useState("")
   const [partial, setPartial] = useState<string | null>(null)
-  const [busy, setBusy] = useState<"chat" | "crystallise" | "clear" | null>(null)
+  const [busy, setBusy] = useState<"chat" | "pitch" | "clear" | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function send() {
@@ -45,14 +46,14 @@ export function WorkshopChat({
     ])
     setPartial("")
     try {
-      const res = await fetch("/api/ai/workshop", {
+      const res = await fetch("/api/ai/brainstorm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dealId, message }),
       })
       if (!res.ok || !res.body) {
         const json = await res.json().catch(() => null)
-        setError(json?.error ?? `The workshop call failed (${res.status}).`)
+        setError(json?.error ?? `The brainstorm call failed (${res.status}).`)
         return
       }
       const reader = res.body.getReader()
@@ -69,26 +70,26 @@ export function WorkshopChat({
         { id: `local-${Date.now()}-a`, role: "assistant", content: full },
       ])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "The workshop call failed.")
+      setError(err instanceof Error ? err.message : "The brainstorm call failed.")
     } finally {
       setPartial(null)
       setBusy(null)
     }
   }
 
-  async function crystallise() {
+  async function draftPitch() {
     if (busy) return
-    setBusy("crystallise")
+    setBusy("pitch")
     setError(null)
     try {
-      const res = await fetch("/api/ai/generate", {
+      const res = await fetch("/api/ai/pitch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dealId, kind: "project_outline" }),
+        body: JSON.stringify({ dealId }),
       })
       if (!res.ok || !res.body) {
         const json = await res.json().catch(() => null)
-        setError(json?.error ?? `Crystallise failed (${res.status}).`)
+        setError(json?.error ?? `Drafting the pitch failed (${res.status}).`)
         return
       }
       // Drain the stream; the draft lands in Documents when it completes.
@@ -99,7 +100,7 @@ export function WorkshopChat({
       }
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Crystallise failed.")
+      setError(err instanceof Error ? err.message : "Drafting the pitch failed.")
     } finally {
       setBusy(null)
     }
@@ -109,13 +110,13 @@ export function WorkshopChat({
     if (busy) return
     if (
       !window.confirm(
-        "Clear the whole workshop transcript? Crystallised outlines are kept."
+        "Clear the whole brainstorm transcript? Drafted pitches are kept."
       )
     )
       return
     setBusy("clear")
     try {
-      await clearWorkshopAction(dealId)
+      await clearBrainstormAction(dealId)
       setMessages([])
     } finally {
       setBusy(null)
@@ -127,9 +128,9 @@ export function WorkshopChat({
       <div className="flex max-h-96 flex-col gap-3 overflow-y-auto rounded-md border bg-muted/20 p-3">
         {messages.length === 0 && partial === null ? (
           <p className="text-sm text-muted-foreground">
-            Think out loud about how to build this — architecture, stack,
-            phases, effort. When the direction feels right, crystallise it into
-            a project outline.
+            Think out loud about the lead&apos;s ask — the assistant researches
+            the web (market, existing solutions, pricing) as you go. When the
+            direction feels right, draft the pitch for the meeting.
           </p>
         ) : null}
         {messages.map((m) => (
@@ -142,7 +143,7 @@ export function WorkshopChat({
             }
           >
             <p className="mb-1 text-xs font-medium text-muted-foreground">
-              {m.role === "user" ? "You" : "Workshop"}
+              {m.role === "user" ? "You" : "Brainstorm"}
             </p>
             <p className="whitespace-pre-wrap text-sm">{m.content}</p>
           </div>
@@ -150,10 +151,10 @@ export function WorkshopChat({
         {partial !== null ? (
           <div className="mr-8 rounded-md bg-background p-3 shadow-sm">
             <p className="mb-1 text-xs font-medium text-muted-foreground">
-              Workshop
+              Brainstorm
             </p>
             <p className="whitespace-pre-wrap text-sm">
-              {partial || "Thinking…"}
+              {partial || "Thinking (researching the web can take a minute)…"}
             </p>
           </div>
         ) : null}
@@ -178,7 +179,7 @@ export function WorkshopChat({
             }
           }}
           rows={3}
-          placeholder="e.g. Could we do this as a thin Next.js app over their existing sheet?"
+          placeholder="e.g. They want a booking system — what do the existing tools cost, and where's the gap?"
         />
         <div className="flex flex-wrap gap-2">
           <Button type="submit" size="sm" disabled={busy !== null || !input.trim()}>
@@ -189,11 +190,9 @@ export function WorkshopChat({
             size="sm"
             variant="outline"
             disabled={busy !== null || (messages.length === 0 && partial === null)}
-            onClick={crystallise}
+            onClick={draftPitch}
           >
-            {busy === "crystallise"
-              ? "Crystallising…"
-              : "Crystallise → project outline"}
+            {busy === "pitch" ? "Drafting…" : "Draft pitch"}
           </Button>
           <Button
             type="button"

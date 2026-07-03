@@ -20,39 +20,46 @@ client row, opened into a profile (contact details, notes) and moved along an in
 **status pipeline** (`new` → `contacted` → `qualified` → `proposed` → `won` → `delivered`, or
 `lost`) — plus a **Stripe billing** surface: a live financial overview (balance, outstanding,
 recent payments), invoicing (raise a draft → finalize & send), and shareable payment links —
-plus the **ICM deal pipeline** (below): per-client deals whose documents are AI-generated
-against the repo's stage contracts and human-approved before anything consumes them.
+plus the **lead pipeline** (below): per-client deals worked in exactly three steps.
 
-## The ICM deal pipeline
+## The lead pipeline — three steps, one deal
 
-Each client carries **deals** (one per opportunity). A deal's page is the runtime for the ICM
-workspaces: every generator executes one stage contract
-([`@jamie-nisbet/icm`](../../packages/icm/) loads the stage's `CONTEXT.md` plus exactly the
-Layer-3 files it names) through the **Vercel AI Gateway**, and every output lands as a
-versioned **draft** document that Jamie reviews, edits, and approves in place.
+Each client carries **deals** (one per opportunity). A deal's page is one pipeline that mirrors
+how Jamie actually closes work — no other workflows to learn:
 
-- **Run triage** — project-triage stages 02+03 in one structured run: scored assessment
-  (+ GO/REDIRECT/NO-GO) and the customer-ready feedback page.
-- **Technical workshop** — a persisted per-deal brainstorm chat on *how* to build it;
-  **Crystallise** turns the transcript into a project outline document.
-- **Negotiation strategy** — stage 03, generated as a **private** document (coaching material,
-  never exportable). Its approval is the CRITICAL gate that unlocks the proposal.
-- **Proposal → quote → BRD** — filled from `shared/templates/` with brand voice and the
-  configured rates/floor; each requires its upstream approval (enforced server-side, 409 on a
-  miss).
-- **Mockups** — self-contained, inert HTML concepts styled from the `@jamie-nisbet/ui` tokens;
-  fan out 3 directions or iterate a version; previewed in a sandboxed iframe.
-- **Review gate** — `draft → approved | rejected` on every document. Only approved documents
-  feed dependent generators, the quote→draft-invoice hand-off, export/download, or the **repo
-  sync-back** (approval commits the artifact into the ICM folders via the GitHub API, keeping
-  the repo the canonical business record).
-- **Provenance** — every run records model, stage contract, context files, and token usage;
-  a stage-aware **Next action** card says where the deal is in the macro-pipeline.
+1. **Brainstorm & pitch** — a persisted, per-deal chat with a **web-connected research
+   partner** (a `webResearch` tool runs deep research on a natively search-connected model —
+   Perplexity Sonar via the same AI Gateway — and returns findings with sources). When the
+   direction is right, **Draft pitch** turns the thread into the meeting-prep pitch document:
+   the ask, the research, solution directions with effort bands, the questions to ask over
+   coffee, and the recommended angle.
+2. **Proposal** — after the meeting, write down what was agreed (plan, timeline, and the
+   **payment structure** as milestone rows) and draft the proposal: cost, business
+   requirements, technical requirements, basic terms, and the "how we work together"
+   communication brief that keeps scope creep out. The milestones are stored structured on the
+   deal (`deals.payment_schedule`) and set the deal's value — the document and the billing can
+   never say different things.
+3. **Get paid** — once the proposal is **approved**, each milestone gets a **Create draft
+   invoice** button on the existing Stripe rails (draft → finalize & send from Invoices, never
+   sent automatically). The raised invoice's id is linked back to its milestone and its live
+   Stripe status shows in place.
+
+Two document kinds exist (**pitch**, **proposal** — see
+[`@jamie-nisbet/icm`](../../packages/icm/), which loads exactly the Layer-3 reference files
+each kind names, through the **Vercel AI Gateway**). Every output lands as a versioned
+**draft** that Jamie reviews, edits, and approves in place:
+
+- **Review gate** — `draft → approved | rejected` on every document. Only an approved proposal
+  unlocks invoicing; only approved documents can be exported/downloaded or **repo-synced**
+  (approval commits the artifact to `shared/clients/<slug>/documents/` via the GitHub API,
+  keeping the repo the canonical business record).
+- **Provenance** — every run records model, context files, and token usage; a **Next action**
+  card says which of the three steps the deal is at.
 
 With `AI_GATEWAY_API_KEY` unset the AI routes return a "not configured" response and the rest
 of the admin still works; with `GITHUB_TOKEN`/`GITHUB_REPO` unset, approval works and sync is
-skipped. Models are swappable per tier via `AI_MODEL_HEAVY/STANDARD/FAST` (see
-[`.env.example`](.env.example)).
+skipped. Models are swappable per tier via `AI_MODEL_HEAVY/STANDARD/FAST`, and the research
+tool's model via `AI_MODEL_RESEARCH` (see [`.env.example`](.env.example)).
 
 ## Stripe billing
 
@@ -128,17 +135,17 @@ app/
     page.tsx            # dashboard (client counts + Stripe billing summary)
     clients/            # clients table (list) + status control; actions.ts (status/profile/archive/delete)
     clients/[id]/       # client profile: editable details + notes, read-only intake, deals rail
-    deals/              # actions.ts (deal CRUD, document review gate, workshop, quote→draft invoice)
-    deals/[id]/         # deal workspace: next action, generators, workshop chat, mockups, documents
+    deals/              # actions.ts (deal CRUD, document review gate, brainstorm, milestone→draft invoice)
+    deals/[id]/         # the 3-step deal pipeline: next action, brainstorm & pitch, proposal, get paid, documents
     deals/[id]/documents/[docId]/  # review surface: edit/approve/reject, versions, provenance, sync
     finances/           # Stripe financial overview (balance, outstanding, payments)
     invoices/           # Stripe invoice list + create-draft form; actions.ts (send/void)
     payment-links/      # Stripe payment-link list + create form; actions.ts (create/deactivate)
-  api/ai/               # ICM generators (generate/triage/workshop/mockup) — session-checked, gateway-backed
-  api/documents/[id]/export/  # download an APPROVED document (never drafts/private)
+  api/ai/               # the pipeline's AI (brainstorm/pitch/proposal) — session-checked, gateway-backed
+  api/documents/[id]/export/  # download an APPROVED document (never drafts)
 components/             # login form, nav (top bar + mobile tab bar), service-worker register, billing + pipeline UI
 lib/                    # auth, api-auth, formatting, stripe client, money, finance reads, deal context (Layer-4
-                        # assembly + gates), next-action, repo-sync, kinds, app-icon (PNG renderer)
+                        # assembly), next-action, repo-sync, kinds, app-icon (PNG renderer)
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 

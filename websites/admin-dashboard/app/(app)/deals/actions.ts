@@ -13,6 +13,8 @@ import {
   getDeal,
   getDocument,
   getLatestApprovedDocument,
+  linkMilestoneInvoice,
+  parsePaymentSchedule,
   recordDocumentSync,
   setDocumentStatus,
   updateDeal,
@@ -155,36 +157,45 @@ export async function removeDocumentAction(id: string) {
   redirect(`/deals/${doc.dealId}`)
 }
 
-// ---- Workshop ---------------------------------------------------------------
+// ---- Brainstorm ---------------------------------------------------------------
 
-export async function clearWorkshopAction(dealId: string) {
+export async function clearBrainstormAction(dealId: string) {
   await clearWorkshop(dealId)
   revalidatePath(`/deals/${dealId}`)
 }
 
-// ---- Billing hand-off --------------------------------------------------------
+// ---- Step 3: get paid ----------------------------------------------------------
 
 /**
- * Approved quote → Stripe DRAFT invoice for the deal's value, on the existing
- * billing rails (same shape as the Invoices surface: drafts are never emailed;
- * "Finalize & send" stays a deliberate second step over there). The approved
- * quote is the review gate that authorises raising the figure at all.
+ * One payment milestone from the approved proposal → one Stripe DRAFT invoice,
+ * on the existing billing rails (same shape as the Invoices surface: drafts
+ * are never emailed; "Finalize & send" stays a deliberate second step over
+ * there). The approved proposal is the review gate that authorises raising
+ * the figure at all — its stored payment schedule is exactly what gets
+ * invoiced, so the document and the billing can never drift.
  */
-export async function createDraftInvoiceFromQuoteAction(dealId: string) {
+export async function createMilestoneInvoiceAction(
+  dealId: string,
+  milestoneId: string
+) {
   const stripe = getStripe()
   if (!stripe) throw new Error("Stripe is not configured in this environment.")
 
   const deal = await getDeal(dealId)
   if (!deal) throw new Error("That deal no longer exists.")
 
-  const quote = await getLatestApprovedDocument(dealId, "quote")
-  if (!quote) {
-    throw new Error("The quote must be approved before an invoice is raised.")
+  const proposal = await getLatestApprovedDocument(dealId, "proposal")
+  if (!proposal) {
+    throw new Error("The proposal must be approved before an invoice is raised.")
   }
-  if (deal.valueMinor <= 0) {
-    throw new Error(
-      "Set the deal value first — it becomes the invoice amount (the number you confirmed on the quote)."
-    )
+
+  const milestone = parsePaymentSchedule(deal).find((m) => m.id === milestoneId)
+  if (!milestone) throw new Error("That payment milestone no longer exists.")
+  if (milestone.stripeInvoiceId) {
+    throw new Error("This milestone already has an invoice — see Invoices.")
+  }
+  if (milestone.amountMinor <= 0) {
+    throw new Error("This milestone has no amount to invoice.")
   }
 
   const client = await getClient(deal.clientId)
@@ -193,7 +204,8 @@ export async function createDraftInvoiceFromQuoteAction(dealId: string) {
     throw new Error(`${client.name} has no email — add one on their profile first.`)
   }
 
-  const description = `${deal.title} — per approved quote v${quote.version}`.slice(0, 500)
+  const description =
+    `${deal.title} — ${milestone.label} (per approved proposal v${proposal.version})`.slice(0, 500)
   const customer = await ensureStripeCustomer(stripe, client)
   const invoice = await stripe.invoices.create({
     customer,
@@ -202,13 +214,16 @@ export async function createDraftInvoiceFromQuoteAction(dealId: string) {
     description,
     auto_advance: false, // stay a draft until explicitly sent from Invoices
   })
+  if (!invoice.id) throw new Error("Stripe returned an invoice without an id.")
   await stripe.invoiceItems.create({
     customer,
     invoice: invoice.id,
-    amount: deal.valueMinor,
+    amount: milestone.amountMinor,
     currency: "eur",
     description,
   })
+
+  await linkMilestoneInvoice(dealId, milestoneId, invoice.id)
 
   revalidatePath("/invoices")
   revalidatePath("/finances")

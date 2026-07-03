@@ -8,6 +8,7 @@ import {
   type Client,
   type Deal,
   type Document,
+  type PaymentMilestone,
 } from "@jamie-nisbet/services"
 import {
   assembleStageContext,
@@ -20,39 +21,13 @@ import { formatMoney } from "@/lib/money"
 import { kindLabel } from "@/lib/kinds"
 
 /**
- * Layer-4 assembly for one generation run: the client, the deal, and the prior
- * documents the stage builds on. The ICM review gates are enforced here, in
- * data terms — a stage that consumes an upstream document only ever sees an
- * APPROVED version of it. A missing approval throws GateError (surfaced as a
- * 409), which is the dashboard's version of "no document is generated until
- * this is signed off".
+ * Layer-4 assembly for the pipeline's AI runs — the client, the deal, and the
+ * working material each of the two documents builds on:
+ *
+ *   pitch    ← the intake + the brainstorm transcript
+ *   proposal ← the intake + the approved pitch (if any) + what Jamie agreed
+ *              with the client at the meeting (his form input, authoritative)
  */
-
-export class GateError extends Error {}
-
-// Upstream documents a kind REQUIRES an approved version of before it may run.
-const HARD_GATES: Partial<Record<DocumentKind, DocumentKind[]>> = {
-  // The customer translation of the triage decision — no decision, no page.
-  customer_feedback: ["triage_assessment"],
-  // The BRD is the customer-consumable form of the approved outline.
-  brd: ["project_outline"],
-  // Stage 03's CRITICAL gate: no proposal until the strategy is signed off.
-  proposal: ["negotiation_strategy"],
-  // Stage 05 prices the approved proposal's scope at the strategy's target.
-  quote: ["negotiation_strategy", "proposal"],
-}
-
-// Upstream documents folded in when an approved version happens to exist.
-const SOFT_CONTEXT: Partial<Record<DocumentKind, DocumentKind[]>> = {
-  project_outline: ["triage_assessment"],
-  negotiation_strategy: ["triage_assessment", "project_outline"],
-  proposal: ["triage_assessment", "project_outline"],
-  quote: ["project_outline"],
-  mockup: ["project_outline", "proposal"],
-}
-
-// Kinds whose run also loads the persisted workshop transcript.
-const WANTS_WORKSHOP: DocumentKind[] = ["project_outline", "mockup"]
 
 function clientSection(client: Client): string {
   const lines = [
@@ -87,6 +62,52 @@ function documentSection(doc: Document): string {
   }`
 }
 
+async function brainstormSection(dealId: string): Promise<string | null> {
+  const messages = await listWorkshopMessages(dealId)
+  if (messages.length === 0) return null
+  const transcript = messages
+    .map((m) => `**${m.role === "user" ? "Jamie" : "Assistant"}:** ${m.content}`)
+    .join("\n\n")
+  return `## Brainstorm transcript\n\n${transcript}`
+}
+
+/** What Jamie agreed with the client — the proposal form's input, passed
+ * through verbatim as the authoritative working material. */
+export type ProposalInputs = {
+  /** The plan as agreed at the meeting: solution, scope, key requirements. */
+  agreedPlan: string
+  /** Timeline agreed or expected (free text). */
+  timeline?: string
+  /** Anything else to fold in. */
+  notes?: string
+  /** The agreed payment structure — reproduced exactly in the document and
+   * stored on the deal for the invoicing step. */
+  milestones: Pick<PaymentMilestone, "label" | "amountMinor">[]
+}
+
+function agreementSection(inputs: ProposalInputs): string {
+  const schedule = inputs.milestones
+    .map((m) => `| ${m.label} | ${formatMoney(m.amountMinor, "eur")} |`)
+    .join("\n")
+  const total = inputs.milestones.reduce((sum, m) => sum + m.amountMinor, 0)
+  return [
+    "## What Jamie agreed with the client (authoritative)",
+    "",
+    inputs.agreedPlan.trim(),
+    inputs.timeline?.trim() ? `\n**Timeline:** ${inputs.timeline.trim()}` : null,
+    inputs.notes?.trim() ? `\n**Additional notes:**\n\n${inputs.notes.trim()}` : null,
+    "",
+    "**Agreed payment schedule (reproduce exactly):**",
+    "",
+    "| Milestone | Amount |",
+    "|---|---|",
+    schedule,
+    `| **Total** | **${formatMoney(total, "eur")}** |`,
+  ]
+    .filter((s): s is string => s !== null)
+    .join("\n")
+}
+
 export type GenerationRequest = {
   deal: Deal
   client: Client
@@ -94,16 +115,14 @@ export type GenerationRequest = {
   model: string
   system: string
   prompt: string
-  contractPath: string | null
   contextFiles: string[]
-  isPrivate: boolean
   title: string
 }
 
 export async function buildGenerationRequest(
   kind: DocumentKind,
   dealId: string,
-  instructions?: string
+  opts: { instructions?: string; proposalInputs?: ProposalInputs } = {}
 ): Promise<GenerationRequest> {
   const deal = await getDeal(dealId)
   if (!deal) throw new Error("That deal no longer exists.")
@@ -119,39 +138,28 @@ export async function buildGenerationRequest(
     dealSection(deal),
   ]
 
-  for (const gateKind of HARD_GATES[kind] ?? []) {
-    const doc = await getLatestApprovedDocument(dealId, gateKind)
-    if (!doc) {
-      throw new GateError(
-        `${kindLabel(kind)} needs an approved ${kindLabel(
-          gateKind
-        )} first — that review gate is what unlocks this step.`
-      )
+  if (kind === "pitch") {
+    const brainstorm = await brainstormSection(dealId)
+    if (brainstorm) sections.push(brainstorm)
+  }
+
+  if (kind === "proposal") {
+    const pitch = await getLatestApprovedDocument(dealId, "pitch")
+    if (pitch) sections.push(documentSection(pitch))
+    if (!opts.proposalInputs) {
+      throw new Error("A proposal run needs the meeting's agreed inputs.")
     }
-    sections.push(documentSection(doc))
+    sections.push(agreementSection(opts.proposalInputs))
   }
 
-  for (const softKind of SOFT_CONTEXT[kind] ?? []) {
-    const doc = await getLatestApprovedDocument(dealId, softKind)
-    if (doc) sections.push(documentSection(doc))
-  }
-
-  if (WANTS_WORKSHOP.includes(kind)) {
-    const messages = await listWorkshopMessages(dealId)
-    if (messages.length > 0) {
-      const transcript = messages
-        .map((m) => `**${m.role === "user" ? "Jamie" : "Assistant"}:** ${m.content}`)
-        .join("\n\n")
-      sections.push(`## Technical workshop transcript\n\n${transcript}`)
-    }
-  }
-
-  if (instructions?.trim()) {
-    sections.push(`## Additional instructions from Jamie\n\n${instructions.trim()}`)
+  if (opts.instructions?.trim()) {
+    sections.push(
+      `## Additional instructions from Jamie\n\n${opts.instructions.trim()}`
+    )
   }
 
   sections.push(
-    `# Task\n\nProduce the ${spec.title.toLowerCase()} for this deal now, following the stage contract and output rules.`
+    `# Task\n\nProduce the ${spec.title.toLowerCase()} for this deal now, following the output rules.`
   )
 
   return {
@@ -161,19 +169,17 @@ export async function buildGenerationRequest(
     model: modelFor(kind),
     system: stage.system,
     prompt: sections.join("\n\n"),
-    contractPath: stage.contractPath,
     contextFiles: stage.files,
-    isPrivate: spec.privateDoc,
     title: spec.title,
   }
 }
 
 /**
- * System prompt for the technical-workshop chat — the brainstorm surface an
- * outline is later crystallised from. Loads the same Layer-4 material but no
- * stage contract: the workshop is a conversation, not a document run.
+ * System prompt for the brainstorm chat — the web-connected sparring partner
+ * a pitch is later drafted from. Loads the same Layer-4 material but no stage
+ * spec: the brainstorm is a conversation, not a document run.
  */
-export async function buildWorkshopContext(dealId: string): Promise<{
+export async function buildBrainstormContext(dealId: string): Promise<{
   system: string
   deal: Deal
 }> {
@@ -182,19 +188,18 @@ export async function buildWorkshopContext(dealId: string): Promise<{
   const client = await getClient(deal.clientId)
   if (!client) throw new Error("That deal's client no longer exists.")
 
-  const triage = await getLatestApprovedDocument(dealId, "triage_assessment")
-  const outline = await getLatestApprovedDocument(dealId, "project_outline")
+  const pitch = await getLatestApprovedDocument(dealId, "pitch")
 
   const system = [
-    `You are Jamie Nisbet's technical sparring partner. Jamie is a software engineer / AI consultant (standard rate €120/hour, ~30 hours/week capacity, trusted contractors on standby for larger builds). You are brainstorming HOW to implement one specific client project, in private — the client never sees this conversation.`,
-    `Behave like a sharp colleague at a whiteboard: propose concrete architectures and integrations, name real trade-offs and risks, give rough effort bands in hours, and ask the questions that most change the design ("ask as many questions as possible" is the founder's explicit instruction). Push back when an approach is over-built for the client's budget. Be concise — this is a chat, not a document.`,
-    `When Jamie is happy with a direction he will hit "Crystallise", which turns this transcript into a project outline document — so keep the thread concrete enough to be crystallised.`,
+    `You are Jamie Nisbet's brainstorm partner. Jamie is a software engineer / AI consultant (standard rate €120/hour, ~30 hours/week capacity, trusted contractors on standby for larger builds). You are preparing his PITCH for one specific lead — the informal first meeting happens over a coffee or a drink, so the goal is a sharp, well-researched point of view on the lead's ask, not a slide deck.`,
+    `You have a webResearch tool connected to the live web. USE IT — before proposing a direction, research the lead's market, existing/competing solutions, relevant tools and pricing, anything that changes the shape or the price of the build. Say what you found and cite where it came from.`,
+    `Behave like a sharp colleague at a whiteboard: propose concrete solutions, name real trade-offs and risks, give rough effort bands in hours, and surface the questions that most change the design. Push back when an approach is over-built for the client's budget. Be concise — this is a chat, not a document.`,
+    `When Jamie is happy with the direction he will hit "Draft pitch", which turns this thread into his meeting-prep pitch document — so keep the thread concrete enough to be drafted from.`,
     "",
     "# Working material",
     clientSection(client),
     dealSection(deal),
-    triage ? documentSection(triage) : null,
-    outline ? documentSection(outline) : null,
+    pitch ? documentSection(pitch) : null,
   ]
     .filter((s): s is string => s !== null)
     .join("\n\n")

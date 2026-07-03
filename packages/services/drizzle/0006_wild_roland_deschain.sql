@@ -1,0 +1,1 @@
+ALTER TABLE "biz"."deals" ADD COLUMN "payment_schedule" text;

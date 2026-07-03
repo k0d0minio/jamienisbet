@@ -15,8 +15,8 @@ function CreateButton() {
   )
 }
 
-// Opens a deal (one opportunity) on the client — the entry point of the ICM
-// pipeline. Value is optional and refined as triage/strategy firm it up.
+// Opens a deal (one opportunity) on the client — the entry point of the
+// pipeline. Value is optional — the proposal's payment structure sets it.
 export function DealCreateForm({ clientId }: { clientId: string }) {
   const create = createDealAction.bind(null, clientId)
 

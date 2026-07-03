@@ -3,14 +3,8 @@
 // browser bundle needs are mirrored here as plain constants.
 
 export const KIND_LABELS: Record<string, string> = {
-  triage_assessment: "Triage assessment",
-  customer_feedback: "Customer feedback",
-  project_outline: "Project outline",
-  brd: "Business requirements",
+  pitch: "Pitch",
   proposal: "Proposal",
-  quote: "Quote",
-  negotiation_strategy: "Negotiation strategy",
-  mockup: "Mockup",
 }
 
 export function kindLabel(kind: string): string {
@@ -19,7 +13,7 @@ export function kindLabel(kind: string): string {
 
 // Kinds whose output encodes pricing/tax/legal structure — always rendered
 // with the contabilista/lawyer decision-support notice.
-export const DISCLAIMER_KINDS = ["proposal", "quote"]
+export const DISCLAIMER_KINDS = ["proposal"]
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline"
 
