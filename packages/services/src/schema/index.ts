@@ -68,6 +68,18 @@ export const clients = biz.table("clients", {
   // linked. `unique` so one Neon client maps to at most one Stripe customer.
   stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
 
+  // ---- Delivery repo -------------------------------------------------------
+  // The client's own GitHub delivery repository, "owner/name" (the same pointer
+  // kept as prose in shared/clients/<slug>/repo-link.md, now managed from the
+  // dashboard). Set the first time a repo is connected to — or created for — this
+  // client from their profile. Once set, the pipeline's AI runs (brainstorm,
+  // pitch, proposal) load a snapshot of it as Layer-4 working material, so
+  // suggestions are grounded in the actual codebase. `github_default_branch`
+  // caches the repo's default branch resolved at connect time (avoids a live
+  // lookup on every generation). Both null = not yet connected.
+  githubRepo: varchar("github_repo", { length: 200 }),
+  githubDefaultBranch: varchar("github_default_branch", { length: 100 }),
+
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   // Soft archive: null = active, a timestamp = archived (hidden by default).
   archivedAt: timestamp("archived_at", { withTimezone: true }),
