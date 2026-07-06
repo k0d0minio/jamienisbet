@@ -6,7 +6,7 @@
 - Layer 3 (reference): `../../references/report-formats.md`
 
 ## Process
-Run stripe-report.sh for the period; produce the monthly P&L and (quarterly) the IVA/VIES filing summary; surface the metrics for state/dashboard (revenue, overdue receivables, tax reserve). A founder view + an accountant pack from the same fetch.
+Run stripe-report.sh for the period; produce the monthly P&L and (quarterly) the IVA/VIES filing summary. A founder view + an accountant pack from the same fetch. The live at-a-glance metrics (monthly revenue, tax reserve, overdue receivables) are computed and shown on the admin dashboard home, not written back to the repo — this stage produces the period P&L / accountant pack, not those cards.
 
 ## Outputs
 - `<period>-summary.md` -> output/  (generated; gitignored)

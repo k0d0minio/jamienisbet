@@ -53,6 +53,64 @@ export type PaymentLinkRow = {
   productName: string | null
 }
 
+/**
+ * The tax reserve to set aside per euro of income. Flat 30% (IRS + Segurança
+ * Social; no IVA) — the single figure locked in
+ * `workspaces/finance/setup/output/config.md`. Decision-support only: confirm
+ * with the contabilista. Kept here so the admin is the one fetch path for the
+ * finance metrics rather than shelling out to `scripts/stripe-report.sh`.
+ */
+export const TAX_RESERVE_RATE = 0.3
+
+/**
+ * The five business metrics computed live from Stripe money + the biz DB, per
+ * issue #27. This half (money) is Stripe-derived; the deal metrics (pipeline
+ * value, win rate) are computed by the caller from `biz.deals`. Amounts are in
+ * minor units, per currency, so the caller renders whichever currency Jamie
+ * actually billed in without this layer guessing.
+ */
+export type MoneyMetrics = {
+  /** Paid income for the current calendar month. */
+  monthlyRevenue: BalanceEntry[]
+  /** `monthlyRevenue` × {@link TAX_RESERVE_RATE}, computed per currency. */
+  taxReserve: BalanceEntry[]
+  /** Open, finalized invoices already past their due date. */
+  overdueReceivables: BalanceEntry[]
+  /** How many open invoices are overdue (drives the count on the card). */
+  overdueCount: number
+  /** Start of the revenue window (epoch seconds) — the source of the figure. */
+  monthStart: number
+}
+
+// ---- Paginated Stripe fetches ----------------------------------------------
+// Stripe pages at 100 items; the repo scripts (stripe-income/receivables.sh)
+// capped there and silently under-reported once volume grew (issue #27). The
+// admin uses auto-pagination so every figure covers the full result set. The
+// `limit` guard is a sane ceiling, not the page size — the SDK walks pages of
+// 100 up to that total.
+const MAX_INVOICES = 10_000
+
+async function listAllInvoices(
+  stripe: Stripe,
+  params: Stripe.InvoiceListParams
+): Promise<Stripe.Invoice[]> {
+  return stripe.invoices
+    .list({ ...params, limit: 100 })
+    .autoPagingToArray({ limit: MAX_INVOICES })
+}
+
+function sumByCurrency(
+  invoices: Stripe.Invoice[],
+  amount: (inv: Stripe.Invoice) => number
+): BalanceEntry[] {
+  const byCurrency = new Map<string, number>()
+  for (const inv of invoices) {
+    const currency = inv.currency ?? "eur"
+    byCurrency.set(currency, (byCurrency.get(currency) ?? 0) + amount(inv))
+  }
+  return [...byCurrency].map(([currency, amount]) => ({ currency, amount }))
+}
+
 // ---- Financial overview ----------------------------------------------------
 
 export async function getFinancialSummary(): Promise<FinancialSummary | null> {
@@ -61,26 +119,54 @@ export async function getFinancialSummary(): Promise<FinancialSummary | null> {
 
   const [balance, openInvoices] = await Promise.all([
     stripe.balance.retrieve(),
-    stripe.invoices.list({ status: "open", limit: 100 }),
+    listAllInvoices(stripe, { status: "open" }),
   ])
-
-  const outstandingByCurrency = new Map<string, number>()
-  for (const inv of openInvoices.data) {
-    const currency = inv.currency ?? "eur"
-    outstandingByCurrency.set(
-      currency,
-      (outstandingByCurrency.get(currency) ?? 0) + (inv.amount_due ?? 0)
-    )
-  }
 
   return {
     available: balance.available.map((b) => ({ currency: b.currency, amount: b.amount })),
     pending: balance.pending.map((b) => ({ currency: b.currency, amount: b.amount })),
-    openInvoiceCount: openInvoices.data.length,
-    outstanding: [...outstandingByCurrency].map(([currency, amount]) => ({
-      currency,
-      amount,
-    })),
+    openInvoiceCount: openInvoices.length,
+    outstanding: sumByCurrency(openInvoices, (inv) => inv.amount_due ?? 0),
+  }
+}
+
+// ---- The five-metric money reads (issue #27) -------------------------------
+
+export async function getMoneyMetrics(): Promise<MoneyMetrics | null> {
+  const stripe = getStripe()
+  if (!stripe) return null
+
+  // The revenue window is the current calendar month (matches the monthly P&L
+  // cadence in workspaces/finance). Boundaries in UTC so the figure is stable
+  // regardless of where the server runs; Stripe's `created` filter is epoch s.
+  const now = new Date()
+  const monthStart = Math.floor(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) / 1000
+  )
+  const nowSec = Math.floor(now.getTime() / 1000)
+
+  const [paidThisMonth, openInvoices] = await Promise.all([
+    listAllInvoices(stripe, { status: "paid", created: { gte: monthStart } }),
+    listAllInvoices(stripe, { status: "open" }),
+  ])
+
+  const monthlyRevenue = sumByCurrency(paidThisMonth, (inv) => inv.amount_paid ?? 0)
+  const taxReserve = monthlyRevenue.map((e) => ({
+    currency: e.currency,
+    amount: Math.round(e.amount * TAX_RESERVE_RATE),
+  }))
+
+  const overdue = openInvoices.filter(
+    (inv) => inv.due_date != null && inv.due_date < nowSec
+  )
+  const overdueReceivables = sumByCurrency(overdue, (inv) => inv.amount_due ?? 0)
+
+  return {
+    monthlyRevenue,
+    taxReserve,
+    overdueReceivables,
+    overdueCount: overdue.length,
+    monthStart,
   }
 }
 

@@ -18,7 +18,14 @@ import {
   type GenerationTotals,
 } from "@jamie-nisbet/services"
 
-import { getFinancialSummary, type FinancialSummary } from "@/lib/finance"
+import {
+  getFinancialSummary,
+  getMoneyMetrics,
+  TAX_RESERVE_RATE,
+  type BalanceEntry,
+  type FinancialSummary,
+  type MoneyMetrics,
+} from "@/lib/finance"
 import { formatMoney } from "@/lib/money"
 import { isStripeConfigured } from "@/lib/stripe"
 
@@ -26,7 +33,7 @@ import { isStripeConfigured } from "@/lib/stripe"
 export const dynamic = "force-dynamic"
 
 // Render the first non-zero per-currency balance entry, or "—".
-function balanceLabel(entries: FinancialSummary["available"]): string {
+function balanceLabel(entries: BalanceEntry[]): string {
   const first = entries.find((e) => e.amount !== 0)
   return first ? formatMoney(first.amount, first.currency) : "—"
 }
@@ -43,6 +50,9 @@ export default async function DashboardPage() {
   let newCount = 0
   let inPipeline = 0
   let pipelineValueMinor = 0
+  // Win rate: won / (won + lost). null until at least one deal has closed, so
+  // the card shows an explicit "—" zero-state rather than a misleading 0%.
+  let winRate: number | null = null
   let awaitingReview = 0
   let aiTotals: GenerationTotals | null = null
   let error: string | null = null
@@ -60,6 +70,9 @@ export default async function DashboardPage() {
     pipelineValueMinor = deals
       .filter((d) => OPEN_DEAL.includes(d.status))
       .reduce((sum, d) => sum + d.valueMinor, 0)
+    const wonCount = deals.filter((d) => d.status === "won").length
+    const closedCount = wonCount + deals.filter((d) => d.status === "lost").length
+    winRate = closedCount > 0 ? wonCount / closedCount : null
     awaitingReview = reviewCount
     aiTotals = totals
   } catch (err) {
@@ -68,17 +81,110 @@ export default async function DashboardPage() {
 
   // Stripe is fetched independently so a billing outage never hides the leads.
   let summary: FinancialSummary | null = null
+  let money: MoneyMetrics | null = null
   if (isStripeConfigured()) {
     try {
-      summary = await getFinancialSummary()
+      ;[summary, money] = await Promise.all([
+        getFinancialSummary(),
+        getMoneyMetrics(),
+      ])
     } catch {
       summary = null
+      money = null
     }
   }
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
+
+      {/* Where the business stands — the five metrics (issue #27), each traced
+          to its source: pipeline value + win rate from biz.deals, and monthly
+          revenue / tax reserve / overdue receivables live from Stripe. Zero and
+          not-configured states are explicit so a blank never reads as a real 0. */}
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          Where the business stands
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <Link href="/deals">
+            <Card>
+              <CardHeader>
+                <CardDescription>Pipeline value</CardDescription>
+                <CardTitle className="text-3xl">
+                  {error
+                    ? "—"
+                    : pipelineValueMinor > 0
+                      ? formatMoney(pipelineValueMinor, "eur")
+                      : "—"}
+                </CardTitle>
+                <CardDescription>Open deals</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href="/deals">
+            <Card>
+              <CardHeader>
+                <CardDescription>Win rate</CardDescription>
+                <CardTitle className="text-3xl">
+                  {!error && winRate !== null
+                    ? `${Math.round(winRate * 100)}%`
+                    : "—"}
+                </CardTitle>
+                <CardDescription>Won of closed deals</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href="/finances">
+            <Card>
+              <CardHeader>
+                <CardDescription>Monthly revenue</CardDescription>
+                <CardTitle className="text-3xl">
+                  {money ? balanceLabel(money.monthlyRevenue) : "—"}
+                </CardTitle>
+                <CardDescription>Paid this month · Stripe</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href="/finances">
+            <Card>
+              <CardHeader>
+                <CardDescription>Tax reserve</CardDescription>
+                <CardTitle className="text-3xl">
+                  {money ? balanceLabel(money.taxReserve) : "—"}
+                </CardTitle>
+                <CardDescription>
+                  {Math.round(TAX_RESERVE_RATE * 100)}% of income · confirm w/
+                  contabilista
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href="/invoices">
+            <Card>
+              <CardHeader>
+                <CardDescription>Overdue receivables</CardDescription>
+                <CardTitle className="text-3xl">
+                  {money ? balanceLabel(money.overdueReceivables) : "—"}
+                </CardTitle>
+                <CardDescription>
+                  {money && money.overdueCount > 0
+                    ? `${money.overdueCount} overdue ${
+                        money.overdueCount === 1 ? "invoice" : "invoices"
+                      }`
+                    : "Past due · Stripe"}
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+        {!isStripeConfigured() ? (
+          <p className="text-xs text-muted-foreground">
+            Revenue, tax reserve, and receivables need Stripe — set{" "}
+            <code>STRIPE_SECRET_KEY</code> (see <code>.env.example</code>).
+          </p>
+        ) : null}
+      </section>
 
       {error ? (
         <Alert variant="destructive">
