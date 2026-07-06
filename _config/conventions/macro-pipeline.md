@@ -29,4 +29,16 @@ lead-generation → project-triage → proposals → projects → finance
 `shared/clients/<slug>/` is read and written across every workspace, so all of them see one
 consistent view of the client. Slug rules in [`client-and-slug.md`](client-and-slug.md).
 
-Related: [`state-and-status.md`](state-and-status.md) · [`building-a-workspace.md`](building-a-workspace.md)
+## Where this runs: the admin dashboard is the runtime
+The triage → proposals leg of this pipeline **executes inside the admin dashboard**
+([`websites/admin-dashboard/`](../../websites/admin-dashboard/)), driven by
+[`@jamie-nisbet/icm`](../../packages/icm/). The workspace stage contracts and their `references/`
+are the **specification** — the Layer-3 context each generation loads; the admin is the **execution
+engine** that runs them against a real deal, holds each draft at its `documents.status` review gate,
+and syncs the approved artifact back to `shared/clients/<slug>/`. So a workspace like `proposals/`
+is not run stage-by-stage by hand — it is the source of truth for *how* each document is produced,
+and the runtime reads it. The document kinds the runtime produces (`triage`, `pitch`, `negotiation`,
+`proposal`, `contract`) map onto these stage contracts; `quote` and `invoice` are not documents —
+the deal's payment schedule is the quote and Stripe is the invoice.
+
+Related: [`state-and-status.md`](state-and-status.md) · [`building-a-workspace.md`](building-a-workspace.md) · [`packages/icm/README.md`](../../packages/icm/README.md)
