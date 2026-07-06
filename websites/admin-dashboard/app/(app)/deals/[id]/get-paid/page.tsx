@@ -8,6 +8,7 @@ import {
 } from "@jamie-nisbet/services"
 
 import { DealPageHeader } from "@/components/deal-page-header"
+import { DocumentGenerator } from "@/components/document-generator"
 import { PaymentPlan, type MilestoneView } from "@/components/payment-plan"
 import { getDealStage } from "@/lib/deal-stages"
 import { getStripe, isStripeConfigured } from "@/lib/stripe"
@@ -72,6 +73,17 @@ export default async function GetPaidStagePage({
         unlocked={proposalApproved}
         stripeConfigured={isStripeConfigured()}
       />
+
+      {proposalApproved ? (
+        <DocumentGenerator
+          dealId={deal.id}
+          kind="contract"
+          title="Draft the contract"
+          blurb="Turn the approved proposal into the agreement — parties, scope, price, schedule, IP and termination. A lawyer must review it before you send or sign; nothing is sent from here."
+          cta="Draft the contract"
+          notePlaceholder="Optional: any special terms agreed (NDA, IP assignment, jurisdiction)"
+        />
+      ) : null}
     </div>
   )
 }

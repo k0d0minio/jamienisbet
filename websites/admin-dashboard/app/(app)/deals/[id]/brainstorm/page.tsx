@@ -5,6 +5,7 @@ import { getDeal, listWorkshopMessages } from "@jamie-nisbet/services"
 
 import { BrainstormChat } from "@/components/brainstorm-chat"
 import { DealPageHeader } from "@/components/deal-page-header"
+import { DocumentGenerator } from "@/components/document-generator"
 import { getDealStage } from "@/lib/deal-stages"
 
 export const metadata: Metadata = { title: "Brainstorm & pitch" }
@@ -39,6 +40,15 @@ export default async function BrainstormStagePage({
           role: m.role,
           content: m.content,
         }))}
+      />
+
+      <DocumentGenerator
+        dealId={deal.id}
+        kind="triage"
+        title="Worth taking on?"
+        blurb="Score the fit before you invest more time — the go/no-go rubric applied to this lead, ending with an honest note you can share even on a redirect."
+        cta="Assess the fit"
+        notePlaceholder="Optional: budget signals, timeline pressure, anything the rubric should weigh"
       />
     </div>
   )

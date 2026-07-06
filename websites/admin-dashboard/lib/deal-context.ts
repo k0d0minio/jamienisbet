@@ -23,11 +23,14 @@ import { getRepoSnapshot } from "@/lib/github"
 
 /**
  * Layer-4 assembly for the pipeline's AI runs — the client, the deal, and the
- * working material each of the two documents builds on:
+ * working material each document kind builds on:
  *
- *   pitch    ← the intake + the brainstorm transcript
- *   proposal ← the intake + the approved pitch (if any) + what Jamie agreed
- *              with the client at the meeting (his form input, authoritative)
+ *   triage      ← the intake (+ the client's repo, if connected)
+ *   pitch       ← the intake + the brainstorm transcript
+ *   negotiation ← the intake + the brainstorm + the approved pitch (if any)
+ *   proposal    ← the intake + the approved pitch (if any) + what Jamie agreed
+ *                 with the client at the meeting (his form input, authoritative)
+ *   contract    ← the intake + the approved proposal (its scope/price/schedule)
  */
 
 function clientSection(client: Client): string {
@@ -159,9 +162,17 @@ export async function buildGenerationRequest(
   const repo = await repoSection(client)
   if (repo) sections.push(repo)
 
-  if (kind === "pitch") {
+  // triage runs first, on the intake alone — nothing upstream to fold in.
+
+  if (kind === "pitch" || kind === "negotiation") {
     const brainstorm = await brainstormSection(dealId)
     if (brainstorm) sections.push(brainstorm)
+  }
+
+  // The negotiation prep builds on the pitch's read of the opportunity.
+  if (kind === "negotiation") {
+    const pitch = await getLatestApprovedDocument(dealId, "pitch")
+    if (pitch) sections.push(documentSection(pitch))
   }
 
   if (kind === "proposal") {
@@ -171,6 +182,13 @@ export async function buildGenerationRequest(
       throw new Error("A proposal run needs the meeting's agreed inputs.")
     }
     sections.push(agreementSection(opts.proposalInputs))
+  }
+
+  // The contract is drawn from the approved proposal — its scope, price and
+  // payment schedule are authoritative and must not be re-derived.
+  if (kind === "contract") {
+    const proposal = await getLatestApprovedDocument(dealId, "proposal")
+    if (proposal) sections.push(documentSection(proposal))
   }
 
   if (opts.instructions?.trim()) {

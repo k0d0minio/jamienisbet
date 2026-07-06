@@ -1,6 +1,7 @@
 // Model policy — the code mirror of _config/conventions/model-and-scaling.md:
-// heavy reasoning (Opus-class) for the judgment-dense pitch, cheaper/faster
-// tiers for formatting and mechanical work. Model ids are
+// heavy reasoning (Opus-class) for the judgment-dense kinds (triage, pitch,
+// negotiation), cheaper/faster tiers for the more template-driven assembly
+// (proposal, contract). Model ids are
 // Vercel AI Gateway slugs ("creator/model"), overridable per tier via env so
 // models can be swapped without a code change.
 
