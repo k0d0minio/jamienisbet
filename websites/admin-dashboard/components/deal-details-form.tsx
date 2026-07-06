@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom"
 import { Button, Input, Label } from "@jamie-nisbet/ui"
 
 import { updateDealDetailsAction } from "@/app/(app)/deals/actions"
+import { DealBillingFields } from "@/components/deal-billing-fields"
 
 function SaveButton() {
   const { pending } = useFormStatus()
@@ -19,10 +20,17 @@ export function DealDetailsForm({
   id,
   title,
   valueMinor,
+  billingType,
+  recurringAmountMinor,
+  activeUntil,
 }: {
   id: string
   title: string
   valueMinor: number
+  billingType: string
+  recurringAmountMinor: number
+  /** ISO date (yyyy-mm-dd) for the date input, or "" for open-ended. */
+  activeUntil: string
 }) {
   const save = updateDealDetailsAction.bind(null, id)
 
@@ -42,6 +50,11 @@ export function DealDetailsForm({
           placeholder="0"
         />
       </div>
+      <DealBillingFields
+        billingType={billingType}
+        recurringMinor={recurringAmountMinor}
+        activeUntil={activeUntil}
+      />
       <SaveButton />
     </form>
   )

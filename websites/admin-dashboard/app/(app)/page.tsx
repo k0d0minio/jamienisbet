@@ -12,9 +12,11 @@ import {
 } from "@jamie-nisbet/ui"
 import {
   countDocumentsAwaitingReview,
+  dealHeadlineValueMinor,
   getGenerationTotals,
   listClients,
   listDeals,
+  monthlyRecurringMinor,
   type GenerationTotals,
 } from "@jamie-nisbet/services"
 
@@ -43,6 +45,7 @@ export default async function DashboardPage() {
   let newCount = 0
   let inPipeline = 0
   let pipelineValueMinor = 0
+  let monthlyRecurringMinorTotal = 0
   let awaitingReview = 0
   let aiTotals: GenerationTotals | null = null
   let error: string | null = null
@@ -57,9 +60,13 @@ export default async function DashboardPage() {
     clientCount = clients.length
     newCount = clients.filter((c) => c.status === "new").length
     inPipeline = clients.filter((c) => IN_PIPELINE.includes(c.status)).length
+    // Open pipeline counts each open deal's headline figure — a one-off's total,
+    // or a retainer's monthly amount so it isn't hidden at €0.
     pipelineValueMinor = deals
       .filter((d) => OPEN_DEAL.includes(d.status))
-      .reduce((sum, d) => sum + d.valueMinor, 0)
+      .reduce((sum, d) => sum + dealHeadlineValueMinor(d), 0)
+    // Committed recurring revenue — every active retainer's monthly amount.
+    monthlyRecurringMinorTotal = monthlyRecurringMinor(deals)
     awaitingReview = reviewCount
     aiTotals = totals
   } catch (err) {
@@ -118,13 +125,23 @@ export default async function DashboardPage() {
           review gate (the human is the bottleneck by design), and what the AI
           engine has burned. */}
       {!error ? (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader>
               <CardDescription>Open pipeline value</CardDescription>
               <CardTitle className="text-3xl">
                 {pipelineValueMinor > 0
                   ? formatMoney(pipelineValueMinor, "eur")
+                  : "—"}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardDescription>Monthly recurring</CardDescription>
+              <CardTitle className="text-3xl">
+                {monthlyRecurringMinorTotal > 0
+                  ? formatMoney(monthlyRecurringMinorTotal, "eur")
                   : "—"}
               </CardTitle>
             </CardHeader>

@@ -24,6 +24,12 @@ and the only place to change it. Do not restate the values in docs — link to t
 - **`biz.deals.status`** — per-opportunity state: `dealStatuses` in
   [`packages/services/src/queries/deals.ts`](../../packages/services/src/queries/deals.ts). One
   client can carry several deals.
+- **`biz.deals.billing_type`** — how a deal is billed: `billingTypes` in
+  [`packages/services/src/queries/deals.ts`](../../packages/services/src/queries/deals.ts). A
+  `one_off` project carries a `value_minor` total invoiced against its milestone `payment_schedule`;
+  a `retainer` carries recurring monthly revenue (`recurring_amount_minor` per `recurring_interval`,
+  until an optional `active_until`). The dashboard's monthly-recurring and pipeline metrics read
+  these through the `isActiveRetainer` / `monthlyRecurringMinor` helpers in the same file.
 - **`biz.documents.status`** — the ICM review gate as data: `documentStatuses` in
   [`packages/services/src/queries/documents.ts`](../../packages/services/src/queries/documents.ts).
   An AI-generated document is a Layer-4 draft until Jamie approves it, and **only approved

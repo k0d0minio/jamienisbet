@@ -104,9 +104,33 @@ export const deals = biz.table("deals", {
     .references(() => clients.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 200 }).notNull(),
   status: varchar("status", { length: 20 }).notNull().default("new"),
+  // How this deal is billed: 'one_off' (a project — `value_minor` + a milestone
+  // `payment_schedule`) or 'retainer' (recurring monthly revenue — the
+  // `recurring_*` columns). See billingTypes in queries/deals.ts. Jamie's first
+  // real client is a monthly retainer, so the model carries recurrence from the
+  // jump rather than pretending every deal is a one-off.
+  billingType: varchar("billing_type", { length: 20 })
+    .notNull()
+    .default("one_off"),
   // Expected or agreed value in EUR minor units (cents) — same convention as
-  // the Stripe amounts the money helpers already format.
+  // the Stripe amounts the money helpers already format. For a retainer this is
+  // the one-off value (usually 0); the recurring figure lives below.
   valueMinor: integer("value_minor").notNull().default(0),
+  // The recurring charge for a retainer, in EUR minor units (cents), billed
+  // every `recurring_interval`. Ignored for a one-off deal (stays 0). No
+  // proration, no seats, no Stripe subscription object yet — just the monthly
+  // amount and its cadence; a subscription id column can join here if/when
+  // invoicing automates.
+  recurringAmountMinor: integer("recurring_amount_minor").notNull().default(0),
+  // The billing cadence for a retainer. Only 'month' today (see
+  // recurringIntervals in queries/deals.ts); kept as a column so other cadences
+  // can be added without another migration.
+  recurringInterval: varchar("recurring_interval", { length: 10 })
+    .notNull()
+    .default("month"),
+  // Optional end date for a retainer — null means open-ended (still active). A
+  // retainer counts toward monthly recurring revenue only while it is active.
+  activeUntil: timestamp("active_until", { withTimezone: true }),
   // The proposal's payment structure, as agreed with the client: a JSON array
   // of milestones ({ id, label, amountMinor, stripeInvoiceId }). Written when
   // the proposal is drafted; the "get paid" step raises one Stripe draft

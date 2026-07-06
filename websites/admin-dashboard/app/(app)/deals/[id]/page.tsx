@@ -98,9 +98,20 @@ export default async function DealPage({
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold">{deal.title}</h1>
-          <Badge variant="secondary">
-            {deal.valueMinor > 0 ? formatMoney(deal.valueMinor, "eur") : "—"}
-          </Badge>
+          {deal.billingType === "retainer" ? (
+            <>
+              <Badge variant="outline">Retainer</Badge>
+              <Badge variant="secondary">
+                {deal.recurringAmountMinor > 0
+                  ? `${formatMoney(deal.recurringAmountMinor, "eur")}/mo`
+                  : "—"}
+              </Badge>
+            </>
+          ) : (
+            <Badge variant="secondary">
+              {deal.valueMinor > 0 ? formatMoney(deal.valueMinor, "eur") : "—"}
+            </Badge>
+          )}
         </div>
         <DealStatusSelect id={deal.id} value={deal.status} />
       </div>

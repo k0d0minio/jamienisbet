@@ -34,6 +34,11 @@ export default async function DealDetailsPage({
         id={deal.id}
         title={deal.title}
         valueMinor={deal.valueMinor}
+        billingType={deal.billingType}
+        recurringAmountMinor={deal.recurringAmountMinor}
+        activeUntil={
+          deal.activeUntil ? deal.activeUntil.toISOString().slice(0, 10) : ""
+        }
       />
       <p className="text-xs text-muted-foreground">
         Created {formatDateTime(deal.createdAt)} · Brainstorm messages:{" "}
