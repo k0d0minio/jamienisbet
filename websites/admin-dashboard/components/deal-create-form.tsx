@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom"
 import { Button, Input, Label } from "@jamie-nisbet/ui"
 
 import { createDealAction } from "@/app/(app)/deals/actions"
+import { DealBillingFields } from "@/components/deal-billing-fields"
 
 function CreateButton() {
   const { pending } = useFormStatus()
@@ -16,7 +17,8 @@ function CreateButton() {
 }
 
 // Opens a deal (one opportunity) on the client — the entry point of the
-// pipeline. Value is optional — the proposal's payment structure sets it.
+// pipeline. For a one-off, value is optional (the proposal's payment structure
+// sets it); for a retainer, the monthly amount is entered here.
 export function DealCreateForm({ clientId }: { clientId: string }) {
   const create = createDealAction.bind(null, clientId)
 
@@ -35,6 +37,7 @@ export function DealCreateForm({ clientId }: { clientId: string }) {
         <Label htmlFor="deal-value">Value (€)</Label>
         <Input id="deal-value" name="value" inputMode="decimal" placeholder="0" />
       </div>
+      <DealBillingFields />
       <CreateButton />
     </form>
   )

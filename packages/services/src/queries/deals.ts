@@ -18,10 +18,26 @@ export const dealStatuses = [
 ] as const
 export type DealStatus = (typeof dealStatuses)[number]
 
+// How a deal is billed. `one_off` is the default project shape (a `valueMinor`
+// total, invoiced against the proposal's milestone `paymentSchedule`);
+// `retainer` is recurring monthly revenue (`recurringAmountMinor` every
+// `recurringInterval`, until `activeUntil`). This tuple is the canonical set.
+export const billingTypes = ["one_off", "retainer"] as const
+export type BillingType = (typeof billingTypes)[number]
+
+// Retainer cadences. Only monthly today; kept as a set so another cadence can
+// be added without a migration or a schema change downstream.
+export const recurringIntervals = ["month"] as const
+export type RecurringInterval = (typeof recurringIntervals)[number]
+
 export async function createDeal(input: {
   clientId: string
   title: string
   valueMinor?: number
+  billingType?: BillingType
+  recurringAmountMinor?: number
+  recurringInterval?: RecurringInterval
+  activeUntil?: Date | null
 }): Promise<Deal> {
   const [row] = await getDb()
     .insert(deals)
@@ -29,6 +45,10 @@ export async function createDeal(input: {
       clientId: input.clientId,
       title: input.title,
       valueMinor: input.valueMinor ?? 0,
+      billingType: input.billingType ?? "one_off",
+      recurringAmountMinor: input.recurringAmountMinor ?? 0,
+      recurringInterval: input.recurringInterval ?? "month",
+      activeUntil: input.activeUntil ?? null,
     })
     .returning()
   return row
@@ -53,7 +73,17 @@ export async function getDeal(id: string): Promise<Deal | undefined> {
 }
 
 export type DealPatch = Partial<
-  Pick<Deal, "title" | "status" | "valueMinor" | "paymentSchedule">
+  Pick<
+    Deal,
+    | "title"
+    | "status"
+    | "valueMinor"
+    | "paymentSchedule"
+    | "billingType"
+    | "recurringAmountMinor"
+    | "recurringInterval"
+    | "activeUntil"
+  >
 >
 
 export async function updateDeal(
@@ -136,4 +166,37 @@ export async function linkMilestoneInvoice(
 
 export async function deleteDeal(id: string): Promise<void> {
   await getDb().delete(deals).where(eq(deals.id, id))
+}
+
+// ---------------------------------------------------------------------------
+// Recurring revenue — the retainer side of the model. These are pure helpers so
+// the dashboard's metric cards (open pipeline value, monthly recurring) read the
+// same rules everywhere and can never drift from the schema.
+
+/** A retainer is active when it is billed as a retainer, is not lost, and has
+ * no end date in the past. `now` is passed in so callers stay deterministic. */
+export function isActiveRetainer(deal: Deal, now: Date = new Date()): boolean {
+  return (
+    deal.billingType === "retainer" &&
+    deal.status !== "lost" &&
+    (deal.activeUntil === null || deal.activeUntil > now)
+  )
+}
+
+/** The figure a deal contributes to a value roll-up: the recurring amount for a
+ * retainer, the one-off value otherwise. Keeps a retainer from showing as €0
+ * just because its one-off `valueMinor` is unset. */
+export function dealHeadlineValueMinor(deal: Deal): number {
+  return deal.billingType === "retainer" ? deal.recurringAmountMinor : deal.valueMinor
+}
+
+/** Total monthly recurring revenue across the given deals — the sum of every
+ * active retainer's monthly amount (EUR minor units). */
+export function monthlyRecurringMinor(
+  dealList: Deal[],
+  now: Date = new Date()
+): number {
+  return dealList
+    .filter((d) => isActiveRetainer(d, now))
+    .reduce((sum, d) => sum + d.recurringAmountMinor, 0)
 }
