@@ -48,16 +48,10 @@ export async function POST(req: Request): Promise<Response> {
         }
       }
 
-      // ----------------------------------------------------------------------
-      // TODO(send-later): write the payment back into the business ledgers.
-      //
-      // Per the repo rule "no outbound action without review", the repo-side
-      // write is intentionally deferred. When ready, record it here:
-      //   - workspaces/finance/ — income + tax-reserve recalculation
-      //   - shared/clients/<slug>/finances.md — invoice status -> `paid`
-      //   - affiliate 10% payout accrual where a referral code is attached
-      // Stripe remains the source of truth; this only mirrors it into the repo.
-      // ----------------------------------------------------------------------
+      // Stripe is the sole source of truth for money — the payment is already
+      // recorded there and surfaces live in the admin's finance views, so there
+      // is no write-back into the repo. (Affiliate 10% payout accrual on a
+      // referral code is future work that would live in the DB, not git.)
       console.info("[stripe-webhook] payment completed", {
         invoiceId,
         sessionId: session.id,

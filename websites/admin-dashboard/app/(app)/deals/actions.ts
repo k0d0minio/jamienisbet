@@ -15,7 +15,6 @@ import {
   getLatestApprovedDocument,
   linkMilestoneInvoice,
   parsePaymentSchedule,
-  recordDocumentSync,
   setDocumentStatus,
   updateDeal,
   updateDocumentContent,
@@ -24,7 +23,6 @@ import {
 
 import { ensureStripeCustomer } from "@/lib/clients-stripe"
 import { parseAmountToMinor } from "@/lib/money"
-import { syncDocumentToRepo } from "@/lib/repo-sync"
 import { getStripe } from "@/lib/stripe"
 
 // A deal edit touches its own page, the client it belongs to, and the
@@ -112,28 +110,13 @@ export async function saveDocumentAction(id: string, formData: FormData) {
 /**
  * The review gate. Approval is the explicit human sign-off the ICM stage
  * contracts require — only from here can a document feed anything downstream
- * (dependent generators, the draft invoice, export, repo sync-back).
- *
- * Approval also triggers the repo sync-back: the now-reviewed artifact is
- * committed into the ICM folders so the repo stays the canonical record.
- * Sync is best-effort — a GitHub hiccup never un-approves a document; the
- * document page shows whether it synced.
+ * (dependent generators, the draft invoice, export). Approval flips
+ * `documents.status` in the DB and nothing else: the database is the sole
+ * store, so there is no write back to git.
  */
 export async function approveDocumentAction(id: string) {
   const doc = await setDocumentStatus(id, "approved")
   if (!doc) throw new Error("That document no longer exists.")
-
-  try {
-    const deal = await getDeal(doc.dealId)
-    const client = deal ? await getClient(deal.clientId) : undefined
-    if (client) {
-      const path = await syncDocumentToRepo(doc, client.name)
-      if (path) await recordDocumentSync(doc.id, path)
-    }
-  } catch (err) {
-    console.error("repo sync-back failed", err)
-  }
-
   await revalidateDocument(id)
 }
 

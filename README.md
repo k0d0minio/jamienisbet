@@ -36,7 +36,6 @@ jamienisbet/
 │   └── conventions/    the ICM protocol localised to this repo
 │
 ├── shared/             cross-workspace Layer 3
-│   ├── clients/        lightweight CRM — one record per client, shared by all workspaces
 │   ├── templates/      master proposal / quote / contract / work-order / invoice / email
 │   └── knowledge/      reusable playbooks, case studies, snippets
 │
@@ -51,17 +50,21 @@ jamienisbet/
 ├── projects/           PER-CLIENT DELIVERY DOCS (docs-only; the build lives in the client's own external repo)
 ├── websites/           Jamie's own apps: portfolio/ · payment-gateway/ · admin-dashboard/ · sellers-site/
 ├── packages/           SHARED CODE for every website — ui/ = @jamie-nisbet/ui (design system: tokens, components, assets)
-├── tracker/            STANDALONE business-only daily todos + morning brief & weekly review
-├── scripts/            the automation layer (bash): new-client · new-project · send-email
-└── state/              generated dashboard: pipeline value · win rate · revenue · tax reserve · receivables
+├── tracker/            STANDALONE business-only daily todos
+└── scripts/            the automation layer (bash): new-project · send-email
 ```
+
+**Where the business stands** — clients, deals, pipeline and metrics — lives in the
+[admin dashboard](websites/admin-dashboard/). Business state (clients, deals, documents, statuses)
+lives in **one** store, the Neon `biz.*` schema operated through that dashboard; the repo holds no
+pipeline state and nothing is mirrored back into git.
 
 ## How the pieces work together
 
 1. **Find work** in `lead-generation/` (incl. the affiliate program + the public `sellers-site/`).
-2. **Qualify it** fast in `project-triage/` — worth your time? better solution out there? On a go, a
-   `shared/clients/<slug>/` record is created (`scripts/new-client.sh`); hand the customer structured
-   feedback on the spot.
+2. **Qualify it** fast in `project-triage/` — worth your time? better solution out there? On a go,
+   the client and its deal are worked as rows in the Neon `biz.*` schema through the admin
+   dashboard; hand the customer structured feedback on the spot.
 3. **Close it** in `proposals/` — the flagship: it asks you exhaustive questions, then coaches the
    negotiation to lift your rate, and generates the proposal, quote and contract on-brand.
 4. **Deliver it** via `scripts/new-project.sh` → a docs-only `projects/<slug>/` pipeline that tracks
@@ -75,11 +78,12 @@ so everything looks and sounds like one business.
 ## Status
 
 **Foundation built (Pass 1).** The ICM protocol is now real: the
-[`_config/conventions/`](_config/conventions/) docs, the [`scripts/`](scripts/) automation layer, the
-[`state/`](state/) model, and a machine-loadable `CONTEXT.md` contract in every stage. The structural
-decisions are settled — `projects/` is docs-only (client builds live in external repos), `websites/`
-hosts Jamie's own apps, `tracker/` is business-only. **Still to come (later passes):** brand identity,
-each workspace's `setup/` + `references/` content, and making `legal-and-tax` runnable first.
+[`_config/conventions/`](_config/conventions/) docs, the [`scripts/`](scripts/) automation layer, and
+a machine-loadable `CONTEXT.md` contract in every stage. The structural decisions are settled —
+business state lives in **one** store (the Neon `biz.*` schema, run from the admin dashboard),
+`projects/` is docs-only (client builds live in external repos), `websites/` hosts Jamie's own apps,
+`tracker/` is business-only. **Still to come (later passes):** brand identity, each workspace's
+`setup/` + `references/` content, and making `legal-and-tax` runnable first.
 Decisions are recorded in [`_config/conventions/decisions.md`](_config/conventions/decisions.md).
 
 ## Important

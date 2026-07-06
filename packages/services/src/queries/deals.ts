@@ -6,10 +6,9 @@ import { deals } from "../schema"
 export type Deal = typeof deals.$inferSelect
 export type NewDeal = typeof deals.$inferInsert
 
-// The deal lifecycle — the canonical set from
-// _config/conventions/state-and-status.md ("lead / deal"). The client's own
-// status stays the relationship summary; deals carry the per-opportunity
-// state.
+// The deal lifecycle — this tuple is the canonical set (docs reference it, not
+// the other way round). The client's own status stays the relationship summary;
+// deals carry the per-opportunity state.
 export const dealStatuses = [
   "new",
   "qualified",

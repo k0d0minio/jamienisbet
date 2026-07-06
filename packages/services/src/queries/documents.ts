@@ -7,7 +7,7 @@ export type Document = typeof documents.$inferSelect
 export type NewDocument = typeof documents.$inferInsert
 
 // The review-gate lifecycle. `approved` is the only state anything downstream
-// (invoice, export, repo sync, dependent generators) may consume.
+// (invoice, export, dependent generators) may consume.
 export const documentStatuses = [
   "draft",
   "in_review",
@@ -128,18 +128,6 @@ export async function setDocumentStatus(
     .where(eq(documents.id, id))
     .returning()
   return row
-}
-
-/** Record where (and when) an approved artifact was committed back to the ICM
- * folders. */
-export async function recordDocumentSync(
-  id: string,
-  syncPath: string
-): Promise<void> {
-  await getDb()
-    .update(documents)
-    .set({ syncPath, syncedAt: new Date(), updatedAt: new Date() })
-    .where(eq(documents.id, id))
 }
 
 export async function deleteDocument(id: string): Promise<void> {

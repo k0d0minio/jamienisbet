@@ -8,12 +8,12 @@ This is where business tasks live as the human's own checklist: chase a lead, se
 
 ## How it connects to the architecture
 - **Upstream / reads from:** human input; references to [`../../workspaces/`](../../workspaces/) and [`../../projects/`](../../projects/)
-- **Downstream / feeds:** [`../routine/`](../routine/) reads these into the daily brief
-- **Draws on (Layer 3 reference):** [`../../shared/clients/`](../../shared/clients/) for client names; [`../../_config/conventions/`](../../_config/conventions/)
+- **Downstream / feeds:** the human (their working checklist); no business deliverable
+- **Draws on (Layer 3 reference):** [`../../_config/conventions/`](../../_config/conventions/). Client and deal records live in the admin dashboard (the Neon `biz.*` schema), not here.
 
 ## Contents
-- `todos.md` — open business action items with optional due dates and workspace links (planned; do not create)
-- `done.md` — archive of completed business items (planned; do not create)
+- `todos.md` — open business action items with optional due dates and workspace links.
+- `done.md` — archive of completed business items.
 
 ## Notes
-Linking is one-directional: an item here may POINT to a workspace or project, but doing the task means working in that workspace — not here. Keep entries to one line each so the morning brief stays scannable. These items sit inside the standalone tracker and never merge back into a deliverable. Finance and tax reminders that surface here are decision-support only and require review by a licensed Portuguese contabilista certificado / lawyer.
+Linking is one-directional: an item here may POINT to a workspace or project, but doing the task means working in that workspace — not here. Keep entries to one line each so the list stays scannable. These items sit inside the standalone tracker and never merge back into a deliverable. Finance and tax reminders that surface here are decision-support only and require review by a licensed Portuguese contabilista certificado / lawyer.

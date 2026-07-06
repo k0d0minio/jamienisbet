@@ -22,9 +22,8 @@ Anchor with **Best**, recommend **Better**.
 - If upside is unknown, fall back to hours × rate within the tier structure.
 
 ## Retainers
-- Committed monthly hours → ~10% reduction (≈ €108/hour; confirm in setup). Bill recurring and mark
-  the client `retainer: true` ([state-and-status](../../../_config/conventions/state-and-status.md)).
-  Good for predictable cash — and for the existing retainer client.
+- Committed monthly hours → ~10% reduction (≈ €108/hour; confirm in setup). Bill recurring rather
+  than per-deal. Good for predictable cash — and for the existing retainer client.
 
 ## Commission / incentive
 - Open to a reduced hourly rate in exchange for outcome upside (revenue share, success fee, equity).

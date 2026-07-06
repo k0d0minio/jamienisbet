@@ -11,8 +11,8 @@ networking and word of mouth. The repo is operated by Claude agent routines, so 
 **folder structure *is* the application architecture.** There is no orchestration code:
 numbered folders and plain-text `README.md` files carry the instructions, and an agent does
 the work by reading the right files at the right moment. Local scripts in [`scripts/`](scripts/)
-handle the mechanical parts that need no AI; business state lives as per-entity front-matter,
-surfaced in [`state/`](state/).
+handle the mechanical parts that need no AI; business state lives in **one** store — the Neon
+`biz.*` schema — operated through the admin dashboard, never mirrored into the repo.
 
 ## The method: ICM (Interpretable Context Methodology)
 Everything here follows the ICM paper (`icm.pdf`). The five context layers:
@@ -47,9 +47,9 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Use/extend shared code across every website (design system / UI components, future services) | [`packages/`](packages/) (`packages/ui` = `@jamie-nisbet/ui`) |
 | Daily business todos / the morning brief + weekly review | [`tracker/`](tracker/) |
 | Run a mechanical action (new client/project, send a reviewed email) | [`scripts/`](scripts/) |
-| See where the business stands (pipeline, metrics) | [`state/`](state/) |
+| See where the business stands (pipeline, metrics) | the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)) |
 | Brand colours, voice, logos, business facts | [`_config/`](_config/) |
-| Shared client records, document templates, playbooks | [`shared/`](shared/) |
+| Shared document templates, playbooks | [`shared/`](shared/) |
 | Create a brand-new capability | copy [`workspaces/_template-workspace/`](workspaces/_template-workspace/) |
 
 ## How to run any workspace

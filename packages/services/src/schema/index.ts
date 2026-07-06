@@ -92,8 +92,8 @@ export const clients = biz.table("clients", {
 // downstream once Jamie approves it (the repo's "no outbound action without a
 // human-reviewed output" boundary, enforced in data rather than prose).
 
-// One opportunity being worked for a client. Lifecycle mirrors the deal set in
-// _config/conventions/state-and-status.md: new → qualified → proposed → won |
+// One opportunity being worked for a client. Lifecycle is `dealStatuses` in
+// queries/deals.ts (the canonical set): new → qualified → proposed → won |
 // lost. There is deliberately no "stage" column — where a deal sits in the
 // document pipeline is derived from which documents exist and are approved
 // (see the dashboard's next-action logic), so the two can never drift.
@@ -134,17 +134,13 @@ export const documents = biz.table("documents", {
   contentHtml: text("content_html"),
   version: integer("version").notNull().default(1),
   // draft → in_review → approved | rejected. Approval is a DB fact — nothing
-  // downstream (stage advance, invoice, sync, export) consumes a non-approved
+  // downstream (stage advance, invoice, export) consumes a non-approved
   // document.
   status: varchar("status", { length: 20 }).notNull().default("draft"),
   // Legacy flag from retired private kinds — no current kind sets it; kept
   // so the export route can keep refusing anything historical marked private.
   isPrivate: boolean("is_private").notNull().default(false),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
-  // Repo sync-back: where in the ICM folders the approved artifact was
-  // committed, and when. Null until synced.
-  syncPath: text("sync_path"),
-  syncedAt: timestamp("synced_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 })

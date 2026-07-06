@@ -1,10 +1,10 @@
 # Shared — Cross-Workspace Building Blocks
 
 > **ICM role:** Layer 3 — reference
-> **Purpose:** Hold the reusable building blocks (client registry, document templates, playbooks) that every workspace and project pipeline draws on, so the whole business works from one consistent set of parts.
+> **Purpose:** Hold the reusable building blocks (document templates, playbooks) that every workspace and project pipeline draws on, so the whole business works from one consistent set of parts.
 
 ## What this folder accomplishes
-`shared/` is the library of stable, reusable pieces that more than one pipeline needs. Where `_config/` answers **who Jamie's business is** (legal identity, brand, founder brief, ICM conventions — the factory configuration), `shared/` answers **what reusable parts the pipelines assemble from**: a single record per client, the master document templates that proposals and invoices are built from, and the playbooks the agent reuses across jobs. Keeping these here means a proposal in `workspaces/proposals/` and an invoice in `workspaces/finance/` both reference the same client record and the same on-brand templates, instead of each workspace inventing its own copy. Everything here is stable across runs — it changes when the business changes, not on every deal.
+`shared/` is the library of stable, reusable pieces that more than one pipeline needs. Where `_config/` answers **who Jamie's business is** (legal identity, brand, founder brief, ICM conventions — the factory configuration), `shared/` answers **what reusable parts the pipelines assemble from**: the master document templates that proposals and invoices are built from, and the playbooks the agent reuses across jobs. Keeping these here means a proposal in `workspaces/proposals/` and an invoice in `workspaces/finance/` reference the same on-brand templates, instead of each workspace inventing its own copy. (Client and deal records themselves live in the Neon `biz.*` schema, operated through the admin dashboard — not here; see [`_config/conventions/state-and-status.md`](../_config/conventions/state-and-status.md).) Everything here is stable across runs — it changes when the business changes, not on every deal.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** `_config/brand/` (visual + voice), `_config/business/` (identity facts), `_config/conventions/`; human edits.
@@ -12,7 +12,6 @@
 - **Draws on (Layer 3 reference):** `_config/brand/visual/`, `_config/brand/voice/`, `_config/business/`.
 
 ## Contents
-- `clients/` — lightweight CRM: one subfolder per client (contact, history, active deals, project links).
 - `templates/` — master proposal, quote, contract, work-order, invoice, and email templates.
 - `knowledge/` — reusable playbooks, snippets, FAQs, case studies, and boilerplate.
 

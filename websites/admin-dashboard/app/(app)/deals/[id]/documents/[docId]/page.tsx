@@ -182,12 +182,6 @@ export default async function DocumentPage({
                 hand.
               </p>
             )}
-            {doc.syncedAt ? (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Synced to repo: <span className="font-mono">{doc.syncPath}</span>{" "}
-                ({formatDateTime(doc.syncedAt)})
-              </p>
-            ) : null}
           </CardContent>
         </Card>
 
