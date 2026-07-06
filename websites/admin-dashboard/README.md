@@ -27,9 +27,9 @@ Each client profile also carries a **delivery repo** link ([`lib/github.ts`](lib
 connect an existing GitHub repo or create a fresh one right there. Once connected, the pipeline's
 AI runs load a bounded **snapshot** of it (README, file tree, stack) as Layer-4 working material,
 so the brainstorm, pitch, and proposal are grounded in the client's actual codebase rather than a
-greenfield guess. The repo is stored on the client row (`clients.github_repo`), mirroring the prose
-pointer in `shared/clients/<slug>/repo-link.md`. Needs `GITHUB_TOKEN` (see [`.env.example`](.env.example));
-with it unset the profile shows a "not configured" note and the rest of the admin is unaffected.
+greenfield guess. The repo is stored on the client row (`clients.github_repo`). Needs `GITHUB_TOKEN`
+(see [`.env.example`](.env.example)); with it unset the profile shows a "not configured" note and
+the rest of the admin is unaffected.
 
 ## The lead pipeline — three steps, one deal
 
@@ -59,16 +59,15 @@ each kind names, through the **Vercel AI Gateway**). Every output lands as a ver
 **draft** that Jamie reviews, edits, and approves in place:
 
 - **Review gate** — `draft → approved | rejected` on every document. Only an approved proposal
-  unlocks invoicing; only approved documents can be exported/downloaded or **repo-synced**
-  (approval commits the artifact to `shared/clients/<slug>/documents/` via the GitHub API,
-  keeping the repo the canonical business record).
+  unlocks invoicing; only approved documents can be exported/downloaded. Approval flips the
+  document's `status` in the database and nothing else — the Neon `biz.*` schema is the sole
+  store, so there is no write-back to git.
 - **Provenance** — every run records model, context files, and token usage; a **Next action**
   card says which of the three steps the deal is at.
 
 With `AI_GATEWAY_API_KEY` unset the AI routes return a "not configured" response and the rest
-of the admin still works; with `GITHUB_TOKEN`/`GITHUB_REPO` unset, approval works and sync is
-skipped. Models are swappable per tier via `AI_MODEL_HEAVY/STANDARD/FAST`, and the research
-tool's model via `AI_MODEL_RESEARCH` (see [`.env.example`](.env.example)).
+of the admin still works. Models are swappable per tier via `AI_MODEL_HEAVY/STANDARD/FAST`, and
+the research tool's model via `AI_MODEL_RESEARCH` (see [`.env.example`](.env.example)).
 
 ## Stripe billing
 
@@ -154,7 +153,7 @@ app/
   api/documents/[id]/export/  # download an APPROVED document (never drafts)
 components/             # login form, nav (top bar + mobile tab bar), service-worker register, billing + pipeline UI
 lib/                    # auth, api-auth, formatting, stripe client, money, finance reads, deal context (Layer-4
-                        # assembly), next-action, repo-sync, github (client delivery repos), kinds, app-icon
+                        # assembly), next-action, github (client delivery repos), kinds, app-icon
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 
@@ -173,7 +172,6 @@ Requires the `biz` schema to exist — run the migration in
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
 same Stripe account the payment-gateway uses), `AI_GATEWAY_API_KEY`, and optionally
-`GITHUB_TOKEN`/`GITHUB_REPO` for the approval sync-back **and** the client delivery-repo
-connect/create/analysis (plus `GITHUB_REPO_OWNER` to home new client repos under a specific
-user/org). Consumes the shared packages as source (`transpilePackages` in
-[`next.config.ts`](next.config.ts)).
+`GITHUB_TOKEN` for the client delivery-repo connect/create/analysis (plus `GITHUB_REPO_OWNER`
+to home new client repos under a specific user/org). Consumes the shared packages as source
+(`transpilePackages` in [`next.config.ts`](next.config.ts)).

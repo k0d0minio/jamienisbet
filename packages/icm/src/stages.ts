@@ -38,9 +38,6 @@ export type StageSpec = {
   disclaimer: boolean
   /** Model policy per _config/conventions/model-and-scaling.md. */
   modelTier: ModelTier
-  /** Where an approved artifact syncs back to in the repo. `{slug}` is the
-   * client slug, `{version}` the document version. */
-  syncPathTemplate: string
 }
 
 const VOICE = [
@@ -48,10 +45,6 @@ const VOICE = [
   "_config/brand/voice/do-dont.md",
   "_config/brand/voice/vocabulary.md",
 ]
-
-function syncPath(kind: DocumentKind): string {
-  return `shared/clients/{slug}/documents/${kind}-v{version}.md`
-}
 
 export const stageSpecs: Record<DocumentKind, StageSpec> = {
   // Fast go/no-go before any effort goes in — the project-triage rubric applied
@@ -73,7 +66,6 @@ export const stageSpecs: Record<DocumentKind, StageSpec> = {
     customerFacing: false,
     disclaimer: false,
     modelTier: "heavy",
-    syncPathTemplate: syncPath("triage"),
   },
 
   // Crystallised out of the brainstorm chat: Jamie's own prep for presenting
@@ -88,7 +80,6 @@ export const stageSpecs: Record<DocumentKind, StageSpec> = {
     customerFacing: false,
     disclaimer: false,
     modelTier: "heavy",
-    syncPathTemplate: syncPath("pitch"),
   },
 
   // Internal-only prep for the pricing conversation: anchor, target, floor, the
@@ -107,7 +98,6 @@ export const stageSpecs: Record<DocumentKind, StageSpec> = {
     customerFacing: false,
     disclaimer: false,
     modelTier: "heavy",
-    syncPathTemplate: syncPath("negotiation"),
   },
 
   // Drafted from what Jamie and the client agreed at the meeting. The one
@@ -124,7 +114,6 @@ export const stageSpecs: Record<DocumentKind, StageSpec> = {
     customerFacing: true,
     disclaimer: true,
     modelTier: "standard",
-    syncPathTemplate: syncPath("proposal"),
   },
 
   // The legal agreement, populated from the approved proposal and the entity
@@ -142,7 +131,6 @@ export const stageSpecs: Record<DocumentKind, StageSpec> = {
     customerFacing: false,
     disclaimer: true,
     modelTier: "standard",
-    syncPathTemplate: syncPath("contract"),
   },
 }
 

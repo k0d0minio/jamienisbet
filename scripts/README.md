@@ -17,8 +17,6 @@ Convention: [`_config/conventions/scripts-and-integrations.md`](../_config/conve
 ## Index
 - [`send-email.sh`](send-email.sh) — send an email via Resend from a reviewed body file.
   Dry-runs unless `--confirm` is passed. Reads `RESEND_API_KEY` from `.env`.
-- [`new-client.sh`](new-client.sh) — scaffold `shared/clients/<slug>/` from `_template-client/`;
-  derives the slug from a legal name and stops on a collision for human review.
 - [`new-project.sh`](new-project.sh) — scaffold the docs-only `projects/<slug>/` from
   `_template-project/`; reminds you to create the external delivery repo (a separate reviewed step).
 
@@ -26,6 +24,3 @@ Finance (Stripe is the source of truth — these are **read-only** fetches; no c
 - [`stripe-income.sh`](stripe-income.sh) — paid income for a period.
 - [`stripe-receivables.sh`](stripe-receivables.sh) — open + overdue invoices.
 - [`stripe-report.sh`](stripe-report.sh) — period summary: income, receivables, tax reserve.
-
-Planned: `gen-dashboard.sh` — aggregate per-entity front-matter + the `stripe-report` figures into
-[`state/dashboard.md`](../state/README.md).

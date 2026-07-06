@@ -13,7 +13,8 @@
 - Periodic IVA declaration + recapitulative (VIES) statement — foreign B2B, typically nil IVA but
   still filed. Confirm cadence with the contabilista.
 
-## Metrics (for `state/dashboard.md`)
-- **Monthly revenue** + **overdue receivables** — from `stripe-report.sh`.
-- **Pipeline value** + **win rate** — from `shared/clients/` front-matter (not Stripe).
+## Metrics (surfaced in the admin dashboard)
+- **Monthly revenue** + **overdue receivables** — from `stripe-report.sh` / Stripe.
+- **Pipeline value** + **win rate** — from the `biz.deals` rows (read live in the admin dashboard),
+  not from any repo file.
 - **Tax reserve** — accumulated from the monthly P&L.

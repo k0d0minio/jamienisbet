@@ -24,15 +24,26 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   exceptions. Per-stage `## Integrations` declares any external call.
 
 ## State & process
-- **State = per-entity YAML front-matter**, plain text. → [`state-and-status.md`](state-and-status.md)
-- Statuses: lead `new|qualified|proposed|won|lost`; project `discovery|build|delivery|closed`;
-  invoice `draft|sent|paid|overdue`. Metrics: pipeline value, win rate, monthly revenue, tax
-  reserve, overdue receivables.
+- **State = the Neon `biz.*` schema, the sole store.** The repo holds no pipeline state (no client
+  records, statuses, documents, or dashboard); the admin dashboard and its AI drive the pipeline,
+  and there is no sync-back. → [`state-and-status.md`](state-and-status.md)
+  _(Reverses the original "State = per-entity YAML front-matter" decision — see the 2026-07 entry
+  below.)_
+- **Status vocabularies are defined in code** (`@jamie-nisbet/services`: `clientStatuses`,
+  `dealStatuses`, `documentStatuses`) and referenced, never restated, by docs.
 - **Output versioning:** `output/<client>/<vN>/` side-by-side; run header on each; commit per
   stage/run.
 - **Verify mandatory; provenance markers in real outputs; edit→source-fix loop.**
 - **Client record created only once qualified.** Triage is both a gate-before-proposals and a
   standalone fast-feedback mode.
+
+## Reversals
+- **2026-07 — State store: one DB, not a repo mirror.** The founding "State = per-entity YAML
+  front-matter in `shared/clients/`, aggregated into a generated `state/dashboard.md`" model is
+  **retired**, along with the later "repo is a synced mirror maintained by sync-back" plan. The
+  Neon `biz.*` schema is the **sole** source of truth; the repo carries no pipeline state and
+  nothing is written back to git on approval. Zero real entities existed in the markdown model, so
+  this removed specification and scaffolding, not data. → [`state-and-status.md`](state-and-status.md)
 
 ## Business parameters (used by later passes)
 - **Rate: €120/hour.** Open to a reduced rate for commission/incentive comp; slight reduction for

@@ -15,8 +15,7 @@ once so each run just produces a new deliverable.
 - **Upstream / reads from:** human input; the root [`CLAUDE.md`](../../CLAUDE.md) (Layer 0 identity/router).
 - **Downstream / feeds:** every workspace router, stage `CONTEXT.md`, script, and `output/` across
   [`workspaces/`](../../workspaces/), [`projects/`](../../projects/), [`shared/`](../../shared/),
-  [`websites/`](../../websites/), [`scripts/`](../../scripts/), and [`state/`](../../state/) follows
-  the rules defined here.
+  [`websites/`](../../websites/), and [`scripts/`](../../scripts/) follows the rules defined here.
 - **Draws on (Layer 3 reference):** [`_config/brand/`](../brand/) and [`_config/business/`](../business/)
   as the canonical reference targets stages cite.
 
@@ -34,7 +33,7 @@ once so each run just produces a new deliverable.
 ### Operations
 
 - [`scripts-and-integrations.md`](scripts-and-integrations.md) — the `scripts/` layer and the outbound-action boundary.
-- [`state-and-status.md`](state-and-status.md) — per-entity front-matter, status sets, and the metrics dashboard.
+- [`state-and-status.md`](state-and-status.md) — the single state store (the Neon `biz.*` schema) and where the status vocabularies are defined.
 - [`client-and-slug.md`](client-and-slug.md) — the client slug and the per-client footprint (in-repo vs external repo).
 - [`macro-pipeline.md`](macro-pipeline.md) — how a client flows across workspaces (the pipeline-of-pipelines).
 

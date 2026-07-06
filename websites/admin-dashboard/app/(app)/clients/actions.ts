@@ -17,13 +17,13 @@ import {
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
 import { getStripe } from "@/lib/stripe"
 import {
+  clientSlug,
   createRepo,
   getRepo,
   isGithubConfigured,
   listAccessibleRepos,
   type RepoSummary,
 } from "@/lib/github"
-import { clientSlug } from "@/lib/repo-sync"
 
 // A single edit refreshes both the list and the client's own page (and the
 // dashboard, which shows headline counts).
@@ -99,8 +99,8 @@ export async function listConnectableRepos(): Promise<RepoSummary[]> {
   return listAccessibleRepos()
 }
 
-// A sensible default repo name for a new client repo: their slug, matching the
-// convention new-client.sh / repo-sync already use for the business record.
+// A sensible default repo name for a new client repo: a lowercase snake_case
+// slug derived from the client's name.
 export async function suggestedRepoName(id: string): Promise<string> {
   const client = await getClient(id)
   return clientSlug(client?.name ?? "client")

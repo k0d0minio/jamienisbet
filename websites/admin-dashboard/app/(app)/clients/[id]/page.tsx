@@ -19,10 +19,9 @@ import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
 import { DealCreateForm } from "@/components/deal-create-form"
 import { formatDateTime, formatServiceId } from "@/lib/format"
-import { isGithubConfigured } from "@/lib/github"
+import { clientSlug, isGithubConfigured } from "@/lib/github"
 import { dealStatusVariant } from "@/lib/kinds"
 import { formatMoney } from "@/lib/money"
-import { clientSlug } from "@/lib/repo-sync"
 
 export const metadata: Metadata = { title: "Client" }
 export const dynamic = "force-dynamic"

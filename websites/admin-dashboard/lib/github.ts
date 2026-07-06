@@ -1,20 +1,28 @@
 import "server-only"
 
-// The dashboard's direct line to GitHub for the *client delivery repo* — the
-// counterpart to lib/repo-sync.ts, which commits approved documents back into
-// the business repo (GITHUB_REPO). This module is instead about each client's
-// OWN external repository: connecting an existing one, creating a fresh one, and
-// pulling a compact snapshot of it into the pipeline's AI context so pitches and
-// proposals are grounded in the actual codebase.
+// The dashboard's direct line to GitHub for the *client delivery repo* — each
+// client's OWN external repository: connecting an existing one, creating a fresh
+// one, and pulling a compact snapshot of it into the pipeline's AI context so
+// pitches and proposals are grounded in the actual codebase.
 //
-// It reuses the same GITHUB_TOKEN as repo-sync. A Personal Access Token needs
-// `repo` scope (read+write on private repos) to list, create, and read; a
-// fine-grained token needs Contents+Metadata read and Administration write
-// (repo creation). With the token unset every function degrades gracefully:
-// reads return null/empty, and the connect/create actions surface a clear
-// "not configured" error rather than throwing opaquely.
+// A Personal Access Token needs `repo` scope (read+write on private repos) to
+// list, create, and read; a fine-grained token needs Contents+Metadata read and
+// Administration write (repo creation). With the token unset every function
+// degrades gracefully: reads return null/empty, and the connect/create actions
+// surface a clear "not configured" error rather than throwing opaquely.
 
 const API = "https://api.github.com"
+
+/** Lowercase snake_case derivation of a client name — used to suggest a
+ * delivery-repo name from the client's legal name. */
+export function clientSlug(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "client"
+  )
+}
 
 function token(): string | undefined {
   return process.env.GITHUB_TOKEN
