@@ -50,14 +50,32 @@ function clientSection(client: Client): string {
 }
 
 function dealSection(deal: Deal): string {
-  return [
+  const lines = [
     "## Deal",
     `- Title: ${deal.title}`,
     `- Status: ${deal.status}`,
-    `- Working value: ${
-      deal.valueMinor > 0 ? formatMoney(deal.valueMinor, "eur") : "not set yet"
-    }`,
-  ].join("\n")
+  ]
+  if (deal.billingType === "retainer") {
+    lines.push(
+      `- Billing: recurring retainer, ${
+        deal.recurringAmountMinor > 0
+          ? formatMoney(deal.recurringAmountMinor, "eur")
+          : "amount not set yet"
+      } per ${deal.recurringInterval}${
+        deal.activeUntil
+          ? ` until ${deal.activeUntil.toISOString().slice(0, 10)}`
+          : " (open-ended)"
+      }`
+    )
+  } else {
+    lines.push(
+      `- Billing: one-off project`,
+      `- Working value: ${
+        deal.valueMinor > 0 ? formatMoney(deal.valueMinor, "eur") : "not set yet"
+      }`
+    )
+  }
+  return lines.join("\n")
 }
 
 function documentSection(doc: Document): string {

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 import {
+  billingTypes,
   clearWorkshop,
   createDeal,
   dealStatuses,
@@ -25,6 +26,44 @@ import { ensureStripeCustomer } from "@/lib/clients-stripe"
 import { parseAmountToMinor } from "@/lib/money"
 import { getStripe } from "@/lib/stripe"
 
+import type { BillingType } from "@jamie-nisbet/services"
+
+// Read the billing fields shared by the create and edit forms: how the deal is
+// billed, and — for a retainer — its monthly amount and optional end date. The
+// recurring figure is only meaningful for a retainer; a one-off keeps it 0.
+function readBillingFields(formData: FormData): {
+  billingType: BillingType
+  recurringAmountMinor: number
+  activeUntil: Date | null
+} {
+  const raw = String(formData.get("billingType") ?? "one_off")
+  const billingType = (billingTypes as readonly string[]).includes(raw)
+    ? (raw as BillingType)
+    : "one_off"
+
+  let recurringAmountMinor = 0
+  if (billingType === "retainer") {
+    const recurringRaw = String(formData.get("recurringAmount") ?? "").trim()
+    const parsed = recurringRaw === "" ? 0 : parseAmountToMinor(recurringRaw)
+    if (parsed === null) {
+      throw new Error("Enter a valid monthly amount in EUR, or leave it empty.")
+    }
+    recurringAmountMinor = parsed
+  }
+
+  const untilRaw = String(formData.get("activeUntil") ?? "").trim()
+  let activeUntil: Date | null = null
+  if (billingType === "retainer" && untilRaw !== "") {
+    const parsed = new Date(untilRaw)
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error("Enter a valid end date, or leave it empty for open-ended.")
+    }
+    activeUntil = parsed
+  }
+
+  return { billingType, recurringAmountMinor, activeUntil }
+}
+
 // A deal edit touches its own page, the client it belongs to, and the
 // dashboard's pipeline counters.
 function revalidateDeal(dealId: string, clientId?: string | null) {
@@ -43,7 +82,17 @@ export async function createDealAction(clientId: string, formData: FormData) {
     throw new Error("Enter a valid value in EUR, or leave it empty.")
   }
 
-  const deal = await createDeal({ clientId, title, valueMinor })
+  const { billingType, recurringAmountMinor, activeUntil } =
+    readBillingFields(formData)
+
+  const deal = await createDeal({
+    clientId,
+    title,
+    valueMinor,
+    billingType,
+    recurringAmountMinor,
+    activeUntil,
+  })
   revalidateDeal(deal.id, clientId)
   redirect(`/deals/${deal.id}`)
 }
@@ -63,9 +112,16 @@ export async function updateDealDetailsAction(id: string, formData: FormData) {
   if (valueMinor === null) {
     throw new Error("Enter a valid value in EUR, or leave it empty.")
   }
+
+  const { billingType, recurringAmountMinor, activeUntil } =
+    readBillingFields(formData)
+
   const deal = await updateDeal(id, {
     ...(title ? { title } : {}),
     valueMinor,
+    billingType,
+    recurringAmountMinor,
+    activeUntil,
   })
   if (deal) revalidateDeal(deal.id, deal.clientId)
 }

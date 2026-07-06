@@ -12,9 +12,11 @@ import {
 } from "@jamie-nisbet/ui"
 import {
   countDocumentsAwaitingReview,
+  dealHeadlineValueMinor,
   getGenerationTotals,
   listClients,
   listDeals,
+  monthlyRecurringMinor,
   type GenerationTotals,
 } from "@jamie-nisbet/services"
 
@@ -53,6 +55,7 @@ export default async function DashboardPage() {
   // Win rate: won / (won + lost). null until at least one deal has closed, so
   // the card shows an explicit "—" zero-state rather than a misleading 0%.
   let winRate: number | null = null
+  let monthlyRecurringMinorTotal = 0
   let awaitingReview = 0
   let aiTotals: GenerationTotals | null = null
   let error: string | null = null
@@ -67,12 +70,16 @@ export default async function DashboardPage() {
     clientCount = clients.length
     newCount = clients.filter((c) => c.status === "new").length
     inPipeline = clients.filter((c) => IN_PIPELINE.includes(c.status)).length
+    // Open pipeline counts each open deal's headline figure — a one-off's total,
+    // or a retainer's monthly amount so it isn't hidden at €0.
     pipelineValueMinor = deals
       .filter((d) => OPEN_DEAL.includes(d.status))
-      .reduce((sum, d) => sum + d.valueMinor, 0)
+      .reduce((sum, d) => sum + dealHeadlineValueMinor(d), 0)
     const wonCount = deals.filter((d) => d.status === "won").length
     const closedCount = wonCount + deals.filter((d) => d.status === "lost").length
     winRate = closedCount > 0 ? wonCount / closedCount : null
+    // Committed recurring revenue — every active retainer's monthly amount.
+    monthlyRecurringMinorTotal = monthlyRecurringMinor(deals)
     awaitingReview = reviewCount
     aiTotals = totals
   } catch (err) {
@@ -220,17 +227,18 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* The lead pipeline at a glance: open deal value, documents stuck at the
-          review gate (the human is the bottleneck by design), and what the AI
-          engine has burned. */}
+      {/* Committed recurring revenue plus operational load: documents stuck at
+          the review gate (the human is the bottleneck by design) and what the
+          AI engine has burned. Open pipeline value is the headline metric
+          above, so it isn't repeated here. */}
       {!error ? (
         <div className="grid gap-4 sm:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardDescription>Open pipeline value</CardDescription>
+              <CardDescription>Monthly recurring</CardDescription>
               <CardTitle className="text-3xl">
-                {pipelineValueMinor > 0
-                  ? formatMoney(pipelineValueMinor, "eur")
+                {monthlyRecurringMinorTotal > 0
+                  ? formatMoney(monthlyRecurringMinorTotal, "eur")
                   : "—"}
               </CardTitle>
             </CardHeader>

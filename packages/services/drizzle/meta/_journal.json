@@ -64,6 +64,13 @@
       "when": 1783343297753,
       "tag": "0008_drop_document_sync_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783344437431,
+      "tag": "0009_bizarre_jocasta",
+      "breakpoints": true
     }
   ]
 }
