@@ -188,9 +188,13 @@ export const documents = biz.table("documents", {
 // ("fix the source, not the symptom").
 export const generations = biz.table("generations", {
   id: uuid("id").primaryKey().defaultRandom(),
-  dealId: uuid("deal_id")
-    .notNull()
-    .references(() => deals.id, { onDelete: "cascade" }),
+  // The deal a run belonged to — null for client-scoped runs (outreach drafts)
+  // which carry client_id instead. One provenance table for every AI run keeps
+  // the spend counters unified.
+  dealId: uuid("deal_id").references(() => deals.id, { onDelete: "cascade" }),
+  clientId: uuid("client_id").references(() => clients.id, {
+    onDelete: "cascade",
+  }),
   documentId: uuid("document_id").references(() => documents.id, {
     onDelete: "set null",
   }),
@@ -240,6 +244,33 @@ export const complianceDates = biz.table("compliance_dates", {
   recurrence: varchar("recurrence", { length: 20 }).notNull().default("none"),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+// An outreach/follow-up/chase email drafted for a client — the draft-only
+// outreach module. Same discipline as documents: versioned (regeneration
+// inserts the next version, never overwrites) and review-gated (draft →
+// in_review → approved; only an approved draft can be copied out). Sending
+// stays manual and off-platform: `logged_at` records Jamie's own "I sent
+// this" confirmation (the touch fact that un-stales the lead on /today),
+// `channel` how it went out. Deliberately NOT a documents row — documents are
+// deal-pipeline artifacts (deal_id NOT NULL, scanned by the next-action
+// logic); a touch belongs to the client relationship.
+export const touches = biz.table("touches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  clientId: uuid("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  // 'outreach' | 'follow_up' | 'chase' — mirrors shared/templates/email/*.
+  kind: varchar("kind", { length: 20 }).notNull(),
+  contentMd: text("content_md"),
+  version: integer("version").notNull().default(1),
+  status: varchar("status", { length: 20 }).notNull().default("draft"),
+  // Set when Jamie confirms he sent it (from his own email/WhatsApp — never
+  // from here). Null = drafted but not sent.
+  loggedAt: timestamp("logged_at", { withTimezone: true }),
+  channel: varchar("channel", { length: 20 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 })
 
 // The technical-workshop chat, persisted per deal — the brainstorm is part of

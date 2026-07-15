@@ -10,7 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@jamie-nisbet/ui"
-import { getClient, listDealsForClient } from "@jamie-nisbet/services"
+import {
+  getClient,
+  listDealsForClient,
+  listTouchesForClient,
+} from "@jamie-nisbet/services"
 
 import { ClientActions } from "@/components/client-actions"
 import { ClientProfileForm } from "@/components/client-profile-form"
@@ -18,6 +22,7 @@ import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
 import { DealCreateForm } from "@/components/deal-create-form"
+import { OutreachComposer } from "@/components/outreach-composer"
 import { formatDateTime, formatServiceId } from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
 import { dealStatusVariant } from "@/lib/kinds"
@@ -55,7 +60,10 @@ export default async function ClientDetailPage({
   const client = await getClient(id)
   if (!client) notFound()
 
-  const deals = await listDealsForClient(client.id)
+  const [deals, touches] = await Promise.all([
+    listDealsForClient(client.id),
+    listTouchesForClient(client.id),
+  ])
 
   const archived = client.archivedAt !== null
 
@@ -211,6 +219,36 @@ export default async function ClientDetailPage({
           <div className="border-t pt-4">
             <DealCreateForm clientId={client.id} />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Draft-only outreach: AI drafts in Jamie's voice behind the review
+          gate; sending is always manual and off-platform, and logging the
+          send is what un-stales the lead on /today. */}
+      <Card id="outreach">
+        <CardHeader>
+          <CardTitle>Outreach</CardTitle>
+          <CardDescription>
+            Draft an outreach, follow-up, or payment-chase email in your voice.
+            Drafts are review-gated — approve before copying out — and nothing
+            is ever sent from here: send it from your own email, then mark it
+            sent to log the touch.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OutreachComposer
+            clientId={client.id}
+            touches={touches.map((t) => ({
+              id: t.id,
+              kind: t.kind,
+              contentMd: t.contentMd ?? "",
+              version: t.version,
+              status: t.status,
+              loggedAt: t.loggedAt?.toISOString() ?? null,
+              channel: t.channel,
+              createdAt: t.createdAt.toISOString(),
+            }))}
+          />
         </CardContent>
       </Card>
     </div>

@@ -33,7 +33,7 @@ import { getRepoSnapshot } from "@/lib/github"
  *   contract    ← the intake + the approved proposal (its scope/price/schedule)
  */
 
-function clientSection(client: Client): string {
+export function clientSection(client: Client): string {
   const lines = [
     `- Name: ${client.name}`,
     client.company ? `- Company: ${client.company}` : null,

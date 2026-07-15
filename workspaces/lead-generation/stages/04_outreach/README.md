@@ -1,6 +1,11 @@
 # Stage 04 — Outreach
 
 > **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
+> **Status:** drafting now runs in the **admin dashboard** against this contract — the Outreach
+> card on a client's page drafts outreach/follow-up/chase emails from
+> `shared/templates/email/*` + `_config/brand/voice/` (via `packages/icm`), review-gated and
+> **draft-only**: sending stays manual from Jamie's own email, and the logged send un-stales the
+> lead on `/today`. Edit the templates/voice here to change every future draft.
 > **Purpose:** Provide on-brand templates and follow-up cadences for warm intros and inbound leads so nothing stalls or sounds off-voice.
 
 ## What this folder accomplishes
