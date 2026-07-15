@@ -17,7 +17,7 @@ Convention: [`_config/conventions/scripts-and-integrations.md`](../_config/conve
 ## Index
 - [`send-email.sh`](send-email.sh) — send an email via Resend from a reviewed body file.
   Dry-runs unless `--confirm` is passed. Reads `RESEND_API_KEY` from `.env`.
-- [`new-project.sh`](new-project.sh) — scaffold the docs-only `projects/<slug>/` from
+- (retired) `new-project.sh` — delivery docs are now seeded into the client's external repo from
   `_template-project/`; reminds you to create the external delivery repo (a separate reviewed step).
 
 Finance (Stripe is the source of truth — these are **read-only** fetches; no committed ledgers):

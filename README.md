@@ -47,11 +47,10 @@ jamienisbet/
 │   ├── finance/            bookkeeping-lite, invoice tracking, tax reserve
 │   └── _template-workspace/  copy this to create a new capability
 │
-├── projects/           PER-CLIENT DELIVERY DOCS (docs-only; the build lives in the client's own external repo)
 ├── websites/           Jamie's own apps: portfolio/ · payment-gateway/ · admin-dashboard/ · sellers-site/
 ├── packages/           SHARED CODE for every website — ui/ = @jamie-nisbet/ui (design system: tokens, components, assets)
 ├── tracker/            STANDALONE business-only daily todos
-└── scripts/            the automation layer (bash): new-project · send-email
+└── scripts/            the automation layer (bash): send-email · stripe fetchers
 ```
 
 **Where the business stands** — clients, deals, pipeline and metrics — lives in the
@@ -67,8 +66,8 @@ pipeline state and nothing is mirrored back into git.
    dashboard; hand the customer structured feedback on the spot.
 3. **Close it** in `proposals/` — the flagship: it asks you exhaustive questions, then coaches the
    negotiation to lift your rate, and generates the proposal, quote and contract on-brand.
-4. **Deliver it** via `scripts/new-project.sh` → a docs-only `projects/<slug>/` pipeline that tracks
-   the build; the build itself runs in the client's **own external repo**.
+4. **Deliver it** in the client's **own external repo** — created and seeded with the delivery-stage
+   docs (`shared/templates/delivery/`) from the deal's onboarding checklist in the admin dashboard.
 5. **Get paid & stay compliant** via `finance/` and `legal-and-tax/`, whose deadlines surface every
    morning in `tracker/`.
 
@@ -81,7 +80,7 @@ so everything looks and sounds like one business.
 [`_config/conventions/`](_config/conventions/) docs, the [`scripts/`](scripts/) automation layer, and
 a machine-loadable `CONTEXT.md` contract in every stage. The structural decisions are settled —
 business state lives in **one** store (the Neon `biz.*` schema, run from the admin dashboard),
-`projects/` is docs-only (client builds live in external repos), `websites/` hosts Jamie's own apps,
+client delivery (code + docs) lives in each client's external repo, `websites/` hosts Jamie's own apps,
 `tracker/` is business-only. **Still to come (later passes):** brand identity, each workspace's
 `setup/` + `references/` content, and making `legal-and-tax` runnable first.
 Decisions are recorded in [`_config/conventions/decisions.md`](_config/conventions/decisions.md).

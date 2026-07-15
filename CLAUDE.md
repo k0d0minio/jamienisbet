@@ -42,7 +42,7 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Find/sell work, run the local-affiliate program, outreach | [`workspaces/lead-generation/`](workspaces/lead-generation/) |
 | Decide if a project is worth it / give a customer fast structured feedback | [`workspaces/project-triage/`](workspaces/project-triage/) |
 | Track income, expenses, invoices, tax reserve | [`workspaces/finance/`](workspaces/finance/) |
-| Deliver a client engagement (docs-only; build lives in the client's external repo) | [`projects/`](projects/) (`scripts/new-project.sh`) |
+| Deliver a client engagement (code + docs live in the client's external repo) | the deal's onboarding checklist in the admin dashboard seeds the repo from [`shared/templates/delivery/`](shared/templates/delivery/) |
 | Build/host one of Jamie's own web apps (portfolio, payment gateway, admin dashboard, sellers site) | [`websites/`](websites/) |
 | Use/extend shared code across every website (design system, app shell, data layer, ICM runtime) | [`packages/`](packages/) (`ui` = design system · `app-shell` = marketing-site chrome/i18n · `services` = Neon `biz.*` · `icm` = AI-pipeline runtime) |
 | Daily business todos / the morning brief + weekly review | [`tracker/`](tracker/) |

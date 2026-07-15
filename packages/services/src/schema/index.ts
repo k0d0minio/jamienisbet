@@ -138,6 +138,13 @@ export const deals = biz.table("deals", {
   // proposal's payment terms and the actual invoicing can never drift apart.
   // Null = no proposal drafted yet. See PaymentMilestone in queries/deals.ts.
   paymentSchedule: text("payment_schedule"),
+  // Won-deal onboarding: JSON of the confirmations that CANNOT be derived from
+  // other data ({ contractSentAt?, repoSeededAt?, kickoffScheduledAt? } —
+  // ISO strings). Everything derivable (contract approved, deposit invoiced,
+  // repo created) is computed at read time, so the two can never drift. Same
+  // JSON-in-text convention as payment_schedule. Null = nothing confirmed yet.
+  // See OnboardingState in queries/deals.ts.
+  onboardingState: text("onboarding_state"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 })

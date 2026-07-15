@@ -19,7 +19,7 @@ The app is a workspace member (`@jamie-nisbet/portfolio`) and consumes the desig
 light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tokens are forked here.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** human input (Jamie's case studies, bio, selected projects); finished work referenced from [projects/](../../projects/)
+- **Upstream / reads from:** human input (Jamie's case studies, bio, selected projects); finished work in the client delivery repos (linked on `biz.clients`)
 - **Downstream / feeds:** new leads back into [workspaces/lead-generation/](../../workspaces/lead-generation/); contact details sourced from [_config/business/](../../_config/business/)
 - **Draws on (Layer 3 reference):** [_config/brand/visual/](../../_config/brand/visual/) (color, type, design tokens), [_config/brand/voice/](../../_config/brand/voice/) (bio and CTA copy rules), [_config/brand/assets/](../../_config/brand/assets/) (logo, favicon)
 
@@ -34,7 +34,7 @@ light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tok
 ## Notes
 - One job: present Jamie and his work. Client sites live in their **own external repos**, not here.
 - **Build first:** the portfolio is the first website to go live — it drives the word-of-mouth lead channel.
-- Portfolio entries are **auto-suggested from completed [projects/](../../projects/)** (delivery acceptance + retro), then curated before publishing.
+- Portfolio entries are **auto-suggested from completed engagements** (the delivery acceptance + retro in each client repo), then curated before publishing.
 - Stack: Next.js App Router (React 19, Tailwind v4 via `@jamie-nisbet/ui`). Built and runnable locally; domains and Vercel deploy config come later.
 - The contact form is fully built but **does not send yet** — it validates and confirms. Wiring (Resend) is deferred until `RESEND_API_KEY` is set (see `.env.example`), per the repo rule "no outbound action without review".
-- Case studies should reference real [projects/](../../projects/) work without exposing any client-confidential material.
+- Case studies should reference real delivered work without exposing any client-confidential material.

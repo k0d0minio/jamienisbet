@@ -14,15 +14,25 @@ import {
   getDeal,
   getDocument,
   getLatestApprovedDocument,
+  isOnboardingStepKey,
   linkMilestoneInvoice,
   parsePaymentSchedule,
+  setClientRepo,
   setDocumentStatus,
+  setOnboardingStep,
   updateDeal,
   updateDocumentContent,
   type DealStatus,
 } from "@jamie-nisbet/services"
+import { loadDeliveryTemplates } from "@jamie-nisbet/icm"
 
 import { ensureStripeCustomer } from "@/lib/clients-stripe"
+import {
+  clientSlug,
+  createRepo,
+  isGithubConfigured,
+  seedRepoFiles,
+} from "@/lib/github"
 import { parseAmountToMinor } from "@/lib/money"
 import { getStripe } from "@/lib/stripe"
 
@@ -132,6 +142,80 @@ export async function removeDealAction(id: string) {
   revalidatePath("/")
   if (deal) revalidatePath(`/clients/${deal.clientId}`)
   redirect(deal ? `/clients/${deal.clientId}` : "/clients")
+}
+
+// ---- Won-deal onboarding ----------------------------------------------------
+// The checklist stores only what can't be derived (see lib/onboarding.ts).
+// Every step is a human click — winning a deal fires nothing on its own.
+
+export async function markOnboardingStepAction(
+  dealId: string,
+  step: string,
+  done: boolean
+) {
+  if (!isOnboardingStepKey(step)) {
+    throw new Error(`Unknown onboarding step: ${step}`)
+  }
+  const deal = await setOnboardingStep(dealId, step, done ? new Date() : null)
+  if (deal) revalidateDeal(deal.id, deal.clientId)
+}
+
+/**
+ * Create the client's delivery repo if they don't have one yet, then commit
+ * the delivery-stage docs (shared/templates/delivery/ → docs/icm/) into it.
+ * Idempotent: files that already exist are left untouched; re-running after a
+ * partial failure fills the gaps. Returns a human-readable summary.
+ */
+export async function seedDeliveryRepoAction(
+  dealId: string
+): Promise<{ ok: boolean; message: string }> {
+  if (!isGithubConfigured()) {
+    return {
+      ok: false,
+      message: "GitHub is not configured in this environment (GITHUB_TOKEN).",
+    }
+  }
+  const deal = await getDeal(dealId)
+  if (!deal) throw new Error("That deal no longer exists.")
+  const client = await getClient(deal.clientId)
+  if (!client) throw new Error("That client no longer exists.")
+
+  let repoFullName = client.githubRepo
+  let created = false
+  if (!repoFullName) {
+    const repo = await createRepo({
+      name: clientSlug(client.name),
+      description: `Delivery repo for ${client.name} — ${deal.title}`,
+      private: true,
+    })
+    await setClientRepo(client.id, {
+      githubRepo: repo.fullName,
+      githubDefaultBranch: repo.defaultBranch,
+    })
+    repoFullName = repo.fullName
+    created = true
+  }
+
+  const results = await seedRepoFiles(repoFullName, loadDeliveryTemplates())
+  const failed = results.filter((r) => r.outcome === "failed")
+
+  if (failed.length === 0) {
+    await setOnboardingStep(dealId, "repoSeededAt", new Date())
+  }
+  revalidateDeal(dealId, deal.clientId)
+
+  const seeded = results.filter((r) => r.outcome === "created").length
+  const existing = results.filter((r) => r.outcome === "exists").length
+  const parts = [
+    created ? `Created ${repoFullName}.` : `Using ${repoFullName}.`,
+    seeded > 0 ? `Committed ${seeded} doc${seeded === 1 ? "" : "s"}.` : null,
+    existing > 0 ? `${existing} already existed (left untouched).` : null,
+    failed.length > 0
+      ? `FAILED: ${failed.map((f) => `${f.path} (${f.error})`).join("; ")}`
+      : null,
+  ].filter(Boolean)
+
+  return { ok: failed.length === 0, message: parts.join(" ") }
 }
 
 // ---- Documents — the review surface ----------------------------------------

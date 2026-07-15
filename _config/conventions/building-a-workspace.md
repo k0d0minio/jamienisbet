@@ -33,7 +33,7 @@ stage inside an existing one. Full rule in [`model-and-scaling.md`](model-and-sc
 
 ## Per-client delivery is different
 A *workspace* is a reusable capability (run many times). A client *delivery* is a one-off: copy
-`projects/_template-project/` → `projects/<slug>/` (docs-only — the build/delivery code lives in
+`shared/templates/delivery/` → the client's external repo, seeded by the dashboard (build and docs both live in
 the client's own external repo). See [`client-and-slug.md`](client-and-slug.md) and
 [`macro-pipeline.md`](macro-pipeline.md).
 

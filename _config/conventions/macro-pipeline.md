@@ -14,7 +14,7 @@ lead-generation → project-triage → proposals → projects → finance
 |---|---|---|---|
 | `lead-generation` | a lead is sourced (networking, affiliate, partner) | lead details | `project-triage` |
 | `project-triage` | lead **qualified** (go) | the `biz.clients` / `biz.deals` rows in the admin | `proposals` |
-| `proposals` | deal **won** | agreed scope + rate (the approved proposal) | `projects/<slug>/` (copy `_template-project/`) |
+| `proposals` | deal **won** | agreed scope + rate (the approved proposal) | the client's external delivery repo, seeded by the dashboard from `shared/templates/delivery/` |
 | `projects` | milestone / final acceptance | accepted deliverable | `finance` |
 | `finance` | invoice paid | income event → tax reserve (live in Stripe) | — |
 

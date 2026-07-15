@@ -8,7 +8,7 @@ This is the payoff stage. It converts the scored assessment into a clear GO / NO
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../02_assessment/output/`](../02_assessment/output/); [`../../setup/`](../../setup/) decision thresholds
-- **Downstream / feeds:** [`../../output/`](../../output/) (final triage record + customer feedback); on GO -> [`proposals/`](../../../proposals/) and a new pipeline from [`projects/_template-project/`](../../../../projects/_template-project/); outcome logged to [`lead-generation/`](../../../lead-generation/)
+- **Downstream / feeds:** [`../../output/`](../../output/) (final triage record + customer feedback); on GO -> [`proposals/`](../../../proposals/) via a deal in the admin dashboard; outcome logged on the client record
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/) decision criteria; [`_config/brand/voice/`](../../../../_config/brand/voice/) and [`_config/brand/assets/`](../../../../_config/brand/assets/) for a polished, on-brand handout; [`shared/templates/`](../../../../shared/templates/) for the email/feedback format
 
 ## Contents

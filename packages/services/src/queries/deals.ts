@@ -83,6 +83,7 @@ export type DealPatch = Partial<
     | "recurringAmountMinor"
     | "recurringInterval"
     | "activeUntil"
+    | "onboardingState"
   >
 >
 
@@ -166,6 +167,69 @@ export async function linkMilestoneInvoice(
 
 export async function deleteDeal(id: string): Promise<void> {
   await getDb().delete(deals).where(eq(deals.id, id))
+}
+
+// ---------------------------------------------------------------------------
+// Onboarding state — the won-deal checklist's stored half. Only the
+// confirmations that cannot be derived from other data live here (ISO
+// timestamps, set when Jamie ticks the step); everything derivable (contract
+// approved, deposit invoiced, repo created) is computed at read time by the
+// dashboard, so stored state and reality can never drift.
+
+export type OnboardingState = {
+  /** Jamie confirmed the approved contract went to the client. */
+  contractSentAt?: string
+  /** The delivery repo was seeded with the delivery-stage docs. */
+  repoSeededAt?: string
+  /** The kickoff call/meeting is in the calendar. */
+  kickoffScheduledAt?: string
+}
+
+const onboardingKeys = [
+  "contractSentAt",
+  "repoSeededAt",
+  "kickoffScheduledAt",
+] as const
+export type OnboardingStepKey = (typeof onboardingKeys)[number]
+
+export function isOnboardingStepKey(value: string): value is OnboardingStepKey {
+  return (onboardingKeys as readonly string[]).includes(value)
+}
+
+/** Parse a deal's stored onboarding state; {} when unset or malformed (every
+ * field is a re-confirmable checkbox, so a broken value degrades safely). */
+export function parseOnboardingState(deal: Deal): OnboardingState {
+  if (!deal.onboardingState) return {}
+  try {
+    const parsed = JSON.parse(deal.onboardingState)
+    if (typeof parsed !== "object" || parsed === null) return {}
+    const state: OnboardingState = {}
+    for (const key of onboardingKeys) {
+      const value = (parsed as Record<string, unknown>)[key]
+      if (typeof value === "string") state[key] = value
+    }
+    return state
+  } catch {
+    return {}
+  }
+}
+
+/** Merge one confirmation into the deal's onboarding state (a Date stamps the
+ * step done, null unticks it). */
+export async function setOnboardingStep(
+  dealId: string,
+  step: OnboardingStepKey,
+  at: Date | null
+): Promise<Deal | undefined> {
+  const deal = await getDeal(dealId)
+  if (!deal) return undefined
+  const state = parseOnboardingState(deal)
+  if (at === null) {
+    delete state[step]
+  } else {
+    state[step] = at.toISOString()
+  }
+  return updateDeal(dealId, { onboardingState: JSON.stringify(state) })
 }
 
 // ---------------------------------------------------------------------------
