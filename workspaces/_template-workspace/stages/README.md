@@ -8,7 +8,7 @@ This is the assembly line. Each child folder is exactly one stage that does exac
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../setup/`](../setup/) (the configured factory) and the first stage's own inputs.
-- **Downstream / feeds:** the final stage's `output/` rolls up to [`../output/`](../output/), then typically to [`shared/clients/`](../../../shared/clients/) or a per-project pipeline in [`projects/`](../../../projects/).
+- **Downstream / feeds:** the final stage's `output/` rolls up to [`../output/`](../output/), then typically to the business state in Neon `biz.*` (via the admin dashboard) or a client's external delivery repo.
 - **Draws on (Layer 3 reference):** [`../references/`](../references/) and repo-wide references under [`_config/`](../../../_config/) and [`shared/`](../../../shared/).
 
 ## Contents

@@ -8,7 +8,7 @@ This stage builds the whole local-affiliate program end to end so a non-technica
 
 ## How it connects to the architecture
 - **Upstream / reads from:** `../01_positioning/output/`, `../02_channels/output/`, `../../setup/output/`
-- **Downstream / feeds:** `../04_outreach/`, `../05_pipeline/` (attribution), `shared/clients/` (new seller-sourced leads)
+- **Downstream / feeds:** `../04_outreach/`, `../05_pipeline/` (attribution), Neon `biz.clients` via the sellers-site intake (new seller-sourced leads)
 - **Draws on (Layer 3 reference):** `_config/brand/visual/`, `_config/brand/assets/`, `_config/brand/voice/`, `shared/templates/` (agreement, pricing), `_config/business/` (rates), `shared/knowledge/`
 
 ## Notes

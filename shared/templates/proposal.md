@@ -1,4 +1,4 @@
-<!-- TEMPLATE — fill {{tokens}} from what was agreed at the meeting, shared/clients/<slug>/, and _config/business/.
+<!-- TEMPLATE — fill {{tokens}} from what was agreed at the meeting, the client record in the admin dashboard (Neon biz.clients), and _config/business/.
      Voice: _config/brand/voice/ (friendly, informative, first-person). Tokens: see README.md.
      The proposal is written AFTER the plan is agreed in person — it confirms the agreement,
      it does not open a negotiation. Its payment schedule is executed 1:1 as Stripe invoices. -->

@@ -10,7 +10,7 @@ This is the final stage of the deal pipeline. Once the contract is signed, it ge
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../06_contract/output/`](../06_contract/) (signed price/terms); [`../05_quote/output/`](../05_quote/) (line items)
-- **Downstream / feeds:** [`workspaces/finance/`](../../../finance/) (accounting, payment tracking); [`shared/clients/`](../../../../shared/clients/) (mark deal won)
+- **Downstream / feeds:** [`workspaces/finance/`](../../../finance/) (accounting, payment tracking); the deal record in the admin dashboard (mark deal won)
 - **Draws on (Layer 3 reference):** [`shared/templates/`](../../../../shared/templates/) (invoice template); [`_config/business/`](../../../../_config/business/) (NIF/VAT, IBAN, address); [`_config/brand/`](../../../../_config/brand/)
 
 ## Contents

@@ -16,7 +16,9 @@ script.
 - **Every script declares a tiny contract** in a header comment — Inputs, Outputs, Side-effects,
   Invocation — the same Inputs/Outputs discipline as a stage, so scripts stay ICM-legible.
 
-Current scripts: `send-email.sh`, `new-client.sh`, `new-project.sh`. Index in `scripts/README.md`.
+Current scripts: `send-email.sh` and the read-only `stripe-*.sh` fetchers. Index in
+`scripts/README.md`. (Client and project creation are the admin dashboard's job — see the
+dashboard-first reversal in [`decisions.md`](decisions.md).)
 
 ## The integration boundary (hard rule)
 External services reached via MCP or script: **Stripe, Vercel, GitHub** are the wired set

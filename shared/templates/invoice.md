@@ -29,6 +29,6 @@ NIF: {{business.nif}}  <!-- pending entity setup; do not print until established
 > {{iva.legal_note}}
 > <!-- EU B2B: "Reverse charge — IVA autoliquidação (Art. 196, Directive 2006/112/EC)."
 >      UK/US/non-EU: "Services outside the scope of Portuguese VAT." -->
-> Status tracked in workspaces/finance/ and shared/clients/{{client.slug}}/finances.md
+> Status tracked in Stripe (the invoice source of truth), surfaced in the admin dashboard /finances
 > (`draft` → `sent` → `paid` | `overdue`). Tax treatment confirmed with a contabilista.
 <!-- provenance: from proposals/07_invoice; IVA per legal-and-tax/references/iva-vat-notes.md -->

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # new-project.sh — scaffold a docs-only delivery folder from the _template-project skeleton.
 #
+# DEPRECATED (2026-07 dashboard-first reversal): delivery docs are seeded into the client's
+# external repo by the admin dashboard; this script and projects/ are scheduled for removal.
+#
 # Contract (ICM script):
 #   Inputs:       <slug>   (an existing client slug, lowercase snake_case)
 #   Outputs:      projects/<slug>/ populated from _template-project/ with {{SLUG}}/{{DATE}} filled

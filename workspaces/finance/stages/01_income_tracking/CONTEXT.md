@@ -3,10 +3,10 @@
 
 ## Inputs
 - Layer 4 (working): live Stripe data via `scripts/stripe-income.sh` + `scripts/stripe-receivables.sh` (read-only)
-- Layer 3 (reference): `shared/clients/` (bill-to reconciliation); `../../references/report-formats.md`
+- Layer 3 (reference): `biz.clients` records (bill-to reconciliation, via the admin dashboard); `../../references/report-formats.md`
 
 ## Process
-Fetch paid income and open/overdue receivables for the period from Stripe (read-only). Reconcile client names against `shared/clients/`. Produce a period income summary — not a maintained ledger; Stripe stays the source of truth.
+Fetch paid income and open/overdue receivables for the period from Stripe (read-only). Reconcile client names against the `biz.clients` records. Produce a period income summary — not a maintained ledger; Stripe stays the source of truth.
 
 ## Outputs
 - `income-<period>.md` -> output/  (generated; gitignored)
@@ -15,7 +15,7 @@ Fetch paid income and open/overdue receivables for the period from Stripe (read-
 - `scripts/stripe-income.sh`, `scripts/stripe-receivables.sh` — read-only fetches from Stripe.
 
 ## Verify
-- Figures match Stripe at fetch time; client names reconcile to `shared/clients/`; overdue is computed against the run date; nothing is hand-edited into a parallel ledger.
+- Figures match Stripe at fetch time; client names reconcile to the `biz.clients` records; overdue is computed against the run date; nothing is hand-edited into a parallel ledger.
 
 ## Review gate
 - none (read-only fetch + summary; auto-runs per the autonomy policy).

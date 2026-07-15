@@ -1,5 +1,11 @@
 # Tracker — Daily Operations
 
+> **DEPRECATED (2026-07 dashboard-first reversal — see
+> [`_config/conventions/decisions.md`](../_config/conventions/decisions.md)).** Daily todos and
+> the morning brief move to the admin dashboard's `/today` page (`biz.tasks` +
+> `biz.compliance_dates`). This folder is scheduled for removal once the open items in
+> `business/todos.md` are migrated.
+
 > **ICM role:** Layer 1 — router (standalone daily-ops hub)
 > **Purpose:** A business-only checklist of what Jamie still has to do — the human's own todo list, kept separate from any workspace's internal state.
 

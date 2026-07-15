@@ -7,9 +7,9 @@
 This workspace is Jamie's portfolio-level decision lens. Before a lead becomes a real project, he runs it through triage to answer three questions: which direction to go, whether a better/existing solution already solves it (build vs buy vs redirect), and whether it is worth his time. Critically, it doubles as an on-the-fly tool: instead of saying "I'll get back to you", Jamie captures the ask, scores it against a rubric, and hands the customer a clean structured feedback page in the same conversation. It reads across all active and past projects in [`projects/`](../../projects/) so triage decisions are made with full portfolio context, not in isolation.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** human input (live meeting / call); [`lead-generation/`](../lead-generation/) qualifying signals; [`projects/`](../../projects/) for portfolio context (what Jamie already builds/maintains); [`shared/clients/`](../../shared/clients/) client registry
-- **Downstream / feeds:** if GO, [`proposals/`](../proposals/) and a new pipeline copied from [`projects/_template-project/`](../../projects/_template-project/); if NO-GO or REDIRECT, structured feedback returns to the customer and the outcome is logged back to [`lead-generation/`](../lead-generation/)
-- **Draws on (Layer 3 reference):** [`references/`](references/) scoring rubric + decision criteria; [`_config/business/founder-brief.md`](../../_config/business/founder-brief.md) for what "worth my time" means; [`_config/brand/voice/`](../../_config/brand/voice/) so customer-facing feedback sounds like Jamie; [`shared/knowledge/`](../../shared/knowledge/)
+- **Upstream / reads from:** human input (live meeting / call); [`lead-generation/`](../lead-generation/) qualifying signals; past delivered engagements for portfolio context (what Jamie already builds/maintains); the client registry in the admin dashboard (Neon `biz.clients`)
+- **Downstream / feeds:** if GO, [`proposals/`](../proposals/) via a deal in the admin dashboard; if NO-GO or REDIRECT, structured feedback returns to the customer and the outcome is logged on the client record
+- **Draws on (Layer 3 reference):** [`references/`](references/) scoring rubric + decision criteria; [`_config/business/founder-brief.md`](../../_config/business/founder-brief.md) for what "worth my time" means; [`_config/brand/voice/`](../../_config/brand/voice/) so customer-facing feedback sounds like Jamie
 
 ## Contents
 - `setup/` — one-time configuration of this triage factory (questionnaire defining Jamie's thresholds)

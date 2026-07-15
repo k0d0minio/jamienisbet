@@ -8,8 +8,8 @@ This folder holds the ordered pipeline that takes Jamie from "who do I serve?" t
 
 ## How it connects to the architecture
 - **Upstream / reads from:** `../setup/output/` (locked config), `_config/business/founder-brief.md`
-- **Downstream / feeds:** `workspaces/proposals/`, `projects/`, `shared/clients/`
-- **Draws on (Layer 3 reference):** `../references/`, `_config/brand/voice/`, `_config/brand/visual/`, `shared/templates/`, `shared/knowledge/`
+- **Downstream / feeds:** the deal pipeline in the admin dashboard (Neon `biz.clients` / `biz.deals`, run against `workspaces/proposals/` contracts)
+- **Draws on (Layer 3 reference):** `../references/`, `_config/brand/voice/`, `_config/brand/visual/`, `shared/templates/`
 
 ## Contents
 - `01_positioning/` — define ICP, niche, value proposition (direction-setting)
@@ -22,7 +22,7 @@ This folder holds the ordered pipeline that takes Jamie from "who do I serve?" t
 `01_positioning/output/` → feeds `02_channels` and `03_affiliate_program`
 `02_channels/output/` + `03_affiliate_program/output/` → feed `04_outreach`
 `04_outreach/output/` → drives contacts logged in `05_pipeline`
-`05_pipeline/output/` → hands qualified leads to `workspaces/proposals/` and `projects/`, updating `shared/clients/`.
+`05_pipeline` → qualified leads become deals in the admin dashboard (Neon `biz.*`), run against the `workspaces/proposals/` contracts.
 
 ## Notes
 Stage N's `output/` is the Layer 4 handoff to stage N+1. Don't skip review gates — Jamie edits each output before the next stage consumes it. Re-run a single stage when only part of the strategy changes (e.g. refresh `04_outreach` copy without redoing positioning).

@@ -8,7 +8,7 @@
 
 ## How it connects to the architecture
 - **Upstream / reads from:** human input; founder brief in [`_config/business/founder-brief.md`](business/).
-- **Downstream / feeds:** [`shared/templates/`](../shared/templates/) (official documents), [`websites/`](../websites/), every pipeline under [`workspaces/`](../workspaces/) and [`projects/`](../projects/), and [`shared/clients/`](../shared/clients/).
+- **Downstream / feeds:** [`shared/templates/`](../shared/templates/) (official documents), [`websites/`](../websites/), every pipeline under [`workspaces/`](../workspaces/), and the admin dashboard's AI runs (via [`packages/icm`](../packages/icm/)).
 - **Draws on (Layer 3 reference):** itself — this is the root of all Layer 3 reference.
 
 ## Contents

@@ -9,11 +9,13 @@
 
 ## The productised offer (what sellers pitch)
 - **Landing page + contact form** — fixed, simple, one-sentence pitch.
-- **Minimum €200.** Sellers may quote any amount ≥ €200 without approval.
+- Sellers may quote freely at or above the landing-page minimum in
+  [`_config/business/rates.md`](../../../../_config/business/rates.md) (the single pricing source
+  of truth) without approval.
 - Anything more complex (multi-page, app, AI, integrations) → the seller loops in Jamie before quoting.
 
 ## Affiliate program
-- **Commission: 10%**, paid on payment received from the client.
+- **Commission:** the affiliate percentage in `rates.md`, paid on payment received from the client.
 - **Attribution:** a unique referral code per seller, captured when the seller submits the lead via the
   public sellers-site (`websites/sellers-site/`).
 - Sellers do **warm intros + the simple landing-page sale only**; Jamie quotes/closes anything bigger.

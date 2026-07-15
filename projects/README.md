@@ -1,5 +1,11 @@
 # Projects — Per-Project Delivery Pipelines
 
+> **DEPRECATED (2026-07 dashboard-first reversal — see
+> [`_config/conventions/decisions.md`](../_config/conventions/decisions.md)).** Delivery docs
+> now live in the client's own external repo, seeded by the admin dashboard from
+> `shared/templates/delivery/` when a deal is won. This folder (which never held a real project)
+> and `scripts/new-project.sh` are scheduled for removal.
+
 > **ICM role:** Layer 1 — router (over a family of per-client working pipelines)
 > **Purpose:** Hold one self-contained ICM mini-pipeline per active client/project, so each engagement Jamie delivers runs through its own discovery -> build -> delivery stages.
 

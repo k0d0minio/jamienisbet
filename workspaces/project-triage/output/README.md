@@ -8,7 +8,7 @@ This is where finished triage runs land. Each entry is the durable record of one
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../stages/03_recommendation/output/`](../stages/03_recommendation/output/) (decision + customer feedback), which in turn draws on stages 01 and 02
-- **Downstream / feeds:** on GO -> [`proposals/`](../../proposals/) and a new pipeline copied from [`projects/_template-project/`](../../../projects/_template-project/); outcomes logged to [`lead-generation/`](../../lead-generation/) and the [`shared/clients/`](../../../shared/clients/) registry
+- **Downstream / feeds:** on GO -> [`proposals/`](../../proposals/) via a deal in the admin dashboard; once won, delivery runs in the client's external repo (seeded by the dashboard); outcomes logged on the `biz.clients` record
 - **Draws on (Layer 3 reference):** [`../references/`](../references/) for the structure each record follows
 
 ## Contents

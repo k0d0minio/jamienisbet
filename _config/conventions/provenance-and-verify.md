@@ -6,7 +6,7 @@
 ### 1. Verify (mandatory in every contract)
 Every `CONTEXT.md` has a non-empty `Verify` section with concrete cross-checks against earlier
 stages, run *before* the review gate. Examples: "target rate ≥ floor in `setup/`"; "every client
-name matches `shared/clients/`"; "no invoice is both paid and outstanding". Verify catches drift
+name matches the `biz.clients` record"; "no invoice is both paid and outstanding". Verify catches drift
 early, while it is cheap to fix.
 
 ### 2. Provenance markers (in real outputs)

@@ -1,34 +1,32 @@
-# BACKLOG.md — System-Build Tasks (go-live)
+# BACKLOG.md — System-Build Tasks
 
 > **ICM role:** Layer 4 — working artifact (the build backlog).
 > **Purpose:** The engineering / system-build tasks needed to take this repo from
-> "architecturally complete" to "operationally running." This is **distinct from**
-> [`tracker/business/todos.md`](tracker/business/todos.md), which holds Jamie's *business*
-> todos (chase a lead, send a proposal). Build/dev work lives here so the tracker stays a
-> business-only hub.
+> "architecturally complete" to "operationally running." Business todos (chase a lead, send a
+> proposal) live in the admin dashboard, not here.
 
 ## How to read this
 Each ticket is `ID · Title · Priority`, followed by **Why**, **Files**, and **Acceptance**.
-Scope is deliberately narrow: **go-live operational readiness only** — entity facts and
-light-touch CI. Larger build-out (per-stage narrative READMEs, wiring the website integration
-TODOs, populating the knowledge base) is parked under **Deferred** at the bottom so the exclusion
-is a conscious choice, not an oversight. Tickets that were built on the retired markdown state
-model (B1, B2, B4) are recorded as **Dropped** at the bottom — IDs are kept stable so B3/B5 don't
-shift under references elsewhere.
+Dropped/superseded tickets are recorded at the bottom — IDs are kept stable so cross-references
+don't shift.
 
-The current state: the ICM architecture, 6 workspaces (24 stage contracts), brand-as-code
-(`@jamie-nisbet/ui`), the automation scripts, all 4 websites (including the admin dashboard that
-operates the Neon `biz.*` pipeline), and the `@jamie-nisbet/services` data model are built. What's
-missing is the entity facts and CI below.
+The current state: the ICM architecture, the workspace contracts, brand-as-code
+(`@jamie-nisbet/ui`), all 4 websites (fully implemented — i18n, Resend + Neon intake forms,
+Stripe checkout, and the admin dashboard that operates the Neon `biz.*` pipeline with its
+ICM-driven AI document generation), and the `@jamie-nisbet/services` data model are **built and
+live**. The 2026-07 dashboard-first restructure (see
+[`_config/conventions/decisions.md`](_config/conventions/decisions.md)) retired `projects/`,
+`tracker/`, and `shared/knowledge/`, and added the dashboard's `/today` brief, won-deal
+onboarding, delivery-repo seeding, and draft-only outreach.
 
 ---
 
-## B3 — Populate `_config/business/` entity facts · **High** _(gated on the entity decision)_
+## B3 — Populate `_config/business/` entity facts · **High** _(gated on the entity decision — needs Jamie)_
 
 **Why.** Templates render `{{business.nif}}`, `{{business.iban}}`, address and contact tokens.
-Until the PT structure is chosen (see the tracker todo) and these are filled, no proposal, quote,
-contract or invoice can be produced with real facts. Per brainstorm G4, business facts (NIF,
-IBAN, address) live in the repo in plain text; only secrets go in `.env` / Vercel.
+Until the PT structure is chosen and these are filled, no proposal, quote, contract or invoice can
+be produced with real facts. Business facts (NIF, IBAN, address) live in the repo in plain text;
+only secrets go in `.env` / Vercel.
 
 **Files.** `_config/business/contact.md`, new `_config/business/entity.md`;
 consumers `shared/templates/*.md`.
@@ -40,47 +38,44 @@ consumers `shared/templates/*.md`.
 
 ---
 
-## B5 — Light-touch CI · **Medium**
+## B6 — Seed the compliance calendar · **High** _(needs Jamie / the contabilista)_
 
-**Why.** The websites and `@jamie-nisbet/ui` are real code consumed by Vercel; a broken build
-should be caught before merge. Per the agreed scope this is **light-touch only** — no unit tests,
-no pre-commit hooks.
+**Why.** The dashboard's `/today` page surfaces upcoming compliance dates from
+`biz.compliance_dates`, but the actual PT dates (IRS payments-on-account, quarterly Segurança
+Social declarations, IES, IVA if applicable) must come from Jamie's contabilista — the
+legal-and-tax compliance-calendar stage was only partially run.
 
-**Files.** `.github/workflows/ci.yml` (new); existing `package.json` scripts in `websites/*`
-and `packages/ui`.
+**Files.** None (data entry in the dashboard `/today` page);
+`workspaces/legal-and-tax/stages/05_compliance_calendar/` for the source run.
 
 **Acceptance.**
-- On every PR, CI runs typecheck + build for `websites/*` and `packages/ui` via pnpm.
-- The workflow is green on a no-op PR; no test or lint-staged gates are added.
+- The known annual/quarterly PT obligations are entered with source + as-of date in the notes.
+- `/today` shows the next deadline correctly; recurring items re-arm on completion.
 
 ---
 
-## Deferred — out of go-live scope (conscious exclusions)
+## Deferred — conscious exclusions
 
-Tracked here so they aren't lost, but **not** part of the go-live push:
-
-- **Per-stage narrative `README.md`s** — stages currently ship only `CONTEXT.md`; the convention
-  wants a narrative README beside each. ~24 files; cosmetic until onboarding others.
-- **Website integration TODOs** — Resend send in `websites/portfolio/app/actions/contact.ts` and
-  sellers lead-routing in `websites/sellers-site/app/actions/referral.ts`. Correctly stubbed
-  behind the review-gate rule; wire when the sites go live.
-- **`shared/knowledge/` case studies** — empty; populate from the first won deals / delivered
-  projects (feeds the portfolio and the negotiation playbook).
 - **Date-stamping legal/tax references** — add "source + as-of date" to
   `workspaces/legal-and-tax/references/*` so PT-law notes don't silently go stale.
+- **Case-study content** — the portfolio's case studies are placeholders; populate from the first
+  delivered engagements.
+- **In-repo Vercel deploy config** (`vercel.json`) — deployment is currently configured in the
+  Vercel UI per project; commit it if reproducibility becomes a need.
 
 ---
 
-## Dropped — superseded by the single-store decision (issue #26)
+## Done / dropped (IDs retained)
 
-The state model was unified onto the Neon `biz.*` schema as the sole store; the repo holds no
-pipeline state or generated dashboard. These tickets were built on the retired markdown model and
-no longer apply. IDs are retained so B3/B5 keep their numbers.
-
-- **B1 — Generate the state dashboard.** There is no `state/dashboard.md` and no per-entity
-  front-matter to aggregate; "where the business stands" is read live in the admin dashboard.
-- **B2 — Stand up the tracker morning routine.** The routine scanned `shared/clients/` + `state/`,
-  which no longer exist; the tracker is now a manual business-todo hub and pipeline visibility
-  lives in the admin.
-- **B4 — Model the retainer client in the front-matter data model.** Client/deal data lives in
-  `biz.*`, not front-matter; a retainer is modelled there if/when needed, not in the repo.
+- **B1 — Generate the state dashboard.** Dropped — superseded by the single-store decision
+  (issue #26); "where the business stands" is read live in the admin dashboard.
+- **B2 — Stand up the tracker morning routine.** Dropped — `tracker/` is retired; the morning
+  brief is the dashboard's `/today` page (2026-07 dashboard-first reversal).
+- **B4 — Model the retainer client in the front-matter data model.** Dropped — client/deal data
+  lives in `biz.*`.
+- **B5 — Light-touch CI.** **Done** — `.github/workflows/ci.yml` runs typecheck + lint + builds
+  for all apps/packages alongside the existing `db-migrations.yml`.
+- **Per-stage narrative READMEs.** **Done** — all 24 stages ship both `README.md` and
+  `CONTEXT.md`.
+- **Website integration TODOs.** **Done** — portfolio contact and sellers referral forms write
+  `biz.clients` and send via Resend.

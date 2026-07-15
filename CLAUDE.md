@@ -49,7 +49,7 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Run a mechanical action (new client/project, send a reviewed email) | [`scripts/`](scripts/) |
 | See where the business stands (pipeline, metrics) | the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)) |
 | Brand colours, voice, logos, business facts | [`_config/`](_config/) |
-| Shared document templates, playbooks | [`shared/`](shared/) |
+| Shared document templates | [`shared/`](shared/) |
 | Create a brand-new capability | copy [`workspaces/_template-workspace/`](workspaces/_template-workspace/) |
 
 ## How to run any workspace
@@ -69,8 +69,9 @@ do the Process, write to `output/`. 4. **Pause at each `output/` for human revie
   *contabilista certificado* / lawyer.
 - **No outbound action without review.** No email sent, payment captured, or repo created without a
   human-reviewed `output/` file first — see [`_config/conventions/scripts-and-integrations.md`](_config/conventions/scripts-and-integrations.md).
-- **`tracker/` is a standalone business-only daily hub.** It reads business state read-only and never
-  writes back upstream.
+- **`tracker/` is retired (2026-07)** — daily todos and the morning brief live in the admin
+  dashboard (`/today`); see the dashboard-first reversal in
+  [`_config/conventions/decisions.md`](_config/conventions/decisions.md).
 - **Fix the source, not the symptom.** When a run's output is repeatedly wrong, edit the Layer-3
   reference (template, voice, rubric) so every future run improves — don't just patch the one output.
 - The original intent of this repo lives in
