@@ -25,7 +25,7 @@ and the **Layer 4** output of the previous stage. Nothing else. That is the whol
   templates, knowledge): drawn on everywhere.
 - **Local Layer 3** — a workspace's own `references/`: stable rules scoped to that one capability.
 
-A reference is promoted from local to global (`shared/knowledge/`) only once a *second* workspace
+A reference is promoted from local to global (`shared/`) only once a *second* workspace
 needs it. Keep it local until then.
 
 ## Why layers, not one big prompt

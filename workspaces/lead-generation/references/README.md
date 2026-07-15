@@ -9,7 +9,7 @@ This folder is the recipe shelf for the lead-gen workspace: stable, reusable kno
 ## How it connects to the architecture
 - **Upstream / reads from:** human input (what Jamie learns in the field), `_config/business/founder-brief.md`
 - **Downstream / feeds:** `../stages/01_positioning/`, `../stages/02_channels/`, `../stages/03_affiliate_program/`, `../stages/04_outreach/`
-- **Draws on (Layer 3 reference):** `_config/brand/voice/`, `shared/knowledge/` (cross-workspace playbooks)
+- **Draws on (Layer 3 reference):** `_config/brand/voice/`
 
 ## Contents
 - [`affiliate-program.md`](affiliate-program.md) — the 10% program rules + the sellers-site capture spec (referral codes, the productised offer).
@@ -18,4 +18,4 @@ This folder is the recipe shelf for the lead-gen workspace: stable, reusable kno
 - [`referral-script-bank.md`](referral-script-bank.md) — reusable phrasings for friends, affiliates, partners.
 
 ## Notes
-Reference material is stable; working drafts and live data live in stage `output/` folders and in `../output/`, not here. When a run teaches a durable lesson (a new angle that closes, a meetup that converts), promote it into these notes so future runs inherit it. Keep anything broadly reusable across workspaces in `shared/knowledge/` instead, and link to it from here.
+Reference material is stable; working drafts and live data live in stage `output/` folders and in `../output/`, not here. When a run teaches a durable lesson (a new angle that closes, a meetup that converts), promote it into these notes so future runs inherit it. Keep anything broadly reusable across workspaces in `shared/` instead, and link to it from here.

@@ -11,7 +11,7 @@ This is the recipe, not the product: durable notes cited by the stages rather th
 ## How it connects to the architecture
 - **Upstream / reads from:** human-curated knowledge; verified PT sources (Finanças, Segurança Social) — kept updated by Jamie/contabilista
 - **Downstream / feeds:** every stage in [`../stages/`](../stages/) cites these notes
-- **Draws on (Layer 3 reference):** [`shared/knowledge/`](../../../shared/knowledge/) for cross-workspace playbooks; [`_config/conventions/`](../../../_config/conventions/)
+- **Draws on (Layer 3 reference):** [`_config/conventions/`](../../../_config/conventions/)
 
 ## Contents
 - [`decision-basis.md`](decision-basis.md) — the made decision + revisit triggers; the spine.

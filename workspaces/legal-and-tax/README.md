@@ -10,7 +10,7 @@ This is the founder's #1 priority workspace. Jamie is a software engineer / AI c
 
 ## How it connects to the architecture
 - **Upstream / reads from:** human input (Jamie's answers); [`_config/business/`](../../_config/business/) for entity facts, NIF/VAT, address, IBAN, rates; [`_config/business/founder-brief.md`](../../_config/business/founder-brief.md)
-- **Downstream / feeds:** [`tracker/`](../../tracker/) (deadlines), [`workspaces/finance/`](../finance/) (regime, deductibles, invoicing structure), and updates back to [`_config/business/`](../../_config/business/) once the entity exists
+- **Downstream / feeds:** the dashboard's `/today` compliance calendar (deadlines), [`workspaces/finance/`](../finance/) (regime, deductibles, invoicing structure), and updates back to [`_config/business/`](../../_config/business/) once the entity exists
 - **Draws on (Layer 3 reference):** [`references/`](./references/), [`_config/conventions/`](../../_config/conventions/)
 
 ## Contents

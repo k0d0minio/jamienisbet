@@ -14,7 +14,7 @@ folder into a real stage (e.g. `01_intake`, `02_draft`).
 ## How it connects to the architecture
 - **Upstream / reads from:** `<previous stage>/output/` — or, for the first stage, [`../../setup/`](../../setup/) plus human input.
 - **Downstream / feeds:** `<next stage>/` reads this stage's `output/`; the final stage rolls up to [`../../output/`](../../output/).
-- **Draws on (Layer 3 reference):** [`../../references/`](../../references/), plus repo references such as [`_config/brand/voice/`](../../../../_config/brand/voice/), [`shared/templates/`](../../../../shared/templates/), [`shared/knowledge/`](../../../../shared/knowledge/) as the job requires.
+- **Draws on (Layer 3 reference):** [`../../references/`](../../references/), plus repo references such as [`_config/brand/voice/`](../../../../_config/brand/voice/), [`shared/templates/`](../../../../shared/templates/) as the job requires.
 
 ## Contents
 - [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes (the six-section schema).

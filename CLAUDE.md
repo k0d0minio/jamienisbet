@@ -7,12 +7,24 @@
 ## What this repo is
 This is the single Git repository that runs the entire business of **Jamie Nisbet** — a
 software engineer / AI consultant based in **Mafra, Portugal**. Lead generation today is
-networking and word of mouth. The repo is operated by Claude agent routines, so the
-**folder structure *is* the application architecture.** There is no orchestration code:
-numbered folders and plain-text `README.md` files carry the instructions, and an agent does
-the work by reading the right files at the right moment. Local scripts in [`scripts/`](scripts/)
-handle the mechanical parts that need no AI; business state lives in **one** store — the Neon
-`biz.*` schema — operated through the admin dashboard, never mirrored into the repo.
+networking and word of mouth. Two halves, one system:
+
+- **The cockpit** — the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)),
+  where the business *runs* day-to-day: the client/deal pipeline, AI document generation,
+  Stripe invoicing and finances, the `/today` morning brief (todos, stale leads, compliance
+  dates), won-deal onboarding (which seeds the client's delivery repo), and draft-only outreach.
+  Business state lives in **one** store — the Neon `biz.*` schema — operated through the
+  dashboard, never mirrored into the repo.
+- **The factory** — the markdown layers (`_config/`, `shared/`, `workspaces/`): brand, business
+  facts, stage contracts and references. The dashboard's AI runs load these files at request
+  time via [`packages/icm`](packages/icm/), so **editing a contract, template, or voice file
+  changes the next generation with no code change.** The folder structure *is* the
+  configuration; agents also run workspaces directly (e.g. legal-and-tax) by reading the right
+  files at the right moment.
+
+Local scripts in [`scripts/`](scripts/) handle mechanical parts that need no AI; the other
+[`websites/`](websites/) (portfolio, sellers-site, payment-gateway) are the public front door,
+feeding intake straight into `biz.clients`.
 
 ## The method: ICM (Interpretable Context Methodology)
 Everything here follows the ICM paper (`icm.pdf`). The five context layers:
@@ -67,10 +79,14 @@ do the Process, write to `output/`. 4. **Pause at each `output/` for human revie
 - **Legal / tax / financial output is decision-support only.** Never assert tax figures or legal
   conclusions as fact; always note that outputs need review by a licensed Portuguese
   *contabilista certificado* / lawyer.
-- **No outbound action without review.** No email sent, payment captured, or repo created without a
-  human-reviewed `output/` file first — see [`_config/conventions/scripts-and-integrations.md`](_config/conventions/scripts-and-integrations.md).
-- **`tracker/` is retired (2026-07)** — daily todos and the morning brief live in the admin
-  dashboard (`/today`); see the dashboard-first reversal in
+- **No outbound action without review.** No email sent, payment captured, or repo created/seeded
+  without a human-reviewed artifact first — a reviewed `output/` file in a workspace run, an
+  approved document/draft in the dashboard (approval is a DB fact). Outreach is draft-only:
+  sending is always manual, from Jamie's own email. See
+  [`_config/conventions/scripts-and-integrations.md`](_config/conventions/scripts-and-integrations.md).
+- **Retired (2026-07, dashboard-first):** `tracker/` (→ the dashboard `/today` page), `projects/`
+  (→ delivery docs seeded into the client's external repo), `shared/knowledge/` (empty). Don't
+  recreate them — see the reversals in
   [`_config/conventions/decisions.md`](_config/conventions/decisions.md).
 - **Fix the source, not the symptom.** When a run's output is repeatedly wrong, edit the Layer-3
   reference (template, voice, rubric) so every future run improves — don't just patch the one output.

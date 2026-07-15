@@ -11,7 +11,7 @@ This README is the **Layer 1 router** every real workspace must have: it tells a
 ## How it connects to the architecture
 - **Upstream / reads from:** human (the operator who copies this seed) — see [`_config/conventions/`](../../_config/conventions/) for the full build protocol.
 - **Downstream / feeds:** a new `workspaces/<name>/` capability; that capability's final stage `output/` typically feeds the business state in Neon `biz.*` (via the admin dashboard) or a client's external delivery repo.
-- **Draws on (Layer 3 reference):** [`_config/business/`](../../_config/business/) (identity facts), [`_config/brand/voice/`](../../_config/brand/voice/) and [`_config/brand/visual/`](../../_config/brand/visual/) (so deliverables look/sound on-brand), [`shared/templates/`](../../shared/templates/), [`shared/knowledge/`](../../shared/knowledge/).
+- **Draws on (Layer 3 reference):** [`_config/business/`](../../_config/business/) (identity facts), [`_config/brand/voice/`](../../_config/brand/voice/) and [`_config/brand/visual/`](../../_config/brand/visual/) (so deliverables look/sound on-brand), [`shared/templates/`](../../shared/templates/).
 
 ## Contents
 - `setup/` — configure-the-factory-once: the questionnaire that defines this capability (Principle 5).

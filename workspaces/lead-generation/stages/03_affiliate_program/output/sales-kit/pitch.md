@@ -41,5 +41,5 @@ I'll come back within a day or two.
 
 ## Proof (to populate)
 <!-- Drop in 2–3 real before/after lines or short results once case studies exist in
-shared/knowledge/case-studies/. Do NOT invent metrics — leave blank until real. -->
+the portfolio's case studies. Do NOT invent metrics — leave blank until real. -->
 - _Recent work and short case studies go here once they're written up._

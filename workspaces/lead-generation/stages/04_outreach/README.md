@@ -14,7 +14,7 @@ This stage gives Jamie ready-to-send, on-brand copy for the two situations he ac
 ## How it connects to the architecture
 - **Upstream / reads from:** `../01_positioning/output/`, `../02_channels/output/`, `../03_affiliate_program/output/`
 - **Downstream / feeds:** `../05_pipeline/` (each send is logged), `workspaces/proposals/` (when a lead is ready to quote)
-- **Draws on (Layer 3 reference):** `_config/brand/voice/`, `shared/templates/` (email template), `shared/knowledge/`
+- **Draws on (Layer 3 reference):** `_config/brand/voice/`, `shared/templates/` (email templates)
 
 ## Notes
 Keep cadences short and human — a freelancer over-following-up reads as desperate; the goal is to stay polite and present. Re-run this stage alone whenever brand voice or offer changes, without touching positioning.

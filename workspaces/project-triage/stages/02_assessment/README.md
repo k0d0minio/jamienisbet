@@ -9,7 +9,7 @@ This stage turns the intake note into a scored, defensible read. The agent rates
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../01_intake/output/`](../01_intake/output/); portfolio context from past delivered engagements; [`../../setup/`](../../setup/) thresholds and weights
 - **Downstream / feeds:** [`../03_recommendation/`](../03_recommendation/) reads this stage's `output/`
-- **Draws on (Layer 3 reference):** [`../../references/`](../../references/) scoring rubric + decision criteria; [`_config/business/founder-brief.md`](../../../../_config/business/founder-brief.md); [`shared/knowledge/`](../../../../shared/knowledge/)
+- **Draws on (Layer 3 reference):** [`../../references/`](../../references/) scoring rubric + decision criteria; [`_config/business/founder-brief.md`](../../../../_config/business/founder-brief.md)
 
 ## Contents
 - [`CONTEXT.md`](CONTEXT.md) — the Layer 2 contract this stage executes.
