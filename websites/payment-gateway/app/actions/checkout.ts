@@ -2,7 +2,7 @@
 
 import { getInvoice } from "@/lib/invoice"
 import { getStripe, siteOrigin } from "@/lib/stripe"
-import { routing, type Locale } from "@/i18n/routing"
+import { routing, type Locale } from "@jamie-nisbet/app-shell/i18n"
 
 // Create an embedded Checkout Session for an existing invoice and return its
 // client_secret. The amount is re-resolved server-side from the invoice (the

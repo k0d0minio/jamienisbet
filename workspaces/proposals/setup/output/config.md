@@ -5,12 +5,11 @@
 > decision-support; tax per legal-and-tax.
 
 ## Rates (EUR)
-- **Standard:** €120/hour.
-- **Anchor:** €120/hour (standard) — no hourly premium; anchor high via value-based pricing (see negotiation-playbook + pricing-models).
-- **Floor (never below):** €80/hour — the walk-away line.
-- **Retainer:** committed monthly hours → ~10% reduction (≈ €108/hour).
-- **Commission / incentive:** open to a reduced hourly rate in exchange for outcome upside
-  (revenue share, success fee, equity) — price the upside, not just the hours.
+All pricing numbers — standard rate, anchor, floor, retainer reduction, commission flex — live in
+**[`_config/business/rates.md`](../../../../_config/business/rates.md)** (the single source of
+truth; loaded alongside this config in every run). Never restate figures here: negotiate from the
+anchor, hold the floor, and use the flex levers exactly as that file defines them (see also
+negotiation-playbook + pricing-models).
 
 ## Pricing approach
 - **Tiered good / better / best by default** on every quote.
@@ -24,7 +23,7 @@
   (see [`../../../legal-and-tax/references/iva-vat-notes.md`](../../../legal-and-tax/references/iva-vat-notes.md)).
 
 ## Deal fit (aligns with project-triage)
-- **Take:** clear or scopeable work; budget ≥ floor; software/AI consulting or a landing page.
+- **Take:** clear or scopeable work; budget ≥ the floor in `rates.md`; software/AI consulting or a landing page.
 - **Decline / redirect:** below floor with no upside; outside expertise; an off-the-shelf tool serves better.
 
 ## Coaching tone

@@ -16,7 +16,7 @@
   price." See [`../../../_config/brand/voice/messaging-pillars.md`](../../../_config/brand/voice/messaging-pillars.md).
 
 ## Proof points
-- Real shipped work (portfolio + case studies in `shared/knowledge/case-studies/` — to populate).
+- Real shipped work (portfolio case studies — to populate from delivered engagements).
 - Direct access to the person building it; contractors on standby for scale.
 
 ## Message angles

@@ -10,7 +10,7 @@ When the quote is accepted, this stage drafts the contract that formalizes the d
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../05_quote/output/`](../05_quote/) (price, scope, terms)
-- **Downstream / feeds:** [`../07_invoice/`](../07_invoice/); a new delivery pipeline in [`projects/`](../../../../projects/) once signed
+- **Downstream / feeds:** [`../07_invoice/`](../07_invoice/); the client's external delivery repo (seeded by the dashboard) once signed
 - **Draws on (Layer 3 reference):** [`shared/templates/`](../../../../shared/templates/) (contract template); [`_config/business/`](../../../../_config/business/) (legal entity, NIF/VAT, address); [`_config/brand/`](../../../../_config/brand/)
 
 ## Contents

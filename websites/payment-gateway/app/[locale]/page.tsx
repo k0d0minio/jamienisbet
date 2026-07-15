@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Eyebrow } from "@jamie-nisbet/ui"
 import { FileText, Receipt, ShieldCheck } from "lucide-react"
 
-import { Container, Section } from "@/components/section"
+import { Container, Section } from "@jamie-nisbet/app-shell"
 import type { Assurance, AssuranceIcon } from "@/lib/site"
 
 const icons: Record<AssuranceIcon, typeof FileText> = {

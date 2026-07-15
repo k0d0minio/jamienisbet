@@ -1,8 +1,8 @@
 import { LogoMark } from "@jamie-nisbet/ui"
 import { ExternalLink } from "lucide-react"
 
-import { ThemeToggle } from "@/components/theme-toggle"
-import { LanguageSwitcher } from "@/components/language-switcher"
+import { ThemeToggle } from "@jamie-nisbet/app-shell"
+import { LanguageSwitcher } from "@jamie-nisbet/app-shell"
 import { site } from "@/lib/site"
 
 // Minimal, customer-facing chrome for the pitch page — the brand mark, a language

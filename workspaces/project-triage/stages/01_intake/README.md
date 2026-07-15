@@ -7,7 +7,7 @@
 This is the fast-capture front door. While Jamie is on a call or face-to-face, the agent records the essentials with minimum friction: what the customer actually wants, rough scope, who they are, budget/timeline/tech constraints, and any hard deal-breakers. The output is a clean, structured intake note that the assessment stage can score immediately — no homework, no "I'll get back to you".
 
 ## How it connects to the architecture
-- **Upstream / reads from:** human input (live meeting / call); [`shared/clients/`](../../../../shared/clients/) if the customer already exists; [`lead-generation/`](../../../lead-generation/) qualifying notes
+- **Upstream / reads from:** human input (live meeting / call); the client record in the admin dashboard (Neon `biz.clients`) if the customer already exists; [`lead-generation/`](../../../lead-generation/) qualifying notes
 - **Downstream / feeds:** [`../02_assessment/`](../02_assessment/) reads this stage's `output/`
 - **Draws on (Layer 3 reference):** [`../../references/`](../../references/) for the intake field checklist; [`_config/business/founder-brief.md`](../../../../_config/business/founder-brief.md)
 

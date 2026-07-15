@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server"
 import { Eyebrow } from "@jamie-nisbet/ui"
 import { Check, MapPin } from "lucide-react"
 
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 import { site } from "@/lib/site"
 
 export async function About() {

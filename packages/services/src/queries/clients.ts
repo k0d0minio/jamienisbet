@@ -116,7 +116,20 @@ export async function setClientStatus(
 ): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
-    .set({ status })
+    // Working the pipeline counts as touching the relationship — feeds the
+    // stale-lead read on /today.
+    .set({ status, lastTouchedAt: new Date() })
+    .where(eq(clients.id, id))
+    .returning()
+  return row
+}
+
+/** Stamp the client as touched now (an outreach send was logged, a call
+ * happened, …) without changing anything else. */
+export async function touchClient(id: string): Promise<Client | undefined> {
+  const [row] = await getDb()
+    .update(clients)
+    .set({ lastTouchedAt: new Date() })
     .where(eq(clients.id, id))
     .returning()
   return row
@@ -143,7 +156,9 @@ export async function updateClient(
 ): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
-    .set(patch)
+    // Editing the profile/notes is activity on the relationship — feeds the
+    // stale-lead read on /today.
+    .set({ ...patch, lastTouchedAt: new Date() })
     .where(eq(clients.id, id))
     .returning()
   return row

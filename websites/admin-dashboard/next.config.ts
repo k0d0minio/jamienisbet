@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
       "../../workspaces/*/setup/output/**",
       "../../packages/ui/tokens/**",
     ],
+    // Delivery-repo seeding runs in a server action on the deal page (not an
+    // /api/ai route), so the seed templates must be traced there too.
+    "/deals/[id]": [
+      "../../pnpm-workspace.yaml",
+      "../../shared/templates/delivery/**",
+    ],
   },
 }
 

@@ -1,22 +1,22 @@
 # 05 — Pipeline — Contract
 <!-- ICM Layer 2 — machine-loaded stage contract. Human narrative is in README.md. -->
+<!-- The run-process lives in the admin dashboard over Neon biz.*; this contract is the spec it mirrors. -->
 
 ## Inputs
-- Layer 4 (working): `../04_outreach/output/` (sends/replies), incoming intros and inbound enquiries
+- Layer 4 (working): `../04_outreach/output/` (sends/replies), incoming intros and inbound enquiries, website intake forms (portfolio contact + sellers referral)
 - Layer 3 (reference): `../03_affiliate_program/output/attribution-rules.md`, `_config/conventions/`
 
 ## Process
-Log each lead with status, source/referrer, offer, value band, and next action; advance or close leads; on "qualified," package the lead for `workspaces/proposals/`; on "won," trigger a `projects/` pipeline and upsert `shared/clients/`; flag affiliate-attributed deals for payout in `../03_affiliate_program/`.
+Log each lead as a `biz.clients` row with status, source/referrer, and next action; advance or close leads in the dashboard; on "qualified," open a deal (`biz.deals`) and run the proposals contracts; on "won," run onboarding (delivery repo seeded by the dashboard) ; flag affiliate-attributed deals for payout in `../03_affiliate_program/`.
 
 ## Outputs
-- `pipeline.md` (the live board) -> output/
-- `handoffs/` (per-lead qualified packets) -> output/
+- The live pipeline state in Neon `biz.clients` / `biz.deals` (operated in the admin dashboard — no repo artifact)
 
 ## Integrations
-- none
+- Neon `biz.*` via the admin dashboard (state store)
 
 ## Verify
-- Every affiliate-sourced lead has exactly one referrer per attribution rules; qualified leads exist in both `pipeline.md` and a handoff packet; client records written to `shared/clients/` match the lead; no duplicate clients.
+- Every affiliate-sourced lead has exactly one referrer per attribution rules; qualified leads have a deal row; no duplicate clients.
 
 ## Review gate
 - none

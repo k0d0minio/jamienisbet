@@ -4,9 +4,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
 import "../globals.css"
 
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@jamie-nisbet/app-shell"
 import { site } from "@/lib/site"
-import { routing, localeHtmlLang, localeOg, type Locale } from "@/i18n/routing"
+import { routing, localeHtmlLang, localeOg, type Locale } from "@jamie-nisbet/app-shell/i18n"
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))

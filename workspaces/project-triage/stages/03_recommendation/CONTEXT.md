@@ -6,7 +6,7 @@
 - Layer 3 (reference): [`../../references/decision-criteria.md`](../../references/decision-criteria.md); [`../../setup/output/config.md`](../../setup/output/config.md) (deal-breakers, modes); [`_config/brand/voice/`](../../../../_config/brand/voice/)
 
 ## Process
-Apply the hard gates then the cut-offs (decision-criteria.md) to reach GO / REDIRECT / NO-GO; write Jamie's internal rationale and next action. In **standalone mode**, produce a 5-minute verbal-ready summary (decision + the one reason + a concrete suggestion). In **gate mode**, a GO triggers `scripts/new-client.sh` and the handoff to proposals. Generate a customer-ready feedback page — honest and brand-consistent, safe to share even on a REDIRECT/NO-GO.
+Apply the hard gates then the cut-offs (decision-criteria.md) to reach GO / REDIRECT / NO-GO; write Jamie's internal rationale and next action. In **standalone mode**, produce a 5-minute verbal-ready summary (decision + the one reason + a concrete suggestion). In **gate mode**, a GO means creating the client in the admin dashboard (Neon `biz.clients`, if not already captured by an intake form) and the handoff to proposals. Generate a customer-ready feedback page — honest and brand-consistent, safe to share even on a REDIRECT/NO-GO.
 
 ## Outputs
 - `decision-<slug>.md` -> output/

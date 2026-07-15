@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og"
 import { getTranslations } from "next-intl/server"
 
 import { site } from "@/lib/site"
-import { routing } from "@/i18n/routing"
+import { routing } from "@jamie-nisbet/app-shell/i18n"
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))

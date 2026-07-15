@@ -40,7 +40,7 @@ always:
   is declared here so side-effects are auditable. Outbound actions are **draft-only** —
   [`scripts-and-integrations.md`](scripts-and-integrations.md).
 - **Verify — mandatory, never empty.** Concrete checks ("every invoice number here exists in
-  `07_invoice`; client name matches `shared/clients/`"). Catches drift before the human sees it.
+  `07_invoice`; client name matches the `biz.clients` record"). Catches drift before the human sees it.
 - **Review gate — explicit.** Either `none` or a description. Client-facing stages are always a
   gate — [`review-gates.md`](review-gates.md).
 

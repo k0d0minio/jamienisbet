@@ -8,13 +8,12 @@ This is the working surface for the lead-gen workspace — the things that chang
 
 ## How it connects to the architecture
 - **Upstream / reads from:** each stage's `output/` under `../stages/` (especially `05_pipeline/output/`)
-- **Downstream / feeds:** `workspaces/proposals/`, `projects/`, `shared/clients/`, and Jamie's `tracker/` morning routine
+- **Downstream / feeds:** the deal pipeline in the admin dashboard (Neon `biz.*`) and its daily brief
 - **Draws on (Layer 3 reference):** `../references/`, `_config/brand/` (assets used in finalized kits)
 
 ## Contents
-- `live-pipeline.md` — planned: the consolidated, skimmable lead board pulled from `../stages/05_pipeline/output/`
 - `campaign-assets/` — planned: finalized affiliate sales kit, outreach templates, channel plan ready to use
-- (Do NOT create these files yet — they are described, not built.)
+- (The live lead board is NOT a repo artifact — pipeline state lives in Neon `biz.*`, viewed in the admin dashboard.)
 
 ## Notes
 Per ICM, every output is an edit surface: Jamie reviews and edits these before they drive action or feed another workspace. Keep stage-specific drafts in the stage's own `output/`; reserve this folder for workspace-level deliverables and the live pipeline. As volume grows, archive closed campaigns into a dated subfolder so the live view stays clean.

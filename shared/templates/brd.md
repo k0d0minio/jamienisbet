@@ -1,4 +1,4 @@
-<!-- TEMPLATE — fill {{tokens}} from shared/clients/<slug>/, the approved project outline, and _config/business/.
+<!-- TEMPLATE — fill {{tokens}} from the client record in the admin dashboard (Neon biz.clients), the approved project outline, and _config/business/.
      Voice: _config/brand/voice/ (friendly, informative, first-person — written for a NON-TECHNICAL reader).
      The BRD is the customer-consumable translation of the internal project outline: business language,
      no internal rates, margins, or effort maths. Tokens: see README.md. -->

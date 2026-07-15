@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server"
 
 import type { InvoiceView } from "@/lib/invoice"
 import { formatStripeAmount } from "@/lib/format"
-import { localeHtmlLang, type Locale } from "@/i18n/routing"
+import { localeHtmlLang, type Locale } from "@jamie-nisbet/app-shell/i18n"
 import { site } from "@/lib/site"
 
 function formatDate(epochSeconds: number | null, locale: Locale): string | null {

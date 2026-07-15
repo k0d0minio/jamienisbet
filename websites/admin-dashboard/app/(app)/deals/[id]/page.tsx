@@ -16,12 +16,15 @@ import {
   getClient,
   getDeal,
   listDocumentsForDeal,
+  parseOnboardingState,
   parsePaymentSchedule,
 } from "@jamie-nisbet/services"
 
 import { DealStatusSelect } from "@/components/deal-status-select"
+import { OnboardingChecklist } from "@/components/onboarding-checklist"
 import { formatMoney } from "@/lib/money"
 import { nextActionFor } from "@/lib/next-action"
+import { onboardingFor } from "@/lib/onboarding"
 import {
   DEAL_STAGES,
   dealStageStatuses,
@@ -72,6 +75,23 @@ export default async function DealPage({
     milestones
   )
 
+  // Won deals get the onboarding checklist: derived facts + Jamie's stored
+  // confirmations (see lib/onboarding.ts).
+  const onboardingItems =
+    deal.status === "won"
+      ? onboardingFor({
+          deal,
+          client,
+          docs: documents.map((d) => ({
+            id: d.id,
+            kind: d.kind,
+            status: d.status,
+          })),
+          milestones,
+          state: parseOnboardingState(deal),
+        })
+      : null
+
   // The stage the "next action" points at — so the big card deep-links straight
   // into the page where the work happens.
   const nextHref =
@@ -115,6 +135,12 @@ export default async function DealPage({
         </div>
         <DealStatusSelect id={deal.id} value={deal.status} />
       </div>
+
+      {/* Won → walk the onboarding checklist that turns the win into a
+          delivery. Every step is human-clicked. */}
+      {onboardingItems && (
+        <OnboardingChecklist dealId={deal.id} items={onboardingItems} />
+      )}
 
       {/* The one thing to do next — a full-width tap target that jumps straight
           to the page where that work happens. */}

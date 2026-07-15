@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@jamie-nisbet/ui"
 
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 
 export async function Outcomes() {
   const t = await getTranslations("outcomes")

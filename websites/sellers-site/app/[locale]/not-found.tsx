@@ -2,8 +2,8 @@ import { Button, Eyebrow } from "@jamie-nisbet/ui"
 import { getTranslations } from "next-intl/server"
 import { ArrowRight } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { Container, Section } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container, Section } from "@jamie-nisbet/app-shell"
 
 export default async function NotFound() {
   const t = await getTranslations("notFound")

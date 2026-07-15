@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server"
 import { Button, Eyebrow } from "@jamie-nisbet/ui"
 import { ArrowUpRight } from "lucide-react"
 
-import { Container, Section } from "@/components/section"
+import { Container, Section } from "@jamie-nisbet/app-shell"
 import { site } from "@/lib/site"
 
 export default async function NotFound() {

@@ -11,4 +11,20 @@ export {
   type StageSpec,
 } from "./stages"
 export { modelFor, modelForTier, researchModel } from "./models"
-export { assembleStageContext, type StageContext } from "./context"
+export {
+  assembleOutreachContext,
+  assembleStageContext,
+  type StageContext,
+} from "./context"
+export {
+  isTouchKind,
+  outreachSpecs,
+  touchKinds,
+  type OutreachSpec,
+  type TouchKind,
+} from "./outreach"
+export {
+  deliveryTemplateSpecs,
+  loadDeliveryTemplates,
+  type DeliveryFile,
+} from "./delivery"

@@ -10,7 +10,7 @@ This stage runs [`scripts/stripe-report.sh`](../../../../scripts/stripe-report.s
 
 ## How it connects to the architecture
 - **Upstream / reads from:** **Stripe** via `scripts/stripe-report.sh`; [`stages/03_tax_reserve/`](../03_tax_reserve/) (the rate).
-- **Downstream / feeds:** the founder (review gate) + his contabilista; [`state/`](../../../../state/) (metrics); [`workspaces/legal-and-tax/`](../../../legal-and-tax/) (period figures); [`tracker/`](../../../../tracker/).
+- **Downstream / feeds:** the founder (review gate) + his contabilista; the admin dashboard (metrics); [`workspaces/legal-and-tax/`](../../../legal-and-tax/) (period figures).
 - **Draws on (Layer 3 reference):** [`../../references/report-formats.md`](../../references/report-formats.md); [`_config/brand/`](../../../../_config/brand/) if a branded PDF is exported.
 
 ## Contents

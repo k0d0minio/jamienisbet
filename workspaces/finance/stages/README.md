@@ -1,6 +1,9 @@
 # Finance Stages
 
 > **ICM role:** Layer 1 — router
+> **Status:** the daily run-process (income + receivables) now lives in the **admin dashboard**
+> (`/finances`, `/invoices`); these contracts remain the Layer-2 specs it mirrors, and the
+> reserve/reporting stages still run as workspace runs.
 > **Purpose:** Route to the correct lightweight-bookkeeping stage and encode their execution order.
 
 ## What this folder accomplishes
@@ -9,8 +12,8 @@ This folder holds the four numbered stages that make up Jamie's bookkeeping pipe
 **Decision-support only.** The reserve and reporting stages produce planning figures, not certified accounts; all require review by a licensed Portuguese contabilista certificado.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** [`../setup/`](../setup/) (workspace config); [`workspaces/proposals/`](../../proposals/) stage `07_invoice`; [`shared/clients/`](../../../shared/clients/).
-- **Downstream / feeds:** [`../output/`](../output/) (ledgers and reports); [`workspaces/legal-and-tax/`](../../legal-and-tax/); [`tracker/`](../../../tracker/).
+- **Upstream / reads from:** [`../setup/`](../setup/) (workspace config); Stripe invoices raised in the admin dashboard; `biz.clients` records.
+- **Downstream / feeds:** [`../output/`](../output/) (ledgers and reports); [`workspaces/legal-and-tax/`](../../legal-and-tax/); the dashboard's daily brief.
 - **Draws on (Layer 3 reference):** [`../references/`](../references/) (chart-of-accounts-lite, tax-rate notes).
 
 ## Contents

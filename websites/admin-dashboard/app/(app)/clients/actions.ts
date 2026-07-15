@@ -5,11 +5,17 @@ import { revalidatePath } from "next/cache"
 import {
   clientStatuses,
   deleteClient,
+  deleteTouch,
   getClient,
+  getTouch,
+  isTouchStatus,
+  logTouch,
   setClientArchived,
   setClientRepo,
   setClientStatus,
+  setTouchStatus,
   updateClient,
+  updateTouchContent,
   type ClientProfilePatch,
   type ClientStatus,
 } from "@jamie-nisbet/services"
@@ -172,4 +178,39 @@ export async function removeClient(id: string) {
   await deleteClient(id)
   revalidatePath("/clients")
   revalidatePath("/")
+}
+
+// ---- Outreach touches (draft-only) ------------------------------------------
+// Drafts are review-gated like documents; sending is ALWAYS manual and
+// off-platform. Logging a send stamps the client's last_touched_at, which is
+// what un-stales the lead on /today.
+
+function revalidateClientTouch(clientId: string) {
+  revalidateClient(clientId)
+  revalidatePath("/today")
+}
+
+export async function saveTouchAction(id: string, contentMd: string) {
+  const touch = await updateTouchContent(id, contentMd)
+  if (touch) revalidateClientTouch(touch.clientId)
+}
+
+export async function setTouchStatusAction(id: string, status: string) {
+  if (!isTouchStatus(status)) {
+    throw new Error(`Unknown touch status: ${status}`)
+  }
+  const touch = await setTouchStatus(id, status)
+  if (touch) revalidateClientTouch(touch.clientId)
+}
+
+export async function logTouchAction(id: string, channel: string) {
+  const trimmed = channel.trim() || "email"
+  const touch = await logTouch(id, trimmed)
+  if (touch) revalidateClientTouch(touch.clientId)
+}
+
+export async function deleteTouchAction(id: string) {
+  const touch = await getTouch(id)
+  await deleteTouch(id)
+  if (touch) revalidateClientTouch(touch.clientId)
 }

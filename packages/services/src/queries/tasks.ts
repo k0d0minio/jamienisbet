@@ -1,0 +1,72 @@
+import { and, asc, desc, isNotNull, isNull } from "drizzle-orm"
+import { eq } from "drizzle-orm"
+
+import { getDb } from "../client"
+import { tasks } from "../schema"
+
+export type Task = typeof tasks.$inferSelect
+export type NewTask = typeof tasks.$inferInsert
+
+/** Open tasks, due-soonest first (undated ones last, newest-created first
+ * among themselves). */
+export async function listOpenTasks(): Promise<Task[]> {
+  return getDb()
+    .select()
+    .from(tasks)
+    .where(isNull(tasks.completedAt))
+    .orderBy(asc(tasks.dueDate), desc(tasks.createdAt))
+}
+
+/** Recently completed tasks — the short done-trail under the open list. */
+export async function listCompletedTasks(limit = 10): Promise<Task[]> {
+  return getDb()
+    .select()
+    .from(tasks)
+    .where(isNotNull(tasks.completedAt))
+    .orderBy(desc(tasks.completedAt))
+    .limit(limit)
+}
+
+export async function createTask(input: {
+  title: string
+  notes?: string | null
+  clientId?: string | null
+  dueDate?: Date | null
+}): Promise<Task> {
+  const [row] = await getDb()
+    .insert(tasks)
+    .values({
+      title: input.title,
+      notes: input.notes ?? null,
+      clientId: input.clientId ?? null,
+      dueDate: input.dueDate ?? null,
+    })
+    .returning()
+  return row
+}
+
+/** Complete (or reopen) a task — soft flag, same idiom as archived_at. */
+export async function setTaskCompleted(
+  id: string,
+  completed: boolean
+): Promise<Task | undefined> {
+  const [row] = await getDb()
+    .update(tasks)
+    .set({ completedAt: completed ? new Date() : null })
+    .where(eq(tasks.id, id))
+    .returning()
+  return row
+}
+
+export async function deleteTask(id: string): Promise<void> {
+  await getDb().delete(tasks).where(eq(tasks.id, id))
+}
+
+/** Open tasks for one client — surfaced on the client profile. */
+export async function listOpenTasksForClient(clientId: string): Promise<Task[]> {
+  return getDb()
+    .select()
+    .from(tasks)
+    .where(and(isNull(tasks.completedAt), eq(tasks.clientId, clientId)))
+    .orderBy(asc(tasks.dueDate), desc(tasks.createdAt))
+}

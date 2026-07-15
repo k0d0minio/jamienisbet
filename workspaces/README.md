@@ -9,8 +9,8 @@ A **workspace** is a permanent capability of the business — the machinery that
 recurring kind of deliverable. You configure it once (`setup/`) and then run it whenever you
 need its output. Workspaces are the "factory"; the things they produce are the "product."
 
-This is deliberately different from [`../projects/`](../projects/), which holds one disposable
-pipeline *per client*. A workspace is the reusable mould; a project is one casting.
+Client delivery is deliberately different: it lives in the client's own external repo (seeded by
+the admin dashboard), not here. A workspace is the reusable mould; a delivery is one casting.
 
 ## The workspaces
 | Workspace | What it does | Priority |
@@ -25,16 +25,17 @@ pipeline *per client*. A workspace is the reusable mould; a project is one casti
 ## How a workspace runs (the ICM loop)
 1. Read the workspace's `README.md` (its Layer 1 router).
 2. Configure once via `setup/` (the "configure the factory, not the product" principle).
-3. Walk `stages/NN_name/` **in numerical order**. For each stage: read its `README.md`
-   (the Layer 2 stage contract), load **only** the Inputs it names, do the Process, write the
-   result to that stage's `output/`.
+3. Walk `stages/NN_name/` **in numerical order**. For each stage: read its `CONTEXT.md`
+   (the Layer 2 stage contract; `README.md` is the human narrative), load **only** the Inputs it
+   names, do the Process, write the result to that stage's `output/`.
 4. **Stop at every `output/` for the human review gate** before the next stage runs.
 
 ## How it connects to the architecture
 - **Draws on (Layer 3):** [`../_config/`](../_config/) (brand, business facts, conventions) and
-  [`../shared/`](../shared/) (clients, templates, knowledge).
-- **Feeds:** [`../projects/`](../projects/) (a closed deal becomes a delivery project),
-  [`../websites/`](../websites/) (client sites), and [`../tracker/`](../tracker/) (deadlines and todos).
+  [`../shared/`](../shared/) (document templates).
+- **Feeds:** the admin dashboard's AI pipeline (which loads these contracts via
+  [`packages/icm`](../packages/icm/)), the client's external delivery repo (a closed deal), and
+  the dashboard's daily brief (deadlines and todos).
 - **Governed by:** [`../_config/conventions/`](../_config/conventions/) — the ICM protocol for this repo.
 
 ## Adding a new capability

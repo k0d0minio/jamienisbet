@@ -8,7 +8,7 @@ This is where Jamie's brand is decided once and reused everywhere. The founder e
 
 ## How it connects to the architecture
 - **Upstream / reads from:** human input; [`_config/business/founder-brief.md`](../business/) for positioning and personality.
-- **Downstream / feeds:** [`websites/`](../../websites/), [`shared/templates/`](../../shared/templates/) (letterhead, document styling, copy), and any client-facing artifact produced in [`workspaces/`](../../workspaces/) and [`projects/`](../../projects/).
+- **Downstream / feeds:** [`websites/`](../../websites/), [`shared/templates/`](../../shared/templates/) (letterhead, document styling, copy), and any client-facing artifact produced in [`workspaces/`](../../workspaces/) or seeded into a client's delivery repo.
 - **Draws on (Layer 3 reference):** business identity facts in [`_config/business/`](../business/).
 
 ## Contents

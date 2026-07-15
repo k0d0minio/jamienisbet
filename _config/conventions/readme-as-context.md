@@ -17,8 +17,8 @@ At **stage** level we keep two files, because the audiences differ:
   execute: `Inputs / Process / Outputs / Integrations / Verify / Review gate`. Schema in
   [`stage-contracts.md`](stage-contracts.md).
 
-At **non-stage** folders (workspace routers, hubs, `_config/`, `shared/`, `websites/`, `projects/`,
-`tracker/`) the `README.md` alone is the context file — these are routers and references, not
+At **non-stage** folders (workspace routers, hubs, `_config/`, `shared/`, `websites/`)
+the `README.md` alone is the context file — these are routers and references, not
 executable stages, so they need no separate contract.
 
 ## Why split at the stage level

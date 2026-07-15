@@ -9,8 +9,8 @@ This workspace keeps Jamie's money clear enough to run the business and to hand 
 **Decision-support only.** Nothing here replaces a licensed Portuguese contabilista certificado / lawyer; all tax and financial outputs require their review before being acted on.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** **Stripe** (via the read-only `scripts/stripe-*.sh` fetchers — invoices, payments, receivables); [`shared/clients/`](../../shared/clients/) (bill-to); human input (expense receipts for the 15% rule).
-- **Downstream / feeds:** [`workspaces/legal-and-tax/`](../legal-and-tax/) (income/expense totals for compliance); [`tracker/`](../../tracker/) (payment-chase and tax-deadline reminders); the founder and his accountant.
+- **Upstream / reads from:** **Stripe** (read-only — the admin dashboard `/finances`, or the `scripts/stripe-*.sh` fetchers — invoices, payments, receivables); `biz.clients` records (bill-to); human input (expense receipts for the 15% rule).
+- **Downstream / feeds:** [`workspaces/legal-and-tax/`](../legal-and-tax/) (income/expense totals for compliance); the dashboard's daily brief (payment-chase and tax-deadline reminders); the founder and his accountant.
 - **Draws on (Layer 3 reference):** [`references/`](references/) (chart-of-accounts-lite, tax-rate notes); [`_config/business/`](../../_config/business/) (legal entity, NIF/VAT, IBAN, rates); [`_config/brand/voice/`](../../_config/brand/voice/) for any client-facing reminder copy.
 
 ## Contents

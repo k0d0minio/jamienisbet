@@ -7,7 +7,10 @@ export type Generation = typeof generations.$inferSelect
 export type NewGeneration = typeof generations.$inferInsert
 
 export async function recordGeneration(input: {
-  dealId: string
+  /** The deal a run belonged to — omit for client-scoped runs (outreach). */
+  dealId?: string | null
+  /** The client a deal-less run belonged to. */
+  clientId?: string | null
   documentId?: string | null
   kind: string
   model: string
@@ -20,7 +23,8 @@ export async function recordGeneration(input: {
   const [row] = await getDb()
     .insert(generations)
     .values({
-      dealId: input.dealId,
+      dealId: input.dealId ?? null,
+      clientId: input.clientId ?? null,
       documentId: input.documentId ?? null,
       kind: input.kind,
       model: input.model,

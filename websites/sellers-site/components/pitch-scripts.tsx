@@ -6,7 +6,7 @@ import {
 } from "@jamie-nisbet/ui"
 import { Mail, MessageCircle, Users } from "lucide-react"
 
-import { CopyButton } from "@/components/copy-button"
+import { CopyButton } from "@jamie-nisbet/app-shell"
 
 type PitchScript = { key: string; channel: string; title: string; body: string }
 type FollowUp = { key: string; when: string; context: string; body: string }

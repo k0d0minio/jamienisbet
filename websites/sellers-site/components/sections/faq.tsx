@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 
 export async function Faq() {
   const t = await getTranslations()

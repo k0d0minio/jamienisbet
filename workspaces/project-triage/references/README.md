@@ -9,7 +9,7 @@ This is the recipe the triage stages follow. It defines the three rubric dimensi
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../setup/`](../setup/) for Jamie's weights and thresholds (the numbers that parameterize this rubric)
 - **Downstream / feeds:** [`../stages/02_assessment/`](../stages/02_assessment/) (scoring) and [`../stages/03_recommendation/`](../stages/03_recommendation/) (decision cut-offs); intake checklist used by [`../stages/01_intake/`](../stages/01_intake/)
-- **Draws on (Layer 3 reference):** [`_config/business/founder-brief.md`](../../../_config/business/founder-brief.md) for strategic direction; [`_config/conventions/`](../../../_config/conventions/); [`shared/knowledge/`](../../../shared/knowledge/)
+- **Draws on (Layer 3 reference):** [`_config/business/founder-brief.md`](../../../_config/business/founder-brief.md) for strategic direction; [`_config/conventions/`](../../../_config/conventions/)
 
 ## Contents
 - [`scoring-rubric.md`](scoring-rubric.md) — the three dimensions (fit/budget/strategic value), 0–5 scales, weights.

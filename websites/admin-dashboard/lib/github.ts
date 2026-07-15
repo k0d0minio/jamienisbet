@@ -163,6 +163,77 @@ export async function createRepo(input: {
 }
 
 // ---------------------------------------------------------------------------
+// Repo seeding — commit the delivery-stage docs into a client's repo when a
+// deal is won. Uses the contents API (PUT, one call per file). A classic PAT's
+// `repo` scope covers this; a fine-grained token additionally needs
+// **Contents: write** on the target repos.
+
+export type SeedFileResult = {
+  path: string
+  /** created = committed now · exists = already there (left untouched) ·
+   * failed = GitHub rejected the write (see error). */
+  outcome: "created" | "exists" | "failed"
+  error?: string
+}
+
+/**
+ * Create each file in the repo (sequential — the contents API rejects
+ * concurrent commits to the same branch). Idempotent: a PUT without a `sha`
+ * fails with 422 when the file already exists, which is reported as "exists"
+ * so a re-run after a partial failure just fills the gaps. Never overwrites.
+ */
+export async function seedRepoFiles(
+  fullName: string,
+  files: { path: string; content: string }[],
+  commitMessage = "Seed delivery docs (discovery / build / delivery)"
+): Promise<SeedFileResult[]> {
+  if (!isGithubConfigured()) {
+    throw new Error("GitHub is not configured in this environment.")
+  }
+  const results: SeedFileResult[] = []
+  for (const file of files) {
+    try {
+      const res = await gh(
+        `/repos/${fullName}/contents/${file.path
+          .split("/")
+          .map(encodeURIComponent)
+          .join("/")}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: `${commitMessage}: ${file.path}`,
+            content: Buffer.from(file.content, "utf8").toString("base64"),
+          }),
+        }
+      )
+      if (res.ok) {
+        results.push({ path: file.path, outcome: "created" })
+      } else if (res.status === 422) {
+        // "sha wasn't supplied" — the file already exists. Leave it alone.
+        results.push({ path: file.path, outcome: "exists" })
+      } else {
+        const body = (await res.json().catch(() => null)) as {
+          message?: string
+        } | null
+        results.push({
+          path: file.path,
+          outcome: "failed",
+          error: body?.message || `HTTP ${res.status}`,
+        })
+      }
+    } catch (err) {
+      results.push({
+        path: file.path,
+        outcome: "failed",
+        error: err instanceof Error ? err.message : "network error",
+      })
+    }
+  }
+  return results
+}
+
+// ---------------------------------------------------------------------------
 // Repo snapshot — the Layer-4 working material the AI runs read. Bounded on
 // purpose: a compact, current picture (what it is, its shape, its stack) rather
 // than the whole tree, so it grounds suggestions without blowing the context.

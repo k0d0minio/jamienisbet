@@ -10,7 +10,7 @@ import {
 import { getTranslations, setRequestLocale } from "next-intl/server"
 import { ArrowRight, Check, Mail } from "lucide-react"
 
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 import { PrintButton } from "@/components/print-button"
 import { site } from "@/lib/site"
 

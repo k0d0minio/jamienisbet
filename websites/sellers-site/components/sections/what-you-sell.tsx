@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@jamie-nisbet/ui"
 import { getTranslations } from "next-intl/server"
 import { FileText, Sparkles } from "lucide-react"
 
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 
 const icons: Record<string, typeof FileText> = {
   landing: FileText,

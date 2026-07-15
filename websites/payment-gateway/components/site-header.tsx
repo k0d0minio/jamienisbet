@@ -2,9 +2,9 @@ import { Button, LogoMark } from "@jamie-nisbet/ui"
 import { getTranslations } from "next-intl/server"
 import { ArrowUpRight } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { ThemeToggle } from "./theme-toggle"
-import { LanguageSwitcher } from "./language-switcher"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { ThemeToggle } from "@jamie-nisbet/app-shell"
+import { LanguageSwitcher } from "@jamie-nisbet/app-shell"
 import { site } from "@/lib/site"
 
 // Payments is a utility surface — clients land here from an invoice link, so the

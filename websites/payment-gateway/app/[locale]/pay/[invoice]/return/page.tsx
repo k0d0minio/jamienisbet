@@ -3,8 +3,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Alert, AlertDescription, AlertTitle, Button, Eyebrow } from "@jamie-nisbet/ui"
 import { ArrowLeft, CheckCircle2, CircleAlert } from "lucide-react"
 
-import { Container, Section } from "@/components/section"
-import { Link } from "@/i18n/navigation"
+import { Container, Section } from "@jamie-nisbet/app-shell"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
 import { getStripe } from "@/lib/stripe"
 
 export const dynamic = "force-dynamic"

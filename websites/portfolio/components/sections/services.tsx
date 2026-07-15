@@ -20,8 +20,8 @@ import {
   Workflow,
 } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 import { SERVICE_IDS, type ServiceId } from "@/lib/services"
 
 // Icon per service is structure (locale-invariant); titles/descriptions/examples

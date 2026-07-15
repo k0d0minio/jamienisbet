@@ -14,7 +14,7 @@ repo holds no client records.
   (e.g. *Acme, Lda.* → `acme_lda`).
 - Derived by the admin (`clientSlug` in
   [`websites/admin-dashboard/lib/github.ts`](../../websites/admin-dashboard/lib/github.ts)) — used to
-  **suggest a delivery-repo name** and to key the docs-only `projects/<slug>/` folder, so the same
+  **suggest a delivery-repo name**, so the same
   identifier traces a client across the repo consistently.
 
 ## Per-client footprint (what lives where)
@@ -23,7 +23,7 @@ here is deliberately minimal:
 
 - **The Neon `biz.*` schema** — the client, its deals, and every generated document (the working
   record, operated from the admin dashboard).
-- **`projects/<slug>/`** — delivery **docs only**: scope, milestones, acceptance, finances.
+- **the client's external repo** — delivery code AND docs (`docs/icm/`, seeded from `shared/templates/delivery/`).
   **No delivery code.**
 - **The client's own external repo** — the actual build, with its own ICM pipeline tailored to that
   client. Anything shared *with* the client lives there, not here. The admin stores a pointer to it

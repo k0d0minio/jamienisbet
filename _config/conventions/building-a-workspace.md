@@ -17,7 +17,7 @@ The business scales by **copying folders, not writing code**. A new capability i
    - an `output/` folder.
    Stage N's `output/` is stage N+1's input. One stage = one job.
 4. **Fill `references/`:** the stable Layer-3 rules this capability uses (rubrics, playbooks, voice
-   notes). Keep them local; promote to `shared/knowledge/` only when a second workspace needs them.
+   notes). Keep them local to the workspace's `references/`; promote into `shared/` only when a second workspace needs them.
 5. **Update the router:** edit the workspace `README.md` so it lists the real stages in execution
    order.
 6. **Validate** against the checklist in [`model-and-scaling.md`](model-and-scaling.md) before the
@@ -33,7 +33,7 @@ stage inside an existing one. Full rule in [`model-and-scaling.md`](model-and-sc
 
 ## Per-client delivery is different
 A *workspace* is a reusable capability (run many times). A client *delivery* is a one-off: copy
-`projects/_template-project/` → `projects/<slug>/` (docs-only — the build/delivery code lives in
+`shared/templates/delivery/` → the client's external repo, seeded by the dashboard (build and docs both live in
 the client's own external repo). See [`client-and-slug.md`](client-and-slug.md) and
 [`macro-pipeline.md`](macro-pipeline.md).
 

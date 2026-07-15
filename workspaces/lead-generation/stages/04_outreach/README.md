@@ -1,6 +1,11 @@
 # Stage 04 — Outreach
 
 > **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
+> **Status:** drafting now runs in the **admin dashboard** against this contract — the Outreach
+> card on a client's page drafts outreach/follow-up/chase emails from
+> `shared/templates/email/*` + `_config/brand/voice/` (via `packages/icm`), review-gated and
+> **draft-only**: sending stays manual from Jamie's own email, and the logged send un-stales the
+> lead on `/today`. Edit the templates/voice here to change every future draft.
 > **Purpose:** Provide on-brand templates and follow-up cadences for warm intros and inbound leads so nothing stalls or sounds off-voice.
 
 ## What this folder accomplishes
@@ -9,7 +14,7 @@ This stage gives Jamie ready-to-send, on-brand copy for the two situations he ac
 ## How it connects to the architecture
 - **Upstream / reads from:** `../01_positioning/output/`, `../02_channels/output/`, `../03_affiliate_program/output/`
 - **Downstream / feeds:** `../05_pipeline/` (each send is logged), `workspaces/proposals/` (when a lead is ready to quote)
-- **Draws on (Layer 3 reference):** `_config/brand/voice/`, `shared/templates/` (email template), `shared/knowledge/`
+- **Draws on (Layer 3 reference):** `_config/brand/voice/`, `shared/templates/` (email templates)
 
 ## Notes
 Keep cadences short and human — a freelancer over-following-up reads as desperate; the goal is to stay polite and present. Re-run this stage alone whenever brand voice or offer changes, without touching positioning.

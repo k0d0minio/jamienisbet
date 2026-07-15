@@ -5,7 +5,7 @@
 ## Word of mouth (primary)
 - Make it easy to refer: a one-line description of what you do + who you help, that anyone can repeat
   (see [`referral-script-bank.md`](referral-script-bank.md)).
-- After every delivery, ask for a referral and a testimonial (feeds `shared/knowledge/case-studies/`).
+- After every delivery, ask for a referral and a testimonial (feeds the portfolio's case studies).
 
 ## Affiliate sellers (the 10% program)
 - See [`affiliate-program.md`](affiliate-program.md). Recruit local friends; give them the starter-kit;

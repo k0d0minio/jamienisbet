@@ -5,11 +5,11 @@ import { notFound } from "next/navigation"
 import { Analytics } from "@vercel/analytics/next"
 import "../globals.css"
 
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@jamie-nisbet/app-shell"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { site } from "@/lib/site"
-import { routing, localeHtmlLang, localeOg, type Locale } from "@/i18n/routing"
+import { routing, localeHtmlLang, localeOg, type Locale } from "@jamie-nisbet/app-shell/i18n"
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))

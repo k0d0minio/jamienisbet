@@ -1,4 +1,4 @@
-import { localeHtmlLang, type Locale } from "@/i18n/routing"
+import { localeHtmlLang, type Locale } from "@jamie-nisbet/app-shell/i18n"
 
 // Currency formatting. Stripe holds amounts in the currency's minor unit (cents
 // for EUR), so divide by 100 before display. The presentation locale drives the

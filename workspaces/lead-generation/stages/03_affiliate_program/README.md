@@ -8,8 +8,8 @@ This stage builds the whole local-affiliate program end to end so a non-technica
 
 ## How it connects to the architecture
 - **Upstream / reads from:** `../01_positioning/output/`, `../02_channels/output/`, `../../setup/output/`
-- **Downstream / feeds:** `../04_outreach/`, `../05_pipeline/` (attribution), `shared/clients/` (new seller-sourced leads)
-- **Draws on (Layer 3 reference):** `_config/brand/visual/`, `_config/brand/assets/`, `_config/brand/voice/`, `shared/templates/` (agreement, pricing), `_config/business/` (rates), `shared/knowledge/`
+- **Downstream / feeds:** `../04_outreach/`, `../05_pipeline/` (attribution), Neon `biz.clients` via the sellers-site intake (new seller-sourced leads)
+- **Draws on (Layer 3 reference):** `_config/brand/visual/`, `_config/brand/assets/`, `_config/brand/voice/`, `shared/templates/` (agreement, pricing), `_config/business/` (rates)
 
 ## Notes
 Keep the seller's job to "make a warm introduction," not to quote or close — Jamie handles pricing and delivery, which protects margin and brand. The seller agreement and any commission/withholding/tax treatment are decision-support only and must be reviewed by a licensed Portuguese contabilista certificado / lawyer before use; do not state tax outcomes as fact.

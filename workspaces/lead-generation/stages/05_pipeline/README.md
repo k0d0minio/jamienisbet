@@ -1,17 +1,20 @@
 # Stage 05 — Pipeline
 
 > **ICM role:** Layer 2 — stage (narrative; contract in CONTEXT.md)
-> **Purpose:** Track every lead from first contact to qualified, then hand off to proposals and projects while keeping the client registry current.
+> **Status:** this stage's run-process now lives in the **admin dashboard** (`/clients` and
+> `/deals` over the Neon `biz.*` store). This contract remains the Layer-2 spec the dashboard's
+> behaviour mirrors — fix the source here when the behaviour needs to change.
+> **Purpose:** Track every lead from first contact to qualified, then hand off to proposals and delivery while keeping the client registry current.
 
 ## What this folder accomplishes
-This stage is Jamie's single, plain-markdown sales pipeline. Each lead moves through clear states — new → contacted → qualified → handed off (or lost) — with who referred them (affiliate seller or direct), the offer in play, next action, and date. When a lead qualifies, this stage hands it to `workspaces/proposals/` and, on a win, to a new `projects/` pipeline, and writes the contact into `shared/clients/`. It also closes the affiliate loop by recording attribution so the 10% payout is unambiguous.
+This stage defines Jamie's single sales pipeline. Each lead moves through clear states — new → contacted → qualified → proposed → won (or lost) — with who referred them (affiliate seller or direct), the offer in play, next action, and date. The state itself lives in the Neon `biz.clients` / `biz.deals` tables and is operated in the admin dashboard: intake forms on the portfolio and sellers sites create the client row, qualification hands it to the deal flow (`workspaces/proposals/` contracts), and a win triggers delivery in the client's external repo. Attribution for the affiliate payout is recorded on the client record so the payout is unambiguous.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** `../04_outreach/output/`, `../02_channels/output/`, `../03_affiliate_program/output/attribution-rules.md`
-- **Downstream / feeds:** `workspaces/proposals/`, `projects/` (copied from `projects/_template-project/`), `shared/clients/`
-- **Draws on (Layer 3 reference):** `_config/conventions/`, `shared/knowledge/`
+- **Downstream / feeds:** the deal pipeline in the admin dashboard (`workspaces/proposals/` contracts); delivery in the client's external repo
+- **Draws on (Layer 3 reference):** `_config/conventions/`
 
 ## Notes
-This is a living Layer 4 artifact updated continuously, not a one-shot run. Keep it skimmable — Jamie's morning routine in `tracker/` may reference it for "who needs a follow-up today." Won/lost reasons are worth a one-line note to improve `01_positioning` over time.
+Pipeline state is a living artifact updated continuously in the dashboard, not a one-shot run. The dashboard's daily brief surfaces "who needs a follow-up today." Won/lost reasons are worth a one-line note on the client record to improve `01_positioning` over time.
 
 > Contract: see [CONTEXT.md](CONTEXT.md).

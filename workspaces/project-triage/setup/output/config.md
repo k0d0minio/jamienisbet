@@ -9,7 +9,8 @@
 - Retainer / recurring relationships.
 
 ## Gates
-- **Floor:** €80/hour — same as [`../../../proposals/setup/output/config.md`](../../../proposals/setup/output/config.md). Budget below floor with no upside → NO-GO.
+- **Floor:** the walk-away rate in [`_config/business/rates.md`](../../../../_config/business/rates.md)
+  (the single pricing source of truth, loaded alongside this config). Budget below floor with no upside → NO-GO.
 - **Capacity:** ~30 hours/week available; contractors on standby for large builds.
 
 ## Rubric weights
@@ -21,5 +22,5 @@
 - Unethical / illegal / reputational red flags.
 
 ## Modes
-- **Gate mode:** qualify → on GO, create `shared/clients/<slug>/` (`scripts/new-client.sh`) → proposals.
+- **Gate mode:** qualify → on GO, create the client in the admin dashboard (Neon `biz.clients`) → proposals.
 - **Standalone mode:** a 5-minute verbal-ready opinion on the spot; no client record unless GO.

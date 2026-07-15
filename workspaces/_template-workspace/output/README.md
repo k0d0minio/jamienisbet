@@ -8,7 +8,7 @@ This is where the meal is served. The final stage rolls its result up here, givi
 
 ## How it connects to the architecture
 - **Upstream / reads from:** the final stage in [`../stages/`](../stages/) (whichever has the highest number) writes here.
-- **Downstream / feeds:** typically the client record in [`shared/clients/`](../../../shared/clients/), or a per-project delivery pipeline under [`projects/`](../../../projects/) (copied from [`projects/_template-project/`](../../../projects/_template-project/)); some capabilities feed a hosted site under [`websites/`](../../../websites/).
+- **Downstream / feeds:** typically the client record in Neon `biz.clients` (via the admin dashboard), or the client's external delivery repo; some capabilities feed a hosted site under [`websites/`](../../../websites/).
 - **Draws on (Layer 3 reference):** indirectly — the deliverable inherits brand/voice from [`_config/brand/`](../../../_config/brand/) and structure from [`shared/templates/`](../../../shared/templates/) via the stages that produced it.
 
 ## Contents

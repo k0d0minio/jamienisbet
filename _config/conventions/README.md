@@ -14,7 +14,7 @@ once so each run just produces a new deliverable.
 ## How it connects to the architecture
 - **Upstream / reads from:** human input; the root [`CLAUDE.md`](../../CLAUDE.md) (Layer 0 identity/router).
 - **Downstream / feeds:** every workspace router, stage `CONTEXT.md`, script, and `output/` across
-  [`workspaces/`](../../workspaces/), [`projects/`](../../projects/), [`shared/`](../../shared/),
+  [`workspaces/`](../../workspaces/), [`shared/`](../../shared/),
   [`websites/`](../../websites/), and [`scripts/`](../../scripts/) follows the rules defined here.
 - **Draws on (Layer 3 reference):** [`_config/brand/`](../brand/) and [`_config/business/`](../business/)
   as the canonical reference targets stages cite.
@@ -49,6 +49,6 @@ once so each run just produces a new deliverable.
 ## Notes
 These conventions are stable across all runs — they are the protocol, not any deliverable. When the
 methodology evolves, update it here so every workspace inherits the change (fix the source, not the
-output). New per-project pipelines are created by copying [`projects/_template-project/`](../../projects/_template-project/);
+output). New engagements are delivered in the client's external repo, seeded by the dashboard from [`shared/templates/delivery/`](../../shared/templates/delivery/);
 new capabilities by copying [`workspaces/_template-workspace/`](../../workspaces/_template-workspace/) —
 both following these same rules.

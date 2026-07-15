@@ -10,8 +10,8 @@ import {
 import { getTranslations } from "next-intl/server"
 import { ArrowRight, Check, Presentation } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 import { FollowUps, PitchScripts } from "@/components/pitch-scripts"
 import { site } from "@/lib/site"
 

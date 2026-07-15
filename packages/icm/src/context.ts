@@ -5,6 +5,7 @@
 // by the caller as the user prompt — this module never touches the database.
 
 import { tryReadRepoFile } from "./repo"
+import { outreachSpecs, type TouchKind } from "./outreach"
 import { stageSpecs, type DocumentKind } from "./stages"
 
 export type StageContext = {
@@ -69,6 +70,45 @@ export function assembleStageContext(kind: DocumentKind): StageContext {
   rules.push(
     "- Output plain markdown only — the document body itself, no preamble, no code fences around the whole document."
   )
+  system += `\n\n---\n## Output rules\n\n${rules.join("\n")}`
+
+  return { system, files }
+}
+
+// Per-kind job descriptions for the outreach drafts. Thin on purpose — the
+// email template and the voice files carry the real rules.
+const OUTREACH_RULES: Record<TouchKind, string> = {
+  outreach:
+    "- Draft ONE outreach email to this lead, following the outreach template's structure and grounded in what the working material says they need. Short — a first touch earns a reply, it doesn't close a deal.",
+  follow_up:
+    "- Draft ONE follow-up email nudging this lead, following the follow-up template. Reference where the conversation actually left off (the working material shows the history); warm, zero pressure, one clear next step.",
+  chase:
+    "- Draft ONE payment-reminder email for the overdue invoice described in the working material, following the chase template. Factual and friendly — state the invoice, amount, and due date exactly as given; never invent or recompute figures.",
+}
+
+/**
+ * Assemble the context for one outreach draft. Same shape as
+ * assembleStageContext; outreach is always customer-facing so the voice rule
+ * is always on.
+ */
+export function assembleOutreachContext(kind: TouchKind): StageContext {
+  const spec = outreachSpecs[kind]
+  const files: string[] = []
+  let system = ENGINE_PREAMBLE
+
+  for (const path of spec.layer3) {
+    const body = tryReadRepoFile(path)
+    if (body === null) continue
+    system += section("Reference (Layer 3)", path, body)
+    files.push(path)
+  }
+
+  const rules = [
+    OUTREACH_RULES[kind],
+    VOICE_RULE,
+    "- Output exactly ONE email in plain markdown: a `Subject:` line first, a blank line, then the body. No preamble, no alternatives, no commentary.",
+    "- This is a DRAFT: Jamie reviews, edits, and sends it himself from his own email. Never imply it was sent automatically.",
+  ]
   system += `\n\n---\n## Output rules\n\n${rules.join("\n")}`
 
   return { system, files }

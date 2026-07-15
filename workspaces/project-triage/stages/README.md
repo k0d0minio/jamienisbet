@@ -8,7 +8,7 @@ This folder holds the ordered pipeline that turns a raw ask into a go/no-go deci
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../README.md`](../README.md) (workspace router); [`../setup/`](../setup/) config; [`../references/`](../references/) rubric
-- **Downstream / feeds:** final stage writes to [`../output/`](../output/); GO decisions hand off to [`proposals/`](../../proposals/) and a new [`projects/`](../../../projects/) pipeline
+- **Downstream / feeds:** final stage writes to [`../output/`](../output/); GO decisions hand off to [`proposals/`](../../proposals/) via a deal in the admin dashboard
 - **Draws on (Layer 3 reference):** [`../references/`](../references/), [`_config/brand/voice/`](../../../_config/brand/voice/)
 
 ## Contents

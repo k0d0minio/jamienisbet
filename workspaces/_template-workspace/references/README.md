@@ -9,7 +9,7 @@ This is the recipe, not the meal. Anything that stays the same across runs of th
 ## How it connects to the architecture
 - **Upstream / reads from:** stable reference, not produced by a run. Authored once by the operator, then edited rarely.
 - **Downstream / feeds:** every stage in [`../stages/`](../stages/) — each names the specific reference file it loads.
-- **Draws on / extends (repo-wide Layer 3):** [`_config/brand/voice/`](../../../_config/brand/voice/), [`_config/brand/visual/`](../../../_config/brand/visual/), [`_config/business/`](../../../_config/business/), [`shared/templates/`](../../../shared/templates/), [`shared/knowledge/`](../../../shared/knowledge/), [`_config/conventions/`](../../../_config/conventions/). Prefer linking to these repo-wide references over duplicating them; keep only this-capability-specific material here.
+- **Draws on / extends (repo-wide Layer 3):** [`_config/brand/voice/`](../../../_config/brand/voice/), [`_config/brand/visual/`](../../../_config/brand/visual/), [`_config/business/`](../../../_config/business/), [`shared/templates/`](../../../shared/templates/), [`_config/conventions/`](../../../_config/conventions/). Prefer linking to these repo-wide references over duplicating them; keep only this-capability-specific material here.
 
 ## Contents
 - `rubric.md` — *(planned, do not create yet)* how this capability scores or decides quality.

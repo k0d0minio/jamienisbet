@@ -1,4 +1,4 @@
-import { Link } from "@/i18n/navigation"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
 import {
   Badge,
   Card,
