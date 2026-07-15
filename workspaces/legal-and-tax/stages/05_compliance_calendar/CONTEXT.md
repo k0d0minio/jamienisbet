@@ -12,10 +12,10 @@ Build the dated calendar: quarterly SS declarations (Apr/Jul/Oct/Jan) starting w
 - `compliance-calendar.md` -> output/
 
 ## Integrations
-- none (the tracker reads this read-only; no Google Calendar feed, per the decision)
+- none (entries are keyed into the dashboard's `/today` calendar by hand after review; no Google Calendar feed, per the decision)
 
 ## Verify
 - The year-1 SS-exemption end date is correct and prominent; every obligation cites its reference + as-of date; cadence matches the confirmed regime.
 
 ## Review gate
-- Jamie/contabilista validate the calendar before the tracker relies on it.
+- Jamie/contabilista validate the calendar before it is entered into the dashboard.

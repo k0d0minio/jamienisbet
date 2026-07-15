@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # stripe-report.sh — period finance summary from Stripe (READ-ONLY): income, receivables, tax reserve.
 #
+# NOTE: superseded for daily use by the admin dashboard (/finances and /today,
+# which auto-paginate past Stripe's 100-item page cap). Kept as a local
+# read-only utility for ad-hoc terminal checks.
+#
 # Contract (ICM script):
 #   Inputs:       [--from YYYY-MM-DD] [--to YYYY-MM-DD]  (default: this month)  [--reserve PCT]
 #   Outputs:      a markdown summary on stdout (income, open/overdue, suggested reserve)

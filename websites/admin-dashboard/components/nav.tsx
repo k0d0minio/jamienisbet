@@ -2,7 +2,15 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FileText, Home, Link2, Users, Wallet, type LucideIcon } from "lucide-react"
+import {
+  FileText,
+  Home,
+  Link2,
+  Sun,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react"
 
 import { Button, LogoMark, cn } from "@jamie-nisbet/ui"
 
@@ -18,6 +26,7 @@ type NavLink = {
 }
 
 const links: NavLink[] = [
+  { href: "/today", label: "Today", short: "Today", icon: Sun },
   { href: "/", label: "Dashboard", short: "Home", icon: Home },
   { href: "/clients", label: "Clients", short: "Clients", icon: Users },
   { href: "/finances", label: "Finances", short: "Finances", icon: Wallet },
@@ -78,7 +87,7 @@ export function Nav() {
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Primary"
       >
-        <div className="mx-auto grid max-w-5xl grid-cols-5">
+        <div className="mx-auto grid max-w-5xl grid-cols-6">
           {links.map((link) => {
             const active = isActive(pathname, link.href)
             const Icon = link.icon

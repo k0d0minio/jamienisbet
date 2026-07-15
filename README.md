@@ -49,7 +49,6 @@ jamienisbet/
 │
 ├── websites/           Jamie's own apps: portfolio/ · payment-gateway/ · admin-dashboard/ · sellers-site/
 ├── packages/           SHARED CODE for every website — ui/ = @jamie-nisbet/ui (design system: tokens, components, assets)
-├── tracker/            STANDALONE business-only daily todos
 └── scripts/            the automation layer (bash): send-email · stripe fetchers
 ```
 
@@ -68,8 +67,8 @@ pipeline state and nothing is mirrored back into git.
    negotiation to lift your rate, and generates the proposal, quote and contract on-brand.
 4. **Deliver it** in the client's **own external repo** — created and seeded with the delivery-stage
    docs (`shared/templates/delivery/`) from the deal's onboarding checklist in the admin dashboard.
-5. **Get paid & stay compliant** via `finance/` and `legal-and-tax/`, whose deadlines surface every
-   morning in `tracker/`.
+5. **Get paid & stay compliant** via the dashboard (`/finances`, `/invoices`) and `legal-and-tax/`,
+   whose deadlines surface every morning on the dashboard's `/today` page.
 
 Brand identity from [`_config/brand/`](_config/brand/) flows into every website and every document,
 so everything looks and sounds like one business.
@@ -81,7 +80,7 @@ so everything looks and sounds like one business.
 a machine-loadable `CONTEXT.md` contract in every stage. The structural decisions are settled —
 business state lives in **one** store (the Neon `biz.*` schema, run from the admin dashboard),
 client delivery (code + docs) lives in each client's external repo, `websites/` hosts Jamie's own apps,
-`tracker/` is business-only. **Still to come (later passes):** brand identity, each workspace's
+Daily todos live on the dashboard's `/today` page. **Still to come (later passes):** brand identity, each workspace's
 `setup/` + `references/` content, and making `legal-and-tax` runnable first.
 Decisions are recorded in [`_config/conventions/decisions.md`](_config/conventions/decisions.md).
 

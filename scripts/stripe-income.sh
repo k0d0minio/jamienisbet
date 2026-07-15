@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # stripe-income.sh — fetch paid income from Stripe for a period (READ-ONLY).
 #
+# NOTE: superseded for daily use by the admin dashboard (/finances and /today,
+# which auto-paginate past Stripe's 100-item page cap). Kept as a local
+# read-only utility for ad-hoc terminal checks.
+#
 # Contract (ICM script):
 #   Inputs:       [--from YYYY-MM-DD] [--to YYYY-MM-DD]   (default: this calendar month)
 #   Outputs:      one line per paid invoice + a final `income_eur=<total>` on stdout

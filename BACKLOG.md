@@ -54,6 +54,19 @@ legal-and-tax compliance-calendar stage was only partially run.
 
 ---
 
+## Migrated from the retired tracker — re-enter on `/today` (needs Jamie)
+
+The open items from `tracker/business/todos.md` at retirement (2026-07-15). Enter the ones still
+relevant as tasks on the dashboard's `/today` page, then delete this section:
+
+- Decide the PT business structure (sole trader vs Unipessoal Lda) — see `workspaces/legal-and-tax/`
+- Appoint a *contabilista certificado* to validate the structure & tax setup
+- Run the legal-and-tax workspace to produce the decision-support pack
+- Register the existing recurring retainer client in the admin dashboard
+- Kick off the retainer client's delivery (won-deal onboarding checklist seeds the repo)
+- Secure the `jamienisbet.com` domain and the `contact@jamienisbet.com` inbox
+- Once the entity is live: record NIF / IBAN / registered address into `_config/business/` (→ B3)
+
 ## Deferred — conscious exclusions
 
 - **Date-stamping legal/tax references** — add "source + as-of date" to

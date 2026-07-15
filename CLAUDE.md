@@ -45,7 +45,7 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Deliver a client engagement (code + docs live in the client's external repo) | the deal's onboarding checklist in the admin dashboard seeds the repo from [`shared/templates/delivery/`](shared/templates/delivery/) |
 | Build/host one of Jamie's own web apps (portfolio, payment gateway, admin dashboard, sellers site) | [`websites/`](websites/) |
 | Use/extend shared code across every website (design system, app shell, data layer, ICM runtime) | [`packages/`](packages/) (`ui` = design system · `app-shell` = marketing-site chrome/i18n · `services` = Neon `biz.*` · `icm` = AI-pipeline runtime) |
-| Daily business todos / the morning brief + weekly review | [`tracker/`](tracker/) |
+| Daily business todos / the morning brief / compliance deadlines | the admin dashboard's `/today` page (`biz.tasks` + `biz.compliance_dates`) |
 | Run a mechanical action (new client/project, send a reviewed email) | [`scripts/`](scripts/) |
 | See where the business stands (pipeline, metrics) | the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)) |
 | Brand colours, voice, logos, business facts | [`_config/`](_config/) |

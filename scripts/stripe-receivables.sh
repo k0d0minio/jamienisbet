@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # stripe-receivables.sh — outstanding (open) + overdue invoices from Stripe (READ-ONLY).
 #
+# NOTE: superseded for daily use by the admin dashboard (/finances and /today,
+# which auto-paginate past Stripe's 100-item page cap). Kept as a local
+# read-only utility for ad-hoc terminal checks.
+#
 # Contract (ICM script):
 #   Inputs:       none
 #   Outputs:      one line per open invoice (overdue flagged) + `open_eur=` and `overdue_eur=`
