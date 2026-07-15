@@ -24,7 +24,7 @@ import {
   businessHours,
   type SellerLeadState,
 } from "@/lib/referral-schema"
-import { localeHtmlLang, type Locale } from "@/i18n/routing"
+import { localeHtmlLang, type Locale } from "@jamie-nisbet/app-shell/i18n"
 
 const sellerInitial: SellerLeadState = { status: "idle" }
 

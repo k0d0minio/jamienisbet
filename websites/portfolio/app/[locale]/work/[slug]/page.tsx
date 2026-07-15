@@ -4,11 +4,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Badge, Button, Eyebrow } from "@jamie-nisbet/ui"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { Container } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container } from "@jamie-nisbet/app-shell"
 import { Markdown } from "@/components/markdown"
 import { getCaseStudy, getCaseStudySlugs } from "@/lib/work"
-import { routing } from "@/i18n/routing"
+import { routing } from "@jamie-nisbet/app-shell/i18n"
 
 type Params = { params: Promise<{ locale: string; slug: string }> }
 

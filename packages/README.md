@@ -27,6 +27,12 @@ wrapper, etc.) as they're extracted.
   carries the model policy from
   [`_config/conventions/model-and-scaling.md`](../_config/conventions/model-and-scaling.md)
   as code. Server-only, source-only. See [`icm/README.md`](icm/README.md).
+- [`app-shell/`](app-shell/) — **`@jamie-nisbet/app-shell`**: the shared Next.js app shell for
+  the public marketing sites (portfolio, sellers-site, payment-gateway). i18n routing +
+  locale-aware navigation + a request-config factory (en/pt/fr), theme provider/toggle,
+  language switcher, layout sections, and the parametrised site header/footer. Next-,
+  next-intl- and next-themes-coupled pieces live here so `ui` stays framework-light;
+  source-only, consumed via `transpilePackages`.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** the brand contract in [`_config/brand/`](../_config/brand/) (visual + voice).

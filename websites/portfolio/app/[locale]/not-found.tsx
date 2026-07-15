@@ -2,8 +2,8 @@ import { useTranslations } from "next-intl"
 import { Button, Eyebrow } from "@jamie-nisbet/ui"
 import { ArrowRight } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { Container, Section } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container, Section } from "@jamie-nisbet/app-shell"
 
 export default function NotFound() {
   const t = useTranslations("notFound")

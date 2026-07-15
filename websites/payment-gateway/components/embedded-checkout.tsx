@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl"
 import { Info } from "lucide-react"
 
 import { createCheckoutSession } from "@/app/actions/checkout"
-import type { Locale } from "@/i18n/routing"
+import type { Locale } from "@jamie-nisbet/app-shell/i18n"
 
 // Load Stripe once, outside the component, to avoid recreating it on every
 // render. When the publishable key is unset, there's no Stripe to load — the

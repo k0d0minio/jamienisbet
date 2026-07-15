@@ -4,11 +4,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Alert, AlertDescription, AlertTitle, Eyebrow } from "@jamie-nisbet/ui"
 import { CheckCircle2, Lock } from "lucide-react"
 
-import { Container, Section } from "@/components/section"
+import { Container, Section } from "@jamie-nisbet/app-shell"
 import { InvoiceSummary } from "@/components/invoice-summary"
 import { Checkout } from "@/components/embedded-checkout"
 import { getInvoice } from "@/lib/invoice"
-import type { Locale } from "@/i18n/routing"
+import type { Locale } from "@jamie-nisbet/app-shell/i18n"
 
 // Payment pages are per-invoice and must never be statically cached.
 export const dynamic = "force-dynamic"

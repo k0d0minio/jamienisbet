@@ -2,8 +2,8 @@ import { getTranslations } from "next-intl/server"
 import { Button, Eyebrow } from "@jamie-nisbet/ui"
 import { ArrowRight } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { Container } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container } from "@jamie-nisbet/app-shell"
 
 export async function Hero() {
   const t = await getTranslations("hero")

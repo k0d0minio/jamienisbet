@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 
 import { getCaseStudySlugs } from "@/lib/work"
 import { site } from "@/lib/site"
-import { routing } from "@/i18n/routing"
+import { routing } from "@jamie-nisbet/app-shell/i18n"
 
 // One entry per locale per route, each carrying the full set of hreflang
 // alternates (Google reads alternates.languages, not separate URLs).

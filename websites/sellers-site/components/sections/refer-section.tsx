@@ -2,7 +2,7 @@ import { Eyebrow } from "@jamie-nisbet/ui"
 import { getTranslations } from "next-intl/server"
 import { KeyRound, Mail } from "lucide-react"
 
-import { Container, Section } from "@/components/section"
+import { Container, Section } from "@jamie-nisbet/app-shell"
 import { ReferralForms } from "@/components/referral-forms"
 import { site } from "@/lib/site"
 

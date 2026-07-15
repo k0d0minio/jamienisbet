@@ -44,7 +44,7 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Track income, expenses, invoices, tax reserve | [`workspaces/finance/`](workspaces/finance/) |
 | Deliver a client engagement (docs-only; build lives in the client's external repo) | [`projects/`](projects/) (`scripts/new-project.sh`) |
 | Build/host one of Jamie's own web apps (portfolio, payment gateway, admin dashboard, sellers site) | [`websites/`](websites/) |
-| Use/extend shared code across every website (design system / UI components, future services) | [`packages/`](packages/) (`packages/ui` = `@jamie-nisbet/ui`) |
+| Use/extend shared code across every website (design system, app shell, data layer, ICM runtime) | [`packages/`](packages/) (`ui` = design system · `app-shell` = marketing-site chrome/i18n · `services` = Neon `biz.*` · `icm` = AI-pipeline runtime) |
 | Daily business todos / the morning brief + weekly review | [`tracker/`](tracker/) |
 | Run a mechanical action (new client/project, send a reviewed email) | [`scripts/`](scripts/) |
 | See where the business stands (pipeline, metrics) | the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)) |

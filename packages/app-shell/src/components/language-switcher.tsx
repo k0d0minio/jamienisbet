@@ -4,8 +4,8 @@ import { useParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Button } from "@jamie-nisbet/ui"
 
-import { usePathname, useRouter } from "@/i18n/navigation"
-import { routing, localeShort, type Locale } from "@/i18n/routing"
+import { usePathname, useRouter } from "../i18n/navigation"
+import { routing, localeShort, type Locale } from "../i18n/routing"
 
 // Compact EN · PT · FR switcher. Swaps only the locale segment of the current
 // URL, preserving the path and query — no cookie writes, the choice rides the URL.

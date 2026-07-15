@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@jamie-nisbet/ui"
 import { getTranslations } from "next-intl/server"
 import { BadgeEuro, CreditCard, Hammer, UserPlus } from "lucide-react"
 
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 
 // Step key → icon. Keys are stable across locales (defined in the catalogs).
 const icons: Record<string, typeof UserPlus> = {

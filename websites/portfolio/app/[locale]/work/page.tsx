@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation"
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 import { CaseStudyCard } from "@/components/case-study-card"
 import { getCaseStudies } from "@/lib/work"
 

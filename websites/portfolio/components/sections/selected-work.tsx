@@ -2,8 +2,8 @@ import { getTranslations } from "next-intl/server"
 import { Button } from "@jamie-nisbet/ui"
 import { ArrowRight } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
-import { Container, Section, SectionHeading } from "@/components/section"
+import { Link } from "@jamie-nisbet/app-shell/i18n"
+import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 import { CaseStudyCard } from "@/components/case-study-card"
 import { getFeaturedCaseStudies } from "@/lib/work"
 
