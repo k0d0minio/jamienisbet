@@ -21,13 +21,82 @@
   "footer": {
     "tagline": "AI and software that take the admin off your plate — built to last, from {location}.",
     "getInTouch": "Get in touch",
+    "techTeams": "For technical teams",
     "copyright": "© {year} {name}"
   },
   "hero": {
-    "title": "AI systems that give you your time back — and keep working as you grow.",
-    "intro": "I'm Jamie — a senior engineer working directly with you. I build AI and software that takes the admin off your plate, on clean architecture that scales as you grow. Clear scope, clear price, no surprises.",
+    "title": "Get your time back. I build the software that runs the busywork for you.",
+    "intro": "I'm Jamie — a senior engineer who works with you directly. I build websites, automation, and AI that take the admin off your plate, then keep working as you grow.",
     "startProject": "Start a project",
-    "seeWork": "See work"
+    "seeWork": "See the work"
+  },
+  "problems": {
+    "eyebrow": "What can I help with?",
+    "title": "Start with what's slowing you down.",
+    "intro": "Most people come to me with one of three problems. Tell me which one sounds like you — I'll show you what I'd do about it.",
+    "coversLabel": "This covers",
+    "cta": "Start this project",
+    "aiAsideLead": "Not sure AI is even worth it for you?",
+    "aiAsideLink": "Ask me — I'll be straight with you.",
+    "items": {
+      "busywork": {
+        "title": "Take the busywork off my plate",
+        "description": "The repetitive admin that eats your week — invoices, follow-ups, data copied between tools — handled by software, so your hours go back to your customers."
+      },
+      "getFound": {
+        "title": "Help customers find and choose me",
+        "description": "A website that actually brings in enquiries and gets picked up by Google and AI assistants — designed, written, hosted, and kept current by one person."
+      },
+      "custom": {
+        "title": "Build me something custom",
+        "description": "A web app or system built properly around how you work — fast, documented, and yours to keep, with someone technical steering it all the way to launch."
+      }
+    }
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "title": "Simple, and no surprises.",
+    "intro": "Three steps from your first message to a working result.",
+    "steps": [
+      {
+        "title": "We talk",
+        "description": "You tell me what you're trying to do, in plain words. I ask a few questions and tell you honestly whether I'm the right person to help."
+      },
+      {
+        "title": "You get a fixed quote",
+        "description": "A clear scope and a clear price before anything starts — usually with options, so you pick what fits your budget. No hidden line items."
+      },
+      {
+        "title": "I build it",
+        "description": "You deal with the person writing the code, so decisions are quick. You stay in the loop, and the finished work is yours to keep — no lock-in."
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "Questions",
+    "title": "The things people usually ask.",
+    "items": [
+      {
+        "q": "Do I need to understand any of the tech?",
+        "a": "No — that's my job. I explain things in plain language, tell you what matters and what doesn't, and never hide behind jargon."
+      },
+      {
+        "q": "What will it cost?",
+        "a": "My standard rate is €120/hour, but most work is quoted as a fixed price for the scope — with options — so you know the number before we start."
+      },
+      {
+        "q": "What if I want changes later?",
+        "a": "Changes are a normal conversation, not a surprise charge. Everything's built on clean, documented foundations, so later changes stay cheap."
+      },
+      {
+        "q": "Will I be locked in?",
+        "a": "No. The work is yours to keep — the code, the accounts, and the documentation. If we ever part ways, you or another developer can pick it straight up."
+      },
+      {
+        "q": "How soon will you reply?",
+        "a": "Within a day or two — with a few questions or, if it's a fit, a way forward. No hard sell."
+      }
+    ]
   },
   "services": {
     "eyebrow": "What I do",
@@ -112,17 +181,8 @@
   "about": {
     "eyebrow": "About",
     "title": "A senior engineer you can actually reach.",
-    "p1": "I'm Jamie Nisbet, a software engineer and AI consultant based in {location}. I've spent years building software for the web, and I now design AI systems meant to run for the long term — well-defined, documented, and built to scale, not bolted-on demos that break a month later.",
-    "p2": "I work as a small shop on purpose. You deal with the person writing the code, so decisions are quick and nothing gets lost in translation. For bigger builds I bring in trusted contractors — you keep the responsiveness and gain the capacity.",
-    "p3": "Most of what I build has one job: take the admin and busywork off your plate, so your time goes back to the business and its customers. I care about doing the useful thing, explaining the why, and being straight about trade-offs and cost. If something's a bad idea, I'll tell you.",
-    "howIWorkTitle": "How I work",
-    "howIWork": [
-      "You talk to the person building it — no agency layers, no account managers.",
-      "Clear scope and a clear price before we start; changes are a conversation, not a hidden line item.",
-      "I'm honest about trade-offs, cost, and what I don't know — I'd rather under-promise.",
-      "Built on clear, documented architecture — it scales as you grow and it's yours to keep, no lock-in.",
-      "One person you can reach, with contractors on standby for bigger builds."
-    ]
+    "p1": "I'm Jamie Nisbet, a software engineer and AI consultant based in {location}. I've spent years building for the web, and I now design AI systems built to run for the long term — documented and built to scale, not demos that break a month later.",
+    "p2": "I work as a small shop on purpose. You deal with the person writing the code, so decisions are quick and nothing gets lost in translation. For bigger builds I bring in trusted contractors — you keep the responsiveness and gain the capacity. If something's a bad idea, I'll tell you."
   },
   "contact": {
     "eyebrow": "Contact",
@@ -156,6 +216,40 @@
       "success": "Thanks — your message is in. I'll get back to you within a day or two.",
       "successShort": "Thanks — I'll be in touch soon.",
       "sendFailed": "Something went wrong sending your message. Please try again, or email me directly."
+    }
+  },
+  "tech": {
+    "metaTitle": "For technical teams",
+    "metaDescription": "The engineering detail behind Jamie Nisbet's work — how he architects, where AI earns its place, and the full service catalogue. For CTOs, lead developers, and technical evaluators.",
+    "backHome": "Back to the main site",
+    "startProject": "Start a project",
+    "hero": {
+      "eyebrow": "For technical teams",
+      "title": "The engineering behind the plain-English pitch.",
+      "intro": "The main site keeps it simple on purpose. This page is for CTOs, lead developers, and anyone evaluating whether I can actually build: how I architect, where AI earns its place, and the full service detail."
+    },
+    "principles": {
+      "eyebrow": "How I build",
+      "title": "Principles, not preferences.",
+      "intro": "The defaults I hold to on every build, whatever the stack.",
+      "items": [
+        {
+          "title": "Clean architecture, documented",
+          "description": "Well-defined boundaries, typed end to end, and docs that let another engineer onboard in an afternoon. Clean today means cheap changes tomorrow."
+        },
+        {
+          "title": "AI where it earns its place",
+          "description": "Plain code for deterministic work; models only where they beat it — grounded in your data with retrieval, evaluated, and kept from guessing."
+        },
+        {
+          "title": "Yours to keep, no lock-in",
+          "description": "You own the repo, the infrastructure, and the accounts. No proprietary black boxes — any competent developer can pick it up."
+        },
+        {
+          "title": "Shipped, not demoed",
+          "description": "Accessible, fast, tested, and observable in production. I optimise for the thing still running in a year, not the thing that demos well next week."
+        }
+      ]
     }
   },
   "work": {

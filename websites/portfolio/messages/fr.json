@@ -21,13 +21,82 @@
   "footer": {
     "tagline": "De l'IA et des logiciels qui vous déchargent de l'administratif — conçus pour durer, depuis {location}.",
     "getInTouch": "Prendre contact",
+    "techTeams": "Pour les équipes techniques",
     "copyright": "© {year} {name}"
   },
   "hero": {
-    "title": "Des systèmes d'IA qui vous redonnent votre temps — et qui continuent à fonctionner à mesure que vous grandissez.",
-    "intro": "Je suis Jamie — un ingénieur expérimenté qui travaille directement avec vous. Je crée de l'IA et des logiciels qui vous déchargent de l'administratif, sur une architecture propre qui évolue avec vous. Périmètre clair, prix clair, sans surprise.",
+    "title": "Récupérez votre temps. Je construis le logiciel qui gère les corvées à votre place.",
+    "intro": "Je suis Jamie — un ingénieur expérimenté qui travaille directement avec vous. Je crée des sites, de l'automatisation et de l'IA qui vous déchargent de l'administratif, puis continuent à travailler à mesure que vous grandissez.",
     "startProject": "Démarrer un projet",
     "seeWork": "Voir les travaux"
+  },
+  "problems": {
+    "eyebrow": "Comment puis-je aider ?",
+    "title": "Commencez par ce qui vous ralentit.",
+    "intro": "La plupart des gens viennent me voir avec l'un de ces trois problèmes. Dites-moi lequel vous ressemble — je vous montrerai ce que je ferais.",
+    "coversLabel": "Cela couvre",
+    "cta": "Démarrer ce projet",
+    "aiAsideLead": "Vous ne savez pas si l'IA en vaut la peine pour vous ?",
+    "aiAsideLink": "Demandez-moi — je serai franc.",
+    "items": {
+      "busywork": {
+        "title": "Déchargez-moi des corvées",
+        "description": "L'administratif répétitif qui vous prend la semaine — factures, relances, données recopiées entre outils — pris en charge par le logiciel, pour que vos heures retournent à vos clients."
+      },
+      "getFound": {
+        "title": "Aidez mes clients à me trouver et à me choisir",
+        "description": "Un site qui génère réellement des demandes et qui est repéré par Google et les assistants IA — conçu, rédigé, hébergé et tenu à jour par une seule personne."
+      },
+      "custom": {
+        "title": "Construisez-moi du sur-mesure",
+        "description": "Une application web ou un système bâti correctement autour de votre façon de travailler — rapide, documenté et à vous, avec quelqu'un de technique qui le mène jusqu'au lancement."
+      }
+    }
+  },
+  "howItWorks": {
+    "eyebrow": "Comment ça marche",
+    "title": "Simple, et sans surprise.",
+    "intro": "Trois étapes entre votre premier message et un résultat qui fonctionne.",
+    "steps": [
+      {
+        "title": "On échange",
+        "description": "Vous me dites ce que vous cherchez à faire, en mots simples. Je pose quelques questions et je vous dis honnêtement si je suis la bonne personne pour aider."
+      },
+      {
+        "title": "Vous recevez un prix fixe",
+        "description": "Un périmètre clair et un prix clair avant que quoi que ce soit ne commence — souvent avec des options, pour choisir ce qui convient à votre budget. Aucune ligne cachée."
+      },
+      {
+        "title": "Je le construis",
+        "description": "Vous échangez avec la personne qui écrit le code, les décisions sont donc rapides. Vous restez au courant, et le travail fini vous appartient — sans dépendance."
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "Questions",
+    "title": "Ce qu'on me demande le plus souvent.",
+    "items": [
+      {
+        "q": "Dois-je comprendre quoi que ce soit à la technique ?",
+        "a": "Non — c'est mon travail. J'explique les choses simplement, je vous dis ce qui compte et ce qui ne compte pas, et je ne me cache jamais derrière du jargon."
+      },
+      {
+        "q": "Combien ça coûte ?",
+        "a": "Mon tarif habituel est de 120 €/heure, mais l'essentiel du travail est proposé à prix fixe pour le périmètre — avec des options — pour que vous connaissiez le montant avant de commencer."
+      },
+      {
+        "q": "Et si je veux des changements plus tard ?",
+        "a": "Les changements sont une discussion normale, pas un supplément surprise. Tout est bâti sur des bases propres et documentées, pour que les changements ultérieurs restent peu coûteux."
+      },
+      {
+        "q": "Vais-je être dépendant de vous ?",
+        "a": "Non. Le travail vous appartient — le code, les comptes et la documentation. Si nos routes se séparent, vous ou un autre développeur pouvez reprendre directement."
+      },
+      {
+        "q": "Sous combien de temps répondez-vous ?",
+        "a": "Sous un à deux jours — avec quelques questions ou, si c'est pertinent, une marche à suivre. Sans pression commerciale."
+      }
+    ]
   },
   "services": {
     "eyebrow": "Ce que je fais",
@@ -113,16 +182,7 @@
     "eyebrow": "À propos",
     "title": "Un ingénieur expérimenté que vous pouvez réellement joindre.",
     "p1": "Je suis Jamie Nisbet, ingénieur logiciel et consultant en IA basé au {location}. J'ai passé des années à créer des logiciels pour le web, et je conçois aujourd'hui des systèmes d'IA pensés pour durer — bien définis, documentés et conçus pour évoluer, et non des démonstrations bricolées qui cassent un mois plus tard.",
-    "p2": "Je travaille en petite structure, et c'est un choix. Vous échangez avec la personne qui écrit le code, les décisions sont donc rapides et rien ne se perd en route. Pour les projets plus importants, je fais appel à des collaborateurs de confiance — vous gardez la réactivité et gagnez en capacité.",
-    "p3": "L'essentiel de ce que je construis a une seule mission : vous décharger de l'administratif et des corvées, pour que votre temps retourne à votre activité et à vos clients. Je tiens à faire ce qui est utile, à expliquer le pourquoi et à être franc sur les compromis et les coûts. Si une idée est mauvaise, je vous le dirai.",
-    "howIWorkTitle": "Ma façon de travailler",
-    "howIWork": [
-      "Vous parlez à la personne qui le construit — sans strates d'agence, sans chargés de compte.",
-      "Périmètre clair et prix clair avant de commencer ; les changements sont une discussion, pas une ligne cachée.",
-      "Je suis honnête sur les compromis, les coûts et ce que j'ignore — je préfère sous-promettre.",
-      "Bâti sur une architecture claire et documentée — elle évolue avec vous et vous appartient, sans dépendance.",
-      "Une personne joignable, avec des collaborateurs prêts à renforcer les projets plus importants."
-    ]
+    "p2": "Je travaille en petite structure, et c'est un choix. Vous échangez avec la personne qui écrit le code, les décisions sont donc rapides et rien ne se perd en route. Pour les projets plus importants, je fais appel à des collaborateurs de confiance — vous gardez la réactivité et gagnez en capacité. Si une idée est mauvaise, je vous le dirai."
   },
   "contact": {
     "eyebrow": "Contact",
@@ -156,6 +216,40 @@
       "success": "Merci — votre message est bien arrivé. Je vous recontacte sous un à deux jours.",
       "successShort": "Merci — je vous recontacte bientôt.",
       "sendFailed": "Une erreur s'est produite lors de l'envoi de votre message. Réessayez ou écrivez-moi directement."
+    }
+  },
+  "tech": {
+    "metaTitle": "Pour les équipes techniques",
+    "metaDescription": "Le détail technique derrière le travail de Jamie Nisbet — sa façon d'architecturer, où l'IA a sa place, et le catalogue complet des services. Pour les CTO, lead developers et évaluateurs techniques.",
+    "backHome": "Retour au site principal",
+    "startProject": "Démarrer un projet",
+    "hero": {
+      "eyebrow": "Pour les équipes techniques",
+      "title": "L'ingénierie derrière le discours en langage clair.",
+      "intro": "Le site principal reste simple, volontairement. Cette page s'adresse aux CTO, lead developers et à toute personne qui évalue si je sais vraiment construire : ma façon d'architecturer, où l'IA a sa place, et le détail complet des services."
+    },
+    "principles": {
+      "eyebrow": "Ma façon de construire",
+      "title": "Des principes, pas des préférences.",
+      "intro": "Les règles que je tiens sur chaque projet, quelle que soit la stack.",
+      "items": [
+        {
+          "title": "Architecture propre, documentée",
+          "description": "Des frontières bien définies, un typage de bout en bout, et une doc qui permet à un autre ingénieur de prendre le relais en un après-midi. Propre aujourd'hui, changements peu coûteux demain."
+        },
+        {
+          "title": "L'IA là où elle a sa place",
+          "description": "Du code simple pour le travail déterministe ; des modèles uniquement là où ils font mieux — ancrés dans vos données par récupération (retrieval), évalués et empêchés de deviner."
+        },
+        {
+          "title": "À vous, sans dépendance",
+          "description": "Vous possédez le dépôt, l'infrastructure et les comptes. Pas de boîte noire propriétaire — n'importe quel développeur compétent peut reprendre."
+        },
+        {
+          "title": "Livré, pas juste démontré",
+          "description": "Accessible, rapide, testé et observable en production. J'optimise pour ce qui tournera encore dans un an, pas pour ce qui fait une belle démo la semaine prochaine."
+        }
+      ]
     }
   },
   "work": {

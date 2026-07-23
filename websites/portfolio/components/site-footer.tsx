@@ -20,6 +20,14 @@ export async function SiteFooter() {
       contactHeading={t("getInTouch")}
       email={site.email}
       location={site.location}
+      contactExtra={
+        <Link
+          href="/tech"
+          className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
+        >
+          {t("techTeams")}
+        </Link>
+      }
       bottomLeft={
         <p className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
           {t("copyright", { year, name: site.name })}
