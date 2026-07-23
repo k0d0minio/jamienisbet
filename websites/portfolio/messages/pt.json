@@ -21,13 +21,82 @@
   "footer": {
     "tagline": "IA e software que lhe tiram a parte administrativa de cima — feitos para durar, a partir de {location}.",
     "getInTouch": "Entrar em contacto",
+    "techTeams": "Para equipas técnicas",
     "copyright": "© {year} {name}"
   },
   "hero": {
-    "title": "Sistemas de IA que lhe devolvem o seu tempo — e continuam a trabalhar à medida que cresce.",
-    "intro": "Sou o Jamie — um engenheiro sénior a trabalhar diretamente consigo. Crio IA e software que lhe tiram a parte administrativa de cima, sobre uma arquitetura limpa que cresce consigo. Âmbito claro, preço claro, sem surpresas.",
+    "title": "Recupere o seu tempo. Eu construo o software que trata da azáfama por si.",
+    "intro": "Sou o Jamie — um engenheiro sénior a trabalhar diretamente consigo. Crio sites, automação e IA que lhe tiram a parte administrativa de cima e continuam a trabalhar à medida que cresce.",
     "startProject": "Iniciar um projeto",
     "seeWork": "Ver trabalho"
+  },
+  "problems": {
+    "eyebrow": "Em que posso ajudar?",
+    "title": "Comece pelo que o está a atrasar.",
+    "intro": "A maioria das pessoas procura-me com um de três problemas. Diga-me qual se parece consigo — mostro-lhe o que faria a respeito.",
+    "coversLabel": "Isto abrange",
+    "cta": "Iniciar este projeto",
+    "aiAsideLead": "Não tem a certeza se a IA vale a pena para si?",
+    "aiAsideLink": "Pergunte-me — serei franco.",
+    "items": {
+      "busywork": {
+        "title": "Tire-me a azáfama de cima",
+        "description": "A administração repetitiva que lhe consome a semana — faturas, seguimentos, dados copiados entre ferramentas — tratada por software, para que as suas horas voltem para os seus clientes."
+      },
+      "getFound": {
+        "title": "Ajude os clientes a encontrar-me e a escolher-me",
+        "description": "Um site que gera mesmo contactos e que é encontrado pelo Google e pelos assistentes de IA — desenhado, escrito, alojado e mantido atual por uma só pessoa."
+      },
+      "custom": {
+        "title": "Construa-me algo à medida",
+        "description": "Uma aplicação web ou um sistema construído como deve ser em torno da sua forma de trabalhar — rápido, documentado e seu, com alguém técnico a conduzi-lo até ao lançamento."
+      }
+    }
+  },
+  "howItWorks": {
+    "eyebrow": "Como funciona",
+    "title": "Simples, e sem surpresas.",
+    "intro": "Três passos entre a sua primeira mensagem e um resultado que funciona.",
+    "steps": [
+      {
+        "title": "Conversamos",
+        "description": "Diz-me o que está a tentar fazer, por palavras simples. Faço algumas perguntas e digo-lhe honestamente se sou a pessoa certa para ajudar."
+      },
+      {
+        "title": "Recebe um preço fixo",
+        "description": "Um âmbito claro e um preço claro antes de qualquer coisa começar — normalmente com opções, para escolher o que cabe no seu orçamento. Sem rubricas escondidas."
+      },
+      {
+        "title": "Eu construo",
+        "description": "Lida com a pessoa que escreve o código, por isso as decisões são rápidas. Mantém-se a par, e o trabalho final é seu para guardar — sem dependências."
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "Perguntas",
+    "title": "O que costumam perguntar-me.",
+    "items": [
+      {
+        "q": "Preciso de perceber alguma coisa da parte técnica?",
+        "a": "Não — isso é comigo. Explico as coisas em linguagem simples, digo-lhe o que importa e o que não importa, e nunca me escondo atrás de jargão."
+      },
+      {
+        "q": "Quanto vai custar?",
+        "a": "A minha tarifa habitual é de €120/hora, mas a maioria do trabalho é apresentada como preço fixo para o âmbito — com opções — para que saiba o valor antes de começarmos."
+      },
+      {
+        "q": "E se quiser alterações mais tarde?",
+        "a": "As alterações são uma conversa normal, não um custo surpresa. Tudo é construído sobre bases limpas e documentadas, por isso as alterações futuras continuam baratas."
+      },
+      {
+        "q": "Vou ficar dependente de si?",
+        "a": "Não. O trabalho é seu para guardar — o código, as contas e a documentação. Se um dia seguirmos caminhos diferentes, você ou outro programador pode continuar de imediato."
+      },
+      {
+        "q": "Em quanto tempo responde?",
+        "a": "No prazo de um ou dois dias — com algumas perguntas ou, se fizer sentido, um caminho a seguir. Sem pressões de venda."
+      }
+    ]
   },
   "services": {
     "eyebrow": "O que faço",
@@ -113,16 +182,7 @@
     "eyebrow": "Sobre",
     "title": "Um engenheiro sénior com quem pode mesmo falar.",
     "p1": "Sou o Jamie Nisbet, engenheiro de software e consultor de IA sediado em {location}. Passei anos a criar software para a web e agora desenho sistemas de IA pensados para funcionar a longo prazo — bem definidos, documentados e feitos para crescer, e não demonstrações improvisadas que se partem um mês depois.",
-    "p2": "Trabalho como uma pequena estrutura de propósito. Lida com a pessoa que escreve o código, por isso as decisões são rápidas e nada se perde na tradução. Para projetos maiores trago colaboradores de confiança — mantém a agilidade e ganha capacidade.",
-    "p3": "Quase tudo o que construo tem uma função: tirar-lhe a administração e a azáfama de cima, para que o seu tempo volte para o negócio e para os seus clientes. Importo-me em fazer o que é útil, explicar o porquê e ser franco quanto a compromissos e custos. Se algo for má ideia, eu digo-lho.",
-    "howIWorkTitle": "Como trabalho",
-    "howIWork": [
-      "Fala com a pessoa que o constrói — sem camadas de agência, sem gestores de conta.",
-      "Âmbito claro e preço claro antes de começarmos; as alterações são uma conversa, não uma rubrica escondida.",
-      "Sou honesto quanto a compromissos, custos e ao que não sei — prefiro prometer menos.",
-      "Assente numa arquitetura clara e documentada — cresce consigo e é sua para guardar, sem dependências.",
-      "Uma pessoa com quem pode contactar, com colaboradores de prontidão para projetos maiores."
-    ]
+    "p2": "Trabalho como uma pequena estrutura de propósito. Lida com a pessoa que escreve o código, por isso as decisões são rápidas e nada se perde na tradução. Para projetos maiores trago colaboradores de confiança — mantém a agilidade e ganha capacidade. Se algo for má ideia, eu digo-lho."
   },
   "contact": {
     "eyebrow": "Contacto",
@@ -156,6 +216,40 @@
       "success": "Obrigado — a sua mensagem chegou. Respondo no prazo de um ou dois dias.",
       "successShort": "Obrigado — entrarei em contacto em breve.",
       "sendFailed": "Algo correu mal ao enviar a sua mensagem. Tente novamente ou envie-me um email diretamente."
+    }
+  },
+  "tech": {
+    "metaTitle": "Para equipas técnicas",
+    "metaDescription": "O detalhe técnico por trás do trabalho de Jamie Nisbet — como arquiteta, onde a IA tem lugar, e o catálogo completo de serviços. Para CTO, lead developers e avaliadores técnicos.",
+    "backHome": "Voltar ao site principal",
+    "startProject": "Iniciar um projeto",
+    "hero": {
+      "eyebrow": "Para equipas técnicas",
+      "title": "A engenharia por trás do discurso em linguagem simples.",
+      "intro": "O site principal mantém-se simples de propósito. Esta página é para CTO, lead developers e quem quer que avalie se sei mesmo construir: como arquiteto, onde a IA tem lugar, e o detalhe completo dos serviços."
+    },
+    "principles": {
+      "eyebrow": "Como construo",
+      "title": "Princípios, não preferências.",
+      "intro": "Os padrões a que me atenho em cada projeto, seja qual for a stack.",
+      "items": [
+        {
+          "title": "Arquitetura limpa, documentada",
+          "description": "Fronteiras bem definidas, tipagem de ponta a ponta, e documentação que permite a outro engenheiro entrar ao serviço numa tarde. Limpo hoje significa alterações baratas amanhã."
+        },
+        {
+          "title": "IA onde faz sentido",
+          "description": "Código simples para trabalho determinístico; modelos apenas onde superam — ancorados nos seus dados por recuperação (retrieval), avaliados e impedidos de adivinhar."
+        },
+        {
+          "title": "Seu, sem dependências",
+          "description": "É dono do repositório, da infraestrutura e das contas. Sem caixas-negras proprietárias — qualquer programador competente pode continuar."
+        },
+        {
+          "title": "Entregue, não só demonstrado",
+          "description": "Acessível, rápido, testado e observável em produção. Otimizo para o que ainda estará a funcionar daqui a um ano, não para o que faz boa demonstração para a semana."
+        }
+      ]
     }
   },
   "work": {

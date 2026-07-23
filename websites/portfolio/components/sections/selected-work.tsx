@@ -17,7 +17,7 @@ export async function SelectedWork() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading
             eyebrow={t("eyebrow")}
-            index="03"
+            index="02"
             title={t("title")}
             intro={t("intro")}
           />
