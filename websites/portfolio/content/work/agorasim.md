@@ -1,7 +1,7 @@
 ---
 slug: agorasim
-title: "Built to be found by AI, not just Google"
-summary: "A classic-car tour business in the Saloia countryside needed more than a brochure site. I built a bilingual site engineered for AI search, plus the back office and content pipeline behind it."
+title: "Own the booking, own the customer"
+summary: "A classic-car tour business was being found by too few people and handing a cut of every booking to someone else. Now they turn up in AI answers, and take bookings through a system that's theirs."
 client: "Agorasim"
 year: 2026
 services:
@@ -10,74 +10,71 @@ services:
   - Software engineering
 stack:
   - Next.js
-  - TypeScript
   - Neon Postgres
-  - Drizzle ORM
-  - Tailwind CSS
   - Vercel
-outcome: "A bilingual site AI search can read, with a back office and content pipeline behind it"
+outcome: "Found where customers now search, with a booking flow they own end to end"
 featured: true
 order: 2
-# CONFIRM before publishing — is the rebuild live, and has it replaced agorasim.pt?
+# INTERNAL NOTES — not published, remove before making this file public elsewhere.
+# - Direct booking system is built. Switching off FareHarbor is Diogo & Rita's
+#   call and hasn't happened yet, so this copy says what the system does, never
+#   that a changeover occurred or that savings have been banked. Keep it that way
+#   until they actually switch — a reference call would expose it instantly.
+# - No measured results yet. If bookings-via-direct or content volume become
+#   available, they belong in `outcome` and in the closing section.
+# CONFIRM — is the rebuild live, and at which domain?
 # url: https://
 ---
 
 ## The problem
 
-Agorasim runs guided classic-car tours through the Saloia countryside — Sintra,
-Mafra, Ericeira. It's a genuinely good product with a discovery problem.
+Agorasim run guided classic-car tours through the Saloia countryside — Sintra,
+Mafra, Ericeira. Genuinely lovely product. Two problems had nothing to do with the
+tours.
 
-More and more, the question "what's a unique day trip from Lisbon?" gets asked to
-ChatGPT or Perplexity rather than typed into Google. Those systems don't rank pages
-the way search engines do; they read structured, answer-first content and cite what
-they can parse. Almost no local tour operator is set up for that yet, which makes it
-a cheap advantage while it lasts.
+The first was being found. More and more people plan a trip by asking ChatGPT or
+Perplexity "what's a unique day trip from Lisbon?" rather than scrolling a search
+page. Those systems recommend businesses they can read and understand, and almost
+no local tour operator is set up for that yet — which makes it a cheap advantage
+while it lasts.
 
-The second problem is quieter: a tour business is two people driving cars. Nobody
-has an afternoon to write blog posts.
+The second was that every booking went through someone else's platform. That means
+a commission on each sale, and a customer whose details and relationship belong to
+the platform rather than to Agorasim.
 
-## What I built
+And underneath both: this is two people who drive classic cars for a living. Nobody
+has a free afternoon to write marketing copy.
 
-**A bilingual site engineered for AI search.** Portuguese and English, kept in sync
-by design — content is modelled as localised objects, so a missing translation is a
-type error rather than a page that silently falls back to the wrong language. Every
-page ships JSON-LD structured data, canonical and hreflang tags, and answer-first
-copy. The sitemap and robots rules explicitly welcome AI crawlers, and there's an
-`llms.txt` describing the business in the format the assistants read.
+## What they got
 
-**The pages that make the funnel**: home, the experiences (the signature Rural
-Saloia tour and its add-ons, each with its own page), events, weddings, a blog, a
-referral page, an onboarding form, and contact.
+**A website built to be recommended by AI.** In Portuguese and English, structured
+so the assistants people now ask can read it, understand what Agorasim offers, and
+put them forward when someone asks for exactly this kind of day out.
 
-**A back office on Postgres.** Inbound tour requests land in a database rather than
-an inbox. Alongside them sits a draft table per content pipeline — GEO content, blog
-posts, social posts, email campaigns — feeding an admin area covering bookings, CRM,
-blog, social, email, referrals, notifications and submissions.
+**A booking system that belongs to them.** Customers choose a tour and book directly
+on the site. No commission taken out of the middle, no booking fee added to put
+people off at the last step, and the customer's details land in Agorasim's own
+database — so a guest who came once can be invited back.
 
-**A content factory, not just content.** The marketing pipelines are structured as
-plain markdown workspaces: the brand voice, the facts and the style live in
-configuration once, and each run produces a new draft from that configuration. The
-practical upshot is that improving the *rules* improves every future post, and
-nothing publishes until a human has approved it in the dashboard.
+**Marketing that writes its first draft itself.** Blog posts, social posts and email
+campaigns are drafted automatically in both languages, in Agorasim's voice, using
+their own facts. Each one waits in their dashboard for a yes or a no. Approving good
+work takes a minute. Writing it from scratch takes an afternoon nobody has.
 
-## Decisions worth explaining
+**One place to run the business.** Enquiries, bookings, customers, content and
+referrals all sit in a single dashboard instead of scattered across an inbox, a
+booking platform and a notebook.
 
-**The site is fully static.** For a business whose visitors mostly arrive from a
-phone on patchy rural signal, fast beats clever. Static also means AI crawlers get
-the full content without executing anything.
+## What it means for them
 
-**Booking still goes through FareHarbor.** They already had it and it already works,
-so I wired the existing booking lightbox in rather than replacing a working system on
-day one. Until the account is configured, the "Reservas" buttons fall back to the
-contact page — the site never shows a dead button.
+Every direct booking is now worth more than the same booking was before, because
+none of it goes to a middleman — and the customer is theirs to bring back next
+season rather than a name on someone else's list.
 
-**Generated content is reviewed, never auto-published.** Drafts land in the
-dashboard and wait. AI is good at the first 80% of a blog post about the Saloia
-countryside and bad at knowing which winery closed last month.
+Being visible in AI answers puts them in front of exactly the traveller they want:
+someone actively looking for something better than a coach tour, at the moment
+they're deciding. That's a channel their competitors haven't noticed yet.
 
-## The result
-
-Agorasim has a site that reads well to people and parses cleanly for the AI
-assistants their customers are increasingly asking, and the infrastructure — lead
-database, admin, draft pipelines — is in place for the marketing to run without
-eating their week.
+And the marketing keeps moving whether or not anyone sat down to do it — which, for
+a two-person business, is the difference between having a marketing plan and having
+one that actually happens.

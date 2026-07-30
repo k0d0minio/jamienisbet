@@ -1,7 +1,7 @@
 ---
 slug: boys-to-men-retreat
-title: "A retreat website that speaks five languages"
-summary: "A four-day retreat in Ericeira draws families from across Europe. I rebuilt the site mobile-first in five languages, with an application form that lands straight in the team's inbox."
+title: "Trusting someone with your son, in your own language"
+summary: "A retreat in Ericeira draws families from across Europe — parents deciding on a phone, in a language that wasn't English. Now the site meets them where they are, and the application gets finished."
 client: "Boys To Men Retreat"
 year: 2026
 services:
@@ -9,64 +9,64 @@ services:
   - Software engineering
 stack:
   - Next.js
-  - TypeScript
-  - Tailwind CSS
-  - shadcn/ui
   - Resend
-outcome: "Five languages, one source of copy, and applications arriving as structured email"
+  - Vercel
+outcome: "Five languages, built for phones, and an application parents complete"
 featured: true
 order: 4
-# CONFIRM before publishing — is the redesign live, and at boystomenretreat.com?
+# INTERNAL NOTES — not published.
+# - First-pass redesign by agreement: brand identity deliberately left for a later
+#   round, gallery uses placeholders until real photography arrives, translations
+#   are machine-assisted and want a native-speaker review (especially the legal
+#   screens). None of that belongs in the public copy, but don't let the case study
+#   imply the brand round already happened.
+# - No measured results yet (applications received, completion rate). Worth asking
+#   for — completion-rate improvement would be a strong number here.
+# CONFIRM — is the redesign live, and at boystomenretreat.com?
 # url: https://www.boystomenretreat.com
 ---
 
 ## The problem
 
-Boys To Men Retreat runs a four-day, four-night retreat in Ericeira for boys aged
-9 to 16 — challenge, adventure and self-discovery, in a place that lends itself to
-all three. The audience is parents, they're mostly on a phone, and they're spread
-across Europe: Dutch, Portuguese, French and Spanish speakers alongside English.
+Boys To Men Retreat runs four days in Ericeira for boys aged 9 to 16 — challenge,
+adventure, and a bit of growing up. The people they need to convince are parents,
+and they are being asked to hand over their child to strangers in another country
+for four days.
 
-The existing site had the substance. It read like a site built before phones were
-how people browsed, and it only spoke English.
+Everything about the website was working against that. It had been built before
+phones were how people browsed, so the parents reading it — on a phone, in the
+evening, half-deciding — were pinching and scrolling through a layout meant for a
+desktop. And it only spoke English, while the families come from the Netherlands,
+Portugal, France and Spain.
 
-## What I built
+Asking a parent to make that decision in a second language, on a site that's awkward
+to read, is asking a lot.
 
-**A mobile-first rebuild that keeps every word.** This was a first-pass redesign by
-agreement: preserve all the existing copy and information, apply current design
-practice, and leave brand identity for a later round. Deciding what the retreat
-*sounds* like is a separate conversation from making it readable on a phone, and
-mixing the two makes both slower.
+## What they got
 
-**Five languages, one canonical source.** English, Dutch, Portuguese, French and
-Spanish. URLs are locale-prefixed, and a visitor landing on the root is redirected to
-their browser's language. The English copy file is the canonical shape and every
-other locale is typed against it — so if a translation goes missing, the build fails
-rather than the page quietly showing English to a Dutch parent.
+**A site that works where parents actually read it.** Rebuilt for phones first, so
+the information that earns trust — who runs this, what happens each day, what's
+included, who else has been — is easy to take in on a small screen.
 
-**An application flow that actually completes.** A multi-step form rather than one
-intimidating wall of fields, validated on the server as well as the client, arriving
-in the team's inbox as a formatted email through Resend.
+**Five languages, properly.** English, Dutch, Portuguese, French and Spanish, with
+visitors landing automatically in their own language rather than hunting for a flag
+icon in a corner.
 
-## Decisions worth explaining
+**An application people finish.** Instead of one intimidating page of questions, the
+application moves in short steps, so a parent starts it without bracing themselves —
+and completed applications arrive in the team's inbox laid out clearly, ready to
+act on.
 
-**The translations are machine-assisted, and flagged as such.** They're good enough
-to read and not good enough to be the last word — particularly on the application
-form's legal screens and the privacy policy, which want a native speaker and probably
-a lawyer. That's written into the handover notes rather than left as a pleasant
-surprise for later.
+**All the original substance kept.** Every piece of copy that made the retreat sound
+like what it is was preserved. This was a redesign of how it reads, not a rewrite of
+what it says.
 
-**The gallery ships as styled placeholders.** Real retreat photography wasn't ready,
-and placeholder tiles that look deliberate beat stock images of somebody else's
-children. Dropping the real photos in is a file swap, not a rebuild.
+## What it means for them
 
-**The palette is a placeholder too.** Ocean and sand, set as CSS variables in one
-place, so the brand round changes a handful of values rather than hunting through
-components.
+A Dutch parent researching summer options on their phone now gets the full picture
+in Dutch, in a form that's actually readable, and can apply in the same sitting
+rather than deciding to come back later and not coming back.
 
-## The result
-
-The retreat now has a site that works on the device parents actually use, in the
-language they actually read, with a clear path from "this looks interesting" to a
-completed application — and a documented, honest list of what the next pass should
-pick up.
+For a retreat that fills by reputation and word of mouth across several countries,
+removing the friction between "this sounds right for my son" and a submitted
+application is the whole job — and that's what changed.
