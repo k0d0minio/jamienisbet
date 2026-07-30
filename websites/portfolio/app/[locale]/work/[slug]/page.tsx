@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Badge, Button, Eyebrow } from "@jamie-nisbet/ui"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react"
 
 import { Link } from "@jamie-nisbet/app-shell/i18n"
 import { Container } from "@jamie-nisbet/app-shell"
@@ -49,6 +49,14 @@ export default async function CaseStudyPage({ params }: Params) {
             {study.title}
           </h1>
           <p className="text-lg text-pretty text-muted-foreground">{study.summary}</p>
+          {study.url ? (
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <a href={study.url} target="_blank" rel="noopener noreferrer">
+                {t("visitSite")}
+                <ArrowUpRight />
+              </a>
+            </Button>
+          ) : null}
         </div>
 
         <dl className="grid gap-6 border-y border-border py-6 sm:grid-cols-3">

@@ -20,6 +20,8 @@ export type CaseStudy = {
   featured: boolean
   order: number
   cover?: string
+  /** Public URL of the delivered site, when there is one to link to. */
+  url?: string
   body: string
 }
 
@@ -44,6 +46,7 @@ function readAll(): CaseStudy[] {
         featured: Boolean(data.featured),
         order: Number(data.order) || 999,
         cover: (data.cover as string) || undefined,
+        url: (data.url as string) || undefined,
         body: content.trim(),
       } satisfies CaseStudy
     })
