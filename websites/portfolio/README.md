@@ -27,7 +27,7 @@ light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tok
 
 - `app/` — Next.js App Router: home (`page.tsx`, a single scrolling page), `work/` (index + `work/[slug]` case-study pages), `actions/contact.ts` (server action), plus `icon.svg`, `opengraph-image.tsx`, `sitemap.ts`, `robots.ts`.
 - `components/` — site chrome (`site-header`, `site-footer`, `theme-*`), layout primitives (`section.tsx`), the contact form, the markdown renderer, and the home `sections/`.
-- `content/work/*.md` — case studies as markdown + YAML front-matter, editable as plain text (ICM Principle 2). Currently one clearly-marked sample; add real work here.
+- `content/work/*.md` — case studies as markdown + YAML front-matter, editable as plain text (ICM Principle 2). Four real engagements (Vine Cliff Vineyards, Agorasim, Collabimmo, Boys To Men Retreat). Front-matter `url` is optional: set it to the live site and the case-study page renders a "Visit the live site" link.
 - `lib/` — `site.ts` (copy/config), `work.ts` (content loader), `contact-schema.ts` (shared zod schema), `services.ts` (the offered services as locale-invariant ids, shared by the Services section, contact form, and contact action).
 - Brand/theme are **not** redefined here — the design system from [`packages/ui`](../../packages/ui/) is the single source of truth, linked via `app/globals.css`. (The earlier `theme.config` idea is replaced by that import.)
 
