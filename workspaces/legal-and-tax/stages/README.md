@@ -10,7 +10,7 @@ This folder holds the execution pipeline. Each stage is one job; its number enco
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`../setup/output/config.md`](../setup/) (locked config); workspace router [`../README.md`](../README.md)
-- **Downstream / feeds:** the dashboard's `/today` compliance calendar (`biz.compliance_dates`) and [`workspaces/finance/`](../../finance/) from Stage 05; [`_config/business/`](../../../_config/business/) once the entity is live
+- **Downstream / feeds:** the dashboard's compliance calendar (`biz.compliance_dates`) and [`workspaces/finance/`](../../finance/) from Stage 05; [`_config/business/`](../../../_config/business/) once the entity is live
 - **Draws on (Layer 3 reference):** [`../references/`](../references/)
 
 ## Contents
@@ -18,7 +18,7 @@ This folder holds the execution pipeline. Each stage is one job; its number enco
 - `02_entity_options/` — record the decided structure (trabalhador independente, regime simplificado) + the open coefficient lever.
 - `03_setup_execution/` — the início-de-atividade action plan for the contabilista (regime, CIRS code, start date, VIES).
 - `04_tax_optimization/` — the legal levers under the simplified regime (coefficient, startup benefits, SS smoothing, dependents).
-- `05_compliance_calendar/` — generates the filing deadlines that seed the dashboard's `/today` compliance calendar and feed finance.
+- `05_compliance_calendar/` — generates the filing deadlines that seed the dashboard's compliance calendar and feed finance.
 
 ## Flow
 01 → 02 → 03 → 04 → 05. Each stage reads the previous stage's `output/`, does its one job, writes to its own `output/`, then stops for human review.

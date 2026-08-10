@@ -18,15 +18,10 @@ wrapper, etc.) as they're extracted.
   [`_config/brand/visual/`](../_config/brand/visual/). See [`ui/README.md`](ui/README.md).
 - [`services/`](services/) — **`@jamie-nisbet/services`**: the database models and business
   logic shared across the estate, built on **Drizzle ORM + Neon Postgres**. Typed schema (under
-  a dedicated `biz` Postgres schema), a lazy DB client, and query helpers (lead capture today;
-  billing/invoicing/proposals later). Source-only like `ui`, consumed via `transpilePackages`.
+  a dedicated `biz` Postgres schema), a lazy DB client, and query helpers for the three tables
+  the business runs on — leads, todos, compliance dates. Source-only like `ui`, consumed via
+  `transpilePackages`.
   See [`services/README.md`](services/README.md).
-- [`icm/`](icm/) — **`@jamie-nisbet/icm`**: the ICM runtime for the admin dashboard's AI
-  pipeline. Maps each generatable document kind onto its governing stage `CONTEXT.md`, loads
-  only the Layer-3 files that contract names (templates, brand voice, rates, rubrics), and
-  carries the model policy from
-  [`_config/conventions/model-and-scaling.md`](../_config/conventions/model-and-scaling.md)
-  as code. Server-only, source-only. See [`icm/README.md`](icm/README.md).
 - [`app-shell/`](app-shell/) — **`@jamie-nisbet/app-shell`**: the shared Next.js app shell for
   the public marketing sites (portfolio, sellers-site, payment-gateway). i18n routing +
   locale-aware navigation + a request-config factory (en/pt/fr), theme provider/toggle,

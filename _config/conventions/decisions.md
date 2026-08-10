@@ -13,7 +13,7 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   dashboard seeds delivery docs into the client repo.)_ → [`client-and-slug.md`](client-and-slug.md)
 - **`websites/` here = `portfolio/`, `payment-gateway/`, `admin-dashboard/`, `sellers-site/`**
   (Next.js + Vercel). Client sites are **external repos**. No `clients/` or `personal/` here.
-- **Daily todos + morning brief = the dashboard `/today` page.** _(The founding standalone
+- **Daily todos + morning brief = the dashboard's working list.** _(The founding standalone
   `tracker/` — and its personal/business privacy wall — are both retired; see the 2026-07
   dashboard-first reversal.)_
 - **Repo is private forever.** Not handed to clients; sensitive global config is injected at
@@ -30,12 +30,12 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
 
 ## State & process
 - **State = the Neon `biz.*` schema, the sole store.** The repo holds no pipeline state (no client
-  records, statuses, documents, or dashboard); the admin dashboard and its AI drive the pipeline,
-  and there is no sync-back. → [`state-and-status.md`](state-and-status.md)
+  records, statuses, or generated dashboard); the admin dashboard drives the pipeline, and there
+  is no sync-back. → [`state-and-status.md`](state-and-status.md)
   _(Reverses the original "State = per-entity YAML front-matter" decision — see the 2026-07 entry
   below.)_
 - **Status vocabularies are defined in code** (`@jamie-nisbet/services`: `clientStatuses`,
-  `dealStatuses`, `documentStatuses`) and referenced, never restated, by docs.
+  `billingTypes`) and referenced, never restated, by docs.
 - **Output versioning:** `output/<client>/<vN>/` side-by-side; run header on each; commit per
   stage/run.
 - **Verify mandatory; provenance markers in real outputs; edit→source-fix loop.**
@@ -49,7 +49,7 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   that the ICM runtime reads, plus the code that ships it. Consequences: `projects/` and
   `scripts/new-project.sh` retired (delivery docs are seeded into the client's external repo by the
   dashboard from `shared/templates/delivery/`); `tracker/` retired (the morning brief is the
-  dashboard's `/today` page, todos live in `biz.tasks`); empty `shared/knowledge/` deleted;
+  dashboard's working list, todos live in `biz.tasks`); empty `shared/knowledge/` deleted;
   outreach is drafted in the dashboard (draft-only — sending stays manual and off-platform).
 - **2026-07 — State store: one DB, not a repo mirror.** The founding "State = per-entity YAML
   front-matter in `shared/clients/`, aggregated into a generated `state/dashboard.md`" model is
@@ -57,6 +57,23 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   Neon `biz.*` schema is the **sole** source of truth; the repo carries no pipeline state and
   nothing is written back to git on approval. Zero real entities existed in the markdown model, so
   this removed specification and scaffolding, not data. → [`state-and-status.md`](state-and-status.md)
+
+- **2026-08 — The dashboard tracks people, it does not generate documents.** The three-step AI
+  deal pipeline in the admin dashboard (brainstorm with web research → pitch → proposal →
+  milestone invoicing), its versioned review-gated `biz.documents`, AI provenance/spend tracking,
+  draft-only outreach composition, and the won-deal onboarding checklist are **retired**. ~14
+  screens became **three**: Leads, a lead's profile, and Money. Consequences: the `deals`,
+  `documents`, `generations`, `touches` and `workshop_messages` tables dropped; the
+  `app/api/ai/*` routes and the `@jamie-nisbet/icm` package deleted (those routes were its only
+  consumer); **one row per person** — a lead who comes back for more work is the same
+  relationship, carrying `value_minor` + `billing_type` (`one_off` | `monthly`) instead of a
+  deal record; the leads list sorts on `coalesce(last_touched_at, created_at)` so whoever has
+  waited longest is at the top. The markdown factory (`_config/`, `shared/templates/`,
+  `workspaces/*/stages/`) is **untouched** — those contracts are now walked directly by an agent,
+  writing a reviewed file to the stage's `output/`, rather than being loaded by a route handler.
+  Reason: too much machinery for a one-person consultancy whose actual need is knowing who is
+  waiting to hear back. → [`macro-pipeline.md`](macro-pipeline.md) ·
+  [`state-and-status.md`](state-and-status.md)
 
 ## Business parameters (used by later passes)
 - **All pricing numbers live in [`_config/business/rates.md`](../business/rates.md)** — the single

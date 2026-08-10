@@ -9,13 +9,12 @@ import {
   createClientRepo,
   disconnectClientRepo,
   listConnectableRepos,
-} from "@/app/(app)/clients/actions"
+} from "@/app/(app)/actions"
 
-// The client's delivery-repo surface on their profile. When a client comes in,
-// this is the prompt to either connect an existing repo or create a fresh one;
-// once connected it shows the link and lets Jamie disconnect. A connected repo
-// is what the pipeline's AI runs analyse (see lib/deal-context.ts), so the whole
-// point of connecting here is more tailored pitches/proposals downstream.
+// The delivery-repo surface on a lead's profile. Once work is won, this is
+// where Jamie either points them at an existing repo or spins up a fresh one;
+// after that it shows the link and lets him disconnect. The pointer lives on
+// the lead row, so the dashboard always knows where a customer's work lives.
 
 type ConnectedProps = {
   id: string
@@ -45,8 +44,7 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
         ) : null}
       </div>
       <p className="text-xs text-muted-foreground">
-        Connected — the brainstorm, pitch, and proposal runs now analyse this
-        repo for tailored suggestions.
+        Connected — this is where the delivery work for them lives.
       </p>
       <Button
         type="button"
@@ -233,8 +231,7 @@ export function ClientRepoLink({
   return (
     <div className="grid gap-4">
       <p className="text-xs text-muted-foreground">
-        Connect this client&apos;s delivery repo so the pipeline can analyse it
-        for more tailored suggestions.
+        Connect the repo their delivery work lives in, or create a fresh one.
       </p>
       <ConnectExisting id={id} />
       <div className="flex items-center gap-3 text-xs text-muted-foreground">

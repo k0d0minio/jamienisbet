@@ -20,7 +20,7 @@ import {
   addComplianceDateAction,
   completeComplianceDateAction,
   deleteComplianceDateAction,
-} from "@/app/(app)/today/actions"
+} from "@/app/(app)/actions"
 
 // Serializable projection of a biz.compliance_dates row.
 export type ComplianceItem = {

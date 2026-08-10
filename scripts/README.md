@@ -19,11 +19,11 @@ Convention: [`_config/conventions/scripts-and-integrations.md`](../_config/conve
   Dry-runs unless `--confirm` is passed. Reads `RESEND_API_KEY` from `.env`.
 
 Finance (Stripe is the source of truth — these are **read-only** fetches; no committed ledgers).
-Superseded for daily use by the dashboard's `/finances` and `/today`; kept for ad-hoc terminal checks:
+Superseded for daily use by the dashboard's `/money` and the working list; kept for ad-hoc terminal checks:
 - [`stripe-income.sh`](stripe-income.sh) — paid income for a period.
 - [`stripe-receivables.sh`](stripe-receivables.sh) — open + overdue invoices.
 - [`stripe-report.sh`](stripe-report.sh) — period summary: income, receivables, tax reserve.
 
 Retired (2026-07, dashboard-first): `new-client.sh` (never built — clients are created in the
 dashboard) and `new-project.sh` (delivery docs are seeded into the client's external repo from
-`shared/templates/delivery/` by the won-deal onboarding checklist).
+`shared/templates/delivery/`).

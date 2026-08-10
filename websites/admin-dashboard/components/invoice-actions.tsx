@@ -4,7 +4,7 @@ import { useTransition } from "react"
 
 import { Button } from "@jamie-nisbet/ui"
 
-import { cancelInvoice, sendInvoice } from "@/app/(app)/invoices/actions"
+import { cancelInvoice, sendInvoice } from "@/app/(app)/money/actions"
 import { CopyButton } from "@/components/copy-button"
 
 // Per-row invoice controls. A draft can be finalized+sent or discarded; a

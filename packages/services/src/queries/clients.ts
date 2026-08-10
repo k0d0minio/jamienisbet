@@ -1,4 +1,4 @@
-import { desc, eq, isNotNull, isNull } from "drizzle-orm"
+import { asc, desc, eq, isNotNull, isNull, sql } from "drizzle-orm"
 
 import { getDb } from "../client"
 import { clients } from "../schema"
@@ -10,9 +10,9 @@ export type ListOptions = { archived?: boolean }
 export type NewClient = typeof clients.$inferInsert
 export type Client = typeof clients.$inferSelect
 
-// The client lifecycle — intake through to project delivery. Ordered from first
-// touch to done; `lost` is the terminal drop-out. The admin moves a client
-// along this pipeline.
+// The lead lifecycle — intake through to delivered work. Ordered from first
+// touch to done; `lost` is the terminal drop-out. The admin moves a lead along
+// this pipeline from the list or their profile.
 export const clientStatuses = [
   "new",
   "contacted",
@@ -24,10 +24,36 @@ export const clientStatuses = [
 ] as const
 export type ClientStatus = (typeof clientStatuses)[number]
 
-// Where a client came from. `portfolio`/`referral` are set by the public forms;
-// `manual` is for records the owner adds directly.
+// The statuses that mean "still being worked" — the ones the leads list treats
+// as open, and the only ones that can go stale (a won or lost lead isn't
+// waiting on anything).
+export const openStatuses: readonly ClientStatus[] = [
+  "new",
+  "contacted",
+  "qualified",
+  "proposed",
+]
+
+// The statuses that mean "this person pays me" — what makes a lead a customer.
+export const customerStatuses: readonly ClientStatus[] = ["won", "delivered"]
+
+export function isClientStatus(value: string): value is ClientStatus {
+  return (clientStatuses as readonly string[]).includes(value)
+}
+
+// Where a lead came from. `portfolio`/`referral` are set by the public forms;
+// `manual` is for records the owner adds directly from the dashboard.
 export const clientSources = ["portfolio", "referral", "manual"] as const
 export type ClientSource = (typeof clientSources)[number]
+
+// How a lead's `valueMinor` should be read: the whole engagement, or a figure
+// charged every month (which is what feeds the recurring-revenue total).
+export const billingTypes = ["one_off", "monthly"] as const
+export type BillingType = (typeof billingTypes)[number]
+
+export function isBillingType(value: string): value is BillingType {
+  return (billingTypes as readonly string[]).includes(value)
+}
 
 // ---- Intake (called by the site forms) -------------------------------------
 // Both public forms funnel into the same clients table. The mapping from each
@@ -89,8 +115,43 @@ export async function createClientFromReferral(
   return row
 }
 
+/**
+ * Add a lead by hand — someone met at a meetup, a word-of-mouth introduction,
+ * anything that never went through a form. Source is always "manual" and the
+ * row starts as touched *now*, since typing it in is itself the first contact.
+ */
+export async function createClientManually(input: {
+  name: string
+  email?: string | null
+  phone?: string | null
+  company?: string | null
+  intakeMessage?: string | null
+}): Promise<Client> {
+  const [row] = await getDb()
+    .insert(clients)
+    .values({
+      name: input.name,
+      email: input.email ?? null,
+      phone: input.phone ?? null,
+      company: input.company ?? null,
+      intakeMessage: input.intakeMessage ?? null,
+      source: "manual",
+      lastTouchedAt: new Date(),
+    })
+    .returning()
+  return row
+}
+
 // ---- Reads (called by the admin dashboard) ---------------------------------
 
+/**
+ * Every lead, longest-waiting first.
+ *
+ * The sort is the whole point of the list: `coalesce(last_touched_at,
+ * created_at)` ascending puts whoever has heard nothing from Jamie for the
+ * longest at the top, so the page opens on the work rather than on the newest
+ * arrival. Ties (both null-touched, same intake) fall back to creation order.
+ */
 export async function listClients(opts: ListOptions = {}): Promise<Client[]> {
   return getDb()
     .select()
@@ -100,7 +161,10 @@ export async function listClients(opts: ListOptions = {}): Promise<Client[]> {
         ? isNotNull(clients.archivedAt)
         : isNull(clients.archivedAt)
     )
-    .orderBy(desc(clients.createdAt))
+    .orderBy(
+      asc(sql`coalesce(${clients.lastTouchedAt}, ${clients.createdAt})`),
+      desc(clients.createdAt)
+    )
 }
 
 export async function getClient(id: string): Promise<Client | undefined> {
@@ -116,16 +180,16 @@ export async function setClientStatus(
 ): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
-    // Working the pipeline counts as touching the relationship — feeds the
-    // stale-lead read on /today.
+    // Working the pipeline counts as touching the relationship — which is what
+    // moves the lead back down the staleness sort.
     .set({ status, lastTouchedAt: new Date() })
     .where(eq(clients.id, id))
     .returning()
   return row
 }
 
-/** Stamp the client as touched now (an outreach send was logged, a call
- * happened, …) without changing anything else. */
+/** Stamp the lead as touched now (a call happened, an email went out, …)
+ * without changing anything else. */
 export async function touchClient(id: string): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
@@ -135,18 +199,14 @@ export async function touchClient(id: string): Promise<Client | undefined> {
   return row
 }
 
-// The subset of profile fields the admin can edit by hand. Intake provenance
-// (source, service, referralCode, createdAt) is intentionally not editable.
+// The subset of profile fields the admin can edit by hand. Everything the
+// intake captured (source, service, referralCode, budget, preferredCallTime,
+// createdAt) is provenance and stays read-only — the lead's own `valueMinor` is
+// what supersedes the budget the form collected.
 export type ClientProfilePatch = Partial<
   Pick<
     Client,
-    | "name"
-    | "email"
-    | "phone"
-    | "company"
-    | "budget"
-    | "preferredCallTime"
-    | "notes"
+    "name" | "email" | "phone" | "company" | "notes" | "valueMinor" | "billingType"
   >
 >
 
@@ -156,15 +216,15 @@ export async function updateClient(
 ): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
-    // Editing the profile/notes is activity on the relationship — feeds the
-    // stale-lead read on /today.
+    // Editing the profile/notes is activity on the relationship — same as a
+    // status change, it moves the lead back down the staleness sort.
     .set({ ...patch, lastTouchedAt: new Date() })
     .where(eq(clients.id, id))
     .returning()
   return row
 }
 
-// Record (or clear) the Stripe Customer this client is linked to. Kept off the
+// Record (or clear) the Stripe Customer this lead is linked to. Kept off the
 // hand-editable ClientProfilePatch on purpose: the id is managed by the billing
 // sync, never typed in. Pass null to unlink.
 export async function setClientStripeCustomerId(
@@ -183,7 +243,7 @@ export async function setClientStripeCustomerId(
 // Stripe link this is managed by an explicit action — the repo is chosen from a
 // picker or freshly created, never hand-typed into the profile — so it stays off
 // ClientProfilePatch. Pass null repo to disconnect. `defaultBranch` is the branch
-// resolved at connect time, cached so the AI runs don't look it up every time.
+// resolved at connect time, cached so the profile links straight to it.
 export async function setClientRepo(
   id: string,
   repo: { githubRepo: string; githubDefaultBranch: string | null } | null

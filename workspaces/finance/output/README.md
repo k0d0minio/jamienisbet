@@ -10,7 +10,7 @@ This is where the finance workspace's living numbers accumulate: the income ledg
 
 ## How it connects to the architecture
 - **Upstream / reads from:** the `output/` of each stage in [`stages/`](../stages/) (01 income, 02 expenses, 03 reserve, 04 reports).
-- **Downstream / feeds:** the founder review gate; his contabilista certificado; [`workspaces/legal-and-tax/`](../../legal-and-tax/) (period figures); the dashboard's `/today` page (reminders derived from receivables and deadlines).
+- **Downstream / feeds:** the founder review gate; his contabilista certificado; [`workspaces/legal-and-tax/`](../../legal-and-tax/) (period figures); the dashboard's working list (reminders derived from receivables and deadlines).
 - **Draws on (Layer 3 reference):** [`references/`](../references/) (categories and rates the artifacts are built against).
 
 ## Contents

@@ -1,11 +1,10 @@
 # Proposals — Negotiation-to-Close Workspace (Flagship)
 
 > **ICM role:** Layer 1 — router
-> **Status:** the run-process now lives in the **admin dashboard** — deals move through
-> brainstorm → proposal → get-paid at `/deals`, and the AI generations load these stage contracts
-> and references at run time (via `packages/icm`). This workspace remains the Layer-2/3 factory
-> the dashboard's behaviour mirrors: fix a contract or reference here and the next generation
-> changes with no code change.
+> **Status:** run this workspace directly — walk its stages in order, load the references each
+> contract names, and write the reviewed document to that stage's `output/`. The admin dashboard
+> no longer generates these documents; it tracks the lead the run is about (status, value, when
+> they were last worked) and raises the invoice in Stripe once the work is agreed.
 > **Purpose:** Take a raw lead and walk it through an AI-coached negotiation pipeline that closes at a higher-than-usual rate, ending in proposal, quote, contract, and invoice.
 
 ## What this folder accomplishes

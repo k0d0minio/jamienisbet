@@ -5,7 +5,7 @@ import { useTransition } from "react"
 
 import { Button } from "@jamie-nisbet/ui"
 
-import { archiveClient, removeClient } from "@/app/(app)/clients/actions"
+import { archiveClient, removeClient } from "@/app/(app)/actions"
 
 export function ClientActions({
   id,
@@ -22,10 +22,10 @@ export function ClientActions({
   const router = useRouter()
 
   function onDelete() {
-    if (!confirm("Permanently delete this client? This can't be undone.")) return
+    if (!confirm("Permanently delete this lead? This can't be undone.")) return
     startTransition(async () => {
       await removeClient(id)
-      if (redirectOnDelete) router.push("/clients")
+      if (redirectOnDelete) router.push("/")
     })
   }
 

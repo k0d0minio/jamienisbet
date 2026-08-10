@@ -13,7 +13,7 @@ import {
 import {
   createPaymentLink,
   type PaymentLinkFormState,
-} from "@/app/(app)/payment-links/actions"
+} from "@/app/(app)/money/actions"
 import { CopyButton } from "@/components/copy-button"
 
 // Mint a reusable payment link for a fixed amount. On success the new URL is

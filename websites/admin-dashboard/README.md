@@ -1,98 +1,106 @@
 # admin-dashboard (`@jamie-nisbet/admin`) — "Consultancy JN"
 
 > **ICM role:** Layer 1 — a web app under [`websites/`](../README.md).
-> **Purpose:** The owner-only environment for operating the business off the shared Neon
-> database — the read/write surface behind the forms.
+> **Purpose:** Somewhere to track leads and customers, and to get paid. Nothing else.
 
 ## What it is
 
 A Next.js 16 (App Router) app, owner-only, that reads and operates the business data in the
 shared Neon Postgres database via [`@jamie-nisbet/services`](../../packages/services/). It is
 the counterpart to the public sites: where the portfolio and sellers forms **capture** intakes,
-the admin is where each becomes a **client** that gets worked.
+the admin is where each becomes a lead that gets worked.
 
 It is **mobile-first and installable** — branded **Consultancy JN**, it ships a web app
 manifest, icons, and a service worker so it can be added to a phone home screen and launched
 fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 
-**Today:** a unified **Clients** surface — every portfolio contact and sellers referral is one
-client row, opened into a profile (contact details, notes) and moved along an intake → delivery
-**status pipeline** (`new` → `contacted` → `qualified` → `proposed` → `won` → `delivered`, or
-`lost`) — plus a **Stripe billing** surface: a live financial overview (balance, outstanding,
-recent payments), invoicing (raise a draft → finalize & send), and shareable payment links —
-plus the **lead pipeline** (below): per-client deals worked in exactly three steps.
+**Three screens.** That is the whole app, and it is deliberate — see
+[Deliberately not here](#deliberately-not-here).
 
-Each client profile also carries a **delivery repo** link ([`lib/github.ts`](lib/github.ts),
-[`components/client-repo-link.tsx`](components/client-repo-link.tsx)): when a client comes in,
-connect an existing GitHub repo or create a fresh one right there. Once connected, the pipeline's
-AI runs load a bounded **snapshot** of it (README, file tree, stack) as Layer-4 working material,
-so the brainstorm, pitch, and proposal are grounded in the client's actual codebase rather than a
-greenfield guess. The repo is stored on the client row (`clients.github_repo`). Needs `GITHUB_TOKEN`
-(see [`.env.example`](.env.example)); with it unset the profile shows a "not configured" note and
-the rest of the admin is unaffected.
+| Screen | Route | What it is |
+|---|---|---|
+| **Leads** | `/` | Every lead and customer in one list, longest-waiting first. |
+| **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, repo, Stripe link, todos. |
+| **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. |
 
-## The lead pipeline — three steps, one deal
+## Leads — the screen the app opens on
 
-Each client carries **deals** (one per opportunity). A deal's page is one pipeline that mirrors
-how Jamie actually closes work — no other workflows to learn:
+One row per person. A portfolio contact enquiry, a sellers-site referral, and someone met at a
+meetup are all the same kind of record; `source` is the only thing that tells them apart. There
+is no second table for opportunities — a lead who comes back for more work is still the same
+relationship, and what was actually billed lives in Stripe.
 
-1. **Brainstorm & pitch** — a persisted, per-deal chat with a **web-connected research
-   partner** (a `webResearch` tool runs deep research on a natively search-connected model —
-   Perplexity Sonar via the same AI Gateway — and returns findings with sources). When the
-   direction is right, **Draft pitch** turns the thread into the meeting-prep pitch document:
-   the ask, the research, solution directions with effort bands, the questions to ask over
-   coffee, and the recommended angle.
-2. **Proposal** — after the meeting, write down what was agreed (plan, timeline, and the
-   **payment structure** as milestone rows) and draft the proposal: cost, business
-   requirements, technical requirements, basic terms, and the "how we work together"
-   communication brief that keeps scope creep out. The milestones are stored structured on the
-   deal (`deals.payment_schedule`) and set the deal's value — the document and the billing can
-   never say different things.
-3. **Get paid** — once the proposal is **approved**, each milestone gets a **Create draft
-   invoice** button on the existing Stripe rails (draft → finalize & send from Invoices, never
-   sent automatically). The raised invoice's id is linked back to its milestone and its live
-   Stripe status shows in place.
+- **Sorted by who has waited longest.** The list orders on
+  `coalesce(last_touched_at, created_at)` ascending, so the page opens on the work rather than
+  on the newest arrival. Anything open and untouched for 7+ days is flagged in red. Changing a
+  status, editing a profile, or hitting **Mark touched** all stamp the row and drop it back down
+  the list.
+- **Filters** — All / Open / Customers / Lost, each with a count. Status itself is a dropdown on
+  every row, changed in place.
+- **Value** — each lead carries what it is worth (`value_minor`) and whether that is a one-off
+  or charged **every month** (`billing_type`). The header adds them up: open one-offs as
+  *in play*, monthly customers as */ month*. Both are Jamie's own figures — Stripe stays the
+  authority on what was actually invoiced and paid.
+- **Add lead** — leads mostly arrive by word of mouth, so adding one by hand is a first-class
+  button, not an afterthought. Name is the only required field.
+- **The working list** — todos and Portuguese compliance dates live in a strip above the list,
+  collapsed by default (a native `<details>`, so it costs no JavaScript). The summary line says
+  whether anything is overdue; that is all it needs to say on a normal day. Compliance rows are
+  **decision-support only** and need the contabilista's confirmation.
 
-Two document kinds exist (**pitch**, **proposal** — see
-[`@jamie-nisbet/icm`](../../packages/icm/), which loads exactly the Layer-3 reference files
-each kind names, through the **Vercel AI Gateway**). Every output lands as a versioned
-**draft** that Jamie reviews, edits, and approves in place:
+A lead's own page adds the read-only intake provenance (how they came in, what they asked for),
+their **delivery repo**, their **Stripe customer**, and the todos filed against them.
 
-- **Review gate** — `draft → approved | rejected` on every document. Only an approved proposal
-  unlocks invoicing; only approved documents can be exported/downloaded. Approval flips the
-  document's `status` in the database and nothing else — the Neon `biz.*` schema is the sole
-  store, so there is no write-back to git.
-- **Provenance** — every run records model, context files, and token usage; a **Next action**
-  card says which of the three steps the deal is at.
+### Delivery repos
 
-With `AI_GATEWAY_API_KEY` unset the AI routes return a "not configured" response and the rest
-of the admin still works. Models are swappable per tier via `AI_MODEL_HEAVY/STANDARD/FAST`, and
-the research tool's model via `AI_MODEL_RESEARCH` (see [`.env.example`](.env.example)).
+Each lead can carry a GitHub delivery repository ([`lib/github.ts`](lib/github.ts),
+[`components/client-repo-link.tsx`](components/client-repo-link.tsx)): connect an existing repo
+or create a fresh one from the profile. The pointer is stored on the row
+(`clients.github_repo`) so the dashboard always knows where a customer's work lives. Needs
+`GITHUB_TOKEN` (see [`.env.example`](.env.example)); with it unset the profile shows a "not
+configured" note and the rest of the admin is unaffected.
 
-## Stripe billing
+## Money
 
 The admin talks to Stripe directly via the server-side secret key (`STRIPE_SECRET_KEY`) — this
 is owner-only surface, so no publishable key or client SDK is involved. Stripe is the source of
 truth for money (as in [`workspaces/finance/`](../../workspaces/finance/)); every figure shown
-is read live from Stripe, and nothing about an amount comes from the browser.
+is read live from Stripe, and nothing about an amount comes from the browser. One page, four
+sections:
 
-- **Finances** (`/finances`) — available + pending balance, total outstanding, and recent payments.
-- **Invoices** (`/invoices`) — list every Stripe invoice with status/amount/hosted link, and raise
-  a new one **against a client picked from the database** (no free-text customer details). Raising
-  it resolves — and, first time, creates + links — that client's Stripe customer, storing the id on
-  the client row (`clients.stripe_customer_id`) so the two stay joined. Honoring the repo's *no
-  outbound action without review* rule, a new invoice is created as a **draft**; emailing it to the
-  client is a deliberate second step ("Finalize & send").
-- **Payment links** (`/payment-links`) — mint a reusable, fixed-amount payment link (copy to share),
-  or deactivate one.
+- **Balance** — available, pending, and total outstanding across open invoices.
+- **Invoices** — every Stripe invoice with status/amount/hosted link, and a form to raise a new
+  one **against a lead picked from the database** (no free-text customer details). Raising it
+  resolves — and, first time, creates + links — that lead's Stripe customer, storing the id on
+  the row (`clients.stripe_customer_id`) so the two stay joined. Honoring the repo's *no
+  outbound action without review* rule, a new invoice is created as a **draft**; emailing it is
+  a deliberate second step ("Finalize & send").
+- **Payment links** — mint a reusable, fixed-amount payment link (copy to share), or deactivate one.
+- **Recent payments** — what actually landed.
 
-Clients and Stripe customers are kept in sync from here: editing a linked client's name/email/phone
-pushes the change to their Stripe customer, and a client can be linked ahead of billing from their
-profile page. See [`lib/clients-stripe.ts`](lib/clients-stripe.ts).
+Leads and Stripe customers are kept in sync from here: editing a linked lead's name/email/phone
+pushes the change to their Stripe customer, and a lead can be linked ahead of billing from their
+profile. See [`lib/clients-stripe.ts`](lib/clients-stripe.ts).
 
-With `STRIPE_SECRET_KEY` unset the app still runs: these pages show a "not configured" notice and
-the leads surfaces are unaffected. The client-facing pay page lives in
+With `STRIPE_SECRET_KEY` unset the app still runs: this page shows a "not configured" notice and
+the Leads screen is unaffected. The client-facing pay page lives in
 [`websites/payment-gateway`](../payment-gateway/); this admin is where invoices are *raised*.
+
+## Deliberately not here
+
+The dashboard used to run a three-step AI deal pipeline (brainstorm with web research → pitch →
+proposal → milestone invoicing), with versioned review-gated documents, AI provenance and spend
+tracking, draft-only outreach composition, and a won-deal onboarding checklist — around 14
+screens in total. It was removed in favour of the three above: too much machinery for a
+one-person consultancy whose actual need is knowing who is waiting to hear back.
+
+Gone with it: the `deals`, `documents`, `generations`, `touches` and `workshop_messages` tables,
+the `app/api/ai/*` routes, and the `@jamie-nisbet/icm` package (its only consumer was those
+routes). The markdown factory those runs read — `_config/`, `shared/templates/`,
+`workspaces/*/stages/` — is untouched and still drives workspace runs done by agents directly.
+
+If any of it comes back, it should come back as a workspace run producing a reviewed file, not
+as another screen here.
 
 ## Auth
 
@@ -111,9 +119,9 @@ business data.
 The app is built mobile-first and installs to a phone home screen as **Consultancy JN**.
 
 - **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — a sticky top bar (brand + sign
-  out) on every size, inline text links on desktop, and a fixed icon **tab bar** pinned to the
-  bottom on phones (the primary way to move around when installed). Content is padded to clear
-  the tab bar and respects the home-indicator safe area.
+  out) on every size, inline text links on desktop, and a fixed two-tab bar pinned to the bottom
+  on phones (Leads, Money). Content is padded to clear the tab bar and respects the
+  home-indicator safe area.
 - **Manifest** ([`app/manifest.ts`](app/manifest.ts)) — name/short-name `Consultancy JN`,
   `standalone` display, brand-blue theme (`#3A5A78`), and PNG icons.
 - **Icons** — one favicon SVG ([`public/icon.svg`](public/icon.svg)) plus PNGs rendered on the
@@ -140,27 +148,19 @@ app/
   login/                # /login page + login/logout server actions
   (app)/                # authenticated area (route group — no URL segment)
     layout.tsx          # nav chrome (mobile-first spacing + tab-bar clearance)
-    page.tsx            # dashboard (client counts + Stripe billing summary)
-    clients/            # clients table (list) + status control; actions.ts (status/profile/archive/delete)
-    clients/[id]/       # client profile: editable details + notes, delivery-repo link, read-only intake, deals rail
-    deals/              # actions.ts (deal CRUD, document review gate, brainstorm, milestone→draft invoice)
-    deals/[id]/         # the 3-step deal pipeline: next action, brainstorm & pitch, proposal, get paid, documents
-    deals/[id]/documents/[docId]/  # review surface: edit/approve/reject, versions, provenance, sync
-    finances/           # Stripe financial overview (balance, outstanding, payments)
-    invoices/           # Stripe invoice list + create-draft form; actions.ts (send/void)
-    payment-links/      # Stripe payment-link list + create form; actions.ts (create/deactivate)
-  api/ai/               # the pipeline's AI (brainstorm/pitch/proposal) — session-checked, gateway-backed
-  api/documents/[id]/export/  # download an APPROVED document (never drafts)
-components/             # login form, nav (top bar + mobile tab bar), service-worker register, billing + pipeline UI
-lib/                    # auth, api-auth, formatting, stripe client, money, finance reads, deal context (Layer-4
-                        # assembly), next-action, github (client delivery repos), kinds, app-icon
+    page.tsx            # Leads — the list, staleness-sorted, with the collapsed working list
+    actions.ts          # lead + todo + compliance server actions (both lead screens use these)
+    leads/[id]/         # one lead: profile, intake, delivery repo, Stripe link, their todos
+    money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
+components/             # login form, nav, service-worker register, lead + money UI
+lib/                    # auth, formatting, stripe client, money, finance reads, github, app-icon
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 
 ## Local development
 
 ```bash
-cp .env.example .env.local   # DATABASE_URL, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, STRIPE_SECRET_KEY (test), AI_GATEWAY_API_KEY
+cp .env.example .env.local   # DATABASE_URL, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, STRIPE_SECRET_KEY (test)
 pnpm --filter @jamie-nisbet/admin dev
 ```
 
@@ -171,7 +171,6 @@ Requires the `biz` schema to exist — run the migration in
 
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
-same Stripe account the payment-gateway uses), `AI_GATEWAY_API_KEY`, and optionally
-`GITHUB_TOKEN` for the client delivery-repo connect/create/analysis (plus `GITHUB_REPO_OWNER`
-to home new client repos under a specific user/org). Consumes the shared packages as source
-(`transpilePackages` in [`next.config.ts`](next.config.ts)).
+same Stripe account the payment-gateway uses), and optionally `GITHUB_TOKEN` for the delivery-repo
+connect/create (plus `GITHUB_REPO_OWNER` to home new client repos under a specific user/org).
+Consumes the shared packages as source (`transpilePackages` in [`next.config.ts`](next.config.ts)).

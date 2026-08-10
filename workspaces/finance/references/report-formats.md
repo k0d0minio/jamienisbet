@@ -15,6 +15,6 @@
 
 ## Metrics (surfaced in the admin dashboard)
 - **Monthly revenue** + **overdue receivables** — from `stripe-report.sh` / Stripe.
-- **Pipeline value** + **win rate** — from the `biz.deals` rows (read live in the admin dashboard),
-  not from any repo file.
+- **Pipeline value** + **recurring revenue** — summed from the `biz.clients` rows' `value_minor`
+  / `billing_type` (read live on the admin dashboard's Leads screen), not from any repo file.
 - **Tax reserve** — accumulated from the monthly P&L.

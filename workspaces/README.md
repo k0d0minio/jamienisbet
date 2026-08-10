@@ -33,9 +33,9 @@ the admin dashboard), not here. A workspace is the reusable mould; a delivery is
 ## How it connects to the architecture
 - **Draws on (Layer 3):** [`../_config/`](../_config/) (brand, business facts, conventions) and
   [`../shared/`](../shared/) (document templates).
-- **Feeds:** the admin dashboard's AI pipeline (which loads these contracts via
-  [`packages/icm`](../packages/icm/)), the client's external delivery repo (a closed deal), and
-  the dashboard's daily brief (deadlines and todos).
+- **Feeds:** the reviewed files each stage writes to its `output/`, the client's external
+  delivery repo (won work), and the lead's own row in the admin dashboard (status, value, when
+  they were last worked).
 - **Governed by:** [`../_config/conventions/`](../_config/conventions/) — the ICM protocol for this repo.
 
 ## Adding a new capability

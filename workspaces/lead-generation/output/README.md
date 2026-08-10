@@ -8,7 +8,7 @@ This is the working surface for the lead-gen workspace — the things that chang
 
 ## How it connects to the architecture
 - **Upstream / reads from:** each stage's `output/` under `../stages/` (especially `05_pipeline/output/`)
-- **Downstream / feeds:** the deal pipeline in the admin dashboard (Neon `biz.*`) and its daily brief
+- **Downstream / feeds:** the lead pipeline in the admin dashboard (Neon `biz.clients`) and its working list
 - **Draws on (Layer 3 reference):** `../references/`, `_config/brand/` (assets used in finalized kits)
 
 ## Contents

@@ -17,6 +17,22 @@ export function formatEpoch(seconds: number | null): string {
   return formatter.format(new Date(seconds * 1000))
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** Whole days between `since` and `now` (both ms). Never negative. */
+export function daysSince(since: Date, now: number): number {
+  return Math.max(0, Math.floor((now - since.getTime()) / DAY_MS))
+}
+
+/** How long a lead has been sitting, for the "last worked …" line: "today",
+ * "1 day", "12 days". Callers pass `now` in so this stays pure — computing it
+ * during a render is what the react-hooks/purity rule forbids. */
+export function waitingLabel(days: number): string {
+  if (days <= 0) return "today"
+  if (days === 1) return "1 day"
+  return `${days} days`
+}
+
 // Turns a locale-invariant service id (e.g. "aiInfrastructure") into a readable
 // label ("AI Infrastructure"). Purely cosmetic — the id stays the source of truth.
 export function formatServiceId(value: string | null): string {

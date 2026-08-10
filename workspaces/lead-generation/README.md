@@ -8,7 +8,7 @@ This is Jamie's go-to-market engine: a freelance AI consultant in Mafra, Portuga
 
 ## How it connects to the architecture
 - **Upstream / reads from:** `_config/business/founder-brief.md`, human input (networking events, intros, inbound)
-- **Downstream / feeds:** the deal pipeline in the admin dashboard (qualified leads → Neon `biz.clients` / `biz.deals`, run against `workspaces/proposals/` contracts); won work is delivered in the client's external repo
+- **Downstream / feeds:** the lead pipeline in the admin dashboard (qualified leads → Neon `biz.clients`, run against `workspaces/proposals/` contracts); won work is delivered in the client's external repo
 - **Draws on (Layer 3 reference):** `_config/brand/voice/`, `_config/brand/visual/`, `_config/brand/assets/`, `shared/templates/`, `_config/conventions/`, `references/`
 
 ## Contents

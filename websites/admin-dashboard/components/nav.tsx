@@ -2,15 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  FileText,
-  Home,
-  Link2,
-  Sun,
-  Users,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react"
+import { Users, Wallet, type LucideIcon } from "lucide-react"
 
 import { Button, LogoMark, cn } from "@jamie-nisbet/ui"
 
@@ -18,24 +10,20 @@ import { logout } from "@/app/login/actions"
 
 type NavLink = {
   href: string
-  /** Full label — top bar on desktop. */
   label: string
-  /** Short label — the mobile bottom tab bar (five columns, tiny text). */
-  short: string
   icon: LucideIcon
 }
 
+// Two screens. Leads is home — the dashboard opens on the work, not on a
+// summary of it — and Money is everything Stripe.
 const links: NavLink[] = [
-  { href: "/today", label: "Today", short: "Today", icon: Sun },
-  { href: "/", label: "Dashboard", short: "Home", icon: Home },
-  { href: "/clients", label: "Clients", short: "Clients", icon: Users },
-  { href: "/finances", label: "Finances", short: "Finances", icon: Wallet },
-  { href: "/invoices", label: "Invoices", short: "Invoices", icon: FileText },
-  { href: "/payment-links", label: "Payment links", short: "Links", icon: Link2 },
+  { href: "/", label: "Leads", icon: Users },
+  { href: "/money", label: "Money", icon: Wallet },
 ]
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/"
+  // "/" also covers a lead's own page, which is a detail view of that list.
+  if (href === "/") return pathname === "/" || pathname.startsWith("/leads")
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
@@ -87,7 +75,7 @@ export function Nav() {
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Primary"
       >
-        <div className="mx-auto grid max-w-5xl grid-cols-6">
+        <div className="mx-auto grid max-w-5xl grid-cols-2">
           {links.map((link) => {
             const active = isActive(pathname, link.href)
             const Icon = link.icon
@@ -102,7 +90,7 @@ export function Nav() {
                 )}
               >
                 <Icon className="size-5" aria-hidden />
-                <span className="leading-none">{link.short}</span>
+                <span className="leading-none">{link.label}</span>
               </Link>
             )
           })}

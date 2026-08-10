@@ -17,7 +17,7 @@ import {
   Textarea,
 } from "@jamie-nisbet/ui"
 
-import { createInvoice, type InvoiceFormState } from "@/app/(app)/invoices/actions"
+import { createInvoice, type InvoiceFormState } from "@/app/(app)/money/actions"
 
 // The slice of a client the picker needs. Kept to plain fields so this client
 // component never imports the services package (and its DB client) — the page
@@ -53,9 +53,9 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
   if (clients.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No clients yet. Add one under{" "}
-        <Link href="/clients" className="underline underline-offset-2">
-          Clients
+        No leads yet. Add one under{" "}
+        <Link href="/" className="underline underline-offset-2">
+          Leads
         </Link>{" "}
         before raising an invoice.
       </p>

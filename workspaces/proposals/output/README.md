@@ -8,7 +8,7 @@ Every live deal gets its own folder here, named for the client — `output/<clie
 
 ## How it connects to the architecture
 - **Upstream / reads from:** each stage's own `output/` in [`../stages/`](../stages/) (stage N writes here, becomes input to stage N+1)
-- **Downstream / feeds:** Stripe invoicing via the dashboard (on invoice); the client's external delivery repo once signed; the deal record in Neon `biz.deals` (deal status)
+- **Downstream / feeds:** Stripe invoicing via the dashboard's Money screen; the client's external delivery repo once signed; the lead's row in Neon `biz.clients` (status + value)
 - **Draws on (Layer 3 reference):** none directly — this is pure Layer 4 working content produced by the stages
 
 ## Contents
