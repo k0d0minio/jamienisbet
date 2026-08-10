@@ -2,10 +2,20 @@
 
 import { useFormStatus } from "react-dom"
 
-import { Button, Input, Label, Textarea } from "@jamie-nisbet/ui"
+import {
+  Button,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
+} from "@jamie-nisbet/ui"
 import type { Client } from "@jamie-nisbet/services"
 
-import { saveClientProfile } from "@/app/(app)/clients/actions"
+import { saveClientProfile } from "@/app/(app)/actions"
 
 function SaveButton() {
   const { pending } = useFormStatus()
@@ -33,9 +43,15 @@ function Field({
   )
 }
 
-// The editable core of a client's profile. Intake provenance (source, service,
-// referral code, received date) is shown read-only elsewhere — this is where the
-// owner enriches the record and keeps working notes as the relationship grows.
+/** Minor units back to the major-unit string the form edits ("150000" → "1500.00").
+ * Zero shows as an empty field — "no figure yet" reads better than "€0.00". */
+function toMajor(minor: number): string {
+  return minor > 0 ? (minor / 100).toFixed(2) : ""
+}
+
+// The editable core of a lead's profile. How they came in (source, service,
+// referral code, budget indicated, received date) is shown read-only under
+// Intake — this is where the record is enriched, priced, and kept notes on.
 export function ClientProfileForm({ client }: { client: Client }) {
   const save = saveClientProfile.bind(null, client.id)
 
@@ -71,23 +87,32 @@ export function ClientProfileForm({ client }: { client: Client }) {
             placeholder="—"
           />
         </Field>
-        <Field id="budget" label="Budget">
+        <Field id="value" label="Value (€)">
           <Input
-            id="budget"
-            name="budget"
-            defaultValue={client.budget ?? ""}
-            placeholder="—"
+            id="value"
+            name="value"
+            inputMode="decimal"
+            defaultValue={toMajor(client.valueMinor)}
+            placeholder="0.00"
           />
         </Field>
-        <Field id="preferredCallTime" label="Preferred call time">
-          <Input
-            id="preferredCallTime"
-            name="preferredCallTime"
-            defaultValue={client.preferredCallTime ?? ""}
-            placeholder="—"
-          />
+        <Field id="billingType" label="Billed">
+          <Select name="billingType" defaultValue={client.billingType}>
+            <SelectTrigger id="billingType" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="one_off">One-off</SelectItem>
+              <SelectItem value="monthly">Every month</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
       </div>
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Your own figure for what this is worth. A monthly one counts toward the
+        recurring total on the leads list; Stripe stays the authority on what was
+        actually invoiced and paid.
+      </p>
 
       <Field id="notes" label="Notes">
         <Textarea

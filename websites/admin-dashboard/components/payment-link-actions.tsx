@@ -4,7 +4,7 @@ import { useTransition } from "react"
 
 import { Button } from "@jamie-nisbet/ui"
 
-import { deactivatePaymentLink } from "@/app/(app)/payment-links/actions"
+import { deactivatePaymentLink } from "@/app/(app)/money/actions"
 import { CopyButton } from "@/components/copy-button"
 
 // Per-row payment-link controls: copy the URL, or deactivate it (links can't be

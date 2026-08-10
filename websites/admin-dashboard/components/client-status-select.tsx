@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@jamie-nisbet/ui"
 
-import { updateClientStatus } from "@/app/(app)/clients/actions"
+import { updateClientStatus } from "@/app/(app)/actions"
 
 // Mirrors clientStatuses in @jamie-nisbet/services (the server action is the
 // authority — it re-validates). Kept local so this client component doesn't

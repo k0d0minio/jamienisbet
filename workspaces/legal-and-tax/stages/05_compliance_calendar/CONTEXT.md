@@ -12,7 +12,7 @@ Build the dated calendar: quarterly SS declarations (Apr/Jul/Oct/Jan) starting w
 - `compliance-calendar.md` -> output/
 
 ## Integrations
-- none (entries are keyed into the dashboard's `/today` calendar by hand after review; no Google Calendar feed, per the decision)
+- none (entries are keyed into the dashboard's compliance calendar by hand after review; no Google Calendar feed, per the decision)
 
 ## Verify
 - The year-1 SS-exemption end date is correct and prominent; every obligation cites its reference + as-of date; cadence matches the confirmed regime.

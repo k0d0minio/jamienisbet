@@ -49,43 +49,44 @@ jamienisbet/
 │
 ├── websites/           Jamie's own apps: portfolio/ · payment-gateway/ · admin-dashboard/ (the cockpit) · sellers-site/
 ├── packages/           SHARED CODE — ui/ (design system) · app-shell/ (marketing-site chrome/i18n)
-│                       · services/ (Neon biz.* data layer) · icm/ (the runtime that loads this repo's
-│                       markdown into the dashboard's AI runs)
+│                       · services/ (Neon biz.* data layer)
 └── scripts/            the automation layer (bash): send-email · stripe fetchers
 ```
 
-**Where the business stands** — clients, deals, pipeline and metrics — lives in the
-[admin dashboard](websites/admin-dashboard/). Business state (clients, deals, documents, statuses)
-lives in **one** store, the Neon `biz.*` schema operated through that dashboard; the repo holds no
-pipeline state and nothing is mirrored back into git.
+**Where the business stands** — who is waiting to hear back, what they're worth, and what has
+been paid — lives in the [admin dashboard](websites/admin-dashboard/): three screens, one row
+per person. Business state (leads, statuses, todos, compliance dates) lives in **one** store,
+the Neon `biz.*` schema operated through that dashboard; the repo holds no pipeline state and
+nothing is mirrored back into git.
 
 ## How the pieces work together
 
 1. **Find work** in `lead-generation/` (incl. the affiliate program + the public `sellers-site/`).
 2. **Qualify it** fast in `project-triage/` — worth your time? better solution out there? On a go,
-   the client and its deal are worked as rows in the Neon `biz.*` schema through the admin
-   dashboard; hand the customer structured feedback on the spot.
+   the lead is worked as a row in the Neon `biz.clients` table through the admin dashboard;
+   hand the customer structured feedback on the spot.
 3. **Close it** in `proposals/` — the flagship: it asks you exhaustive questions, then coaches the
    negotiation to lift your rate, and generates the proposal, quote and contract on-brand.
-4. **Deliver it** in the client's **own external repo** — created and seeded with the delivery-stage
-   docs (`shared/templates/delivery/`) from the deal's onboarding checklist in the admin dashboard.
-5. **Get paid & stay compliant** via the dashboard (`/finances`, `/invoices`) and `legal-and-tax/`,
-   whose deadlines surface every morning on the dashboard's `/today` page.
+4. **Deliver it** in the client's **own external repo** — seeded with the delivery-stage docs
+   (`shared/templates/delivery/`), then connected to that lead from their profile in the dashboard.
+5. **Get paid & stay compliant** via the dashboard's Money screen and `legal-and-tax/`, whose
+   deadlines surface on the dashboard's working list.
 
 Brand identity from [`_config/brand/`](_config/brand/) flows into every website and every document,
 so everything looks and sounds like one business.
 
 ## Status
 
-**Built and dashboard-first (2026-07).** The ICM protocol is real (conventions, stage contracts,
-configured workspaces), the brand is code (`@jamie-nisbet/ui`, consumed by all four live sites),
-and the admin dashboard is the operating cockpit: pipeline + deals with ICM-driven AI generation,
-Stripe finances/invoicing, the `/today` morning brief (todos, stale leads, compliance dates),
-won-deal onboarding with delivery-repo seeding, and draft-only outreach. Business state lives in
+**Built and deliberately small (2026-08).** The ICM protocol is real (conventions, stage
+contracts, configured workspaces), the brand is code (`@jamie-nisbet/ui`, consumed by all four
+live sites), and the admin dashboard is the operating cockpit — now **three screens**: Leads
+(one staleness-sorted list, with todos and compliance dates folded above it), a lead's profile,
+and Money (Stripe balance, invoices, payment links). The AI deal pipeline it used to carry was
+removed in favour of running the workspace contracts directly; see the 2026-08 reversal in
+[`_config/conventions/decisions.md`](_config/conventions/decisions.md). Business state lives in
 **one** store (the Neon `biz.*` schema); client delivery (code + docs) lives in each client's
 external repo; CI guards typecheck/lint/builds and DB migrations. **Open items** (entity facts,
-compliance seed dates) are tracked in [`BACKLOG.md`](BACKLOG.md); decisions are recorded in
-[`_config/conventions/decisions.md`](_config/conventions/decisions.md).
+compliance seed dates) are tracked in [`BACKLOG.md`](BACKLOG.md).
 
 ## Important
 

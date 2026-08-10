@@ -6,9 +6,9 @@
 > discovery → build → delivery discipline.
 
 ## The seeding contract
-When a deal is marked **won** in the admin dashboard, the onboarding checklist offers
-"create + seed the delivery repo". That action creates (or uses) the client's GitHub repo
-recorded on their `biz.clients` row and commits these three files into it as:
+When a lead is marked **won**, create (or connect) their delivery repo from their profile in the
+admin dashboard — the pointer is stored on their `biz.clients` row — and commit these three
+files into it as:
 
 - `docs/icm/01_discovery.md`
 - `docs/icm/02_build.md`

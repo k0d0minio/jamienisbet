@@ -10,17 +10,17 @@ software engineer / AI consultant based in **Mafra, Portugal**. Lead generation 
 networking and word of mouth. Two halves, one system:
 
 - **The cockpit** — the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)),
-  where the business *runs* day-to-day: the client/deal pipeline, AI document generation,
-  Stripe invoicing and finances, the `/today` morning brief (todos, stale leads, compliance
-  dates), won-deal onboarding (which seeds the client's delivery repo), and draft-only outreach.
-  Business state lives in **one** store — the Neon `biz.*` schema — operated through the
-  dashboard, never mirrored into the repo.
+  where the business *runs* day-to-day. **Three screens, deliberately:** *Leads* (every lead and
+  customer in one list, longest-waiting first, with todos and compliance dates folded above it),
+  a *lead's profile* (contact, value, notes, delivery repo, Stripe link), and *Money* (Stripe
+  balance, invoices, payment links). One row per person — there is no separate deal record, and
+  the dashboard generates no documents. Business state lives in **one** store — the Neon `biz.*`
+  schema — operated through the dashboard, never mirrored into the repo.
 - **The factory** — the markdown layers (`_config/`, `shared/`, `workspaces/`): brand, business
-  facts, stage contracts and references. The dashboard's AI runs load these files at request
-  time via [`packages/icm`](packages/icm/), so **editing a contract, template, or voice file
-  changes the next generation with no code change.** The folder structure *is* the
-  configuration; agents also run workspaces directly (e.g. legal-and-tax) by reading the right
-  files at the right moment.
+  facts, stage contracts and references. **Agents run these workspaces directly**, reading the
+  right files at the right moment and writing a reviewed file to the stage's `output/` — so
+  editing a contract, template, or voice file changes the next run with no code change. The
+  folder structure *is* the configuration.
 
 Local scripts in [`scripts/`](scripts/) handle mechanical parts that need no AI; the other
 [`websites/`](websites/) (portfolio, sellers-site, payment-gateway) are the public front door,
@@ -54,12 +54,12 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Find/sell work, run the local-affiliate program, outreach | [`workspaces/lead-generation/`](workspaces/lead-generation/) |
 | Decide if a project is worth it / give a customer fast structured feedback | [`workspaces/project-triage/`](workspaces/project-triage/) |
 | Track income, expenses, invoices, tax reserve | [`workspaces/finance/`](workspaces/finance/) |
-| Deliver a client engagement (code + docs live in the client's external repo) | the deal's onboarding checklist in the admin dashboard seeds the repo from [`shared/templates/delivery/`](shared/templates/delivery/) |
+| Deliver a client engagement (code + docs live in the client's external repo) | seed the repo from [`shared/templates/delivery/`](shared/templates/delivery/); connect it to the lead from their profile in the admin dashboard |
 | Build/host one of Jamie's own web apps (portfolio, payment gateway, admin dashboard, sellers site) | [`websites/`](websites/) |
-| Use/extend shared code across every website (design system, app shell, data layer, ICM runtime) | [`packages/`](packages/) (`ui` = design system · `app-shell` = marketing-site chrome/i18n · `services` = Neon `biz.*` · `icm` = AI-pipeline runtime) |
-| Daily business todos / the morning brief / compliance deadlines | the admin dashboard's `/today` page (`biz.tasks` + `biz.compliance_dates`) |
+| Use/extend shared code across every website (design system, app shell, data layer) | [`packages/`](packages/) (`ui` = design system · `app-shell` = marketing-site chrome/i18n · `services` = Neon `biz.*`) |
+| Daily business todos / compliance deadlines | the working-list strip at the top of the dashboard's Leads screen (`biz.tasks` + `biz.compliance_dates`) |
 | Run a mechanical action (new client/project, send a reviewed email) | [`scripts/`](scripts/) |
-| See where the business stands (pipeline, metrics) | the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)) |
+| See where the business stands (who's waiting, what's owed) | the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)) |
 | Brand colours, voice, logos, business facts | [`_config/`](_config/) |
 | Shared document templates | [`shared/`](shared/) |
 | Create a brand-new capability | copy [`workspaces/_template-workspace/`](workspaces/_template-workspace/) |
@@ -80,13 +80,14 @@ do the Process, write to `output/`. 4. **Pause at each `output/` for human revie
   conclusions as fact; always note that outputs need review by a licensed Portuguese
   *contabilista certificado* / lawyer.
 - **No outbound action without review.** No email sent, payment captured, or repo created/seeded
-  without a human-reviewed artifact first — a reviewed `output/` file in a workspace run, an
-  approved document/draft in the dashboard (approval is a DB fact). Outreach is draft-only:
-  sending is always manual, from Jamie's own email. See
+  without a human-reviewed artifact first — a reviewed `output/` file from a workspace run. In
+  the dashboard this is why an invoice is raised as a **draft**: finalizing and emailing it is a
+  separate, deliberate click. Outreach is draft-only: sending is always manual, from Jamie's own
+  email. See
   [`_config/conventions/scripts-and-integrations.md`](_config/conventions/scripts-and-integrations.md).
-- **Retired (2026-07, dashboard-first):** `tracker/` (→ the dashboard `/today` page), `projects/`
-  (→ delivery docs seeded into the client's external repo), `shared/knowledge/` (empty). Don't
-  recreate them — see the reversals in
+- **Retired:** `tracker/` (→ the working-list strip on the dashboard's Leads screen), `projects/`
+  (→ delivery docs seeded into the client's external repo), `shared/knowledge/` (empty), and
+  the dashboard's AI deal pipeline (→ workspace runs). Don't recreate them — see the reversals in
   [`_config/conventions/decisions.md`](_config/conventions/decisions.md).
 - **Fix the source, not the symptom.** When a run's output is repeatedly wrong, edit the Layer-3
   reference (template, voice, rubric) so every future run improves — don't just patch the one output.

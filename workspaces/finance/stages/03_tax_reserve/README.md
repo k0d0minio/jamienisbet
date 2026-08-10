@@ -10,7 +10,7 @@ This stage turns period income (fetched from Stripe) into the number Jamie shoul
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`stages/01_income_tracking/`](../01_income_tracking/) (or a fresh `scripts/stripe-income.sh` fetch); [`../../setup/output/config.md`](../../setup/) (the year's rate).
-- **Downstream / feeds:** [`stages/04_reporting/`](../04_reporting/); [`workspaces/legal-and-tax/`](../../../legal-and-tax/) stage `05_compliance_calendar`; the dashboard's `/today` page (set-aside reminders).
+- **Downstream / feeds:** [`stages/04_reporting/`](../04_reporting/); [`workspaces/legal-and-tax/`](../../../legal-and-tax/) stage `05_compliance_calendar`; the dashboard's working list (set-aside reminders).
 - **Draws on (Layer 3 reference):** [`../../references/tax-reserve-rates.md`](../../references/tax-reserve-rates.md).
 
 ## Contents

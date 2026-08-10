@@ -21,7 +21,9 @@ build step — consumers transpile the TypeScript via `transpilePackages` (same 
 src/
   client.ts          # lazy Drizzle client from DATABASE_URL — getDb() / db
   schema/index.ts    # Drizzle tables under the `biz` Postgres schema
-  queries/clients.ts # typed intake/list/update helpers for the clients table
+  queries/clients.ts # typed intake/list/update helpers for the leads table
+  queries/tasks.ts       # todos
+  queries/compliance.ts  # the PT compliance calendar (recurrence re-arms on complete)
   index.ts           # barrel
 drizzle/             # generated SQL migrations
 drizzle.config.ts    # drizzle-kit config (scoped to the `biz` schema)

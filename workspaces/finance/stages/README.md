@@ -2,7 +2,7 @@
 
 > **ICM role:** Layer 1 — router
 > **Status:** the daily run-process (income + receivables) now lives in the **admin dashboard**
-> (`/finances`, `/invoices`); these contracts remain the Layer-2 specs it mirrors, and the
+> (`/money`); these contracts remain the Layer-2 specs it mirrors, and the
 > reserve/reporting stages still run as workspace runs.
 > **Purpose:** Route to the correct lightweight-bookkeeping stage and encode their execution order.
 

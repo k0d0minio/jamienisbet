@@ -12,12 +12,12 @@ don't shift.
 
 The current state: the ICM architecture, the workspace contracts, brand-as-code
 (`@jamie-nisbet/ui`), all 4 websites (fully implemented — i18n, Resend + Neon intake forms,
-Stripe checkout, and the admin dashboard that operates the Neon `biz.*` pipeline with its
-ICM-driven AI document generation), and the `@jamie-nisbet/services` data model are **built and
-live**. The 2026-07 dashboard-first restructure (see
-[`_config/conventions/decisions.md`](_config/conventions/decisions.md)) retired `projects/`,
-`tracker/`, and `shared/knowledge/`, and added the dashboard's `/today` brief, won-deal
-onboarding, delivery-repo seeding, and draft-only outreach.
+Stripe checkout, and the admin dashboard that operates the Neon `biz.*` store), and the
+`@jamie-nisbet/services` data model are **built and live**. Two restructures shaped this, both
+recorded in [`_config/conventions/decisions.md`](_config/conventions/decisions.md): 2026-07
+dashboard-first retired `projects/`, `tracker/` and `shared/knowledge/`; 2026-08 cut the
+dashboard back to **three screens** (Leads, a lead's profile, Money), retiring its AI deal
+pipeline in favour of running the workspace contracts directly.
 
 ---
 
@@ -40,30 +40,30 @@ consumers `shared/templates/*.md`.
 
 ## B6 — Seed the compliance calendar · **High** _(needs Jamie / the contabilista)_
 
-**Why.** The dashboard's `/today` page surfaces upcoming compliance dates from
+**Why.** The dashboard's working list surfaces upcoming compliance dates from
 `biz.compliance_dates`, but the actual PT dates (IRS payments-on-account, quarterly Segurança
 Social declarations, IES, IVA if applicable) must come from Jamie's contabilista — the
 legal-and-tax compliance-calendar stage was only partially run.
 
-**Files.** None (data entry in the dashboard `/today` page);
+**Files.** None (data entry in the dashboard's working list);
 `workspaces/legal-and-tax/stages/05_compliance_calendar/` for the source run.
 
 **Acceptance.**
 - The known annual/quarterly PT obligations are entered with source + as-of date in the notes.
-- `/today` shows the next deadline correctly; recurring items re-arm on completion.
+- the working list shows the next deadline correctly; recurring items re-arm on completion.
 
 ---
 
-## Migrated from the retired tracker — re-enter on `/today` (needs Jamie)
+## Migrated from the retired tracker — re-enter on the working list (needs Jamie)
 
 The open items from `tracker/business/todos.md` at retirement (2026-07-15). Enter the ones still
-relevant as tasks on the dashboard's `/today` page, then delete this section:
+relevant as tasks on the dashboard's working list, then delete this section:
 
 - Decide the PT business structure (sole trader vs Unipessoal Lda) — see `workspaces/legal-and-tax/`
 - Appoint a *contabilista certificado* to validate the structure & tax setup
 - Run the legal-and-tax workspace to produce the decision-support pack
 - Register the existing recurring retainer client in the admin dashboard
-- Kick off the retainer client's delivery (won-deal onboarding checklist seeds the repo)
+- Kick off the retainer client's delivery (seed the repo from `shared/templates/delivery/`, then connect it on their profile)
 - Secure the `jamienisbet.com` domain and the `contact@jamienisbet.com` inbox
 - Once the entity is live: record NIF / IBAN / registered address into `_config/business/` (→ B3)
 
@@ -83,7 +83,7 @@ relevant as tasks on the dashboard's `/today` page, then delete this section:
 - **B1 — Generate the state dashboard.** Dropped — superseded by the single-store decision
   (issue #26); "where the business stands" is read live in the admin dashboard.
 - **B2 — Stand up the tracker morning routine.** Dropped — `tracker/` is retired; the morning
-  brief is the dashboard's `/today` page (2026-07 dashboard-first reversal).
+  brief is the dashboard's working list (2026-07 dashboard-first reversal).
 - **B4 — Model the retainer client in the front-matter data model.** Dropped — client/deal data
   lives in `biz.*`.
 - **B5 — Light-touch CI.** **Done** — `.github/workflows/ci.yml` runs typecheck + lint + builds

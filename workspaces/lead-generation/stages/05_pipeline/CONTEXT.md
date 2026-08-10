@@ -7,10 +7,10 @@
 - Layer 3 (reference): `../03_affiliate_program/output/attribution-rules.md`, `_config/conventions/`
 
 ## Process
-Log each lead as a `biz.clients` row with status, source/referrer, and next action; advance or close leads in the dashboard; on "qualified," open a deal (`biz.deals`) and run the proposals contracts; on "won," run onboarding (delivery repo seeded by the dashboard) ; flag affiliate-attributed deals for payout in `../03_affiliate_program/`.
+Log each lead as a `biz.clients` row with status, source/referrer, and value; advance or close leads in the dashboard; on "qualified," run the proposals contracts against that lead; on "won," seed the client's delivery repo from `shared/templates/delivery/` and connect it on their profile; flag affiliate-attributed leads for payout in `../03_affiliate_program/`.
 
 ## Outputs
-- The live pipeline state in Neon `biz.clients` / `biz.deals` (operated in the admin dashboard — no repo artifact)
+- The live pipeline state in Neon `biz.clients` (operated in the admin dashboard — no repo artifact)
 
 ## Integrations
 - Neon `biz.*` via the admin dashboard (state store)

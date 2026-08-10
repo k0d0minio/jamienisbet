@@ -1,10 +1,10 @@
 # Proposals — Stages (The Pipeline)
 
 > **ICM role:** Layer 1 — router
-> **Status:** these contracts are executed by the admin dashboard's deal pipeline (the AI loads
-> them via `packages/icm`); documents live versioned in Neon `biz.documents`, money in the deal's
-> payment schedule + Stripe. Edit a stage contract here to change the next run.
-> **Purpose:** Hold the ordered, numbered stages that move one deal from first contact to closing invoice, each writing to its own `output/`.
+> **Status:** these contracts are walked directly — each stage writes a reviewed file to its own
+> `output/`. Money stays in Stripe, raised from the admin dashboard's Money screen. Edit a stage
+> contract here to change the next run.
+> **Purpose:** Hold the ordered, numbered stages that move one engagement from first contact to closing invoice, each writing to its own `output/`.
 
 ## What this folder accomplishes
 This folder is the execution spine of the flagship workspace. The numbering encodes the order: discovery, then leverage analysis, then live negotiation coaching, then the four deliverables. Each stage does exactly one job (Principle 1), writes plain-text markdown a human can edit (Principle 2), loads only the context it needs (Principle 3), and stops at a review gate before handing off (Principle 4). Stage N's `output/` is the input to stage N+1.

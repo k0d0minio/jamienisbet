@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 
 import { Button } from "@jamie-nisbet/ui"
 
-import { linkClientToStripe } from "@/app/(app)/clients/actions"
+import { linkClientToStripe } from "@/app/(app)/actions"
 
 // Shows a client's Stripe link: the linked customer id (with a jump to the Stripe
 // dashboard) once linked, or a button to create-and-link a customer on demand.

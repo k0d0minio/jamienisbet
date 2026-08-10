@@ -8,7 +8,7 @@ This folder holds the ordered pipeline that takes Jamie from "who do I serve?" t
 
 ## How it connects to the architecture
 - **Upstream / reads from:** `../setup/output/` (locked config), `_config/business/founder-brief.md`
-- **Downstream / feeds:** the deal pipeline in the admin dashboard (Neon `biz.clients` / `biz.deals`, run against `workspaces/proposals/` contracts)
+- **Downstream / feeds:** the lead pipeline in the admin dashboard (Neon `biz.clients`, run against `workspaces/proposals/` contracts)
 - **Draws on (Layer 3 reference):** `../references/`, `_config/brand/voice/`, `_config/brand/visual/`, `shared/templates/`
 
 ## Contents

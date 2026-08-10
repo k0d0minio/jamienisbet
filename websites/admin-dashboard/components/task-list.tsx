@@ -9,7 +9,7 @@ import {
   addTaskAction,
   deleteTaskAction,
   setTaskCompletedAction,
-} from "@/app/(app)/today/actions"
+} from "@/app/(app)/actions"
 
 // Serializable projection of a biz.tasks row for this client component.
 export type TaskItem = {
@@ -20,7 +20,14 @@ export type TaskItem = {
   completed: boolean
 }
 
-export function TaskList({ tasks }: { tasks: TaskItem[] }) {
+export function TaskList({
+  tasks,
+  // When set, todos added here hang off that lead and also show on its profile.
+  clientId,
+}: {
+  tasks: TaskItem[]
+  clientId?: string
+}) {
   const [pending, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -94,6 +101,7 @@ export function TaskList({ tasks }: { tasks: TaskItem[] }) {
         }
         className="flex flex-wrap items-center gap-2"
       >
+        {clientId ? <input type="hidden" name="clientId" value={clientId} /> : null}
         <Input
           name="title"
           placeholder="Add a todo…"

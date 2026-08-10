@@ -10,7 +10,7 @@ This is the product, not the recipe: the concrete deliverables of a run, each an
 
 ## How it connects to the architecture
 - **Upstream / reads from:** the per-stage outputs in [`../stages/`](../stages/) (01–05)
-- **Downstream / feeds:** the dashboard's `/today` compliance calendar (deadlines), [`workspaces/finance/`](../../finance/) (regime, deductibles, calendar), and [`_config/business/`](../../../_config/business/) (entity facts once registered)
+- **Downstream / feeds:** the dashboard's compliance calendar (deadlines), [`workspaces/finance/`](../../finance/) (regime, deductibles, calendar), and [`_config/business/`](../../../_config/business/) (entity facts once registered)
 - **Draws on (Layer 3 reference):** [`../references/`](../references/)
 
 ## Contents
@@ -18,7 +18,7 @@ This is the product, not the recipe: the concrete deliverables of a run, each an
 - `entity-decision.md` — planned. Confirmed direction from Stage 02.
 - `registration-checklist.md` — planned. From Stage 03.
 - `optimization-action-list.md` — planned. From Stage 04.
-- `compliance-calendar.md` — planned. From Stage 05; reviewed, then keyed into the dashboard's `/today` calendar and consumed by finance.
+- `compliance-calendar.md` — planned. From Stage 05; reviewed, then keyed into the dashboard's compliance calendar and consumed by finance.
 - (Do NOT create these files yet — described as planned.)
 
 ### Ad-hoc notes (created 2026-07-01)
