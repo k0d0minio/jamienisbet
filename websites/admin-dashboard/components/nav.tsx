@@ -36,7 +36,7 @@ export function Nav() {
   return (
     <>
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-2 sm:px-6 sm:py-3">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <LogoMark className="size-5" />
             <span>Consultancy JN</span>
@@ -69,10 +69,11 @@ export function Nav() {
         </div>
       </header>
 
-      {/* Fixed bottom tab bar — phones only. Padded for the home-indicator area. */}
+      {/* Fixed bottom tab bar — phones only. Padded for the home-indicator area.
+          Each tab is a full-height 3.5rem target so it can be hit one-handed;
+          `bottom-above-tabs` in globals.css is keyed to that height. */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t bg-background sm:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-safe sm:hidden"
         aria-label="Primary"
       >
         <div className="mx-auto grid max-w-5xl grid-cols-2">
@@ -85,7 +86,7 @@ export function Nav() {
                 href={link.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
+                  "flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors active:bg-muted",
                   active ? "text-primary" : "text-muted-foreground"
                 )}
               >

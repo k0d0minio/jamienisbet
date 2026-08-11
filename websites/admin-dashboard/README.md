@@ -35,21 +35,35 @@ relationship, and what was actually billed lives in Stripe.
   on the newest arrival. Anything open and untouched for 7+ days is flagged in red. Changing a
   status, editing a profile, or hitting **Mark touched** all stamp the row and drop it back down
   the list.
-- **Filters** — All / Open / Customers / Lost, each with a count. Status itself is a dropdown on
-  every row, changed in place.
+- **Filters** — All / Open / Customers / Lost, each with a count, in a rail that scrolls
+  sideways on a phone rather than wrapping onto a second line. The **Archived** view is a switch
+  beside the page title, not another chip — it changes what you are looking at rather than
+  filtering it. Status itself is a dropdown on every row, changed in place.
+- **On a phone, a row is one tap target.** The whole card opens the lead; the strip underneath
+  holds only what is worth doing without opening them — change status, call, email. Archive and
+  delete are deliberately absent there (they live on the lead's own page, one tap away), except
+  in the archive, where restoring is the point. The wide table is the desktop view of the same
+  list, not the source the phone shrinks down from.
 - **Value** — each lead carries what it is worth (`value_minor`) and whether that is a one-off
   or charged **every month** (`billing_type`). The header adds them up: open one-offs as
   *in play*, monthly customers as */ month*. Both are Jamie's own figures — Stripe stays the
   authority on what was actually invoiced and paid.
 - **Add lead** — leads mostly arrive by word of mouth, so adding one by hand is a first-class
-  button, not an afterthought. Name is the only required field.
+  button, not an afterthought: a floating button in the thumb zone above the tab bar on a phone
+  (opening the form as a bottom sheet), an ordinary button beside the heading on desktop. Name
+  is the only required field.
 - **The working list** — todos and Portuguese compliance dates live in a strip above the list,
   collapsed by default (a native `<details>`, so it costs no JavaScript). The summary line says
   whether anything is overdue; that is all it needs to say on a normal day. Compliance rows are
   **decision-support only** and need the contabilista's confirmation.
 
 A lead's own page adds the read-only intake provenance (how they came in, what they asked for),
-their **delivery repo**, their **Stripe customer**, and the todos filed against them.
+their **delivery repo**, their **Stripe customer**, and the todos filed against them. It is
+ordered by what you actually do on a phone: reach them (call / email / mark touched, as a rail
+of real buttons), move their status, then the profile and their todos. Reference material and
+irreversible actions sink to the bottom — **Intake** folds into a tap-to-open `<details>` below
+`lg`, connecting a delivery repo folds away until asked for, and archive/delete live in a
+**Danger zone** card rather than beside the title where a thumb could find them.
 
 ### Delivery repos
 
@@ -120,8 +134,16 @@ The app is built mobile-first and installs to a phone home screen as **Consultan
 
 - **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — a sticky top bar (brand + sign
   out) on every size, inline text links on desktop, and a fixed two-tab bar pinned to the bottom
-  on phones (Leads, Money). Content is padded to clear the tab bar and respects the
-  home-indicator safe area.
+  on phones (Leads, Money). Each tab is a full 3.5rem target; content is padded to clear the bar
+  and respects the home-indicator safe area.
+- **Touch targets and safe areas** ([`app/globals.css`](app/globals.css)) — the design system is
+  sized for a mouse (h-8/h-9 controls, a 16px checkbox), so rather than annotate every call site
+  the floor is lifted once under `@media (pointer: coarse)`: every button, input and select
+  trigger gets a 44px minimum, and the checkbox grows a transparent hit area without changing
+  size. Nothing there affects a desktop pointer. The same file defines the `pb-safe`,
+  `bottom-above-tabs` and `no-scrollbar` utilities the fixed chrome and the horizontal rails use.
+- **Anything hover-only is a bug on a phone.** Row deletes in the todo and compliance lists are
+  always visible below `sm` and only fade in on hover from `sm` up.
 - **Manifest** ([`app/manifest.ts`](app/manifest.ts)) — name/short-name `Consultancy JN`,
   `standalone` display, brand-blue theme (`#3A5A78`), and PNG icons.
 - **Icons** — one favicon SVG ([`public/icon.svg`](public/icon.svg)) plus PNGs rendered on the
@@ -140,6 +162,7 @@ The app is built mobile-first and installs to a phone home screen as **Consultan
 
 ```
 app/
+  globals.css           # design-system link + phone plumbing (safe areas, coarse-pointer targets)
   layout.tsx            # root <html> + design-system styles + PWA metadata/viewport + SW register
   manifest.ts           # /manifest.webmanifest (PWA install manifest — "Consultancy JN")
   icon-192.png/         # generated PNG icons (next/og ImageResponse); dotted paths bypass the auth gate
@@ -153,6 +176,8 @@ app/
     leads/[id]/         # one lead: profile, intake, delivery repo, Stripe link, their todos
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
 components/             # login form, nav, service-worker register, lead + money UI
+                        #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
+                        #   fold-card.tsx — a card that folds into <details> below `lg`
 lib/                    # auth, formatting, stripe client, money, finance reads, github, app-icon
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```

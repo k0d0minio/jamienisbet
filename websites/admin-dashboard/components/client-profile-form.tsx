@@ -20,7 +20,9 @@ import { saveClientProfile } from "@/app/(app)/actions"
 function SaveButton() {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending} className="w-fit">
+    // Full-width on a phone: the last thing on the form and the only thing to
+    // hit there, so it shouldn't be a small button floating at the left edge.
+    <Button type="submit" disabled={pending} className="w-full sm:w-fit">
       {pending ? "Saving…" : "Save changes"}
     </Button>
   )
@@ -74,6 +76,10 @@ export function ClientProfileForm({ client }: { client: Client }) {
             id="email"
             name="email"
             type="email"
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             defaultValue={client.email ?? ""}
             placeholder="—"
           />
@@ -83,6 +89,8 @@ export function ClientProfileForm({ client }: { client: Client }) {
             id="phone"
             name="phone"
             type="tel"
+            inputMode="tel"
+            autoComplete="tel"
             defaultValue={client.phone ?? ""}
             placeholder="—"
           />

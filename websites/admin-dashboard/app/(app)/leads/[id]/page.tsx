@@ -1,22 +1,25 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ChevronLeft, Mail, Phone } from "lucide-react"
 
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@jamie-nisbet/ui"
-import { getClient, listOpenTasksForClient } from "@jamie-nisbet/services"
+import { getClient, listOpenTasksForClient, type Client } from "@jamie-nisbet/services"
 
 import { ClientActions } from "@/components/client-actions"
 import { ClientProfileForm } from "@/components/client-profile-form"
 import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
+import { FoldCard } from "@/components/fold-card"
 import { MarkTouchedButton } from "@/components/mark-touched-button"
 import { TaskList } from "@/components/task-list"
 import {
@@ -29,6 +32,12 @@ import { clientSlug, isGithubConfigured } from "@/lib/github"
 
 export const metadata: Metadata = { title: "Lead" }
 export const dynamic = "force-dynamic"
+
+// One person, ordered by what you actually do on a phone: reach them, say you
+// worked them, move their status, write a note. Everything that is reference
+// (how they came in) or rare and destructive (archive, delete) sits at the
+// bottom, and the intake block folds away on a small screen. On a wide screen
+// the same blocks lay out in two columns.
 
 function sourceLabel(source: string): string {
   if (source === "portfolio") return "Contact form"
@@ -74,6 +83,48 @@ async function loadLead(id: string) {
   }
 }
 
+// Read-only provenance. Pulled out so FoldCard can render it as a folded
+// <details> on a phone and an open card on a wide screen.
+function IntakeDetails({ client }: { client: Client }) {
+  return (
+    <dl className="grid gap-4">
+      <Detail label="Source">
+        <Badge variant="secondary">{sourceLabel(client.source)}</Badge>
+      </Detail>
+      <Detail label="Received">{formatDateTime(client.createdAt)}</Detail>
+      {client.source === "portfolio" ? (
+        <Detail label="Service">
+          {client.service ? (
+            <Badge variant="secondary">{formatServiceId(client.service)}</Badge>
+          ) : (
+            "—"
+          )}
+        </Detail>
+      ) : null}
+      {client.source === "referral" ? (
+        <Detail label="Referral code">
+          {client.referralCode ? (
+            <span className="font-mono">{client.referralCode}</span>
+          ) : (
+            "—"
+          )}
+        </Detail>
+      ) : null}
+      <Detail label="Budget indicated">{client.budget}</Detail>
+      <Detail label="Preferred call time">
+        {formatDateTime(client.preferredCallTime)}
+      </Detail>
+      <Detail label="Intake message">
+        {client.intakeMessage ? (
+          <p className="whitespace-pre-wrap">{client.intakeMessage}</p>
+        ) : (
+          "—"
+        )}
+      </Detail>
+    </dl>
+  )
+}
+
 export default async function LeadDetailPage({
   params,
 }: {
@@ -87,126 +138,156 @@ export default async function LeadDetailPage({
   const archived = client.archivedAt !== null
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Leads
-        </Link>
-      </div>
+    <div className="flex flex-col gap-4 sm:gap-6">
+      {/* Back out of the detail view — a real target, not a 14px arrow. */}
+      <Link
+        href="/"
+        className="-ml-2 inline-flex h-11 w-fit items-center gap-1 rounded-sm pr-3 pl-2 text-sm text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+        Leads
+      </Link>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold">{client.name}</h1>
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl leading-tight font-semibold">{client.name}</h1>
           {archived ? <Badge variant="outline">Archived</Badge> : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <MarkTouchedButton id={client.id} lastWorked={lastWorked} />
-          <ClientStatusSelect id={client.id} value={client.status} />
-          <ClientActions id={client.id} archived={archived} redirectOnDelete />
+        {client.company ? (
+          <p className="text-sm text-muted-foreground">{client.company}</p>
+        ) : null}
+        <p className="text-xs text-muted-foreground">
+          {lastWorked === "today"
+            ? "Worked today"
+            : `Last worked ${lastWorked} ago`}
+        </p>
+      </div>
+
+      {/* The things you came here to do. A rail rather than a wrapping row, so
+          it stays one line on any width; on a phone these are the whole point
+          of opening a lead on your phone in the first place. */}
+      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 no-scrollbar sm:mx-0 sm:px-0 sm:pb-0">
+        {client.phone ? (
+          <Button asChild variant="outline" className="shrink-0">
+            <a href={`tel:${client.phone}`}>
+              <Phone />
+              Call
+            </a>
+          </Button>
+        ) : null}
+        {client.email ? (
+          <Button asChild variant="outline" className="shrink-0">
+            <a href={`mailto:${client.email}`}>
+              <Mail />
+              Email
+            </a>
+          </Button>
+        ) : null}
+        <MarkTouchedButton id={client.id} lastWorked={lastWorked} />
+      </div>
+
+      {/* Status gets its own row: it's the field changed most often and the one
+          worth hitting without aiming. */}
+      <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3 text-card-foreground sm:w-fit sm:gap-6">
+        <span className="text-sm font-medium">Status</span>
+        <ClientStatusSelect
+          id={client.id}
+          value={client.status}
+          className="w-40"
+        />
+      </div>
+
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+        <div className="flex flex-col gap-4 sm:gap-6 lg:col-span-2">
+          {/* Editable profile — the record grows here. */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile</CardTitle>
+              <CardDescription>
+                Contact details, what the work is worth, and working notes. How
+                they came in stays read-only under Intake.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ClientProfileForm client={client} />
+            </CardContent>
+          </Card>
+
+          {/* Todos hanging off this lead — the same list as the leads screen,
+              filtered to this one, so a "chase them Tuesday" lives with the
+              person it is about. */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Todos</CardTitle>
+              <CardDescription>
+                Open todos for {client.name}. They also show on the leads screen.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TaskList clientId={client.id} tasks={tasks} />
+            </CardContent>
+          </Card>
+
+          {/* Where their work lives and how they get billed. */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Delivery &amp; billing</CardTitle>
+              <CardDescription>
+                The repo their work lives in, and their Stripe customer.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div>
+                <div className="mb-2 text-xs text-muted-foreground">
+                  Delivery repo
+                </div>
+                <ClientRepoLink
+                  id={client.id}
+                  githubRepo={client.githubRepo}
+                  githubDefaultBranch={client.githubDefaultBranch}
+                  configured={isGithubConfigured()}
+                  suggestedName={clientSlug(client.name)}
+                />
+              </div>
+              <div className="border-t pt-4">
+                <div className="mb-2 text-xs text-muted-foreground">
+                  Stripe customer
+                </div>
+                <ClientStripeLink
+                  id={client.id}
+                  stripeCustomerId={client.stripeCustomerId}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-col gap-4 sm:gap-6">
+          <FoldCard title="Intake" description="How this lead came in.">
+            <IntakeDetails client={client} />
+          </FoldCard>
+
+          {/* Rare and irreversible — last on the page, never beside the title
+              where a thumb reaching for the status could find it. */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Danger zone</CardTitle>
+              <CardDescription>
+                Archiving takes them off the list and keeps the record. Deleting
+                can&apos;t be undone.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ClientActions
+                id={client.id}
+                archived={archived}
+                redirectOnDelete
+                className="justify-start"
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Editable profile — the record grows here. */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-            <CardDescription>
-              Contact details, what the work is worth, and working notes. How
-              they came in stays read-only under Intake.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <ClientProfileForm client={client} />
-            <div className="border-t pt-4">
-              <div className="mb-2 text-xs text-muted-foreground">
-                Delivery repo
-              </div>
-              <ClientRepoLink
-                id={client.id}
-                githubRepo={client.githubRepo}
-                githubDefaultBranch={client.githubDefaultBranch}
-                configured={isGithubConfigured()}
-                suggestedName={clientSlug(client.name)}
-              />
-            </div>
-            <div className="border-t pt-4">
-              <div className="mb-2 text-xs text-muted-foreground">
-                Stripe customer
-              </div>
-              <ClientStripeLink
-                id={client.id}
-                stripeCustomerId={client.stripeCustomerId}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Read-only intake provenance. */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Intake</CardTitle>
-            <CardDescription>How this lead came in.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-4">
-              <Detail label="Source">
-                <Badge variant="secondary">{sourceLabel(client.source)}</Badge>
-              </Detail>
-              <Detail label="Received">{formatDateTime(client.createdAt)}</Detail>
-              {client.source === "portfolio" ? (
-                <Detail label="Service">
-                  {client.service ? (
-                    <Badge variant="secondary">
-                      {formatServiceId(client.service)}
-                    </Badge>
-                  ) : (
-                    "—"
-                  )}
-                </Detail>
-              ) : null}
-              {client.source === "referral" ? (
-                <Detail label="Referral code">
-                  {client.referralCode ? (
-                    <span className="font-mono">{client.referralCode}</span>
-                  ) : (
-                    "—"
-                  )}
-                </Detail>
-              ) : null}
-              <Detail label="Budget indicated">{client.budget}</Detail>
-              <Detail label="Preferred call time">
-                {formatDateTime(client.preferredCallTime)}
-              </Detail>
-              <Detail label="Intake message">
-                {client.intakeMessage ? (
-                  <p className="whitespace-pre-wrap">{client.intakeMessage}</p>
-                ) : (
-                  "—"
-                )}
-              </Detail>
-            </dl>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Todos hanging off this lead — the same list as the leads screen,
-          filtered to this one, so a "chase them Tuesday" lives with the person
-          it is about. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Todos</CardTitle>
-          <CardDescription>
-            Open todos for {client.name}. They also show on the leads screen.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TaskList clientId={client.id} tasks={tasks} />
-        </CardContent>
-      </Card>
     </div>
   )
 }

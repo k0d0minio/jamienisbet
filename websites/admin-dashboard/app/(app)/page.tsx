@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Mail, Phone } from "lucide-react"
 
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-  Badge,
+  Button,
   Card,
   CardContent,
   cn,
@@ -19,7 +20,7 @@ import {
   type Client,
 } from "@jamie-nisbet/services"
 
-import { ArchiveToggle } from "@/components/archive-toggle"
+import { ArchiveChip, Chip } from "@/components/chip"
 import { ClientActions } from "@/components/client-actions"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ComplianceList, type ComplianceItem } from "@/components/compliance-list"
@@ -36,6 +37,12 @@ export const dynamic = "force-dynamic"
 // list, longest-waiting first (the sort is done in the query). Everything else
 // here is a small strip above it — the working list of todos and compliance
 // dates — kept collapsed so the leads stay the page.
+//
+// On a phone the list is the whole screen: one rail of view chips, then rows
+// that are each a single big tap target into the lead, carrying only what you
+// scan for (how long they've waited, who they are, what it's worth) plus the
+// two things worth doing without opening them — change status, call or email.
+// The wide table is the desktop affordance, not the other way round.
 
 // A lead nobody has touched in this long is overdue a nudge.
 const STALE_AFTER_DAYS = 7
@@ -65,12 +72,13 @@ function daysWaiting(client: Client, now: number): number {
   return daysSince(client.lastTouchedAt ?? client.createdAt, now)
 }
 
+function isOpen(client: Client): boolean {
+  return (openStatuses as readonly string[]).includes(client.status)
+}
+
 /** Only an open lead can be "waiting" — a won or lost one isn't owed anything. */
 function isStale(client: Client, now: number): boolean {
-  return (
-    (openStatuses as readonly string[]).includes(client.status) &&
-    daysWaiting(client, now) >= STALE_AFTER_DAYS
-  )
+  return isOpen(client) && daysWaiting(client, now) >= STALE_AFTER_DAYS
 }
 
 // The two figures worth knowing at a glance: what's still in play, and what
@@ -97,6 +105,34 @@ function valueLabel(client: Client): string | null {
   if (client.valueMinor <= 0) return null
   const amount = formatMoney(client.valueMinor, "eur")
   return client.billingType === "monthly" ? `${amount}/mo` : amount
+}
+
+/** The leading line of a phone row — what the list is sorted on. A won or lost
+ *  lead isn't waiting on anything, so it just reports when it last moved. */
+function waitedLabel(days: number, open: boolean): string {
+  if (days <= 0) return "Worked today"
+  const elapsed = waitingLabel(days)
+  return open ? `Waiting ${elapsed}` : `Last worked ${elapsed} ago`
+}
+
+// Tap-to-call / tap-to-email straight off the row — on a phone these are the
+// actions, not decoration next to an address you'd copy with a mouse.
+function ContactButton({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string
+  label: string
+  icon: typeof Phone
+}) {
+  return (
+    <Button asChild variant="ghost" size="icon-sm" aria-label={label}>
+      <a href={href}>
+        <Icon />
+      </a>
+    </Button>
+  )
 }
 
 // Everything the page reads, gathered outside the component so the render stays
@@ -165,14 +201,67 @@ export default async function LeadsPage({
       .length
   }
 
+  const hrefFor = (key: FilterKey, toArchive: boolean): string => {
+    const parts: string[] = []
+    if (toArchive) parts.push("archived=1")
+    if (key !== "all") parts.push(`filter=${key}`)
+    return parts.length > 0 ? `/?${parts.join("&")}` : "/"
+  }
+
   const overdueCompliance = compliance.filter((c) => c.overdue).length
   const overdueTasks = tasks.filter((t) => t.overdue).length
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Leads</h1>
-        <ArchiveToggle basePath="/" archived={archived} />
+    <div className="flex flex-col gap-4 sm:gap-6">
+      {/* Title, and what the list adds up to as its subtitle — on a phone that
+          reads as one block instead of a heading with a figure floated beside
+          it that wraps onto its own line anyway. */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-2xl font-semibold">Leads</h1>
+          {pipeline > 0 || monthly > 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {pipeline > 0 ? (
+                <>
+                  <span className="font-medium text-foreground">
+                    {formatMoney(pipeline, "eur")}
+                  </span>{" "}
+                  in play
+                </>
+              ) : null}
+              {pipeline > 0 && monthly > 0 ? " · " : null}
+              {monthly > 0 ? (
+                <>
+                  <span className="font-medium text-foreground">
+                    {formatMoney(monthly, "eur")}
+                  </span>{" "}
+                  / month
+                </>
+              ) : null}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
+          {/* Renders the desktop button here and, on a phone, a floating one. */}
+          {!archived ? <LeadCreateForm /> : null}
+        </div>
+      </div>
+
+      {/* The status filters, as a rail that scrolls sideways rather than
+          wrapping — a second row of chips would push the list down the screen
+          on exactly the width where that hurts most. */}
+      <div className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0">
+        {FILTERS.map((f) => (
+          <Chip
+            key={f.key}
+            href={hrefFor(f.key, archived)}
+            active={f.key === filterKey}
+            count={countFor(f.key)}
+          >
+            {f.label}
+          </Chip>
+        ))}
       </div>
 
       {/* The working list — todos and compliance dates. Collapsed by default so
@@ -208,154 +297,92 @@ export default async function LeadsPage({
         </Alert>
       ) : null}
 
-      {!archived ? <LeadCreateForm /> : null}
-
-      {/* Filters + the money the list adds up to. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-1">
-          {FILTERS.map((f) => {
-            const active = f.key === filterKey
-            const href =
-              f.key === "all"
-                ? archived
-                  ? "/?archived=1"
-                  : "/"
-                : `/?${archived ? "archived=1&" : ""}filter=${f.key}`
-            return (
-              <Link
-                key={f.key}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "rounded-sm px-3 py-1.5 text-sm transition-colors",
-                  active
-                    ? "bg-secondary font-medium text-secondary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {f.label}{" "}
-                <span className="text-xs tabular-nums opacity-70">
-                  {countFor(f.key)}
-                </span>
-              </Link>
-            )
-          })}
-        </div>
-        {pipeline > 0 || monthly > 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {pipeline > 0 ? (
-              <>
-                <span className="font-medium text-foreground">
-                  {formatMoney(pipeline, "eur")}
-                </span>{" "}
-                in play
-              </>
-            ) : null}
-            {pipeline > 0 && monthly > 0 ? " · " : null}
-            {monthly > 0 ? (
-              <>
-                <span className="font-medium text-foreground">
-                  {formatMoney(monthly, "eur")}
-                </span>{" "}
-                / month
-              </>
-            ) : null}
-          </p>
-        ) : null}
-      </div>
-
       {visible.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
             {archived
               ? "Nothing archived."
               : rows.length === 0
-                ? "No leads yet — add the first one above."
+                ? "No leads yet — add the first one."
                 : "Nothing under this filter."}
           </CardContent>
         </Card>
       ) : (
         <>
-          {/* Mobile: stacked cards, no horizontal scroll. */}
-          <div className="flex flex-col gap-3 md:hidden">
+          {/* Phone: one row per lead. The card body is a single stretched tap
+              target into the profile; the strip under it holds the only two
+              things worth doing without opening them. Archive and delete are
+              deliberately not here — they live on the lead's own page, one tap
+              away, except in the archive where restoring is the whole point. */}
+          <ul className="flex flex-col gap-2 md:hidden">
             {visible.map((row) => {
               const stale = isStale(row, now)
               const value = valueLabel(row)
               return (
-                <Card key={row.id}>
-                  <CardContent className="flex flex-col gap-3 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link
-                          href={`/leads/${row.id}`}
-                          className="font-medium underline-offset-2 hover:underline"
-                        >
-                          {row.name}
-                        </Link>
-                        {row.company ? (
-                          <div className="text-sm text-muted-foreground">
-                            {row.company}
-                          </div>
-                        ) : null}
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        {value ? (
-                          <span className="text-sm font-medium tabular-nums">
-                            {value}
-                          </span>
-                        ) : null}
-                        <Badge variant="secondary">
-                          {sourceLabel(row.source)}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="text-sm">
-                      {row.email ? (
-                        <div>
-                          <a
-                            className="underline underline-offset-2"
-                            href={`mailto:${row.email}`}
-                          >
-                            {row.email}
-                          </a>
-                        </div>
-                      ) : null}
-                      {row.phone ? (
-                        <a
-                          className="text-muted-foreground underline underline-offset-2"
-                          href={`tel:${row.phone}`}
-                        >
-                          {row.phone}
-                        </a>
-                      ) : null}
-                      {!row.email && !row.phone ? (
-                        <span className="text-muted-foreground">
-                          No contact info
+                <li
+                  key={row.id}
+                  className="relative rounded-lg border bg-card text-card-foreground"
+                >
+                  <Link
+                    href={`/leads/${row.id}`}
+                    className="flex flex-col gap-1 rounded-t-lg px-4 pt-3 pb-2 transition-colors after:absolute after:inset-0 after:rounded-lg active:bg-muted/50"
+                  >
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          stale ? "text-destructive" : "text-muted-foreground"
+                        )}
+                      >
+                        {waitedLabel(daysWaiting(row, now), isOpen(row))}
+                      </span>
+                      {value ? (
+                        <span className="shrink-0 text-sm font-medium tabular-nums">
+                          {value}
                         </span>
                       ) : null}
                     </div>
+                    <span className="text-base leading-tight font-medium">
+                      {row.name}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {row.company
+                        ? `${row.company} · ${sourceLabel(row.source)}`
+                        : sourceLabel(row.source)}
+                    </span>
+                  </Link>
 
-                    <div
-                      className={cn(
-                        "text-xs",
-                        stale
-                          ? "font-medium text-destructive"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      Last worked {waitingLabel(daysWaiting(row, now))} ago
+                  {/* Above the stretched link, so these stay tappable. */}
+                  <div className="relative z-10 flex items-center gap-2 border-t px-3 py-2">
+                    <ClientStatusSelect
+                      id={row.id}
+                      value={row.status}
+                      className="w-32"
+                    />
+                    <div className="ml-auto flex items-center gap-1">
+                      {row.phone ? (
+                        <ContactButton
+                          href={`tel:${row.phone}`}
+                          label={`Call ${row.name}`}
+                          icon={Phone}
+                        />
+                      ) : null}
+                      {row.email ? (
+                        <ContactButton
+                          href={`mailto:${row.email}`}
+                          label={`Email ${row.name}`}
+                          icon={Mail}
+                        />
+                      ) : null}
+                      {archived ? (
+                        <ClientActions id={row.id} archived compact />
+                      ) : null}
                     </div>
-
-                    <div className="flex items-center justify-between gap-3 border-t pt-3">
-                      <ClientStatusSelect id={row.id} value={row.status} />
-                      <ClientActions id={row.id} archived={archived} />
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </li>
               )
             })}
-          </div>
+          </ul>
 
           {/* Desktop: table. */}
           <Card className="hidden md:block">

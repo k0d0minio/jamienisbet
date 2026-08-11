@@ -5,6 +5,11 @@
    tokens + shadcn theme) and tells Tailwind to scan the package
    source for class names. No tokens are redefined here — one source
    of truth lives in @jamie-nisbet/ui.
+
+   Everything below the imports is *phone* plumbing: safe-area
+   utilities and touch-target minimums. It belongs here rather than in
+   the design system because it is this app — an installed, one-handed
+   PWA — that needs it; the marketing sites are read, not operated.
    ============================================================ */
 
 @import "@jamie-nisbet/ui/styles.css";
@@ -12,3 +17,74 @@
 /* Tailwind must scan the design system's TSX source for the utility classes
    its components use. Point at the real package source in the monorepo. */
 @source "../../../packages/ui/src";
+
+/* ------------------------------------------------------------------
+   Safe areas — the notch and the home indicator. Used by the fixed
+   bottom tab bar and anything else pinned to the edge of the screen.
+   ------------------------------------------------------------------ */
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* A fixed element sitting just above the bottom tab bar (the add-lead
+   button): the bar's 3.5rem plus the home-indicator inset, plus a gap. */
+@utility bottom-above-tabs {
+  bottom: calc(3.5rem + 1rem + env(safe-area-inset-bottom));
+}
+
+/* Horizontal rails (filter chips, quick actions) scroll by finger, not by
+   scrollbar — hide the bar without losing the overflow. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  html {
+    /* Landscape on iOS must not inflate the type. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    /* No grey flash on tap — the components carry their own press states. */
+    -webkit-tap-highlight-color: transparent;
+    /* Keep an inner scroll from chaining into a page-level rubber band. */
+    overscroll-behavior-y: contain;
+  }
+
+  /* ----------------------------------------------------------------
+     Touch targets. The design system is sized for a mouse (h-8 / h-9
+     controls, a 16px checkbox); on a finger those are all under the
+     ~44px anyone can hit reliably. Rather than annotate every call
+     site, lift the floor once for coarse pointers — visual size is
+     unchanged on desktop, and nothing here alters layout on a mouse.
+     ---------------------------------------------------------------- */
+  @media (pointer: coarse) {
+    [data-slot="button"]:not([data-size="xs"]):not([data-size="icon-xs"]),
+    [data-slot="select-trigger"],
+    [data-slot="input"] {
+      min-height: 2.75rem;
+    }
+
+    [data-slot="button"][data-size="icon"],
+    [data-slot="button"][data-size="icon-sm"],
+    [data-slot="button"][data-size="icon-lg"] {
+      min-width: 2.75rem;
+    }
+
+    /* The checkbox stays 16px — it grows a transparent hit area instead, so
+       ticking a todo doesn't need aim. */
+    [data-slot="checkbox"] {
+      position: relative;
+    }
+    [data-slot="checkbox"]::after {
+      content: "";
+      position: absolute;
+      inset: -0.75rem;
+    }
+  }
+}

@@ -10,8 +10,10 @@ export default function AppLayout({
   return (
     <div className="flex min-h-dvh flex-col">
       <Nav />
-      {/* pb-24 clears the fixed mobile tab bar; desktop drops back to normal. */}
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-24 sm:px-6 sm:py-8 sm:pb-8">
+      {/* The bottom padding clears the fixed tab bar (3.5rem) and the
+          home-indicator inset, with room to scroll the last row clear of it;
+          desktop drops back to normal spacing. */}
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-8 sm:pb-8">
         {children}
       </main>
     </div>

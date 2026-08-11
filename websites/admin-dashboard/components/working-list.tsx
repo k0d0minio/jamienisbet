@@ -29,7 +29,7 @@ export function WorkingList({
   return (
     <Card className="overflow-hidden py-0">
       <details className="group">
-        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50 active:bg-muted/50">
           <ChevronRight
             className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
             aria-hidden

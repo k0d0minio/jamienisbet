@@ -40,10 +40,9 @@ export function ClientStripeLink({
     <div className="grid gap-2">
       <Button
         type="button"
-        size="sm"
         variant="outline"
         disabled={pending}
-        className="w-fit"
+        className="h-auto w-full py-2 whitespace-normal sm:w-fit"
         onClick={() => {
           setError(null)
           startTransition(async () => {
