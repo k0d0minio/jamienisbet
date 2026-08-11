@@ -100,9 +100,12 @@ export async function saveClientProfile(id: string, formData: FormData) {
   revalidateLead(id)
 }
 
-/** Add a lead by hand — the meetup contact, the word-of-mouth introduction.
- * Everything except the name is optional; it can be filled in on the profile. */
-export async function addLead(formData: FormData) {
+/** Add a lead or a customer by hand — the meetup contact, the word-of-mouth
+ * introduction, the client who was already paying before this dashboard
+ * existed. One row per person either way; `status` is the only thing that says
+ * which of the two you just typed in. Everything except the name is optional
+ * and can be filled in later on the profile. */
+export async function addClient(formData: FormData) {
   const value = (name: string): string | null => {
     const raw = formData.get(name)
     if (typeof raw !== "string") return null
@@ -113,12 +116,30 @@ export async function addLead(formData: FormData) {
   const name = value("name")
   if (!name) throw new Error("A lead needs a name.")
 
+  // The form offers "Lead" and "Customer", which post "new" and "won" — but the
+  // action is the authority, so anything unrecognised falls back to a new lead
+  // rather than reaching the insert.
+  const rawStatus = value("status") ?? "new"
+  const status = isClientStatus(rawStatus) ? rawStatus : "new"
+
+  const rawBilling = value("billingType") ?? "one_off"
+  const billingType = isBillingType(rawBilling) ? rawBilling : "one_off"
+
+  // Typed in major units ("1500", "2,500.00"); no figure means zero, same as a
+  // profile whose value has never been set.
+  const rawValue = value("value")
+  const valueMinor = rawValue === null ? 0 : (parseAmountToMinor(rawValue) ?? 0)
+
   await createClientManually({
     name,
     email: value("email"),
     phone: value("phone"),
     company: value("company"),
     intakeMessage: value("intakeMessage"),
+    notes: value("notes"),
+    status,
+    valueMinor,
+    billingType,
   })
   revalidatePath("/")
 }

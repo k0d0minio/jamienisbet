@@ -48,10 +48,17 @@ relationship, and what was actually billed lives in Stripe.
   or charged **every month** (`billing_type`). The header adds them up: open one-offs as
   *in play*, monthly customers as */ month*. Both are Jamie's own figures — Stripe stays the
   authority on what was actually invoiced and paid.
-- **Add lead** — leads mostly arrive by word of mouth, so adding one by hand is a first-class
-  button, not an afterthought: a floating button in the thumb zone above the tab bar on a phone
-  (opening the form as a bottom sheet), an ordinary button beside the heading on desktop. Name
-  is the only required field.
+- **Add lead / add customer** — leads mostly arrive by word of mouth, so adding someone by hand
+  is a first-class button, not an afterthought: a floating button in the thumb zone above the tab
+  bar on a phone (opening the form as a bottom sheet), an ordinary button beside the heading on
+  desktop. The public contact form is one way in, not the only one. Because a lead and a customer
+  are the same row, the sheet opens on a **Lead / Customer** choice, which is all that sets
+  `status` — `new` or `won`. A lead needs only a name; a customer also gets **Value** and
+  **Billed**, so entering one who has been paying since before this dashboard existed doesn't
+  leave the recurring-revenue total understated from the moment they're added. The free-text box
+  follows the same split: a lead's words are intake (`intake_message`), a customer's are working
+  notes (`notes`). Anywhere else along the pipeline — contacted, proposed, delivered, lost — is
+  the status dropdown on the row itself.
 - **The working list** — todos and Portuguese compliance dates live in a strip above the list,
   collapsed by default (a native `<details>`, so it costs no JavaScript). The summary line says
   whether anything is overdue; that is all it needs to say on a normal day. Compliance rows are
@@ -178,6 +185,7 @@ app/
 components/             # login form, nav, service-worker register, lead + money UI
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
                         #   fold-card.tsx — a card that folds into <details> below `lg`
+                        #   client-create-form.tsx — add a lead or a customer by hand
 lib/                    # auth, formatting, stripe client, money, finance reads, github, app-icon
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
