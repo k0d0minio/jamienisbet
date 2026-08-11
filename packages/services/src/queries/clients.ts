@@ -116,9 +116,17 @@ export async function createClientFromReferral(
 }
 
 /**
- * Add a lead by hand — someone met at a meetup, a word-of-mouth introduction,
- * anything that never went through a form. Source is always "manual" and the
- * row starts as touched *now*, since typing it in is itself the first contact.
+ * Add a record by hand — someone met at a meetup, a word-of-mouth introduction,
+ * a customer who has been paying since before this dashboard existed. Anything
+ * that never went through a form. Source is always "manual" and the row starts
+ * as touched *now*, since typing it in is itself the first contact.
+ *
+ * `status` is what decides whether this reads as a lead or as a customer: it
+ * defaults to "new" (a fresh lead) but any point in the lifecycle is valid, so
+ * an existing customer can be entered where they actually are rather than being
+ * created as a lead and immediately advanced. `valueMinor`/`billingType` come
+ * with them, since a customer entered as "won" without a figure would leave the
+ * recurring-revenue total wrong from the moment they were added.
  */
 export async function createClientManually(input: {
   name: string
@@ -126,6 +134,10 @@ export async function createClientManually(input: {
   phone?: string | null
   company?: string | null
   intakeMessage?: string | null
+  notes?: string | null
+  status?: ClientStatus
+  valueMinor?: number
+  billingType?: BillingType
 }): Promise<Client> {
   const [row] = await getDb()
     .insert(clients)
@@ -135,6 +147,10 @@ export async function createClientManually(input: {
       phone: input.phone ?? null,
       company: input.company ?? null,
       intakeMessage: input.intakeMessage ?? null,
+      notes: input.notes ?? null,
+      status: input.status ?? "new",
+      valueMinor: input.valueMinor ?? 0,
+      billingType: input.billingType ?? "one_off",
       source: "manual",
       lastTouchedAt: new Date(),
     })

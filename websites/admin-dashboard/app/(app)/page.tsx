@@ -22,9 +22,9 @@ import {
 
 import { ArchiveChip, Chip } from "@/components/chip"
 import { ClientActions } from "@/components/client-actions"
+import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ComplianceList, type ComplianceItem } from "@/components/compliance-list"
-import { LeadCreateForm } from "@/components/lead-create-form"
 import { TaskList, type TaskItem } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
 import { daysSince, waitingLabel } from "@/lib/format"
@@ -244,7 +244,7 @@ export default async function LeadsPage({
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
           {/* Renders the desktop button here and, on a phone, a floating one. */}
-          {!archived ? <LeadCreateForm /> : null}
+          {!archived ? <ClientCreateForm /> : null}
         </div>
       </div>
 
