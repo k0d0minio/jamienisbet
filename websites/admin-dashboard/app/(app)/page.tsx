@@ -25,6 +25,7 @@ import { ClientActions } from "@/components/client-actions"
 import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ComplianceList, type ComplianceItem } from "@/components/compliance-list"
+import { DealBadges } from "@/components/deal-badges"
 import { TaskList, type TaskItem } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
 import { daysSince, waitingLabel } from "@/lib/format"
@@ -81,23 +82,32 @@ function isStale(client: Client, now: number): boolean {
   return isOpen(client) && daysWaiting(client, now) >= STALE_AFTER_DAYS
 }
 
-// The two figures worth knowing at a glance: what's still in play, and what
-// comes in every month. Both are Jamie's own numbers off the profiles — Stripe
-// is the authority on what has actually been invoiced and paid.
+// The figures worth knowing at a glance: what cash is still in play, what comes
+// in every month, and what is being traded rather than invoiced. All are Jamie's
+// own numbers off the profiles — Stripe is the authority on what has actually
+// been invoiced and paid.
+//
+// Barter is kept out of the first two on purpose. A swap can be worth real money
+// and still put nothing in the bank, so folding it into "in play" would quietly
+// overstate the pipeline; it gets its own "in kind" figure instead.
 function totals(rows: Client[]) {
   let pipeline = 0
   let monthly = 0
+  let inKind = 0
   for (const row of rows) {
     if (row.valueMinor <= 0) continue
-    if (row.billingType === "monthly") {
-      if ((customerStatuses as readonly string[]).includes(row.status)) {
-        monthly += row.valueMinor
-      }
-    } else if ((openStatuses as readonly string[]).includes(row.status)) {
+    const open = (openStatuses as readonly string[]).includes(row.status)
+    const customer = (customerStatuses as readonly string[]).includes(row.status)
+
+    if (row.dealType === "barter") {
+      if (open || customer) inKind += row.valueMinor
+    } else if (row.billingType === "monthly") {
+      if (customer) monthly += row.valueMinor
+    } else if (open) {
       pipeline += row.valueMinor
     }
   }
-  return { pipeline, monthly }
+  return { pipeline, monthly, inKind }
 }
 
 /** What a lead is worth, rendered so a retainer never reads as a one-off. */
@@ -113,6 +123,33 @@ function waitedLabel(days: number, open: boolean): string {
   if (days <= 0) return "Worked today"
   const elapsed = waitingLabel(days)
   return open ? `Waiting ${elapsed}` : `Last worked ${elapsed} ago`
+}
+
+// The subtitle under the page title: whichever of the three totals are non-zero,
+// separated by dots. Driven by a list rather than nested conditionals — with
+// three figures the "is there one before me?" separator logic is where the bugs
+// would live.
+function TotalsLine({
+  figures,
+}: {
+  figures: { amount: number; label: string }[]
+}) {
+  const shown = figures.filter((f) => f.amount > 0)
+  if (shown.length === 0) return null
+
+  return (
+    <p className="text-sm text-muted-foreground">
+      {shown.map((figure, i) => (
+        <span key={figure.label}>
+          {i > 0 ? " · " : null}
+          <span className="font-medium text-foreground">
+            {formatMoney(figure.amount, "eur")}
+          </span>{" "}
+          {figure.label}
+        </span>
+      ))}
+    </p>
+  )
 }
 
 // Tap-to-call / tap-to-email straight off the row — on a phone these are the
@@ -190,7 +227,7 @@ export default async function LeadsPage({
   const visible = filter.statuses
     ? rows.filter((r) => (filter.statuses as readonly string[]).includes(r.status))
     : rows
-  const { pipeline, monthly } = totals(rows)
+  const { pipeline, monthly, inKind } = totals(rows)
 
   // Counts sit on the filter chips so the shape of the pipeline is readable
   // without clicking through each one.
@@ -219,27 +256,13 @@ export default async function LeadsPage({
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-0.5">
           <h1 className="text-2xl font-semibold">Leads</h1>
-          {pipeline > 0 || monthly > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {pipeline > 0 ? (
-                <>
-                  <span className="font-medium text-foreground">
-                    {formatMoney(pipeline, "eur")}
-                  </span>{" "}
-                  in play
-                </>
-              ) : null}
-              {pipeline > 0 && monthly > 0 ? " · " : null}
-              {monthly > 0 ? (
-                <>
-                  <span className="font-medium text-foreground">
-                    {formatMoney(monthly, "eur")}
-                  </span>{" "}
-                  / month
-                </>
-              ) : null}
-            </p>
-          ) : null}
+          <TotalsLine
+            figures={[
+              { amount: pipeline, label: "in play" },
+              { amount: monthly, label: "/ month" },
+              { amount: inKind, label: "in kind" },
+            ]}
+          />
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
@@ -350,6 +373,10 @@ export default async function LeadsPage({
                         ? `${row.company} · ${sourceLabel(row.source)}`
                         : sourceLabel(row.source)}
                     </span>
+                    {/* Barter, commission, equity, work started — below the
+                        name rather than beside the figure, where they'd fight
+                        the amount for the same corner of a narrow card. */}
+                    <DealBadges client={row} className="mt-1" />
                   </Link>
 
                   {/* Above the stretched link, so these stay tappable. */}
@@ -395,6 +422,7 @@ export default async function LeadsPage({
                       <th className="px-4 py-3 font-medium">Lead</th>
                       <th className="px-4 py-3 font-medium">Contact</th>
                       <th className="px-4 py-3 font-medium text-right">Value</th>
+                      <th className="px-4 py-3 font-medium">Deal</th>
                       <th className="px-4 py-3 font-medium">Status</th>
                       <th className="px-4 py-3 font-medium text-right">Actions</th>
                     </tr>
@@ -451,6 +479,12 @@ export default async function LeadsPage({
                           </td>
                           <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
                             {value ?? <span className="text-muted-foreground">—</span>}
+                          </td>
+                          {/* How it's settled, beside what it's worth — the two
+                              only mean anything together. Empty for the ordinary
+                              cash deal that hasn't started yet. */}
+                          <td className="px-4 py-3">
+                            <DealBadges client={row} />
                           </td>
                           <td className="px-4 py-3">
                             <ClientStatusSelect id={row.id} value={row.status} />

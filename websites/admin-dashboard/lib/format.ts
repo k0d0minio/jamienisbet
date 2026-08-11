@@ -10,6 +10,17 @@ export function formatDateTime(value: Date | string | null): string {
   return formatter.format(date)
 }
 
+// Some timestamps are only ever read as a day — when work started on an
+// engagement, say. The hour is noise there, so it gets its own formatter rather
+// than a trimmed version of the one above.
+const dateFormatter = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" })
+
+export function formatDate(value: Date | string | null): string {
+  if (!value) return "—"
+  const date = typeof value === "string" ? new Date(value) : value
+  return dateFormatter.format(date)
+}
+
 // Stripe returns timestamps as epoch seconds; render them the same way as the
 // DB timestamps above.
 export function formatEpoch(seconds: number | null): string {
