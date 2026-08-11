@@ -68,7 +68,12 @@ export type Ticket = {
   meta: [string, string][]
   /** The pasteable body of `## Prompt` (or the remi-ai alias `## Agent prompt`). */
   prompt: string | null
-  /** The full ticket markdown, for reading on the spot. */
+  /**
+   * The ticket markdown to read on the spot, rendered as markdown on the
+   * board. The H1 and the metadata table are stripped — the row's summary and
+   * the meta list already show them, and repeating them pushes the actual
+   * ticket below the fold. "Open on GitHub" is the unedited file.
+   */
   body: string
 }
 
@@ -124,6 +129,22 @@ function extractPrompt(lines: string[]): string | null {
   return section.length > 0 ? section : null
 }
 
+/**
+ * The reading body: the ticket minus its H1 and its metadata table — both
+ * already on screen as the row's title strip and meta list. Only the *header*
+ * block is stripped (everything up to the first `##`), so a table inside a
+ * section of the ticket itself survives and renders as a table.
+ */
+function readingBody(lines: string[]): string {
+  const firstSection = lines.findIndex((l) => /^##\s/.test(l))
+  const header = firstSection === -1 ? lines : lines.slice(0, firstSection)
+  const rest = firstSection === -1 ? [] : lines.slice(firstSection)
+  const keptHeader = header.filter(
+    (l) => !/^#\s/.test(l) && !/^\s*\|.*\|\s*$/.test(l)
+  )
+  return [...keptHeader, ...rest].join("\n").trim()
+}
+
 export function parseTicket(
   repo: TicketRepo,
   path: string,
@@ -168,7 +189,7 @@ export function parseTicket(
     priority,
     meta,
     prompt: extractPrompt(lines),
-    body: markdown.trim(),
+    body: readingBody(lines),
   }
 }
 

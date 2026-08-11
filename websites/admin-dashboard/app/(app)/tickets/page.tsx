@@ -13,6 +13,7 @@ import {
 
 import { Chip } from "@/components/chip"
 import { CopyButton } from "@/components/copy-button"
+import { Markdown } from "@/components/markdown"
 import {
   TICKET_STATUSES,
   listTickets,
@@ -129,11 +130,10 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
             </dl>
           ) : null}
 
-          {/* The ticket as written — markdown is the interface, so show the
-              file itself rather than a re-rendering that could drift from it. */}
-          <pre className="overflow-x-auto rounded-md bg-muted/50 p-3 text-xs leading-relaxed whitespace-pre-wrap">
-            {ticket.body}
-          </pre>
+          {/* The ticket, rendered. Markdown is the interface for *writing* a
+              ticket; reading one on a phone wants headings and lists, not
+              syntax. The unedited file is one tap away on GitHub. */}
+          <Markdown>{ticket.body}</Markdown>
         </div>
       </details>
     </li>
