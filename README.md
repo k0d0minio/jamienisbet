@@ -54,10 +54,11 @@ jamienisbet/
 ```
 
 **Where the business stands** — who is waiting to hear back, what they're worth, and what has
-been paid — lives in the [admin dashboard](websites/admin-dashboard/): three screens, one row
+been paid — lives in the [admin dashboard](websites/admin-dashboard/): four screens, one row
 per person. Business state (leads, statuses, todos, compliance dates) lives in **one** store,
 the Neon `biz.*` schema operated through that dashboard; the repo holds no pipeline state and
-nothing is mirrored back into git.
+nothing is mirrored back into git. The dashboard's Tickets screen is the one read-only window
+onto other repos: each active repo's `.icm/intake/` markdown backlog, read live from GitHub.
 
 ## How the pieces work together
 
@@ -79,9 +80,10 @@ so everything looks and sounds like one business.
 
 **Built and deliberately small (2026-08).** The ICM protocol is real (conventions, stage
 contracts, configured workspaces), the brand is code (`@jamie-nisbet/ui`, consumed by all four
-live sites), and the admin dashboard is the operating cockpit — now **three screens**: Leads
+live sites), and the admin dashboard is the operating cockpit — now **four screens**: Leads
 (one staleness-sorted list, with todos and compliance dates folded above it), a lead's profile,
-and Money (Stripe balance, invoices, payment links). The AI deal pipeline it used to carry was
+Tickets (every active repo's `.icm/intake/` backlog, read-only with copy-paste prompts), and
+Money (Stripe balance, invoices, payment links). The AI deal pipeline it used to carry was
 removed in favour of running the workspace contracts directly; see the 2026-08 reversal in
 [`_config/conventions/decisions.md`](_config/conventions/decisions.md). Business state lives in
 **one** store (the Neon `biz.*` schema); client delivery (code + docs) lives in each client's

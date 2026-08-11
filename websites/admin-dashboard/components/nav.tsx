@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Users, Wallet, type LucideIcon } from "lucide-react"
+import { Ticket, Users, Wallet, type LucideIcon } from "lucide-react"
 
 import { Button, LogoMark, cn } from "@jamie-nisbet/ui"
 
@@ -14,10 +14,12 @@ type NavLink = {
   icon: LucideIcon
 }
 
-// Two screens. Leads is home — the dashboard opens on the work, not on a
-// summary of it — and Money is everything Stripe.
+// Three screens. Leads is home — the dashboard opens on the work, not on a
+// summary of it — Tickets is the estate's engineering backlog read from each
+// repo's .icm/intake/, and Money is everything Stripe.
 const links: NavLink[] = [
   { href: "/", label: "Leads", icon: Users },
+  { href: "/tickets", label: "Tickets", icon: Ticket },
   { href: "/money", label: "Money", icon: Wallet },
 ]
 
@@ -76,7 +78,7 @@ export function Nav() {
         className="fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-safe sm:hidden"
         aria-label="Primary"
       >
-        <div className="mx-auto grid max-w-5xl grid-cols-2">
+        <div className="mx-auto grid max-w-5xl grid-cols-3">
           {links.map((link) => {
             const active = isActive(pathname, link.href)
             const Icon = link.icon
