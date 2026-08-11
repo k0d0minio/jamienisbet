@@ -1,13 +1,24 @@
 "use client"
 
-import { useRef, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import { Plus, Trash2 } from "lucide-react"
 
-import { Button, Checkbox, Input, cn } from "@jamie-nisbet/ui"
+import {
+  Button,
+  Checkbox,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  cn,
+} from "@jamie-nisbet/ui"
 
 import {
   addTaskAction,
   deleteTaskAction,
+  setTaskClientAction,
   setTaskCompletedAction,
 } from "@/app/(app)/actions"
 
@@ -15,21 +26,90 @@ import {
 export type TaskItem = {
   id: string
   title: string
+  // Who the todo is about. A title like "send the quote" says nothing on its
+  // own — the lead is what makes it actionable, so it travels with the row.
+  clientId: string | null
+  clientName: string | null
   dueDate: string | null // ISO
   overdue: boolean
   completed: boolean
+}
+
+/** The leads a todo can be pointed at, as the picker needs them. */
+export type TaskLead = { id: string; name: string }
+
+// Radix won't take an empty string as an item value, so "no lead" needs a
+// sentinel of its own; it never leaves this file.
+const NO_LEAD = "__none__"
+
+/** The lead a todo hangs off, as a picker — showing whose it is and changing it
+ *  are the same control, so a todo written before you knew can be attached
+ *  later without retyping it. */
+function TaskLeadSelect({
+  task,
+  leads,
+  disabled,
+  onChange,
+}: {
+  task: TaskItem
+  leads: TaskLead[]
+  disabled: boolean
+  onChange: (clientId: string | null) => void
+}) {
+  // A todo can point at a lead that has since been archived, and the archived
+  // one isn't in the picker's list. Carry it as an option of its own so the
+  // trigger reads as that name rather than going blank.
+  const options =
+    task.clientId && !leads.some((lead) => lead.id === task.clientId)
+      ? [...leads, { id: task.clientId, name: task.clientName ?? "Unknown lead" }]
+      : leads
+
+  return (
+    <Select
+      value={task.clientId ?? NO_LEAD}
+      disabled={disabled}
+      onValueChange={(next) => onChange(next === NO_LEAD ? null : next)}
+    >
+      <SelectTrigger
+        size="sm"
+        aria-label={`Lead for "${task.title}"`}
+        className={cn(
+          "h-7 w-auto max-w-40 gap-1 border-transparent px-2 text-xs shadow-none hover:bg-muted",
+          !task.clientId && "text-muted-foreground"
+        )}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={NO_LEAD}>No lead</SelectItem>
+        {options.map((lead) => (
+          <SelectItem key={lead.id} value={lead.id}>
+            {lead.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
 }
 
 export function TaskList({
   tasks,
   // When set, todos added here hang off that lead and also show on its profile.
   clientId,
+  // The leads a todo can be pointed at. Passed on the leads screen, where the
+  // list mixes everyone's todos; omitted on a lead's own profile, where every
+  // todo already belongs to the person you are looking at.
+  leads,
 }: {
   tasks: TaskItem[]
   clientId?: string
+  leads?: TaskLead[]
 }) {
   const [pending, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
+  // The new todo's lead. Controlled rather than left to the form's own reset,
+  // because the picker posts through a hidden input.
+  const [newLead, setNewLead] = useState<string>(NO_LEAD)
 
   return (
     <div className="flex flex-col gap-3">
@@ -55,8 +135,9 @@ export function TaskList({
                   )
                 }
               />
-              {/* The due date drops under the title on a phone rather than
-                  squeezing it into a column — a todo is mostly its wording. */}
+              {/* Whose it is and when it's due drop under the title on a phone
+                  rather than squeezing it into columns — a todo is mostly its
+                  wording. */}
               <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-3">
                 <span
                   className={cn(
@@ -66,21 +147,33 @@ export function TaskList({
                 >
                   {task.title}
                 </span>
-                {task.dueDate && !task.completed && (
-                  <span
-                    className={cn(
-                      "shrink-0 text-xs",
-                      task.overdue
-                        ? "font-medium text-destructive"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {new Date(task.dueDate).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </span>
-                )}
+                <div className="-ml-2 flex shrink-0 items-center gap-2 sm:ml-0">
+                  {leads ? (
+                    <TaskLeadSelect
+                      task={task}
+                      leads={leads}
+                      disabled={pending}
+                      onChange={(next) =>
+                        startTransition(() => setTaskClientAction(task.id, next))
+                      }
+                    />
+                  ) : null}
+                  {task.dueDate && !task.completed && (
+                    <span
+                      className={cn(
+                        "shrink-0 text-xs",
+                        task.overdue
+                          ? "font-medium text-destructive"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {new Date(task.dueDate).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </span>
+                  )}
+                </div>
               </div>
               {/* There is no hover on a phone, so the delete is always there
                   on small screens and only reveals on hover from `sm` up. */}
@@ -104,17 +197,45 @@ export function TaskList({
           startTransition(async () => {
             await addTaskAction(formData)
             formRef.current?.reset()
+            setNewLead(NO_LEAD)
           })
         }
         className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center"
       >
-        {clientId ? <input type="hidden" name="clientId" value={clientId} /> : null}
+        {/* On a lead's own page the lead is fixed; on the leads screen it comes
+            off the picker, which posts through here rather than as a bare
+            Radix select. */}
+        <input
+          type="hidden"
+          name="clientId"
+          value={clientId ?? (newLead === NO_LEAD ? "" : newLead)}
+        />
         <Input
           name="title"
           placeholder="Add a todo…"
           required
           className="sm:min-w-40 sm:flex-1"
         />
+        {/* Who it's for gets a row of its own on a phone: crammed in beside the
+            date it would be a 100px box holding someone's name. */}
+        {leads ? (
+          <Select value={newLead} onValueChange={setNewLead}>
+            <SelectTrigger
+              aria-label="Lead this todo is for"
+              className="w-full sm:w-40"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_LEAD}>No lead</SelectItem>
+              {leads.map((lead) => (
+                <SelectItem key={lead.id} value={lead.id}>
+                  {lead.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
         {/* Date and submit share a line on a phone rather than each taking a
             full-width row — the title is the only field that needs the width. */}
         <div className="flex min-w-0 gap-2">

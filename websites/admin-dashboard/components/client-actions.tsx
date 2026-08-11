@@ -14,8 +14,10 @@ export function ClientActions({
   // When true (the detail page), a delete sends the user back to the list since
   // the record they're viewing no longer exists.
   redirectOnDelete = false,
-  // Icon-only, for a row in the phone list where there is no width for labels.
-  // The buttons keep their accessible names via aria-label.
+  // Icon-only, for a row in either list — the phone one has no width for
+  // labels, and on the desktop table a spelled-out "Archive"/"Delete" gave the
+  // rarest column the widest cell. The buttons keep their accessible names via
+  // aria-label; the labelled pair is for the lead's own danger zone.
   compact = false,
   className,
 }: {

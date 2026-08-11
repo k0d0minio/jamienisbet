@@ -19,6 +19,7 @@ import {
   setClientRepo,
   setClientStatus,
   setClientWorkStarted,
+  setTaskClient,
   setTaskCompleted,
   touchClient,
   updateClient,
@@ -304,6 +305,15 @@ export async function addTaskAction(formData: FormData) {
   await createTask({ title, dueDate, clientId })
   revalidatePath("/")
   if (clientId) revalidatePath(`/leads/${clientId}`)
+}
+
+/** Attach a todo to a lead, or detach it (null). Both the lead it left and the
+ * one it joined list this todo, so every lead page is refreshed rather than
+ * reading the row back to work out which two moved. */
+export async function setTaskClientAction(id: string, clientId: string | null) {
+  await setTaskClient(id, clientId)
+  revalidatePath("/")
+  revalidatePath("/leads/[id]", "page")
 }
 
 export async function setTaskCompletedAction(id: string, completed: boolean) {

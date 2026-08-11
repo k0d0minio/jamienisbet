@@ -69,9 +69,13 @@ async function loadLead(id: string) {
   const client = await getClient(id)
   if (!client) return null
 
+  // Every todo here is this lead's, so the list is rendered without the lead
+  // picker the leads screen carries — the name would be the same on each row.
   const tasks = (await listOpenTasksForClient(client.id)).map((t) => ({
     id: t.id,
     title: t.title,
+    clientId: t.clientId,
+    clientName: client.name,
     dueDate: t.dueDate?.toISOString() ?? null,
     overdue: t.dueDate !== null && t.dueDate.getTime() < now,
     completed: false,
