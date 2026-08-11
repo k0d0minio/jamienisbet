@@ -85,7 +85,9 @@ started**, as a rail of real buttons), move their status, then the profile and t
 profile's second half is the **Deal**: value, billed, paid in (cash or an exchange — which
 reveals a *what's being exchanged* box), commission %, equity %. **Work started** is a one-tap
 toggle in the rail rather than a field to save, because it is something you record on the day it
-happens; re-tapping undoes it, and marking an already-started engagement keeps the original date. Reference material and
+happens; re-tapping undoes it, and marking an already-started engagement keeps the original date.
+
+Reference material and
 irreversible actions sink to the bottom — **Intake** folds into a tap-to-open `<details>` below
 `lg`, connecting a delivery repo folds away until asked for, and archive/delete live in a
 **Danger zone** card rather than beside the title where a thumb could find them.
@@ -122,7 +124,7 @@ delivery-repo features; unset, the screen shows a "not configured" notice.
 
 The admin talks to Stripe directly via the server-side secret key (`STRIPE_SECRET_KEY`) — this
 is owner-only surface, so no publishable key or client SDK is involved. Stripe is the source of
-truth for money (as in [`workspaces/finance/`](../../workspaces/finance/)); every figure shown
+truth for money; every figure shown
 is read live from Stripe, and nothing about an amount comes from the browser. One page, four
 sections:
 
@@ -154,11 +156,9 @@ one-person consultancy whose actual need is knowing who is waiting to hear back.
 
 Gone with it: the `deals`, `documents`, `generations`, `touches` and `workshop_messages` tables,
 the `app/api/ai/*` routes, and the `@jamie-nisbet/icm` package (its only consumer was those
-routes). The markdown factory those runs read — `_config/`, `shared/templates/`,
-`workspaces/*/stages/` — is untouched and still drives workspace runs done by agents directly.
-
-If any of it comes back, it should come back as a workspace run producing a reviewed file, not
-as another screen here.
+routes). The ICM markdown factory (`_config/`, `shared/templates/`, `workspaces/`) was retired
+in 2026-08 — the repo now carries only the websites and their shared packages. History in
+[`.icm/docs/decisions.md`](../../.icm/docs/decisions.md).
 
 ## Auth
 

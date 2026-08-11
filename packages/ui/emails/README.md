@@ -8,7 +8,7 @@ These are plain HTML files, not React components — Resend's Template feature r
 template it stores, referenced by `id`, so nothing needs to be built or imported from code.
 Styling is inlined (table layout, inline `style` attributes, no external CSS) for mail-client
 compatibility, using the light-mode brand colours, Hanken Grotesk / IBM Plex Mono font stacks,
-and the wordmark lockup from [`_config/brand/visual/`](../../../_config/brand/visual/).
+and the wordmark lockup from [`../BRAND.md`](../BRAND.md).
 
 ## Setup (once per template)
 
@@ -42,17 +42,15 @@ refactor is template-vs-inline-text only, it doesn't change what gets sent or wh
 ### Manual use only — do not call from code
 
 Per the repo's standing rule ("no outbound action without review"), client-facing email is
-drafted and sent by a human, not fired automatically. These mirror
-[`shared/templates/email/`](../../../shared/templates/email/) but as branded HTML you can compose,
-preview, and send by hand from the Resend dashboard (**Emails → Send → From a template**) instead
-of the plain-text draft-then-`scripts/send-email.sh` flow. Fill the variables per client/lead,
-review the preview, then send.
+drafted and sent by a human, not fired automatically. These are branded HTML you can compose,
+preview, and send by hand from the Resend dashboard (**Emails → Send → From a template**).
+Fill the variables per client/lead, review the preview, then send.
 
-| File | Mirrors | Variables |
-|---|---|---|
-| [`invoice-payment-reminder.html`](invoice-payment-reminder.html) | `shared/templates/email/chase.md` | `CLIENT_NAME`, `INVOICE_NUMBER`, `AMOUNT`, `DUE_DATE`, `BUSINESS_EMAIL` |
-| [`outreach-first-touch.html`](outreach-first-touch.html) | `shared/templates/email/outreach.md` | `CLIENT_NAME`, `OPENER`, `WHAT`, `HOOK`, `CTA`, `BUSINESS_EMAIL` |
-| [`follow-up.html`](follow-up.html) | `shared/templates/email/follow-up.md` | `CLIENT_NAME`, `CONTEXT`, `RECAP`, `NEXT_STEP` |
+| File | Variables |
+|---|---|
+| [`invoice-payment-reminder.html`](invoice-payment-reminder.html) | `CLIENT_NAME`, `INVOICE_NUMBER`, `AMOUNT`, `DUE_DATE`, `BUSINESS_EMAIL` |
+| [`outreach-first-touch.html`](outreach-first-touch.html) | `CLIENT_NAME`, `OPENER`, `WHAT`, `HOOK`, `CTA`, `BUSINESS_EMAIL` |
+| [`follow-up.html`](follow-up.html) | `CLIENT_NAME`, `CONTEXT`, `RECAP`, `NEXT_STEP` |
 
 `CONTEXT` should include its own leading punctuation/space if used, e.g. `" — great to finally
 put a voice to the emails"`, to match the "Good to talk{{{CONTEXT}}}." sentence it drops into.
@@ -61,7 +59,7 @@ put a voice to the emails"`, to match the "Good to talk{{{CONTEXT}}}." sentence 
 
 - Colours: `--blue-600 #3A5A78` (primary/links), neutrals `#FFFFFF`/`#F7F8F9` (surfaces),
   `#E2E5E9` (border), `#15181C`/`#4C545D`/`#6B747F` (text-1/2/3) — see
-  [`_config/brand/visual/tokens.json`](../../../_config/brand/visual/tokens.json). Dark mode is
+  [`../tokens/`](../tokens/). Dark mode is
   intentionally not implemented here — most inboxes strip `<style>`/media queries, so all values
   are hardcoded light-mode.
 - Fonts: `'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
@@ -69,7 +67,7 @@ put a voice to the emails"`, to match the "Good to talk{{{CONTEXT}}}." sentence 
   Menlo, Consolas, monospace` for the uppercase eyebrow label and footer — the one place brand
   voice allows uppercase.
 - Logo: the wordmark ("Jamie Nisbet" in Hanken Grotesk 700) is the lockup used here, per
-  [`_config/brand/visual/logo.md`](../../../_config/brand/visual/logo.md) — no image asset
+  [`../BRAND.md`](../BRAND.md) — no image asset
   required, so nothing breaks when images are blocked by default.
 - Voice: first person singular, sentence case, no emoji, no exclamation marks, quiet/specific
-  CTAs — see [`_config/brand/voice/`](../../../_config/brand/voice/).
+  CTAs — see [`../BRAND.md`](../BRAND.md).

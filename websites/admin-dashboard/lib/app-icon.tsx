@@ -8,7 +8,7 @@ const MONOGRAM = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" 
 
 const MONOGRAM_DATA_URI = `data:image/svg+xml;utf8,${encodeURIComponent(MONOGRAM)}`
 
-// Brand blue-600 (see _config/brand/visual/tokens.json). Hard-coded because the
+// Brand blue-600 (see packages/ui/tokens). Hard-coded because the
 // generated PNG can't read the theme's CSS custom properties.
 const BRAND_BLUE = "#3A5A78"
 
