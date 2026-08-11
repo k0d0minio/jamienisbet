@@ -12,7 +12,8 @@ networking and word of mouth. Two halves, one system:
 - **The cockpit** — the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)),
   where the business *runs* day-to-day. **Four screens, deliberately:** *Leads* (every lead and
   customer in one list, longest-waiting first, with todos and compliance dates folded above it),
-  a *lead's profile* (contact, value, notes, delivery repo, Stripe link), *Tickets* (every
+  a *lead's profile* (contact, the deal — value, cash or barter, commission and equity % —
+  notes, delivery repo, Stripe link), *Tickets* (every
   active repo's `.icm/intake/` markdown backlog in one read-only board with copy-paste prompts —
   the repos own the tickets, the dashboard only reads them), and *Money* (Stripe balance,
   invoices, payment links). One row per person — there is no separate deal record, and

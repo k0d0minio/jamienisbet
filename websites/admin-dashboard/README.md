@@ -49,6 +49,17 @@ relationship, and what was actually billed lives in Stripe.
   or charged **every month** (`billing_type`). The header adds them up: open one-offs as
   *in play*, monthly customers as */ month*. Both are Jamie's own figures — Stripe stays the
   authority on what was actually invoiced and paid.
+- **Deal terms, on the row** — not every engagement is euros invoiced monthly, and none of that
+  is legible from a number in a Value column. So a **Deal** column (badges under the name on a
+  phone) carries the four things that change how you treat a relationship:
+  **Barter** (`deal_type = 'barter'` — services exchanged, not invoiced),
+  **_n_% comm** (`commission_bps` — the cut of the client's revenue taken through Stripe),
+  **_n_% equity** (`equity_bps` — the stake negotiated in their company), and
+  **Started** (`work_started_at` — the work has begun). A plain cash deal that hasn't started
+  shows nothing, which is most rows most of the time.
+  Barter is deliberately kept **out of** *in play* and */ month* and given its own **in kind**
+  figure in the header: a swap can be worth real money and still put nothing in the bank, so
+  folding it in would quietly overstate the pipeline.
 - **Add lead / add customer** — leads mostly arrive by word of mouth, so adding someone by hand
   is a first-class button, not an afterthought: a floating button in the thumb zone above the tab
   bar on a phone (opening the form as a bottom sheet), an ordinary button beside the heading on
@@ -59,7 +70,9 @@ relationship, and what was actually billed lives in Stripe.
   leave the recurring-revenue total understated from the moment they're added. The free-text box
   follows the same split: a lead's words are intake (`intake_message`), a customer's are working
   notes (`notes`). Anywhere else along the pipeline — contacted, proposed, delivered, lost — is
-  the status dropdown on the row itself.
+  the status dropdown on the row itself. The customer branch also asks **Paid in** (cash or
+  services) — and only that, of the deal terms: the rest skews no total by waiting for the
+  profile, but a swap filed as cash overstates the pipeline from the moment it is typed.
 - **The working list** — todos and Portuguese compliance dates live in a strip above the list,
   collapsed by default (a native `<details>`, so it costs no JavaScript). The summary line says
   whether anything is overdue; that is all it needs to say on a normal day. Compliance rows are
@@ -67,8 +80,12 @@ relationship, and what was actually billed lives in Stripe.
 
 A lead's own page adds the read-only intake provenance (how they came in, what they asked for),
 their **delivery repo**, their **Stripe customer**, and the todos filed against them. It is
-ordered by what you actually do on a phone: reach them (call / email / mark touched, as a rail
-of real buttons), move their status, then the profile and their todos. Reference material and
+ordered by what you actually do on a phone: reach them (call / email / mark touched / **work
+started**, as a rail of real buttons), move their status, then the profile and their todos. The
+profile's second half is the **Deal**: value, billed, paid in (cash or an exchange — which
+reveals a *what's being exchanged* box), commission %, equity %. **Work started** is a one-tap
+toggle in the rail rather than a field to save, because it is something you record on the day it
+happens; re-tapping undoes it, and marking an already-started engagement keeps the original date. Reference material and
 irreversible actions sink to the bottom — **Intake** folds into a tap-to-open `<details>` below
 `lg`, connecting a delivery repo folds away until asked for, and archive/delete live in a
 **Danger zone** card rather than beside the title where a thumb could find them.
@@ -207,7 +224,9 @@ components/             # login form, nav, service-worker register, lead + money
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
                         #   fold-card.tsx — a card that folds into <details> below `lg`
                         #   client-create-form.tsx — add a lead or a customer by hand
-lib/                    # auth, formatting, stripe client, money, finance reads, github, tickets, app-icon
+                        #   deal-badges.tsx — barter / commission / equity / started, on the row
+                        #   work-started-button.tsx — one-tap "the work has begun"
+lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets, app-icon
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 

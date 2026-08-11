@@ -66,6 +66,35 @@ export const clients = biz.table("clients", {
     .notNull()
     .default("one_off"),
 
+  // ---- How the deal is settled ----------------------------------------------
+  // Not every engagement is paid in euros. `deal_type` says how to read the
+  // figure above: 'cash' is the ordinary case (invoiced, and what the leads
+  // list adds up as pipeline and recurring revenue); 'barter' means no money
+  // changes hands — the work is traded for work, and `value_minor` is only what
+  // that exchange is *worth*, which is why the totals keep it in a separate
+  // "in kind" figure rather than counting it as money coming in.
+  // `barter_terms` is the free-text record of what is actually being swapped.
+  dealType: varchar("deal_type", { length: 20 }).notNull().default("cash"),
+  barterTerms: text("barter_terms"),
+
+  // ---- Commission & ownership ------------------------------------------------
+  // Two ways an engagement pays beyond a fee, and both need to be visible on
+  // the list rather than buried in a note. Stored in basis points so a half
+  // percent is expressible without floats: 850 = 8.5%, 10000 = 100%.
+  //
+  // `commission_bps` — the cut taken on the client's own revenue, collected
+  // through Stripe. `equity_bps` — the stake negotiated in their company.
+  // Null on both means "not part of this deal"; zero is a deliberate nil.
+  commissionBps: integer("commission_bps"),
+  equityBps: integer("equity_bps"),
+
+  // ---- Delivery --------------------------------------------------------------
+  // When work actually started. Distinct from `status`: a won lead is agreed,
+  // this says the doing has begun — which matters most on a barter or
+  // equity-only deal, where there is no invoice in Stripe to signal it.
+  // Null = not started.
+  workStartedAt: timestamp("work_started_at", { withTimezone: true }),
+
   // ---- Internal ------------------------------------------------------------
   // Owner-only working notes, appended as the relationship develops.
   notes: text("notes"),

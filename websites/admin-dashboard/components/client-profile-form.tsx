@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useFormStatus } from "react-dom"
 
 import {
@@ -13,9 +14,10 @@ import {
   SelectValue,
   Textarea,
 } from "@jamie-nisbet/ui"
-import type { Client } from "@jamie-nisbet/services"
+import type { Client, DealType } from "@jamie-nisbet/services"
 
 import { saveClientProfile } from "@/app/(app)/actions"
+import { bpsToPercentInput } from "@/lib/percent"
 
 function SaveButton() {
   const { pending } = useFormStatus()
@@ -54,8 +56,20 @@ function toMajor(minor: number): string {
 // The editable core of a lead's profile. How they came in (source, service,
 // referral code, budget indicated, received date) is shown read-only under
 // Intake — this is where the record is enriched, priced, and kept notes on.
+//
+// Two halves: who they are, then what the deal is. The second half is more than
+// a number, because not every engagement is euros invoiced — some are work
+// traded for work, some pay a cut of the client's revenue, some pay in a slice
+// of the company, and any of those can be true at once.
 export function ClientProfileForm({ client }: { client: Client }) {
   const save = saveClientProfile.bind(null, client.id)
+
+  // Only the deal type is held in state, and only so the barter terms box can
+  // appear the moment "Exchange of services" is picked — asking what is being
+  // swapped on a cash deal is a question with no answer.
+  const [dealType, setDealType] = useState<DealType>(
+    client.dealType === "barter" ? "barter" : "cash"
+  )
 
   return (
     <form action={save} className="grid gap-4">
@@ -95,32 +109,91 @@ export function ClientProfileForm({ client }: { client: Client }) {
             placeholder="—"
           />
         </Field>
-        <Field id="value" label="Value (€)">
-          <Input
-            id="value"
-            name="value"
-            inputMode="decimal"
-            defaultValue={toMajor(client.valueMinor)}
-            placeholder="0.00"
-          />
-        </Field>
-        <Field id="billingType" label="Billed">
-          <Select name="billingType" defaultValue={client.billingType}>
-            <SelectTrigger id="billingType" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="one_off">One-off</SelectItem>
-              <SelectItem value="monthly">Every month</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
       </div>
-      <p className="-mt-2 text-xs text-muted-foreground">
-        Your own figure for what this is worth. A monthly one counts toward the
-        recurring total on the leads list; Stripe stays the authority on what was
-        actually invoiced and paid.
-      </p>
+
+      <section className="grid gap-4 border-t pt-4">
+        <h3 className="text-xs font-medium text-muted-foreground">Deal</h3>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Field id="value" label="Value (€)">
+            <Input
+              id="value"
+              name="value"
+              inputMode="decimal"
+              defaultValue={toMajor(client.valueMinor)}
+              placeholder="0.00"
+            />
+          </Field>
+          <Field id="billingType" label="Billed">
+            <Select name="billingType" defaultValue={client.billingType}>
+              <SelectTrigger id="billingType" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="one_off">One-off</SelectItem>
+                <SelectItem value="monthly">Every month</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          {/* Controlled, and posted by the hidden input below: a Radix Select
+              driven by `value` doesn't submit itself. */}
+          <Field id="dealType" label="Paid in">
+            <Select
+              value={dealType}
+              onValueChange={(next) => setDealType(next as DealType)}
+            >
+              <SelectTrigger id="dealType" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="barter">Exchange of services</SelectItem>
+              </SelectContent>
+            </Select>
+            <input type="hidden" name="dealType" value={dealType} />
+          </Field>
+
+          <Field id="commission" label="Commission (%)">
+            <Input
+              id="commission"
+              name="commission"
+              inputMode="decimal"
+              defaultValue={bpsToPercentInput(client.commissionBps)}
+              placeholder="—"
+            />
+          </Field>
+          <Field id="equity" label="Equity (%)">
+            <Input
+              id="equity"
+              name="equity"
+              inputMode="decimal"
+              defaultValue={bpsToPercentInput(client.equityBps)}
+              placeholder="—"
+            />
+          </Field>
+        </div>
+
+        {dealType === "barter" ? (
+          <Field id="barterTerms" label="What's being exchanged">
+            <Textarea
+              id="barterTerms"
+              name="barterTerms"
+              rows={3}
+              defaultValue={client.barterTerms ?? ""}
+              placeholder="What you're doing for them, and what you're getting back…"
+            />
+          </Field>
+        ) : null}
+
+        <p className="text-xs text-muted-foreground">
+          Your own figure for what this is worth. A monthly one counts toward the
+          recurring total on the leads list; an exchange of services is counted
+          separately as <em>in kind</em>, since nothing lands in the bank for it.
+          Commission is the cut of their revenue taken through Stripe, equity the
+          stake in their company — both show on the leads list. Stripe stays the
+          authority on what was actually invoiced and paid.
+        </p>
+      </section>
 
       <Field id="notes" label="Notes">
         <Textarea

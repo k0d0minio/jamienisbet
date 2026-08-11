@@ -14,9 +14,11 @@ import {
   isBillingType,
   isClientStatus,
   isComplianceRecurrence,
+  isDealType,
   setClientArchived,
   setClientRepo,
   setClientStatus,
+  setClientWorkStarted,
   setTaskCompleted,
   touchClient,
   updateClient,
@@ -25,6 +27,7 @@ import {
 
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
 import { parseAmountToMinor } from "@/lib/money"
+import { parsePercentToBps } from "@/lib/percent"
 import { getStripe } from "@/lib/stripe"
 import {
   clientSlug,
@@ -59,6 +62,15 @@ export async function markTouched(id: string) {
   revalidateLead(id)
 }
 
+/** "The work has begun." Its own flag rather than another status, because it is
+ * orthogonal to where the deal sits: delivery can start on a handshake before
+ * anything is signed, and on a barter or equity deal there is no first invoice
+ * in Stripe to signal it. Toggling off is for when it was hit by mistake. */
+export async function setWorkStarted(id: string, started: boolean) {
+  await setClientWorkStarted(id, started)
+  revalidateLead(id)
+}
+
 // Editable profile fields, read straight off the form. Empty strings become
 // null so a cleared field doesn't persist as "".
 export async function saveClientProfile(id: string, formData: FormData) {
@@ -88,6 +100,26 @@ export async function saveClientProfile(id: string, formData: FormData) {
 
   const rawBilling = String(formData.get("billingType") ?? "one_off")
   patch.billingType = isBillingType(rawBilling) ? rawBilling : "one_off"
+
+  // How the deal is settled. Anything unrecognised is cash — the safe reading,
+  // since it keeps the figure in the pipeline total rather than silently moving
+  // it out of the money you're expecting.
+  const rawDealType = String(formData.get("dealType") ?? "cash")
+  patch.dealType = isDealType(rawDealType) ? rawDealType : "cash"
+  // The barter terms box only exists while "exchange of services" is selected,
+  // so switching back to cash clears what was written for the old arrangement
+  // rather than leaving it behind, invisible and still stored.
+  patch.barterTerms = patch.dealType === "barter" ? value("barterTerms") : null
+
+  // Commission and equity, typed as percentages ("8.5", "10 %"). A cleared or
+  // unparseable field means "not part of this deal", which is null rather than
+  // zero — zero would read on the row as a nil cut deliberately agreed.
+  const percent = (name: string): number | null => {
+    const raw = value(name)
+    return raw === null ? null : parsePercentToBps(raw)
+  }
+  patch.commissionBps = percent("commission")
+  patch.equityBps = percent("equity")
 
   const updated = await updateClient(id, patch)
 
@@ -125,6 +157,13 @@ export async function addClient(formData: FormData) {
   const rawBilling = value("billingType") ?? "one_off"
   const billingType = isBillingType(rawBilling) ? rawBilling : "one_off"
 
+  // Whether the figure below is money or a swap. The one deal term worth asking
+  // for this early: everything else (commission, equity, what's being exchanged)
+  // distorts no total if it waits for the profile, but a barter figure filed as
+  // cash overstates the pipeline from the moment it's typed.
+  const rawDealType = value("dealType") ?? "cash"
+  const dealType = isDealType(rawDealType) ? rawDealType : "cash"
+
   // Typed in major units ("1500", "2,500.00"); no figure means zero, same as a
   // profile whose value has never been set.
   const rawValue = value("value")
@@ -140,6 +179,7 @@ export async function addClient(formData: FormData) {
     status,
     valueMinor,
     billingType,
+    dealType,
   })
   revalidatePath("/")
 }

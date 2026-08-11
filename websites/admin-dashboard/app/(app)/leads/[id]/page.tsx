@@ -19,11 +19,14 @@ import { ClientProfileForm } from "@/components/client-profile-form"
 import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
+import { DealBadges } from "@/components/deal-badges"
 import { FoldCard } from "@/components/fold-card"
 import { MarkTouchedButton } from "@/components/mark-touched-button"
 import { TaskList } from "@/components/task-list"
+import { WorkStartedButton } from "@/components/work-started-button"
 import {
   daysSince,
+  formatDate,
   formatDateTime,
   formatServiceId,
   waitingLabel,
@@ -161,6 +164,9 @@ export default async function LeadDetailPage({
             ? "Worked today"
             : `Last worked ${lastWorked} ago`}
         </p>
+        {/* The same badges the leads list carries, so what kind of deal this is
+            is answered before you scroll to the profile that sets it. */}
+        <DealBadges client={client} className="mt-1" />
       </div>
 
       {/* The things you came here to do. A rail rather than a wrapping row, so
@@ -184,6 +190,12 @@ export default async function LeadDetailPage({
           </Button>
         ) : null}
         <MarkTouchedButton id={client.id} lastWorked={lastWorked} />
+        <WorkStartedButton
+          id={client.id}
+          startedOn={
+            client.workStartedAt ? formatDate(client.workStartedAt) : null
+          }
+        />
       </div>
 
       {/* Status gets its own row: it's the field changed most often and the one
@@ -204,8 +216,9 @@ export default async function LeadDetailPage({
             <CardHeader>
               <CardTitle>Profile</CardTitle>
               <CardDescription>
-                Contact details, what the work is worth, and working notes. How
-                they came in stays read-only under Intake.
+                Contact details, the deal — what it&apos;s worth, whether it&apos;s
+                cash or an exchange, any commission or equity — and working notes.
+                How they came in stays read-only under Intake.
               </CardDescription>
             </CardHeader>
             <CardContent>

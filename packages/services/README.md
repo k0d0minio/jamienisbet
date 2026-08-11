@@ -63,5 +63,20 @@ intake → delivery pipeline (`status`: `new` → `contacted` → `qualified` �
 Stripe customer via `stripe_customer_id` (unique) — set by the admin's billing flow, which owns the
 Stripe side; `setClientStripeCustomerId` persists the link.
 
+**Deal terms.** What a relationship is worth is `value_minor` (EUR cents) read through
+`billing_type` (`one_off` | `monthly`), plus four columns for the arrangements that aren't a
+plain invoice:
+
+| Column | What it holds |
+|---|---|
+| `deal_type` | `cash` (invoiced, the default) or `barter` — work traded for work, so `value_minor` is what the swap is *worth*, not money coming in. The admin totals it separately as *in kind*. |
+| `barter_terms` | Free text: what is actually being exchanged. |
+| `commission_bps` | The cut taken on the client's own revenue, collected through Stripe. Basis points — 850 = 8.5%. Null = not part of this deal. |
+| `equity_bps` | The ownership stake negotiated in their company, same units. |
+| `work_started_at` | When delivery actually began. Orthogonal to `status`: work often starts on a handshake, and a barter or equity-only deal has no first invoice in Stripe to mark the moment. Toggled by `setClientWorkStarted`. |
+
+Both percentage columns are clamped to 0…`MAX_BPS` (100%) inside `updateClient`, so the ceiling
+is an invariant of the table rather than a rule each form has to remember.
+
 Structured so the rest of the pipeline — projects, quotes, proposals, invoicing — becomes
 additional tables in `schema/` (keyed to `clients`) and query modules in `queries/`.

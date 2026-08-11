@@ -26,6 +26,9 @@ export function MarkTouchedButton({
       type="button"
       variant="outline"
       size="sm"
+      // The action rail scrolls sideways rather than squeezing its buttons —
+      // with "Work started" alongside, an unpinned one would compress first.
+      className="shrink-0"
       disabled={pending}
       onClick={() => startTransition(() => markTouched(id))}
       title={`Last worked ${lastWorked === "today" ? "today" : `${lastWorked} ago`}`}

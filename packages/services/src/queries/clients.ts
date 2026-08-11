@@ -55,6 +55,29 @@ export function isBillingType(value: string): value is BillingType {
   return (billingTypes as readonly string[]).includes(value)
 }
 
+// How the engagement is settled. `cash` is invoiced in euros and is what the
+// leads list totals as pipeline and recurring revenue; `barter` is an exchange
+// of services, where `valueMinor` is what the swap is worth rather than money
+// expected in — so it is totalled separately, never as income.
+export const dealTypes = ["cash", "barter"] as const
+export type DealType = (typeof dealTypes)[number]
+
+export function isDealType(value: string): value is DealType {
+  return (dealTypes as readonly string[]).includes(value)
+}
+
+// Percentages — a commission cut or an ownership stake — are stored in basis
+// points, so 8.5% survives the round trip that 8.5 as an integer percent would
+// lose. 100% is the ceiling for both: you cannot take more of a company than
+// there is, and a commission above the whole revenue is a typo.
+export const MAX_BPS = 10_000
+
+/** Clamp a basis-point figure into 0…100%, or null for "not part of this deal". */
+export function normalizeBps(value: number | null | undefined): number | null {
+  if (value === null || value === undefined || !Number.isFinite(value)) return null
+  return Math.min(MAX_BPS, Math.max(0, Math.round(value)))
+}
+
 // ---- Intake (called by the site forms) -------------------------------------
 // Both public forms funnel into the same clients table. The mapping from each
 // form's fields onto the unified columns lives here, so the forms stay thin and
@@ -124,9 +147,11 @@ export async function createClientFromReferral(
  * `status` is what decides whether this reads as a lead or as a customer: it
  * defaults to "new" (a fresh lead) but any point in the lifecycle is valid, so
  * an existing customer can be entered where they actually are rather than being
- * created as a lead and immediately advanced. `valueMinor`/`billingType` come
- * with them, since a customer entered as "won" without a figure would leave the
- * recurring-revenue total wrong from the moment they were added.
+ * created as a lead and immediately advanced. `valueMinor`/`billingType`/
+ * `dealType` come with them, since a customer entered as "won" without a figure
+ * — or with a barter figure counted as cash — would leave the totals wrong from
+ * the moment they were added. The rest of the deal terms (commission, equity,
+ * what is being swapped) distort nothing, so they are filled in on the profile.
  */
 export async function createClientManually(input: {
   name: string
@@ -138,6 +163,7 @@ export async function createClientManually(input: {
   status?: ClientStatus
   valueMinor?: number
   billingType?: BillingType
+  dealType?: DealType
 }): Promise<Client> {
   const [row] = await getDb()
     .insert(clients)
@@ -151,6 +177,7 @@ export async function createClientManually(input: {
       status: input.status ?? "new",
       valueMinor: input.valueMinor ?? 0,
       billingType: input.billingType ?? "one_off",
+      dealType: input.dealType ?? "cash",
       source: "manual",
       lastTouchedAt: new Date(),
     })
@@ -240,6 +267,31 @@ export async function touchClient(id: string): Promise<Client | undefined> {
   return row
 }
 
+/**
+ * Mark the work as begun (or un-mark it, if it was hit by mistake).
+ *
+ * Its own call rather than a field on the profile patch because it is a state
+ * change you make in one tap from the lead's page, next to "Mark touched" —
+ * not a number you type and save. Starting work is activity on the relationship
+ * in the same way, so it stamps `lastTouchedAt` too. Re-starting an already
+ * started engagement keeps the original date: the question the column answers
+ * is "has this begun", and moving the date each time would lose when.
+ */
+export async function setClientWorkStarted(
+  id: string,
+  started: boolean
+): Promise<Client | undefined> {
+  const [row] = await getDb()
+    .update(clients)
+    .set({
+      workStartedAt: started ? sql`coalesce(${clients.workStartedAt}, now())` : null,
+      lastTouchedAt: new Date(),
+    })
+    .where(eq(clients.id, id))
+    .returning()
+  return row
+}
+
 // The subset of profile fields the admin can edit by hand. Everything the
 // intake captured (source, service, referralCode, budget, preferredCallTime,
 // createdAt) is provenance and stays read-only — the lead's own `valueMinor` is
@@ -247,7 +299,18 @@ export async function touchClient(id: string): Promise<Client | undefined> {
 export type ClientProfilePatch = Partial<
   Pick<
     Client,
-    "name" | "email" | "phone" | "company" | "notes" | "valueMinor" | "billingType"
+    | "name"
+    | "email"
+    | "phone"
+    | "company"
+    | "notes"
+    | "valueMinor"
+    | "billingType"
+    | "dealType"
+    | "barterTerms"
+    | "commissionBps"
+    | "equityBps"
+    | "workStartedAt"
   >
 >
 
@@ -255,11 +318,18 @@ export async function updateClient(
   id: string,
   patch: ClientProfilePatch
 ): Promise<Client | undefined> {
+  // The percentage columns are clamped here rather than trusted from the
+  // caller: this is the one door every edit goes through, so 0…100% is an
+  // invariant of the table instead of a rule each form has to remember.
+  const safe = { ...patch }
+  if ("commissionBps" in safe) safe.commissionBps = normalizeBps(safe.commissionBps)
+  if ("equityBps" in safe) safe.equityBps = normalizeBps(safe.equityBps)
+
   const [row] = await getDb()
     .update(clients)
     // Editing the profile/notes is activity on the relationship — same as a
     // status change, it moves the lead back down the staleness sort.
-    .set({ ...patch, lastTouchedAt: new Date() })
+    .set({ ...safe, lastTouchedAt: new Date() })
     .where(eq(clients.id, id))
     .returning()
   return row

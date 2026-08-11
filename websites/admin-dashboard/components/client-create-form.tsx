@@ -220,9 +220,13 @@ export function ClientCreateForm() {
           {/* What they're worth, asked for only when adding a customer. A lead's
               figure is usually a guess at this point and belongs on the profile
               once it firms up; a customer's is known now, and leaving it out
-              would understate the monthly total the moment they're added. */}
+              would understate the monthly total the moment they're added.
+              "Paid in" is here for the same reason and no more: a swap filed as
+              cash overstates the pipeline from the moment it's typed. The rest
+              of the deal — commission, equity, what's being exchanged — skews no
+              total by waiting, so it belongs on the profile. */}
           {isCustomer ? (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="value">Value (€)</Label>
                 <Input
@@ -241,6 +245,18 @@ export function ClientCreateForm() {
                   <SelectContent>
                     <SelectItem value="one_off">One-off</SelectItem>
                     <SelectItem value="monthly">Every month</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="dealType">Paid in</Label>
+                <Select name="dealType" defaultValue="cash">
+                  <SelectTrigger id="dealType" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="barter">Services</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
