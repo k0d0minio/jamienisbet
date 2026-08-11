@@ -26,7 +26,7 @@ import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ComplianceList, type ComplianceItem } from "@/components/compliance-list"
 import { DealBadges } from "@/components/deal-badges"
-import { TaskList, type TaskItem } from "@/components/task-list"
+import { TaskList, type TaskItem, type TaskLead } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
 import { daysSince, waitingLabel } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
@@ -179,6 +179,7 @@ async function loadLeads(archived: boolean) {
   const now = Date.now()
 
   let rows: Client[] = []
+  let leads: TaskLead[] = []
   let tasks: TaskItem[] = []
   let compliance: ComplianceItem[] = []
   let error: string | null = null
@@ -190,9 +191,17 @@ async function loadLeads(archived: boolean) {
       listOpenComplianceDates(),
     ])
     rows = clientRows
+    // Who a todo can be pointed at. The archive view lists archived leads, but
+    // a todo is work still to do — so the picker is always the live ones, read
+    // again only on the view where `rows` isn't already them.
+    leads = (archived ? await listClients({ archived: false }) : clientRows).map(
+      (c) => ({ id: c.id, name: c.name })
+    )
     tasks = openTasks.map((t) => ({
       id: t.id,
       title: t.title,
+      clientId: t.clientId,
+      clientName: t.clientName,
       dueDate: t.dueDate?.toISOString() ?? null,
       overdue: t.dueDate !== null && t.dueDate.getTime() < now,
       completed: false,
@@ -209,7 +218,7 @@ async function loadLeads(archived: boolean) {
     error = err instanceof Error ? err.message : "Could not reach the database."
   }
 
-  return { now, rows, tasks, compliance, error }
+  return { now, rows, leads, tasks, compliance, error }
 }
 
 export default async function LeadsPage({
@@ -221,7 +230,7 @@ export default async function LeadsPage({
   const archived = params.archived === "1"
   const filterKey: FilterKey = isFilterKey(params.filter) ? params.filter : "all"
 
-  const { now, rows, tasks, compliance, error } = await loadLeads(archived)
+  const { now, rows, leads, tasks, compliance, error } = await loadLeads(archived)
 
   const filter = FILTERS.find((f) => f.key === filterKey)!
   const visible = filter.statuses
@@ -298,7 +307,7 @@ export default async function LeadsPage({
         <div className="flex flex-col gap-6 border-t px-4 py-4">
           <section className="flex flex-col gap-2">
             <h2 className="text-xs font-medium text-muted-foreground">Todos</h2>
-            <TaskList tasks={tasks} />
+            <TaskList tasks={tasks} leads={leads} />
           </section>
           <section className="flex flex-col gap-2">
             <h2 className="text-xs font-medium text-muted-foreground">
@@ -489,8 +498,16 @@ export default async function LeadsPage({
                           <td className="px-4 py-3">
                             <ClientStatusSelect id={row.id} value={row.status} />
                           </td>
+                          {/* Icons only: archive and delete are rare next to
+                              everything else in the row, and spelling them out
+                              gave the least-used column the most width. */}
                           <td className="px-4 py-3">
-                            <ClientActions id={row.id} archived={archived} />
+                            <ClientActions
+                              id={row.id}
+                              archived={archived}
+                              compact
+                              className="justify-end"
+                            />
                           </td>
                         </tr>
                       )

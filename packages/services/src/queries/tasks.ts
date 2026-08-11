@@ -2,19 +2,26 @@ import { and, asc, desc, isNotNull, isNull } from "drizzle-orm"
 import { eq } from "drizzle-orm"
 
 import { getDb } from "../client"
-import { tasks } from "../schema"
+import { clients, tasks } from "../schema"
 
 export type Task = typeof tasks.$inferSelect
 export type NewTask = typeof tasks.$inferInsert
 
+/** A todo carrying the name of the lead it hangs off, so a list of them reads
+ * as "who is this about" without a second query per row. Null name = a todo
+ * that belongs to no one in particular. */
+export type TaskWithClient = Task & { clientName: string | null }
+
 /** Open tasks, due-soonest first (undated ones last, newest-created first
  * among themselves). */
-export async function listOpenTasks(): Promise<Task[]> {
-  return getDb()
-    .select()
+export async function listOpenTasks(): Promise<TaskWithClient[]> {
+  const rows = await getDb()
+    .select({ task: tasks, clientName: clients.name })
     .from(tasks)
+    .leftJoin(clients, eq(tasks.clientId, clients.id))
     .where(isNull(tasks.completedAt))
     .orderBy(asc(tasks.dueDate), desc(tasks.createdAt))
+  return rows.map((row) => ({ ...row.task, clientName: row.clientName }))
 }
 
 /** Recently completed tasks — the short done-trail under the open list. */
@@ -53,6 +60,21 @@ export async function setTaskCompleted(
   const [row] = await getDb()
     .update(tasks)
     .set({ completedAt: completed ? new Date() : null })
+    .where(eq(tasks.id, id))
+    .returning()
+  return row
+}
+
+/** Move a todo onto a lead, or off every lead (null). The way a todo written
+ * before anyone knew whose it was — "send the quote" — gets attached to the
+ * person it turned out to be about. */
+export async function setTaskClient(
+  id: string,
+  clientId: string | null
+): Promise<Task | undefined> {
+  const [row] = await getDb()
+    .update(tasks)
+    .set({ clientId })
     .where(eq(tasks.id, id))
     .returning()
   return row
