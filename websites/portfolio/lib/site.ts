@@ -1,5 +1,5 @@
 // Locale-invariant site facts only. Translatable copy lives in messages/*.json
-// (read via next-intl). Facts come from _config/business/ (contact.md, rates.md).
+// (read via next-intl).
 
 export const site = {
   name: "Jamie Nisbet",

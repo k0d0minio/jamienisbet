@@ -20,8 +20,8 @@ light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tok
 
 ## How it connects to the architecture
 - **Upstream / reads from:** human input (Jamie's case studies, bio, selected projects); finished work in the client delivery repos (linked on `biz.clients`)
-- **Downstream / feeds:** new leads back into [workspaces/lead-generation/](../../workspaces/lead-generation/); contact details sourced from [_config/business/](../../_config/business/)
-- **Draws on (Layer 3 reference):** [_config/brand/visual/](../../_config/brand/visual/) (color, type, design tokens), [_config/brand/voice/](../../_config/brand/voice/) (bio and CTA copy rules), [_config/brand/assets/](../../_config/brand/assets/) (logo, favicon)
+- **Downstream / feeds:** new leads into Neon `biz.clients`, worked from the admin dashboard
+- **Draws on (Layer 3 reference):** [packages/ui](../../packages/ui/) — tokens, components, assets, and [BRAND.md](../../packages/ui/BRAND.md) (the brand guide)
 
 ## Contents
 
