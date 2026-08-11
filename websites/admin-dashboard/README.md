@@ -105,7 +105,7 @@ delivery-repo features; unset, the screen shows a "not configured" notice.
 
 The admin talks to Stripe directly via the server-side secret key (`STRIPE_SECRET_KEY`) — this
 is owner-only surface, so no publishable key or client SDK is involved. Stripe is the source of
-truth for money (as in [`workspaces/finance/`](../../workspaces/finance/)); every figure shown
+truth for money; every figure shown
 is read live from Stripe, and nothing about an amount comes from the browser. One page, four
 sections:
 
@@ -137,11 +137,9 @@ one-person consultancy whose actual need is knowing who is waiting to hear back.
 
 Gone with it: the `deals`, `documents`, `generations`, `touches` and `workshop_messages` tables,
 the `app/api/ai/*` routes, and the `@jamie-nisbet/icm` package (its only consumer was those
-routes). The markdown factory those runs read — `_config/`, `shared/templates/`,
-`workspaces/*/stages/` — is untouched and still drives workspace runs done by agents directly.
-
-If any of it comes back, it should come back as a workspace run producing a reviewed file, not
-as another screen here.
+routes). The ICM markdown factory (`_config/`, `shared/templates/`, `workspaces/`) was retired
+in 2026-08 — the repo now carries only the websites and their shared packages. History in
+[`.icm/docs/decisions.md`](../../.icm/docs/decisions.md).
 
 ## Auth
 

@@ -4,8 +4,8 @@ import type Stripe from "stripe"
 import { getStripe } from "@/lib/stripe"
 
 // Read layer over Stripe for the admin. Every figure here comes straight from
-// Stripe (the source of truth for money, per workspaces/finance/) — nothing is
-// derived from client input. Pages call these; they render a "not configured"
+// Stripe (the source of truth for money) — nothing is derived from client
+// input. Pages call these; they render a "not configured"
 // state when Stripe returns null.
 
 export type BalanceEntry = { currency: string; amount: number } // minor units
@@ -55,10 +55,8 @@ export type PaymentLinkRow = {
 
 /**
  * The tax reserve to set aside per euro of income. Flat 30% (IRS + Segurança
- * Social; no IVA) — the single figure locked in
- * `workspaces/finance/setup/output/config.md`. Decision-support only: confirm
- * with the contabilista. Kept here so the admin is the one fetch path for the
- * finance metrics rather than shelling out to `scripts/stripe-report.sh`.
+ * Social; no IVA). Decision-support only: confirm with the contabilista. Kept
+ * here so the admin is the one fetch path for the finance metrics.
  */
 export const TAX_RESERVE_RATE = 0.3
 
@@ -136,8 +134,8 @@ export async function getMoneyMetrics(): Promise<MoneyMetrics | null> {
   const stripe = getStripe()
   if (!stripe) return null
 
-  // The revenue window is the current calendar month (matches the monthly P&L
-  // cadence in workspaces/finance). Boundaries in UTC so the figure is stable
+  // The revenue window is the current calendar month (the monthly P&L
+  // cadence). Boundaries in UTC so the figure is stable
   // regardless of where the server runs; Stripe's `created` filter is epoch s.
   const now = new Date()
   const monthStart = Math.floor(

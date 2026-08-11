@@ -14,8 +14,8 @@ wrapper, etc.) as they're extracted.
   **Tailwind CSS v4 + shadcn/ui**. Brand tokens (`styles.css` = Tailwind theme entry, `tokens.css`/`tokens/` =
   variables-only, light + dark), reusable React components (Button, Card, Input, Dialog, …)
   themed with those tokens, and brand assets (logo marks, social card, email signature, icon
-  helper). It is the canonical implementation of the brand defined in
-  [`_config/brand/visual/`](../_config/brand/visual/). See [`ui/README.md`](ui/README.md).
+  helper). It is the single source of truth for the brand — the human guide lives beside the
+  code in [`ui/BRAND.md`](ui/BRAND.md). See [`ui/README.md`](ui/README.md).
 - [`services/`](services/) — **`@jamie-nisbet/services`**: the database models and business
   logic shared across the estate, built on **Drizzle ORM + Neon Postgres**. Typed schema (under
   a dedicated `biz` Postgres schema), a lazy DB client, and query helpers for the three tables
@@ -30,7 +30,7 @@ wrapper, etc.) as they're extracted.
   source-only, consumed via `transpilePackages`.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** the brand contract in [`_config/brand/`](../_config/brand/) (visual + voice).
+- **Upstream / reads from:** nothing — the brand is defined here, in [`ui/`](ui/) (tokens + [`ui/BRAND.md`](ui/BRAND.md)).
 - **Downstream / feeds:** every app in [`websites/`](../websites/) consumes these packages —
   e.g. `import { Button } from '@jamie-nisbet/ui'` and `import '@jamie-nisbet/ui/styles.css'`.
 

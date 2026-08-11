@@ -6,8 +6,7 @@
 > **Purpose:** One source of truth for visual identity in code, so the whole web estate
 > looks unmistakably *Jamie Nisbet*.
 
-This package is the code embodiment of the brand defined in
-[`_config/brand/visual/`](../../_config/brand/visual/). The brand docs are the human
+This package is the single source of truth for the brand. [`BRAND.md`](BRAND.md) is the human
 explainer and the confirmed values; this package ships those values as real CSS custom
 properties and React primitives. **They are kept in sync — change one, mirror the other.**
 
@@ -126,10 +125,9 @@ New components land in `src/components/ui/`. Re-tune their radii to the brand co
 values and export them from `src/index.ts`.
 
 ## Rules
-- **One source of truth.** This package mirrors [`_config/brand/visual/`](../../_config/brand/visual/).
-  Never hard-code a value a token already names; if the brand changes, update the brand docs
-  **and** these tokens together. Token *values* live in `tokens/*.css` and
-  [`_config/brand/visual/tokens.json`](../../_config/brand/visual/tokens.json).
+- **One source of truth.** This package (with [`BRAND.md`](BRAND.md) as the human guide) is it.
+  Never hard-code a value a token already names; if the brand changes, update `BRAND.md`
+  **and** these tokens together. Token *values* live in `tokens/*.css`.
 - **No per-site overrides.** Websites theme via `data-theme` and compose these primitives;
   they don't fork the tokens or re-implement a `Button`.
 - **Fonts** load from Google Fonts CDN (see `tokens/fonts.css`; `styles.css` hoists the same
