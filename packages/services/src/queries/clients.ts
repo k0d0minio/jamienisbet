@@ -188,6 +188,31 @@ export async function getClient(id: string): Promise<Client | undefined> {
   return row
 }
 
+export type ClientRepo = {
+  clientId: string
+  clientName: string
+  /** "owner/name", as stored by the delivery-repo connect action. */
+  githubRepo: string
+}
+
+/**
+ * Every delivery repo connected to an active client — the roster the tickets
+ * board reads `.icm/intake/` from. Sorted by repo name so the board's repo rail
+ * is stable regardless of lead activity.
+ */
+export async function listClientRepos(): Promise<ClientRepo[]> {
+  const rows = await getDb()
+    .select({
+      clientId: clients.id,
+      clientName: clients.name,
+      githubRepo: clients.githubRepo,
+    })
+    .from(clients)
+    .where(sql`${clients.githubRepo} is not null and ${clients.archivedAt} is null`)
+    .orderBy(asc(clients.githubRepo))
+  return rows.filter((r): r is ClientRepo => r.githubRepo !== null)
+}
+
 // ---- Updates (called by the admin dashboard) -------------------------------
 
 export async function setClientStatus(

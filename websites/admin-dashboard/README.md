@@ -88,8 +88,11 @@ The estate's engineering backlog in one place. Every active repo keeps its work 
 markdown files in `.icm/intake/` — the estate-wide standard (canonical spec:
 `_system/TICKETS-SPEC.md` in the Apps estate) — and [`lib/tickets.ts`](lib/tickets.ts) reads
 those folders from `main` via the GitHub API (60-second revalidate) and groups them **Today /
-In progress / Blocked / Ready**, with a repo filter rail. The repo list is a constant in that
-file; sustentus is deliberately absent (its `pipeline/intake/` is its own system).
+In progress / Blocked / Ready**, with a repo filter rail. The repo roster comes from the
+database: every delivery repo connected to an active client (`clients.github_repo`, via
+`listClientRepos()`), so connecting a repo on a lead's profile is the whole onboarding step and
+each ticket links back to its client. Sustentus is excluded by name in `lib/tickets.ts` (its
+`pipeline/intake/` is its own system).
 
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth

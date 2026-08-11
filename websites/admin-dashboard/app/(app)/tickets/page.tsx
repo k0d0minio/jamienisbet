@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 
 import {
@@ -13,7 +14,6 @@ import {
 import { Chip } from "@/components/chip"
 import { CopyButton } from "@/components/copy-button"
 import {
-  TICKET_REPOS,
   TICKET_STATUSES,
   listTickets,
   type Ticket,
@@ -23,11 +23,12 @@ import {
 export const metadata: Metadata = { title: "Tickets" }
 export const dynamic = "force-dynamic"
 
-// The estate's work backlog in one place: every repo's `.icm/intake/` tickets,
-// grouped by where they are in the day (today → in progress → blocked → ready).
-// This screen is read-only by design — a ticket changes by editing its file in
-// the repo, and the one action that matters on a phone is **Copy prompt**:
-// grab the ticket's pasteable prompt and hand it to a Claude session.
+// The estate's work backlog in one place: the `.icm/intake/` tickets of every
+// delivery repo connected to an active client, grouped by where they are in
+// the day (today → in progress → blocked → ready). This screen is read-only by
+// design — a ticket changes by editing its file in the repo, and the one
+// action that matters on a phone is **Copy prompt**: grab the ticket's
+// pasteable prompt and hand it to a Claude session.
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   today: "Today",
@@ -71,7 +72,7 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
               <span className="font-medium text-muted-foreground">
                 {ticket.id}
               </span>
-              <span className="text-muted-foreground">{ticket.repo.label}</span>
+              <span className="text-muted-foreground">{ticket.repo.slug}</span>
               {ticket.priority ? (
                 <span className={cn("ml-auto", priorityClass(ticket.priority))}>
                   {ticket.priority}
@@ -97,14 +98,24 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
                 No prompt section in this ticket.
               </span>
             )}
-            <a
-              href={ticket.htmlUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="ml-auto text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-            >
-              Open on GitHub
-            </a>
+            <span className="ml-auto flex items-center gap-3 text-xs">
+              {/* The repo is on the board because a client row points at it —
+                  the join back to the big picture is one tap. */}
+              <Link
+                href={`/leads/${ticket.repo.clientId}`}
+                className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              >
+                {ticket.repo.clientName}
+              </Link>
+              <a
+                href={ticket.htmlUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              >
+                Open on GitHub
+              </a>
+            </span>
           </div>
 
           {ticket.meta.length > 0 ? (
@@ -135,11 +146,11 @@ export default async function TicketsPage({
   searchParams: Promise<{ repo?: string }>
 }) {
   const params = await searchParams
-  const repoSlug = TICKET_REPOS.some((r) => r.slug === params.repo)
+
+  const { configured, repos, tickets, errors, dbError } = await listTickets()
+  const repoSlug = repos.some((r) => r.slug === params.repo)
     ? params.repo
     : undefined
-
-  const { configured, tickets, errors } = await listTickets()
 
   const visible = repoSlug
     ? tickets.filter((t) => t.repo.slug === repoSlug)
@@ -169,6 +180,18 @@ export default async function TicketsPage({
             the ticket folders.
           </CardContent>
         </Card>
+      ) : dbError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Database unavailable</AlertTitle>
+          <AlertDescription>{dbError}</AlertDescription>
+        </Alert>
+      ) : repos.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            No delivery repos connected — connect one from a lead&apos;s
+            profile and its <code>.icm/intake/</code> shows up here.
+          </CardContent>
+        </Card>
       ) : (
         <>
           {/* Repo filter rail — same sideways-scrolling chips as Leads. */}
@@ -176,21 +199,21 @@ export default async function TicketsPage({
             <Chip href="/tickets" active={!repoSlug} count={countFor()}>
               All
             </Chip>
-            {TICKET_REPOS.map((repo) => (
+            {repos.map((repo) => (
               <Chip
                 key={repo.slug}
                 href={`/tickets?repo=${repo.slug}`}
                 active={repoSlug === repo.slug}
                 count={countFor(repo.slug)}
               >
-                {repo.label}
+                {repo.slug}
               </Chip>
             ))}
           </div>
 
           {errors.map((error) => (
             <Alert key={error.repo.fullName} variant="destructive">
-              <AlertTitle>{error.repo.label} unreachable</AlertTitle>
+              <AlertTitle>{error.repo.slug} unreachable</AlertTitle>
               <AlertDescription>{error.message}</AlertDescription>
             </Alert>
           ))}

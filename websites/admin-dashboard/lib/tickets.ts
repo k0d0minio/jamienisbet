@@ -9,31 +9,35 @@ import "server-only"
 // nothing is mirrored into the database.
 //
 // Reuses the delivery-repo `GITHUB_TOKEN`; a fine-grained token needs Contents
-// read on the repos below. Every fetch carries a 60-second revalidate — unlike
+// read on the connected repos. Every fetch carries a 60-second revalidate — unlike
 // the live delivery-repo calls in `lib/github.ts`, the board is a glanceable
 // list where "up to a minute behind main" is the right trade against hammering
 // the API on every phone refresh.
 
+import { listClientRepos } from "@jamie-nisbet/services"
+
 const API = "https://api.github.com"
 const REVALIDATE_SECONDS = 60
 
-// The repos whose backlogs the board shows. Sustentus is deliberately absent:
-// its `pipeline/intake/` is its own authoritative system and stays untouched.
-// Adding a repo here is the whole onboarding step — the board tolerates the
-// folder not existing yet (shows the repo as empty until its first ticket).
-export const TICKET_REPOS = [
-  { fullName: "k0d0minio/remi-ai", slug: "remi-ai", label: "Remi AI" },
-  { fullName: "k0d0minio/agorasim", slug: "agorasim", label: "Agorasim" },
-  { fullName: "k0d0minio/berceo", slug: "berceo", label: "Berceo" },
-  {
-    fullName: "k0d0minio/kau-american-bbq",
-    slug: "kau-american-bbq",
-    label: "KAU American BBQ",
-  },
-  { fullName: "k0d0minio/vinecliff", slug: "vinecliff", label: "Vinecliff" },
-] as const
+// The repos whose backlogs the board shows come from the database: every
+// delivery repo connected to an active client (`biz.clients.github_repo`).
+// Connecting a repo on a lead's profile *is* the onboarding step — the board
+// tolerates `.icm/intake/` not existing yet (the repo just reads as empty
+// until its first ticket lands).
+//
+// Sustentus stays off the board even if a client row ever points at it: its
+// `pipeline/intake/` is its own authoritative system and stays untouched.
+const EXCLUDED_REPOS = new Set(["sustentus/sustentus"])
 
-export type TicketRepo = (typeof TICKET_REPOS)[number]
+export type TicketRepo = {
+  /** "owner/name" as stored on the client row. */
+  fullName: string
+  /** The repo's own name — the filter-chip label and URL param. */
+  slug: string
+  /** The client the repo is connected to, for linking board → lead. */
+  clientId: string
+  clientName: string
+}
 
 const INTAKE_PATH = ".icm/intake"
 
@@ -238,20 +242,62 @@ function rank(t: Ticket): number {
 }
 
 /**
+ * The board's repo roster, from the client rows. Deduped by repo (two clients
+ * pointing at one repo would double every ticket) — first client row wins the
+ * attribution.
+ */
+async function loadRepos(): Promise<TicketRepo[]> {
+  const rows = await listClientRepos()
+  const seen = new Set<string>()
+  const repos: TicketRepo[] = []
+  for (const row of rows) {
+    if (EXCLUDED_REPOS.has(row.githubRepo) || seen.has(row.githubRepo)) continue
+    seen.add(row.githubRepo)
+    repos.push({
+      fullName: row.githubRepo,
+      slug: row.githubRepo.split("/").pop() ?? row.githubRepo,
+      clientId: row.clientId,
+      clientName: row.clientName,
+    })
+  }
+  return repos
+}
+
+/**
  * Every open ticket across the estate, sorted board-ready: status is grouped
  * by the caller, so the sort here is priority first, then repo, then id —
  * stable enough that the list doesn't reshuffle between refreshes. Returns
  * `configured: false` (and nothing else) when GITHUB_TOKEN is unset, so the
  * page can show the same "not configured" notice the delivery-repo UI uses.
+ * A database failure is its own banner (`dbError`), not an empty board that
+ * lies about there being no work.
  */
 export async function listTickets(): Promise<{
   configured: boolean
+  repos: TicketRepo[]
   tickets: Ticket[]
   errors: TicketFetchError[]
+  dbError: string | null
 }> {
-  if (!isConfigured()) return { configured: false, tickets: [], errors: [] }
+  if (!isConfigured()) {
+    return { configured: false, repos: [], tickets: [], errors: [], dbError: null }
+  }
 
-  const results = await Promise.all(TICKET_REPOS.map(fetchRepoTickets))
+  let repos: TicketRepo[] = []
+  try {
+    repos = await loadRepos()
+  } catch (err) {
+    return {
+      configured: true,
+      repos: [],
+      tickets: [],
+      errors: [],
+      dbError:
+        err instanceof Error ? err.message : "Could not reach the database.",
+    }
+  }
+
+  const results = await Promise.all(repos.map(fetchRepoTickets))
   const tickets = results
     .flatMap((r) => r.tickets)
     .sort(
@@ -263,5 +309,5 @@ export async function listTickets(): Promise<{
   const errors = results
     .map((r) => r.error)
     .filter((e): e is TicketFetchError => e !== null)
-  return { configured: true, tickets, errors }
+  return { configured: true, repos, tickets, errors, dbError: null }
 }
