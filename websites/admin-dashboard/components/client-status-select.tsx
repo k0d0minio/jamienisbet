@@ -8,6 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  cn,
 } from "@jamie-nisbet/ui"
 
 import { updateClientStatus } from "@/app/(app)/actions"
@@ -28,9 +29,13 @@ const STATUSES = [
 export function ClientStatusSelect({
   id,
   value,
+  // Callers size the trigger: a phone row wants it narrow, a lead's page wants
+  // it full-width so it's a proper target rather than a desktop-sized dropdown.
+  className = "w-36",
 }: {
   id: string
   value: string
+  className?: string
 }) {
   const [pending, startTransition] = useTransition()
 
@@ -42,7 +47,7 @@ export function ClientStatusSelect({
         startTransition(() => updateClientStatus(id, next))
       }
     >
-      <SelectTrigger size="sm" className="w-36 capitalize">
+      <SelectTrigger size="sm" className={cn("capitalize", className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

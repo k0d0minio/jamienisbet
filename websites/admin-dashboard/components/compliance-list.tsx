@@ -92,6 +92,7 @@ export function ComplianceList({ items }: { items: ComplianceItem[] }) {
                 size="sm"
                 variant="outline"
                 disabled={pending}
+                className="shrink-0"
                 onClick={() =>
                   startTransition(() => completeComplianceDateAction(item.id))
                 }
@@ -99,11 +100,12 @@ export function ComplianceList({ items }: { items: ComplianceItem[] }) {
                 <Check />
                 Done
               </Button>
+              {/* Always visible on a phone — there is no hover to reveal it. */}
               <button
                 type="button"
                 aria-label={`Delete "${item.title}"`}
                 disabled={pending}
-                className="mt-2 text-muted-foreground opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+                className="-mr-1 shrink-0 rounded-sm p-2 text-muted-foreground transition-opacity hover:text-destructive sm:mt-2 sm:p-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                 onClick={() =>
                   startTransition(() => deleteComplianceDateAction(item.id))
                 }
@@ -128,16 +130,18 @@ export function ComplianceList({ items }: { items: ComplianceItem[] }) {
           className="flex flex-col gap-2 rounded-md border border-border p-3"
         >
           <Input name="title" placeholder="Obligation (e.g. IRS 1st payment on account)" required />
-          <div className="flex flex-wrap gap-2">
+          {/* Stacked on a phone: a date input plus a recurrence dropdown is
+              wider than a narrow screen once the browser's date chrome is in. */}
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               name="dueDate"
               type="date"
               required
-              className="w-40"
+              className="w-full sm:w-40"
               aria-label="Due date"
             />
             <Select name="recurrence" defaultValue="none">
-              <SelectTrigger className="w-32 capitalize">
+              <SelectTrigger className="w-full shrink-0 capitalize sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

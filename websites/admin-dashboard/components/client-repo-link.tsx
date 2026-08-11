@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
+import { ChevronRight } from "lucide-react"
 
 import { Button, Input, Label, Switch } from "@jamie-nisbet/ui"
 
@@ -33,7 +34,7 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
           href={`https://github.com/${githubRepo}`}
           target="_blank"
           rel="noreferrer"
-          className="font-mono text-sm underline underline-offset-2 hover:text-foreground"
+          className="font-mono text-sm break-all underline underline-offset-2 hover:text-foreground"
         >
           {githubRepo} ↗
         </a>
@@ -95,14 +96,17 @@ function ConnectExisting({ id }: { id: string }) {
   return (
     <div className="grid gap-2">
       <Label htmlFor="connect-repo">Connect an existing repo</Label>
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <Input
           id="connect-repo"
           list="repo-options"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="owner/name"
-          className="min-w-56 flex-1 font-mono"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          className="font-mono sm:min-w-56 sm:flex-1"
         />
         <datalist id="repo-options">
           {repos.map((r) => (
@@ -111,8 +115,8 @@ function ConnectExisting({ id }: { id: string }) {
         </datalist>
         <Button
           type="button"
-          size="sm"
           variant="outline"
+          className="w-full sm:w-auto"
           disabled={pending || value.trim() === ""}
           onClick={() => {
             setError(null)
@@ -150,6 +154,9 @@ function CreateNew({ id, suggestedName }: { id: string; suggestedName: string })
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="repo-name"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         className="font-mono"
       />
       <Input
@@ -169,9 +176,8 @@ function CreateNew({ id, suggestedName }: { id: string; suggestedName: string })
       </div>
       <Button
         type="button"
-        size="sm"
         disabled={pending || name.trim() === ""}
-        className="w-fit"
+        className="w-full sm:w-fit"
         onClick={() => {
           setError(null)
           startTransition(async () => {
@@ -228,18 +234,30 @@ export function ClientRepoLink({
     )
   }
 
+  // Two forms' worth of controls for something you do once per customer, if
+  // ever. Folded away until asked for, so an unconnected lead costs one line
+  // rather than a screen of scroll on a phone.
   return (
-    <div className="grid gap-4">
-      <p className="text-xs text-muted-foreground">
-        Connect the repo their delivery work lives in, or create a fresh one.
-      </p>
-      <ConnectExisting id={id} />
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />
-        or
-        <span className="h-px flex-1 bg-border" />
+    <details className="group">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+        <ChevronRight
+          className="size-4 shrink-0 transition-transform group-open:rotate-90"
+          aria-hidden
+        />
+        Connect a delivery repo
+      </summary>
+      <div className="grid gap-4 pt-2">
+        <p className="text-xs text-muted-foreground">
+          Point at the repo their delivery work lives in, or create a fresh one.
+        </p>
+        <ConnectExisting id={id} />
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          or
+          <span className="h-px flex-1 bg-border" />
+        </div>
+        <CreateNew id={id} suggestedName={suggestedName} />
       </div>
-      <CreateNew id={id} suggestedName={suggestedName} />
-    </div>
+    </details>
   )
 }
