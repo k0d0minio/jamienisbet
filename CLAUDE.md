@@ -10,10 +10,12 @@ software engineer / AI consultant based in **Mafra, Portugal**. Lead generation 
 networking and word of mouth. Two halves, one system:
 
 - **The cockpit** — the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)),
-  where the business *runs* day-to-day. **Three screens, deliberately:** *Leads* (every lead and
+  where the business *runs* day-to-day. **Four screens, deliberately:** *Leads* (every lead and
   customer in one list, longest-waiting first, with todos and compliance dates folded above it),
-  a *lead's profile* (contact, value, notes, delivery repo, Stripe link), and *Money* (Stripe
-  balance, invoices, payment links). One row per person — there is no separate deal record, and
+  a *lead's profile* (contact, value, notes, delivery repo, Stripe link), *Tickets* (every
+  active repo's `.icm/intake/` markdown backlog in one read-only board with copy-paste prompts —
+  the repos own the tickets, the dashboard only reads them), and *Money* (Stripe balance,
+  invoices, payment links). One row per person — there is no separate deal record, and
   the dashboard generates no documents. Business state lives in **one** store — the Neon `biz.*`
   schema — operated through the dashboard, never mirrored into the repo.
 - **The factory** — the markdown layers (`_config/`, `shared/`, `workspaces/`): brand, business
@@ -58,6 +60,7 @@ Five principles, always: **one stage = one job** · **plain text is the interfac
 | Build/host one of Jamie's own web apps (portfolio, payment gateway, admin dashboard, sellers site) | [`websites/`](websites/) |
 | Use/extend shared code across every website (design system, app shell, data layer) | [`packages/`](packages/) (`ui` = design system · `app-shell` = marketing-site chrome/i18n · `services` = Neon `biz.*`) |
 | Daily business todos / compliance deadlines | the working-list strip at the top of the dashboard's Leads screen (`biz.tasks` + `biz.compliance_dates`) |
+| Engineering work in the other repos (tickets, day planning) | each repo's own `.icm/intake/` (estate spec: `_system/TICKETS-SPEC.md` beside this repo); viewed on the dashboard's Tickets screen — read-only there |
 | Run a mechanical action (new client/project, send a reviewed email) | [`scripts/`](scripts/) |
 | See where the business stands (who's waiting, what's owed) | the admin dashboard ([`websites/admin-dashboard/`](websites/admin-dashboard/)) |
 | Brand colours, voice, logos, business facts | [`_config/`](_config/) |

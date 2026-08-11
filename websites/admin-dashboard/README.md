@@ -14,13 +14,14 @@ It is **mobile-first and installable** — branded **Consultancy JN**, it ships 
 manifest, icons, and a service worker so it can be added to a phone home screen and launched
 fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 
-**Three screens.** That is the whole app, and it is deliberate — see
+**Four screens.** That is the whole app, and it is deliberate — see
 [Deliberately not here](#deliberately-not-here).
 
 | Screen | Route | What it is |
 |---|---|---|
 | **Leads** | `/` | Every lead and customer in one list, longest-waiting first. |
 | **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, repo, Stripe link, todos. |
+| **Tickets** | `/tickets` | Every repo's `.icm/intake/` backlog in one read-only board. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. |
 
 ## Leads — the screen the app opens on
@@ -81,6 +82,25 @@ or create a fresh one from the profile. The pointer is stored on the row
 `GITHUB_TOKEN` (see [`.env.example`](.env.example)); with it unset the profile shows a "not
 configured" note and the rest of the admin is unaffected.
 
+## Tickets
+
+The estate's engineering backlog in one place. Every active repo keeps its work items as
+markdown files in `.icm/intake/` — the estate-wide standard (canonical spec:
+`_system/TICKETS-SPEC.md` in the Apps estate) — and [`lib/tickets.ts`](lib/tickets.ts) reads
+those folders from `main` via the GitHub API (60-second revalidate) and groups them **Today /
+In progress / Blocked / Ready**, with a repo filter rail. The repo roster comes from the
+database: every delivery repo connected to an active client (`clients.github_repo`, via
+`listClientRepos()`), so connecting a repo on a lead's profile is the whole onboarding step and
+each ticket links back to its client. Sustentus is excluded by name in `lib/tickets.ts` (its
+`pipeline/intake/` is its own system).
+
+The board is **read-only by design**: a ticket is created, edited, and finished (moved to
+`_done/`) inside its repo by the session doing the work — the repo stays the source of truth
+and nothing is mirrored into the database. The one action here is **Copy prompt**: every ticket
+carries a pasteable `## Prompt` section, and the phone flow is open board → copy → paste into a
+Claude session. Each row also links to the file on GitHub. Uses the same `GITHUB_TOKEN` as the
+delivery-repo features; unset, the screen shows a "not configured" notice.
+
 ## Money
 
 The admin talks to Stripe directly via the server-side secret key (`STRIPE_SECRET_KEY`) — this
@@ -140,8 +160,8 @@ business data.
 The app is built mobile-first and installs to a phone home screen as **Consultancy JN**.
 
 - **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — a sticky top bar (brand + sign
-  out) on every size, inline text links on desktop, and a fixed two-tab bar pinned to the bottom
-  on phones (Leads, Money). Each tab is a full 3.5rem target; content is padded to clear the bar
+  out) on every size, inline text links on desktop, and a fixed three-tab bar pinned to the bottom
+  on phones (Leads, Tickets, Money). Each tab is a full 3.5rem target; content is padded to clear the bar
   and respects the home-indicator safe area.
 - **Touch targets and safe areas** ([`app/globals.css`](app/globals.css)) — the design system is
   sized for a mouse (h-8/h-9 controls, a 16px checkbox), so rather than annotate every call site
@@ -181,12 +201,13 @@ app/
     page.tsx            # Leads — the list, staleness-sorted, with the collapsed working list
     actions.ts          # lead + todo + compliance server actions (both lead screens use these)
     leads/[id]/         # one lead: profile, intake, delivery repo, Stripe link, their todos
+    tickets/            # Tickets — every repo's .icm/intake/ backlog, read-only, copy-prompt
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
 components/             # login form, nav, service-worker register, lead + money UI
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
                         #   fold-card.tsx — a card that folds into <details> below `lg`
                         #   client-create-form.tsx — add a lead or a customer by hand
-lib/                    # auth, formatting, stripe client, money, finance reads, github, app-icon
+lib/                    # auth, formatting, stripe client, money, finance reads, github, tickets, app-icon
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 
@@ -205,5 +226,6 @@ Requires the `biz` schema to exist — run the migration in
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
 same Stripe account the payment-gateway uses), and optionally `GITHUB_TOKEN` for the delivery-repo
-connect/create (plus `GITHUB_REPO_OWNER` to home new client repos under a specific user/org).
+connect/create and the Tickets board (plus `GITHUB_REPO_OWNER` to home new client repos under a
+specific user/org).
 Consumes the shared packages as source (`transpilePackages` in [`next.config.ts`](next.config.ts)).
