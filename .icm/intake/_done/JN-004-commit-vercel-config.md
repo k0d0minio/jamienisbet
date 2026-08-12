@@ -22,6 +22,13 @@ env wiring). Nothing in-repo reproduces it — a re-import would be manual archa
       `.icm/intake/` and `_system/` edits land on this repo's `main`, and they must
       not trigger four app deploys.
 
+## Resolution (2026-08-12)
+
+Shipped as one `vercel.json` per app. Deviation from the example: the repo has no turbo, so the
+skip rule is `git diff --quiet HEAD^ HEAD -- <the app's real inputs>` rather than
+`npx turbo-ignore` (fails open when `HEAD^` is missing). The Root-Directory ↔ project ↔ domain
+mapping that `vercel.json` cannot express is documented in `websites/README.md` § Deployment.
+
 ## Prompt
 
 Commit the Vercel deployment configuration for the four apps in the jamienisbet monorepo
