@@ -20,7 +20,7 @@ fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 | Screen | Route | What it is |
 |---|---|---|
 | **Leads** | `/` | Every lead and customer in one list, longest-waiting first. |
-| **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, repo, Stripe link, todos. |
+| **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link, todos. |
 | **Tickets** | `/tickets` | Every repo's `.icm/intake/` backlog in one read-only board. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. |
 
@@ -100,6 +100,34 @@ or create a fresh one from the profile. The pointer is stored on the row
 (`clients.github_repo`) so the dashboard always knows where a customer's work lives. Needs
 `GITHUB_TOKEN` (see [`.env.example`](.env.example)); with it unset the profile shows a "not
 configured" note and the rest of the admin is unaffected.
+
+### Forms — questionnaires sent to a lead
+
+Prospection used to happen over email, which meant the answers lived in an inbox rather than on
+the lead. The **Forms** card on a profile fixes that: pick a questionnaire, hit **Send form**,
+and paste the link it gives you into an email you write yourself.
+
+- **Questions are content, answers are business state.** The questionnaires are markdown files
+  in [`.icm/onboarding/`](../../.icm/onboarding/) (format documented in that folder's README),
+  parsed by [`lib/onboarding.ts`](lib/onboarding.ts) into the snapshot type shared with the
+  portfolio. The answers land in Neon (`biz.form_links`) and are never mirrored back into git.
+- **Publishing is a snapshot.** "Send form" parses the file *at click time* and freezes the
+  result onto the link row, so editing a question later never reinterprets answers already
+  collected — and never changes what a form sitting in someone's inbox shows them.
+- **The link is copied, not sent.** Per the standing "no outbound action without review" rule
+  the card's job ends at a pasteable URL (`PORTFOLIO_BASE_URL` + `/f/<token>`); the email around
+  it is written by a human. The row's uuid *is* the token, so there is no separate credential.
+- **One shot.** A pending link shows the URL, a copy button, and a preview; once answered it
+  turns green and folds open the answers read-only (newest open, older ones collapsed).
+  Revisiting a submitted link shows a polite dead end rather than the form. Deleting a link
+  takes its answers with it, so it asks first.
+- A questionnaire that doesn't parse is reported by name in the card — with what is wrong with
+  it — instead of quietly vanishing from the picker, and nothing is inserted.
+
+The public page lives on the portfolio (`/f/[token]`) because that app already has the brand
+chrome and a server action writing to `biz.clients`; nothing customer-facing is served from the
+dashboard. `.icm/onboarding/` is traced into the deployment by
+[`next.config.ts`](next.config.ts), with a read-only GitHub fallback if that ever misses.
 
 ## Tickets
 
@@ -246,5 +274,6 @@ Import as a new Vercel project, attach the **same** Neon integration as the othe
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
 same Stripe account the payment-gateway uses), and optionally `GITHUB_TOKEN` for the delivery-repo
 connect/create and the Tickets board (plus `GITHUB_REPO_OWNER` to home new client repos under a
-specific user/org).
+specific user/org). Set `PORTFOLIO_BASE_URL` to the portfolio's origin so the Forms card builds
+customer links against the right host.
 Consumes the shared packages as source (`transpilePackages` in [`next.config.ts`](next.config.ts)).

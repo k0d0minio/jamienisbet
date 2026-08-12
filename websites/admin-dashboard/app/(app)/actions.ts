@@ -6,9 +6,11 @@ import {
   completeComplianceDate,
   createClientManually,
   createComplianceDate,
+  createFormLink,
   createTask,
   deleteClient,
   deleteComplianceDate,
+  deleteFormLink,
   deleteTask,
   getClient,
   isBillingType,
@@ -27,6 +29,7 @@ import {
 } from "@jamie-nisbet/services"
 
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
+import { loadOnboardingForm } from "@/lib/onboarding"
 import { parseAmountToMinor } from "@/lib/money"
 import { parsePercentToBps } from "@/lib/percent"
 import { getStripe } from "@/lib/stripe"
@@ -268,6 +271,55 @@ export async function createClientRepo(
 export async function disconnectClientRepo(id: string) {
   await setClientRepo(id, null)
   revalidateLead(id)
+}
+
+// ---- Customer questionnaires ------------------------------------------------
+// Publish a markdown questionnaire from `.icm/onboarding/` as a one-off link for
+// this lead. The link is *copied*, never sent from here: per the estate's "no
+// outbound action without review" rule the dashboard's job ends at putting a URL
+// on the clipboard, and a human writes the email around it.
+
+/** Returned rather than thrown: Next redacts server-action exceptions in
+ * production, and "project-intake.md is a select with no options" is exactly
+ * the sentence that has to survive the trip to the browser to be useful. */
+export type SendFormResult = { ok: true } | { ok: false; message: string }
+
+/**
+ * Parse the chosen questionnaire **now** and freeze the result onto the new
+ * link row. That snapshot is the whole trick: the customer answers the questions
+ * as they were worded at this moment, so editing the markdown afterwards can
+ * never reinterpret answers that have already come back.
+ *
+ * A parse failure names the file and the problem, and nothing is inserted — so
+ * a malformed questionnaire is never sent to anybody.
+ */
+export async function sendFormToClient(
+  clientId: string,
+  slug: string
+): Promise<SendFormResult> {
+  try {
+    const client = await getClient(clientId)
+    if (!client) return { ok: false, message: "That lead no longer exists." }
+
+    const snapshot = await loadOnboardingForm(slug)
+    await createFormLink({ clientId, formSlug: slug, formSnapshot: snapshot })
+    revalidateLead(clientId)
+    return { ok: true }
+  } catch (err) {
+    console.error("[forms] send failed:", err)
+    return {
+      ok: false,
+      message:
+        err instanceof Error ? err.message : "Couldn't send that questionnaire.",
+    }
+  }
+}
+
+/** Drop a link — sent to the wrong person, or superseded by a newer send. Takes
+ * any answers with it, which is why the button asks first. */
+export async function removeFormLink(id: string, clientId: string) {
+  await deleteFormLink(id)
+  revalidateLead(clientId)
 }
 
 // ---- Archive / delete -------------------------------------------------------

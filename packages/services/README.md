@@ -21,9 +21,11 @@ build step — consumers transpile the TypeScript via `transpilePackages` (same 
 src/
   client.ts          # lazy Drizzle client from DATABASE_URL — getDb() / db
   schema/index.ts    # Drizzle tables under the `biz` Postgres schema
+  forms.ts           # the questionnaire snapshot/answer types both apps share
   queries/clients.ts # typed intake/list/update helpers for the leads table
   queries/tasks.ts       # todos
   queries/compliance.ts  # the PT compliance calendar (recurrence re-arms on complete)
+  queries/form-links.ts  # customer questionnaires: publish, read, submit once
   index.ts           # barrel
 drizzle/             # generated SQL migrations
 drizzle.config.ts    # drizzle-kit config (scoped to the `biz` schema)
@@ -77,6 +79,16 @@ plain invoice:
 
 Both percentage columns are clamped to 0…`MAX_BPS` (100%) inside `updateClient`, so the ceiling
 is an invariant of the table rather than a rule each form has to remember.
+
+**Customer questionnaires.** `form_links` is one row per questionnaire sent to one lead. The
+primary key doubles as the link token the customer opens (a v4 uuid — unguessable, so the form
+needs no account), `form_snapshot` is the markdown from `.icm/onboarding/` frozen by the
+dashboard at send time, and `answers` stays null until they submit. The freeze is the point:
+questions are content in git, answers are business state here, and editing a question later can
+never reinterpret answers already collected. `completed_at` makes the link one-shot —
+`saveFormLinkAnswers` carries the "not yet completed" guard in its WHERE clause, so two racing
+submissions can't both land. The snapshot and answer *types* live in `forms.ts` rather than in
+either app, since the dashboard writes them and the portfolio reads them.
 
 Structured so the rest of the pipeline — projects, quotes, proposals, invoicing — becomes
 additional tables in `schema/` (keyed to `clients`) and query modules in `queries/`.

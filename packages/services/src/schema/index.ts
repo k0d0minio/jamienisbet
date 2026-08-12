@@ -1,11 +1,14 @@
 import {
   integer,
+  jsonb,
   pgSchema,
   text,
   timestamp,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core"
+
+import type { FormAnswers, FormSnapshot } from "../forms"
 
 // A dedicated Postgres schema keeps this repo's tables isolated inside the shared
 // Neon database. Created by the first generated migration.
@@ -147,6 +150,39 @@ export const tasks = biz.table("tasks", {
   // Null = open; a timestamp = done.
   completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+// One questionnaire sent to one lead — the whole customer form builder, in a
+// table. Created by "Send form" on a lead's profile, read by the public page at
+// `<portfolio>/f/<id>`.
+//
+// The row's `id` doubles as the link token: a v4 uuid is unguessable, so a
+// customer needs no account to answer, and nothing else has to be minted or
+// kept in step with it. `form_snapshot` is the parsed markdown frozen at send
+// time (see ../forms.ts) — the reason a form already in someone's inbox never
+// changes under them when the file in `.icm/onboarding/` is edited. `answers`
+// is null until they submit; `completed_at` is what makes the link one-shot.
+export const formLinks = biz.table("form_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  // Whose form this is. Cascades: deleting a lead takes their questionnaires
+  // with them — the answers are part of that record, not free-standing data.
+  clientId: uuid("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+
+  // Which markdown file was sent, e.g. "project-intake". Kept alongside the
+  // snapshot as provenance — the snapshot is what renders, this is what tells
+  // you which questionnaire someone was asked when you compare two sends.
+  formSlug: varchar("form_slug", { length: 100 }).notNull(),
+
+  formSnapshot: jsonb("form_snapshot").$type<FormSnapshot>().notNull(),
+  answers: jsonb("answers").$type<FormAnswers>(),
+
+  sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  // Null = sent, awaiting a response. A timestamp = submitted, and the link is
+  // spent: revisiting it shows a dead-end rather than the form again.
+  completedAt: timestamp("completed_at", { withTimezone: true }),
 })
 
 // A Portuguese compliance obligation (IRS payment-on-account, Segurança Social
