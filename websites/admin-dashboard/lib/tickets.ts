@@ -90,6 +90,22 @@ export type Ticket = {
 
 export type TicketFetchError = { repo: TicketRepo; message: string }
 
+/**
+ * Deep link into a fresh Claude Code session on the web with this ticket's
+ * prompt pre-filled and its repo pre-selected — the documented
+ * `claude.ai/code?prompt=…&repositories=…` integration. One tap on the board
+ * goes from "this is today's ticket" to a session already holding the prompt;
+ * Copy prompt stays alongside for handing it to any other surface.
+ */
+export function claudeSessionUrl(ticket: Ticket): string | null {
+  if (!ticket.prompt) return null
+  const params = new URLSearchParams({
+    prompt: ticket.prompt,
+    repositories: ticket.repo.fullName,
+  })
+  return `https://claude.ai/code?${params.toString()}`
+}
+
 function isConfigured(): boolean {
   return Boolean(process.env.GITHUB_TOKEN)
 }

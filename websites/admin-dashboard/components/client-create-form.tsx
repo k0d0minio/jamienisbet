@@ -5,12 +5,6 @@ import { Plus } from "lucide-react"
 
 import {
   Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
   Input,
   Label,
   Select,
@@ -18,6 +12,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
   Textarea,
   cn,
 } from "@jamie-nisbet/ui"
@@ -86,7 +86,7 @@ export function ClientCreateForm() {
   // Both triggers say "lead": that's what you're adding nine times out of ten,
   // and the choice is the first thing inside the sheet anyway.
   return (
-    <Dialog
+    <Sheet
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
@@ -104,15 +104,15 @@ export function ClientCreateForm() {
       }}
     >
       {/* Desktop: an ordinary button beside the page heading. */}
-      <DialogTrigger asChild>
+      <SheetTrigger asChild>
         <Button type="button" variant="outline" className="hidden sm:inline-flex">
           <Plus />
           Add lead
         </Button>
-      </DialogTrigger>
+      </SheetTrigger>
 
       {/* Phone: a floating button pinned above the tab bar, reachable one-handed. */}
-      <DialogTrigger asChild>
+      <SheetTrigger asChild>
         <Button
           type="button"
           aria-label="Add lead or customer"
@@ -120,27 +120,15 @@ export function ClientCreateForm() {
         >
           <Plus className="size-6" />
         </Button>
-      </DialogTrigger>
+      </SheetTrigger>
 
-      {/* A bottom sheet on a phone, a centred dialog from `sm` up. */}
-      <DialogContent
-        className={[
-          "top-auto bottom-0 left-0 max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0",
-          "overflow-y-auto rounded-b-none p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]",
-          "data-[state=open]:slide-in-from-bottom-8 data-[state=closed]:slide-out-to-bottom-8",
-          "sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:max-h-none sm:max-w-lg",
-          "sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:p-6",
-        ].join(" ")}
-      >
-        {/* Sheet grab handle — phones only; a dialog doesn't need one. */}
-        <div
-          className="mx-auto -mt-1 mb-1 h-1 w-10 rounded-full bg-border sm:hidden"
-          aria-hidden
-        />
-        <DialogHeader className="text-left">
-          <DialogTitle>{kind.title}</DialogTitle>
-          <DialogDescription>{kind.description}</DialogDescription>
-        </DialogHeader>
+      {/* A bottom sheet on a phone, a centred dialog from `sm` up — the Sheet
+          primitive's whole job. */}
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>{kind.title}</SheetTitle>
+          <SheetDescription>{kind.description}</SheetDescription>
+        </SheetHeader>
 
         {/* Lead or customer, as a segmented control above the fields — the first
             decision, and the one that changes what the rest of the form asks
@@ -290,7 +278,7 @@ export function ClientCreateForm() {
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
