@@ -11,6 +11,7 @@ import { zipAnswers, type FormLink } from "@jamie-nisbet/services"
 import { CopyButton } from "@/components/copy-button"
 import { DeleteFormLinkButton } from "@/components/delete-form-link-button"
 import { SendFormControl, type FormChoiceView } from "@/components/send-form-control"
+import { WriteFormToRepoButton } from "@/components/write-form-to-repo-button"
 import { formatDateTime } from "@/lib/format"
 import { formLinkUrl } from "@/lib/portfolio"
 
@@ -83,10 +84,12 @@ function PendingLink({ link, clientId }: { link: FormLink; clientId: string }) {
 function AnsweredLink({
   link,
   clientId,
+  hasRepo,
   defaultOpen,
 }: {
   link: FormLink
   clientId: string
+  hasRepo: boolean
   defaultOpen: boolean
 }) {
   const answered = zipAnswers(link.formSnapshot, link.answers)
@@ -112,6 +115,11 @@ function AnsweredLink({
         </dl>
       </details>
       <div className="flex flex-wrap items-center gap-1">
+        {/* Only offered when there's a repo to write to — no repo, no button,
+            and connecting one later makes it appear. */}
+        {hasRepo ? (
+          <WriteFormToRepoButton linkId={link.id} clientId={clientId} />
+        ) : null}
         <DeleteFormLinkButton id={link.id} clientId={clientId} answered />
       </div>
     </>
@@ -120,11 +128,14 @@ function AnsweredLink({
 
 export function FormLinks({
   clientId,
+  clientRepo,
   links,
   forms,
   formErrors,
 }: {
   clientId: string
+  /** The lead's delivery repo ("owner/name"), or null — gates "Write to repo". */
+  clientRepo: string | null
   links: FormLink[]
   forms: FormChoiceView[]
   formErrors: string[]
@@ -178,6 +189,7 @@ export function FormLinks({
                   <AnsweredLink
                     link={link}
                     clientId={clientId}
+                    hasRepo={clientRepo !== null}
                     defaultOpen={newestAnswered}
                   />
                 ) : (

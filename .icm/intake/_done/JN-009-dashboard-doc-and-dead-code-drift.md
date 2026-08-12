@@ -28,6 +28,14 @@ Leftovers from the retired ICM-factory era contradict reality:
 - [ ] Dead links/references removed; tsbuildinfo untracked + ignored
 - [ ] CI green
 
+## Resolution (2026-08-12)
+
+Dead functions removed; screen counts and decisions.md reconciled (dead links out, seeding and
+`rates.md` recorded as retired, the 2026-08 factory retirement now actually in the register).
+Two acceptance items turned out already true: `tsconfig.tsbuildinfo` was already untracked and
+gitignored, and `.claude/settings.local.json` is a local-only untracked file (its stale
+allowlist can only be cleaned on the machine).
+
 ## Prompt
 
 Clean the documented-vs-real drift in the jamienisbet repo: remove the uncalled

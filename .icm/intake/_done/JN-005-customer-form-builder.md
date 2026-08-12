@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress |
+| Status | done |
 | Type | feature |
 | Priority | P2 |
 | Size | L |

@@ -13,6 +13,7 @@ import {
   deleteFormLink,
   deleteTask,
   getClient,
+  getFormLink,
   isBillingType,
   isClientStatus,
   isComplianceRecurrence,
@@ -29,12 +30,14 @@ import {
 } from "@jamie-nisbet/services"
 
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
+import { renderFormAnswersMarkdown } from "@/lib/form-markdown"
 import { loadOnboardingForm } from "@/lib/onboarding"
 import { parseAmountToMinor } from "@/lib/money"
 import { parsePercentToBps } from "@/lib/percent"
 import { getStripe } from "@/lib/stripe"
 import {
   clientSlug,
+  commitRepoFile,
   createRepo,
   getRepo,
   isGithubConfigured,
@@ -133,6 +136,38 @@ export async function saveClientProfile(id: string, formData: FormData) {
   const stripe = getStripe()
   if (stripe && updated) await pushClientToStripe(stripe, updated)
 
+  revalidateLead(id)
+}
+
+/**
+ * The deal-terms slice of the profile on its own — what the Convert flow's
+ * third step saves. Touches only value/billing/deal-type/barter-terms, so it
+ * can never blank a contact field the way posting a partial profile form
+ * through `saveClientProfile` would.
+ */
+export async function saveDealTerms(id: string, formData: FormData) {
+  const value = (name: string): string | null => {
+    const raw = formData.get(name)
+    if (typeof raw !== "string") return null
+    const trimmed = raw.trim()
+    return trimmed === "" ? null : trimmed
+  }
+
+  const patch: ClientProfilePatch = {}
+
+  const rawValue = value("value")
+  patch.valueMinor = rawValue === null ? 0 : (parseAmountToMinor(rawValue) ?? 0)
+
+  const rawBilling = String(formData.get("billingType") ?? "one_off")
+  patch.billingType = isBillingType(rawBilling) ? rawBilling : "one_off"
+
+  const rawDealType = String(formData.get("dealType") ?? "cash")
+  patch.dealType = isDealType(rawDealType) ? rawDealType : "cash"
+  patch.barterTerms = patch.dealType === "barter" ? value("barterTerms") : null
+
+  const updated = await updateClient(id, patch)
+  const stripe = getStripe()
+  if (stripe && updated) await pushClientToStripe(stripe, updated)
   revalidateLead(id)
 }
 
@@ -330,6 +365,65 @@ export async function sendFormToClient(
 export async function removeFormLink(id: string, clientId: string) {
   await deleteFormLink(id)
   revalidateLead(clientId)
+}
+
+/** Same returned-not-thrown shape as `SendFormResult`, for the same reason. */
+export type WriteFormResult = { ok: boolean; message: string }
+
+/**
+ * Close the questionnaire loop: render a completed link's answers to markdown
+ * and commit them into the client's delivery repo as
+ * `.icm/docs/form-<slug>-<YYYY-MM-DD>.md` — provenance a session working in
+ * that repo can read. Neon stays the record; the file is a rendered copy.
+ *
+ * Never overwrites: if the dated path is taken (the same form written twice,
+ * or re-completed the same day), the write walks to `-2`, `-3`, … instead.
+ */
+export async function writeFormAnswersToRepo(
+  linkId: string,
+  clientId: string
+): Promise<WriteFormResult> {
+  const client = await getClient(clientId)
+  if (!client) return { ok: false, message: "That lead no longer exists." }
+  if (!client.githubRepo) {
+    return {
+      ok: false,
+      message: "No delivery repo connected — connect one on this profile first.",
+    }
+  }
+
+  const link = await getFormLink(linkId)
+  if (!link || link.clientId !== clientId) {
+    return { ok: false, message: "That form link no longer exists." }
+  }
+  if (!link.completedAt) {
+    return { ok: false, message: "This form hasn't been answered yet." }
+  }
+
+  const markdown = renderFormAnswersMarkdown(link)
+  const base = `.icm/docs/form-${link.formSlug}-${link.completedAt
+    .toISOString()
+    .slice(0, 10)}`
+
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    const path = attempt === 1 ? `${base}.md` : `${base}-${attempt}.md`
+    const result = await commitRepoFile(
+      client.githubRepo,
+      path,
+      markdown,
+      `Record questionnaire answers: ${link.formSlug}`
+    )
+    if (result.outcome === "created") {
+      return { ok: true, message: `Committed ${path} to ${client.githubRepo}.` }
+    }
+    if (result.outcome === "failed") {
+      return { ok: false, message: result.error }
+    }
+  }
+  return {
+    ok: false,
+    message: "Five copies of this form are already in the repo for that date.",
+  }
 }
 
 // ---- Archive / delete -------------------------------------------------------
