@@ -21,7 +21,7 @@ import {
   SheetTrigger,
   Textarea,
 } from "@jamie-nisbet/ui"
-import type { BillingType, DealType } from "@jamie-nisbet/services"
+import type { DealType } from "@jamie-nisbet/services"
 
 import { saveDealTerms } from "@/app/(app)/actions"
 import { formatMoney } from "@/lib/money"
@@ -31,11 +31,14 @@ import { bpsToPercentInput, formatBps } from "@/lib/percent"
 // sheet. Only the terms that are actually set take a row, so a plain cash deal
 // reads as one line rather than a grid of dashes.
 
+// Billing and deal type arrive as the plain strings the Client row carries;
+// this card normalises (anything unrecognised reads as a one-off cash deal,
+// matching the server action's own fallback).
 export type DealDetails = {
   id: string
   valueMinor: number
-  billingType: BillingType
-  dealType: DealType
+  billingType: string
+  dealType: string
   barterTerms: string | null
   commissionBps: number | null
   equityBps: number | null
@@ -131,7 +134,12 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="deal-billing">Billed</Label>
-                  <Select name="billingType" defaultValue={client.billingType}>
+                  <Select
+                    name="billingType"
+                    defaultValue={
+                      client.billingType === "monthly" ? "monthly" : "one_off"
+                    }
+                  >
                     <SelectTrigger id="deal-billing" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
