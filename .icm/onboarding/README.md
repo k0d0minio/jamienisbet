@@ -6,15 +6,40 @@
 > state and live in Neon (`biz.form_links`), shown on the lead's profile — never mirrored
 > back into this folder.**
 
+## Two places a questionnaire can live
+
+The picker on a lead's profile is assembled from **two** repos, the same way the Tickets
+board reads `.icm/intake/` from every connected repo rather than from one:
+
+| Where | Offered on | For |
+| --- | --- | --- |
+| **This folder** — the house library | every lead | general forms like `project-intake` |
+| **`.icm/onboarding/` in the lead's own delivery repo** (`biz.clients.github_repo`, the repo connected on their profile) | that lead only | questionnaires written for one client |
+
+Their repo's forms sort first and are what the picker preselects. Connecting a delivery
+repo on the lead's profile is the whole setup step — a client repo that grows an
+`.icm/onboarding/` folder shows up on the next page load, with nothing to configure. A
+repo without one contributes nothing and raises no error.
+
+Client repos are read over the GitHub contents API (they are never on the dashboard's
+disk), so they need `GITHUB_TOKEN` to have Contents read on the connected repos — the
+same token the Tickets board uses.
+
+A client repo is free to carry its own `project-intake.md`: forms are identified by repo
+*and* slug, so the two never shadow each other, and `form_snapshot.sourceRepo` records
+which one was actually sent.
+
 ## How publishing works (so you know why the format matters)
 
 Clicking "Send form" on a lead parses the chosen file *at that moment* and stores the
 parsed questions as a JSON snapshot alongside the link token. Answers are forever paired
-with the exact questions that were asked — editing a file here never changes or breaks a
-form that was already sent. There is no build step; the next "Send form" click simply
-picks up the current file.
+with the exact questions that were asked — editing a file never changes or breaks a form
+that was already sent. There is no build step; the next "Send form" click simply picks up
+the current file.
 
 ## File convention
+
+Identical in both places — this section is the whole format, wherever the file lives.
 
 One form per file, named `<slug>.md` (kebab-case; the filename **is** the form's slug and
 must never be renamed after a link has been sent). Structure:
@@ -66,3 +91,6 @@ intro: >
 ## Files
 
 - [`project-intake.md`](project-intake.md) — the default prospection questionnaire.
+
+Client-specific questionnaires do **not** belong here — they go in that client's own
+delivery repo, under the same path, and appear on their lead profile automatically.

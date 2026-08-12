@@ -6,29 +6,58 @@ import { join, resolve } from "node:path"
 import type { FormField, FormSnapshot } from "@jamie-nisbet/services"
 import { isFormFieldType } from "@jamie-nisbet/services"
 
-// The questionnaire library: `.icm/onboarding/<slug>.md` in this repo, parsed
-// into the snapshot shape the send action freezes onto a link row. The file
-// format is documented for humans in that folder's README — this module is the
+// The questionnaire library: `.icm/onboarding/<slug>.md`, parsed into the
+// snapshot shape the send action freezes onto a link row. The file format is
+// documented for humans in that folder's README — this module is the
 // implementation of it, and the two must not drift.
 //
-// Reading is deliberately dumb: the folder holds a handful of small files, so
+// Questionnaires come from **two repos**, the same way the tickets board reads
+// `.icm/intake/` from every connected repo rather than from one:
+//
+//   - The *house* library, `.icm/onboarding/` in this monorepo — general forms
+//     like `project-intake`, offered on every lead.
+//   - The lead's own *delivery repo* (`biz.clients.github_repo`, the same field
+//     the tickets board rosters from) — questionnaires written for that one
+//     client, offered only on their profile. A form written for Casey has no
+//     business appearing in the picker for anyone else, so the roster is scoped
+//     per lead rather than pooled estate-wide.
+//
+// A repo with no `.icm/onboarding/` simply contributes nothing — connecting a
+// delivery repo is the whole onboarding step, and there is no config here to
+// change when a client repo grows its first questionnaire.
+//
+// Reading is deliberately dumb: each folder holds a handful of small files, so
 // every call loads all of them and picks. There is no cache to invalidate, no
 // build step, and no second lookup path for "read one" — editing a file in git
 // changes what the next "Send form" click sends, and nothing else.
 //
-// Two sources, in order:
-//   1. Disk. The whole monorepo ships with the deployment, and next.config.ts
-//      traces `.icm/onboarding/` into the dashboard's serverless bundle.
-//   2. GitHub, if the folder isn't on disk — the same read-only contents-API
-//      pattern the tickets board uses, so a tracing miss on Vercel degrades to
-//      a slower read rather than a dashboard that can't send anything.
+// The house library is read from disk first (the whole monorepo ships with the
+// deployment, and next.config.ts traces `.icm/onboarding/` into the dashboard's
+// serverless bundle), falling back to GitHub so a tracing miss degrades to a
+// slower read rather than a dashboard that can't send anything. Client repos
+// are never on disk, so they are GitHub-only — like tickets.
 
 const FOLDER = ".icm/onboarding"
-const SOURCE_REPO = process.env.ONBOARDING_REPO || "k0d0minio/jamienisbet"
+const HOUSE_REPO = process.env.ONBOARDING_REPO || "k0d0minio/jamienisbet"
 const REVALIDATE_SECONDS = 60
 
-/** A slug is a filename, so it is checked before it is ever joined to a path. */
-const SLUG = /^[a-z0-9][a-z0-9-]*$/
+/**
+ * What the picker submits and the send action resolves: a bare slug for a house
+ * form, or `<repo-name>/<slug>` for one out of the lead's delivery repo. Slugs
+ * can't contain a slash, so the two spaces can never collide — a client repo is
+ * free to carry its own `project-intake.md` without shadowing the house one.
+ *
+ * A slug is also a filename, so this is checked before either half is ever
+ * joined to a path or a contents-API URL.
+ */
+const FORM_ID = /^(?:[a-z0-9][a-z0-9-]*\/)?[a-z0-9][a-z0-9-]*$/
+
+/** "owner/name" → "name", the half worth showing on screen. */
+const repoName = (fullName: string) => fullName.split("/").pop() ?? fullName
+
+function formId(slug: string, sourceRepo: string | null): string {
+  return sourceRepo === null ? slug : `${repoName(sourceRepo)}/${slug}`
+}
 
 // ---------------------------------------------------------------------------
 // Parsing.
@@ -147,13 +176,20 @@ function parseField(heading: string, lines: string[]): FormField {
  */
 export function parseOnboardingForm(
   slug: string,
-  markdown: string
+  markdown: string,
+  sourceRepo: string | null = null
 ): FormSnapshot {
   const { data, body } = parseFrontMatter(markdown)
 
+  // Errors are read in the dashboard by someone about to go and fix the file,
+  // and two repos can both have a `project-intake.md` — so a complaint names
+  // the repo whenever the file isn't the house one.
+  const file =
+    sourceRepo === null ? `${slug}.md` : `${slug}.md in ${sourceRepo}`
+
   const title = data.title?.trim()
   if (!title) {
-    throw new Error(`${slug}.md has no \`title\` in its front matter.`)
+    throw new Error(`${file} has no \`title\` in its front matter.`)
   }
 
   const lines = body.split("\n")
@@ -180,7 +216,7 @@ export function parseOnboardingForm(
 
   if (fields.length === 0) {
     throw new Error(
-      `${slug}.md has no questions — each question is a \`##\` heading.`
+      `${file} has no questions — each question is a \`##\` heading.`
     )
   }
 
@@ -189,7 +225,7 @@ export function parseOnboardingForm(
   )
   if (emptySelect) {
     throw new Error(
-      `"${emptySelect.label}" in ${slug}.md is a select with no \`options:\` line.`
+      `"${emptySelect.label}" in ${file} is a select with no \`options:\` line.`
     )
   }
 
@@ -198,19 +234,30 @@ export function parseOnboardingForm(
   for (const field of fields) {
     if (seen.has(field.key)) {
       throw new Error(
-        `${slug}.md uses the answer key "${field.key}" twice — set a distinct \`key:\` on one of them.`
+        `${file} uses the answer key "${field.key}" twice — set a distinct \`key:\` on one of them.`
       )
     }
     seen.add(field.key)
   }
 
-  return { slug, title, intro: data.intro?.trim() ?? "", fields }
+  return {
+    slug,
+    sourceRepo,
+    title,
+    intro: data.intro?.trim() ?? "",
+    fields,
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Sources.
 
-type RawForm = { slug: string; markdown: string }
+type RawForm = { slug: string; markdown: string; sourceRepo: string | null }
+
+/** One repo's contribution. `error` is a sentence for the dashboard's banner —
+ * a repo that simply has no `.icm/onboarding/` yields neither forms nor an
+ * error, the same way the tickets board treats a missing `.icm/intake/`. */
+type SourceResult = { forms: RawForm[]; error: string | null }
 
 const isFormFile = (name: string) =>
   name.endsWith(".md") && name.toLowerCase() !== "readme.md"
@@ -239,6 +286,7 @@ async function readFromDisk(): Promise<RawForm[] | null> {
       names.sort().map(async (name) => ({
         slug: name.replace(/\.md$/, ""),
         markdown: await readFile(join(dir, name), "utf8"),
+        sourceRepo: null,
       }))
     )
   }
@@ -256,14 +304,40 @@ async function gh(path: string, accept: string): Promise<Response> {
   })
 }
 
-async function readFromGithub(): Promise<RawForm[] | null> {
-  if (!process.env.GITHUB_TOKEN) return null
+/**
+ * One repo's `.icm/onboarding/` over the read-only contents API — the same
+ * pattern the tickets board uses for `.icm/intake/`, and the only way to read a
+ * client's delivery repo, which is never on this deployment's disk.
+ *
+ * `sourceRepo` is what the parsed forms get stamped with, so the house library
+ * can be read this way too (as the disk fallback) and still come back marked as
+ * the house rather than as `k0d0minio/jamienisbet`.
+ */
+async function readFromGithub(
+  fullName: string,
+  sourceRepo: string | null
+): Promise<SourceResult> {
+  if (!process.env.GITHUB_TOKEN) {
+    return {
+      forms: [],
+      error: `Couldn't read ${fullName} — GITHUB_TOKEN isn't set on this deployment.`,
+    }
+  }
   try {
     const listing = await gh(
-      `/repos/${SOURCE_REPO}/contents/${FOLDER}`,
+      `/repos/${fullName}/contents/${FOLDER}`,
       "application/vnd.github+json"
     )
-    if (!listing.ok) return null
+    // No `.icm/onboarding/` on main just means this repo carries no
+    // questionnaires of its own — the common case for a delivery repo, and not
+    // something to put a banner on the lead's profile about.
+    if (listing.status === 404) return { forms: [], error: null }
+    if (!listing.ok) {
+      return {
+        forms: [],
+        error: `Couldn't read ${FOLDER}/ in ${fullName} — GitHub returned HTTP ${listing.status}.`,
+      }
+    }
     const entries = (await listing.json()) as { type: string; name: string }[]
     const names = entries
       .filter((e) => e.type === "file" && isFormFile(e.name))
@@ -273,21 +347,72 @@ async function readFromGithub(): Promise<RawForm[] | null> {
     const forms = await Promise.all(
       names.map(async (name) => {
         const res = await gh(
-          `/repos/${SOURCE_REPO}/contents/${FOLDER}/${encodeURIComponent(name)}`,
+          `/repos/${fullName}/contents/${FOLDER}/${encodeURIComponent(name)}`,
           "application/vnd.github.raw+json"
         )
         if (!res.ok) return null
-        return { slug: name.replace(/\.md$/, ""), markdown: await res.text() }
+        return {
+          slug: name.replace(/\.md$/, ""),
+          markdown: await res.text(),
+          sourceRepo,
+        }
       })
     )
-    return forms.filter((f) => f !== null)
-  } catch {
-    return null
+    return { forms: forms.filter((f) => f !== null), error: null }
+  } catch (err) {
+    return {
+      forms: [],
+      error: `Couldn't read ${FOLDER}/ in ${fullName} — ${
+        err instanceof Error ? err.message : "network error"
+      }.`,
+    }
   }
 }
 
-async function readAll(): Promise<RawForm[] | null> {
-  return (await readFromDisk()) ?? (await readFromGithub())
+/** The house library: disk if the folder shipped with the deployment, GitHub if
+ * tracing missed it. Either way the forms come back unstamped (`sourceRepo:
+ * null`) — they belong to this repo, not to a client. Both routes failing is
+ * one condition, not two, so it gets one plain sentence. */
+async function readHouseForms(): Promise<SourceResult> {
+  const disk = await readFromDisk()
+  if (disk !== null) return { forms: disk, error: null }
+
+  const remote = await readFromGithub(HOUSE_REPO, null)
+  if (remote.error === null) return remote
+  return {
+    forms: [],
+    error: `Couldn't read the house ${FOLDER}/ — not found on disk, and GitHub is unavailable or unconfigured.`,
+  }
+}
+
+/**
+ * Every questionnaire on offer for one lead: the house library plus, when the
+ * lead has a delivery repo connected, that repo's own. Their forms come first —
+ * a questionnaire written for this client is the one you reached for the button
+ * to send, and it is what the picker preselects.
+ *
+ * Best-effort per source, like the tickets board: an unreachable client repo
+ * becomes a banner on the profile, not a picker with nothing in it.
+ */
+async function readAll(clientRepo: string | null): Promise<SourceResult> {
+  // A lead connected to *this* repo (the house library is a repo like any
+  // other) would otherwise have every house form listed twice — once unstamped,
+  // once stamped. It is the house library either way.
+  const secondSource = clientRepo === HOUSE_REPO ? null : clientRepo
+
+  const [house, client] = await Promise.all([
+    readHouseForms(),
+    secondSource ? readFromGithub(secondSource, secondSource) : null,
+  ])
+
+  const errors = [house.error, client?.error ?? null].filter(
+    (e): e is string => e !== null
+  )
+
+  return {
+    forms: [...(client?.forms ?? []), ...house.forms],
+    error: errors.length > 0 ? errors.join(" ") : null,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -295,55 +420,68 @@ async function readAll(): Promise<RawForm[] | null> {
 
 /** What the "Send form" picker lists. A file that doesn't parse is reported
  * beside the ones that do, so a typo in one questionnaire doesn't take the
- * whole picker down — and says which file and what's wrong with it. */
+ * whole picker down — and says which file, in which repo, and what's wrong. */
 export type FormChoice = {
+  /** What the picker submits back: a slug, or `<repo-name>/<slug>`. */
+  id: string
   slug: string
   title: string
   questionCount: number
+  /** "owner/name" this came from, or null for the house library. */
+  sourceRepo: string | null
 }
 
-export async function listOnboardingForms(): Promise<{
+export async function listOnboardingForms(clientRepo: string | null): Promise<{
   forms: FormChoice[]
   errors: string[]
 }> {
-  const raw = await readAll()
-  if (raw === null) {
-    return {
-      forms: [],
-      errors: [
-        `Couldn't read ${FOLDER}/ — not found on disk, and GitHub is unavailable or unconfigured.`,
-      ],
-    }
-  }
+  const { forms: raw, error } = await readAll(clientRepo)
 
   const forms: FormChoice[] = []
-  const errors: string[] = []
-  for (const { slug, markdown } of raw) {
+  const errors: string[] = error === null ? [] : [error]
+  for (const { slug, markdown, sourceRepo } of raw) {
     try {
-      const snapshot = parseOnboardingForm(slug, markdown)
+      const snapshot = parseOnboardingForm(slug, markdown, sourceRepo)
       forms.push({
+        id: formId(slug, sourceRepo),
         slug,
         title: snapshot.title,
         questionCount: snapshot.fields.length,
+        sourceRepo,
       })
     } catch (err) {
-      errors.push(err instanceof Error ? err.message : `${slug}.md is malformed.`)
+      errors.push(
+        err instanceof Error ? err.message : `${slug}.md is malformed.`
+      )
     }
   }
   return { forms, errors }
 }
 
-/** Parse one questionnaire, ready to be frozen onto a link. Throws with a
+/**
+ * Parse one questionnaire, ready to be frozen onto a link. Throws with a
  * message meant to be read in the dashboard — the send action surfaces it
- * rather than storing a half-parsed form. */
-export async function loadOnboardingForm(slug: string): Promise<FormSnapshot> {
-  if (!SLUG.test(slug)) throw new Error(`"${slug}" isn't a valid form name.`)
+ * rather than storing a half-parsed form.
+ *
+ * Resolution is scoped to the same lead the picker was drawn for, so an id can
+ * only ever name a form that lead was actually offered — a client-repo slug
+ * can't be sent to someone else by hand-editing the request.
+ */
+export async function loadOnboardingForm(
+  clientRepo: string | null,
+  id: string
+): Promise<FormSnapshot> {
+  if (!FORM_ID.test(id)) throw new Error(`"${id}" isn't a valid form name.`)
 
-  const raw = await readAll()
-  if (raw === null) throw new Error(`Couldn't read ${FOLDER}/.`)
+  const { forms } = await readAll(clientRepo)
+  const found = forms.find((f) => formId(f.slug, f.sourceRepo) === id)
+  if (!found) {
+    throw new Error(
+      id.includes("/")
+        ? `There's no ${FOLDER}/${id.split("/").pop()}.md in this lead's repo.`
+        : `There's no ${FOLDER}/${id}.md in this repo.`
+    )
+  }
 
-  const found = raw.find((f) => f.slug === slug)
-  if (!found) throw new Error(`There's no ${FOLDER}/${slug}.md in this repo.`)
-
-  return parseOnboardingForm(slug, found.markdown)
+  return parseOnboardingForm(found.slug, found.markdown, found.sourceRepo)
 }

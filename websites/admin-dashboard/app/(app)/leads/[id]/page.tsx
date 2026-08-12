@@ -78,11 +78,12 @@ async function loadLead(id: string) {
 
   // The questionnaire library (markdown in git) and this lead's sent links (rows
   // in Neon) are independent reads — one is what *can* be sent, the other what
-  // already was — so they go together rather than in series.
+  // already was — so they go together rather than in series. The library is
+  // scoped to this lead: the house forms, plus any in their own delivery repo.
   const [rawTasks, formLinks, formLibrary] = await Promise.all([
     listOpenTasksForClient(client.id),
     listFormLinksForClient(client.id),
-    listOnboardingForms(),
+    listOnboardingForms(client.githubRepo),
   ])
 
   // Every todo here is this lead's, so the list is rendered without the lead

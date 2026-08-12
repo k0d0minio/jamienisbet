@@ -33,10 +33,15 @@ function Answer({ value }: { value: string | boolean | null }) {
 
 function SentLine({ link }: { link: FormLink }) {
   const count = link.formSnapshot.fields.length
+  // Which repo the markdown came out of, for links sent since questionnaires
+  // went multi-repo. Older snapshots have no `sourceRepo` and every one of them
+  // was a house form, so saying nothing is the right reading of absent.
+  const source = link.formSnapshot.sourceRepo?.split("/").pop() ?? null
   return (
     <p className="text-xs text-muted-foreground">
       Sent {formatDateTime(link.sentAt)} · {count}{" "}
       {count === 1 ? "question" : "questions"}
+      {source ? ` · ${source}` : null}
       {link.completedAt
         ? ` · answered ${formatDateTime(link.completedAt)}`
         : null}

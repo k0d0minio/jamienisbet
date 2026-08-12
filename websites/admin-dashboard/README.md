@@ -111,6 +111,13 @@ and paste the link it gives you into an email you write yourself.
   in [`.icm/onboarding/`](../../.icm/onboarding/) (format documented in that folder's README),
   parsed by [`lib/onboarding.ts`](lib/onboarding.ts) into the snapshot type shared with the
   portfolio. The answers land in Neon (`biz.form_links`) and are never mirrored back into git.
+- **The library is two repos, scoped per lead.** The picker offers the house questionnaires
+  from this repo *plus* any in the lead's own connected delivery repo (`clients.github_repo`,
+  the same roster the Tickets board uses) — read over the GitHub API, sorted first, and
+  preselected. A form written for one client only ever appears on that client's profile; a
+  repo with no `.icm/onboarding/` contributes nothing and raises nothing. Forms are identified
+  by repo *and* slug, so two repos can both have a `project-intake.md`, and the snapshot's
+  `sourceRepo` records which was sent.
 - **Publishing is a snapshot.** "Send form" parses the file *at click time* and freezes the
   result onto the link row, so editing a question later never reinterprets answers already
   collected — and never changes what a form sitting in someone's inbox shows them.

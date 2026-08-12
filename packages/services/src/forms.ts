@@ -1,7 +1,9 @@
 // The shape of a published questionnaire — the contract between the two apps.
 //
-// Questions are content and live in git (`.icm/onboarding/<slug>.md`, convention
-// in that folder's README); answers are business state and live in Neon. The
+// Questions are content and live in git (`.icm/onboarding/<slug>.md` — in this
+// repo for general forms, in a client's own delivery repo for ones written for
+// them; convention in that folder's README); answers are business state and
+// live in Neon. The
 // bridge between them is the *snapshot*: clicking "Send form" on a lead parses
 // the markdown at that moment and freezes the result into
 // `biz.form_links.form_snapshot`, so a link renders — and its answers stay
@@ -39,6 +41,17 @@ export type FormField = {
 export type FormSnapshot = {
   /** The markdown filename without `.md` — what was sent, for the record. */
   slug: string
+  /**
+   * "owner/name" of the repo the markdown came from, for questionnaires that
+   * live in a client's own delivery repo rather than the house library.
+   *
+   * Absent or null means the house library, which is also how every link sent
+   * before questionnaires went multi-repo reads — the field is additive, so old
+   * snapshots stay valid without a migration. Slug alone stopped identifying a
+   * questionnaire once two repos could each have a `project-intake.md`; this is
+   * the other half of the provenance.
+   */
+  sourceRepo?: string | null
   title: string
   intro: string
   fields: FormField[]

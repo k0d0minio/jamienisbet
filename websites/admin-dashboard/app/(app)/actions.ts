@@ -292,17 +292,27 @@ export type SendFormResult = { ok: true } | { ok: false; message: string }
  *
  * A parse failure names the file and the problem, and nothing is inserted — so
  * a malformed questionnaire is never sent to anybody.
+ *
+ * `formId` is resolved against this lead's own library — the house forms plus
+ * their connected delivery repo's — so it can only ever name a questionnaire
+ * this lead's picker actually offered.
  */
 export async function sendFormToClient(
   clientId: string,
-  slug: string
+  formId: string
 ): Promise<SendFormResult> {
   try {
     const client = await getClient(clientId)
     if (!client) return { ok: false, message: "That lead no longer exists." }
 
-    const snapshot = await loadOnboardingForm(slug)
-    await createFormLink({ clientId, formSlug: slug, formSnapshot: snapshot })
+    const snapshot = await loadOnboardingForm(client.githubRepo, formId)
+    // `formSlug` stays the bare filename it has always been; which repo it came
+    // out of rides along in the snapshot.
+    await createFormLink({
+      clientId,
+      formSlug: snapshot.slug,
+      formSnapshot: snapshot,
+    })
     revalidateLead(clientId)
     return { ok: true }
   } catch (err) {
