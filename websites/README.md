@@ -19,6 +19,31 @@ This is the home for Jamie's **own** front-facing and internal web apps — four
 ## Brand-as-code
 Each app consumes the shared design system from [`packages/ui`](../packages/ui/) (`@jamie-nisbet/ui`): import `@jamie-nisbet/ui/styles.css` once at the app root for the tokens + fonts (light + dark via `data-theme`), then compose the exported React primitives (`import { Button, Card } from '@jamie-nisbet/ui'`). One brand change updates every site. No per-app brand overrides.
 
+## Deployment (Vercel)
+
+Four Vercel projects on the **kodominio** team, all off this repo. Each app carries its own
+`vercel.json` (framework + skip-build rule); the one setting `vercel.json` cannot express is the
+**Root Directory**, so a fresh import needs exactly this mapping (everything else — pnpm
+workspace install at the repo root, `next build` — is auto-detected):
+
+| Vercel project | Root Directory | Production domain |
+|---|---|---|
+| `portfolio` | `websites/portfolio` | `jamienisbet.com` |
+| `jamie-nisbet` | `websites/admin-dashboard` | `app.jamienisbet.com` |
+| `payment-gateway` | `websites/payment-gateway` | `pay.jamienisbet.com` |
+| `client-referrals` | `websites/sellers-site` | `sell.jamienisbet.com` |
+
+Env vars live in each Vercel project (never in git) — each app's README lists what it needs.
+
+**Skipped builds.** Since the 2026-08-12 consolidation, ticket flips in `.icm/intake/` and
+`_system/` edits land on this repo's `main`; they must not trigger four app deploys. Each
+`vercel.json` has an `ignoreCommand` (`git diff --quiet HEAD^ HEAD -- <paths>`) that skips the
+build unless the commit touched that app, a shared package it depends on, the workspace manifests,
+or (dashboard only) `.icm/onboarding/`. There is no turbo in this repo, so the paths are spelled
+out per app rather than inferred — adding a workspace dependency to an app means adding its path
+to that app's `ignoreCommand`. The command fails open: if `HEAD^` doesn't exist (first deploy,
+shallow history), the build runs.
+
 ## Notes
 - Apps are deployed as separate Vercel projects off this monorepo (pnpm workspaces; shared packages ship TS source via `transpilePackages`).
 - Client sites are external repos; the delivery link lives on each lead's profile in the admin dashboard.
