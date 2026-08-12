@@ -39,6 +39,7 @@ That ambition was retired in 2026-08 — history and rationale in
 | Brand colours, tokens, components, voice | [`packages/ui/`](packages/ui/) + [`packages/ui/BRAND.md`](packages/ui/BRAND.md) |
 | Data model / queries (`biz.*`) | [`packages/services/`](packages/services/) |
 | Plan or track engineering work on this repo | one markdown ticket per task in [`.icm/intake/`](.icm/intake/) (estate spec: `_system/TICKETS-SPEC.md` beside this repo) |
+| Customer questionnaires / onboarding forms (questions only — answers live in Neon) | [`.icm/onboarding/`](.icm/onboarding/) (convention in its README) |
 | Engineering work in the other repos | each repo's own `.icm/intake/`; viewed on the dashboard's Tickets screen — read-only there |
 | Daily business todos / compliance deadlines | the working-list strip on the dashboard's Leads screen (`biz.tasks` + `biz.compliance_dates`) |
 
