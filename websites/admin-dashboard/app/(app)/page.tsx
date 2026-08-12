@@ -480,9 +480,9 @@ export default async function LeadsPage({
                                 </a>
                               </div>
                             ) : null}
+                            {/* The number reads as itself but opens the
+                                WhatsApp chat — never dials. */}
                             {row.phone ? (
-                              {/* The number reads as itself but opens the
-                                  WhatsApp chat — never dials. */}
                               <a
                                 className="text-muted-foreground underline underline-offset-2"
                                 href={whatsappUrl(row.phone)}
