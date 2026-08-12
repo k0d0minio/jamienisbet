@@ -37,12 +37,15 @@ Env vars live in each Vercel project (never in git) — each app's README lists 
 
 **Skipped builds.** Since the 2026-08-12 consolidation, ticket flips in `.icm/intake/` and
 `_system/` edits land on this repo's `main`; they must not trigger four app deploys. Each
-`vercel.json` has an `ignoreCommand` (`git diff --quiet HEAD^ HEAD -- <paths>`) that skips the
-build unless the commit touched that app, a shared package it depends on, the workspace manifests,
-or (dashboard only) `.icm/onboarding/`. There is no turbo in this repo, so the paths are spelled
-out per app rather than inferred — adding a workspace dependency to an app means adding its path
-to that app's `ignoreCommand`. The command fails open: if `HEAD^` doesn't exist (first deploy,
-shallow history), the build runs.
+`vercel.json` has an `ignoreCommand`
+(`git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- <paths>`) that skips the
+build unless the push touched that app, a shared package it depends on, the workspace manifests,
+or (dashboard only) `.icm/onboarding/`. It diffs against the last *deployed* commit when Vercel
+provides it — `HEAD^` alone only sees the final commit of a multi-commit push, which is how this
+rule's first version skipped four real deploys. There is no turbo in this repo, so the paths are
+spelled out per app rather than inferred — adding a workspace dependency to an app means adding
+its path to that app's `ignoreCommand`. The command fails open: if the comparison commit doesn't
+exist (first deploy, shallow history), the build runs.
 
 ## Notes
 - Apps are deployed as separate Vercel projects off this monorepo (pnpm workspaces; shared packages ship TS source via `transpilePackages`).
