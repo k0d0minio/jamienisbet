@@ -19,24 +19,35 @@ import { listClientRepos } from "@jamie-nisbet/services"
 const API = "https://api.github.com"
 const REVALIDATE_SECONDS = 60
 
-// The repos whose backlogs the board shows come from the database: every
-// delivery repo connected to an active client (`biz.clients.github_repo`).
+// The repos whose backlogs the board shows come from the database — every
+// delivery repo connected to an active client (`biz.clients.github_repo`) —
+// plus the house repo itself (its `JN-*` series: estate and process work).
 // Connecting a repo on a lead's profile *is* the onboarding step — the board
 // tolerates `.icm/intake/` not existing yet (the repo just reads as empty
 // until its first ticket lands).
 //
+// Same house-repo constant as `lib/onboarding.ts`.
+const HOUSE_REPO = "k0d0minio/jamienisbet"
+
 // Sustentus stays off the board even if a client row ever points at it: its
 // `pipeline/intake/` is its own authoritative system and stays untouched.
-const EXCLUDED_REPOS = new Set(["sustentus/sustentus"])
+// Matched on the repo-name segment so the exclusion holds under any owner.
+const EXCLUDED_REPO_NAMES = new Set(["sustentus", "sustentus-v2"])
+
+function isExcluded(fullName: string): boolean {
+  const name = fullName.split("/").pop() ?? fullName
+  return EXCLUDED_REPO_NAMES.has(name.toLowerCase())
+}
 
 export type TicketRepo = {
   /** "owner/name" as stored on the client row. */
   fullName: string
   /** The repo's own name — the filter-chip label and URL param. */
   slug: string
-  /** The client the repo is connected to, for linking board → lead. */
-  clientId: string
-  clientName: string
+  /** The client the repo is connected to, for linking board → lead.
+   * Null for the house repo — estate work belongs to no client. */
+  clientId: string | null
+  clientName: string | null
 }
 
 const INTAKE_PATH = ".icm/intake"
@@ -166,14 +177,20 @@ export function parseTicket(
   for (const line of lines) {
     const row = line.match(/^\|([^|]*)\|([^|]*)\|\s*$/)
     if (!row) continue
-    const key = row[1].trim()
+    // Bold metadata is valid markdown (`| **Status** |`, remi-ai style) —
+    // strip emphasis before comparing keys or reading the value.
+    const key = row[1].replace(/\*/g, "").trim()
     const value = row[2].trim()
     if (!key || !value || /^[-:\s]+$/.test(key)) continue
     const keyLower = key.toLowerCase()
+    const plainValue = value.replace(/\*/g, "").trim()
     if (keyLower === "status") {
-      status = STATUS_ALIASES[value.toLowerCase()] ?? "ready"
+      status = STATUS_ALIASES[plainValue.toLowerCase()] ?? "ready"
     } else if (keyLower === "priority") {
-      priority = value.toUpperCase()
+      // Verbose priorities (`P0 — live exposure, close today`) still rank:
+      // a leading P0–P2 token wins; anything else passes through verbatim.
+      const token = plainValue.match(/^p([0-2])\b/i)
+      priority = token ? `P${token[1]}` : plainValue.toUpperCase()
     } else {
       meta.push([key, value])
     }
@@ -263,16 +280,22 @@ function rank(t: Ticket): number {
 }
 
 /**
- * The board's repo roster, from the client rows. Deduped by repo (two clients
- * pointing at one repo would double every ticket) — first client row wins the
- * attribution.
+ * The board's repo roster: the client rows plus the house repo. Deduped by
+ * repo (two clients pointing at one repo would double every ticket) — first
+ * client row wins the attribution. The house repo is always present and never
+ * attributed to a client, even if a client row points at it.
  */
 async function loadRepos(): Promise<TicketRepo[]> {
   const rows = await listClientRepos()
   const seen = new Set<string>()
   const repos: TicketRepo[] = []
   for (const row of rows) {
-    if (EXCLUDED_REPOS.has(row.githubRepo) || seen.has(row.githubRepo)) continue
+    if (
+      isExcluded(row.githubRepo) ||
+      row.githubRepo === HOUSE_REPO ||
+      seen.has(row.githubRepo)
+    )
+      continue
     seen.add(row.githubRepo)
     repos.push({
       fullName: row.githubRepo,
@@ -281,6 +304,12 @@ async function loadRepos(): Promise<TicketRepo[]> {
       clientName: row.clientName,
     })
   }
+  repos.push({
+    fullName: HOUSE_REPO,
+    slug: HOUSE_REPO.split("/").pop() ?? HOUSE_REPO,
+    clientId: null,
+    clientName: null,
+  })
   return repos
 }
 

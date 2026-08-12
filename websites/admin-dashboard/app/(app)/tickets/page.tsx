@@ -101,13 +101,18 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
             )}
             <span className="ml-auto flex items-center gap-3 text-xs">
               {/* The repo is on the board because a client row points at it —
-                  the join back to the big picture is one tap. */}
-              <Link
-                href={`/leads/${ticket.repo.clientId}`}
-                className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
-              >
-                {ticket.repo.clientName}
-              </Link>
+                  the join back to the big picture is one tap. The house repo
+                  belongs to no client; it just says so. */}
+              {ticket.repo.clientId ? (
+                <Link
+                  href={`/leads/${ticket.repo.clientId}`}
+                  className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  {ticket.repo.clientName}
+                </Link>
+              ) : (
+                <span className="text-muted-foreground">house</span>
+              )}
               <a
                 href={ticket.htmlUrl}
                 target="_blank"
