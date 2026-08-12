@@ -21,6 +21,7 @@ import {
 
 import { ClientActions } from "@/components/client-actions"
 import { ClientProfileForm } from "@/components/client-profile-form"
+import { ConvertFlow } from "@/components/convert-flow"
 import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
@@ -48,6 +49,18 @@ export const dynamic = "force-dynamic"
 // (how they came in) or rare and destructive (archive, delete) sits at the
 // bottom, and the intake block folds away on a small screen. On a wide screen
 // the same blocks lay out in two columns.
+
+// What a converted lead is still missing. Each gap is a downstream breakage —
+// no repo means invisible on the tickets board, no value means the header money
+// numbers lie, no Stripe means the first invoice stalls on plumbing — so a won
+// or delivered client wears these until the pieces exist.
+function conversionGaps(client: Client): string[] {
+  const gaps: string[] = []
+  if (!client.githubRepo) gaps.push("no delivery repo")
+  if (client.valueMinor <= 0) gaps.push("no deal value")
+  if (!client.stripeCustomerId) gaps.push("no Stripe customer")
+  return gaps
+}
 
 function sourceLabel(source: string): string {
   if (source === "portfolio") return "Contact form"
@@ -163,6 +176,12 @@ export default async function LeadDetailPage({
   const { client, tasks, formLinks, formLibrary, lastWorked } = loaded
   const archived = client.archivedAt !== null
 
+  const isCustomer = client.status === "won" || client.status === "delivered"
+  const gaps = isCustomer ? conversionGaps(client) : []
+  // The Convert card walks the four pieces; it stays up for a customer with
+  // gaps (to finish the job) and disappears once conversion is whole.
+  const showConvert = !archived && (!isCustomer || gaps.length > 0)
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       {/* Back out of the detail view — a real target, not a 14px arrow. */}
@@ -190,6 +209,17 @@ export default async function LeadDetailPage({
         {/* The same badges the leads list carries, so what kind of deal this is
             is answered before you scroll to the profile that sets it. */}
         <DealBadges client={client} className="mt-1" />
+        {/* Conversion gaps — a won client missing pieces says so where the
+            eye lands first, because each gap breaks something downstream. */}
+        {gaps.length > 0 ? (
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {gaps.map((gap) => (
+              <Badge key={gap} variant="warning">
+                {gap}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {/* The things you came here to do. A rail rather than a wrapping row, so
@@ -234,6 +264,41 @@ export default async function LeadDetailPage({
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-4 sm:gap-6 lg:col-span-2">
+          {/* Conversion as one act: the four steps that used to be four
+              separate taps, walked in order, each skippable but explicit.
+              Composes the same actions the individual controls below use. */}
+          {showConvert ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {isCustomer ? "Finish conversion" : "Convert"}
+                </CardTitle>
+                <CardDescription>
+                  {isCustomer
+                    ? "Won, but missing pieces — walk the remaining steps."
+                    : "Won the work? Walk status, repo, deal terms and Stripe in one pass."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ConvertFlow
+                  client={{
+                    id: client.id,
+                    status: client.status,
+                    githubRepo: client.githubRepo,
+                    githubDefaultBranch: client.githubDefaultBranch,
+                    stripeCustomerId: client.stripeCustomerId,
+                    valueMinor: client.valueMinor,
+                    billingType: client.billingType,
+                    dealType: client.dealType,
+                    barterTerms: client.barterTerms,
+                  }}
+                  githubConfigured={isGithubConfigured()}
+                  suggestedRepoName={clientSlug(client.name)}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
           {/* Editable profile — the record grows here. */}
           <Card>
             <CardHeader>

@@ -139,6 +139,38 @@ export async function saveClientProfile(id: string, formData: FormData) {
   revalidateLead(id)
 }
 
+/**
+ * The deal-terms slice of the profile on its own — what the Convert flow's
+ * third step saves. Touches only value/billing/deal-type/barter-terms, so it
+ * can never blank a contact field the way posting a partial profile form
+ * through `saveClientProfile` would.
+ */
+export async function saveDealTerms(id: string, formData: FormData) {
+  const value = (name: string): string | null => {
+    const raw = formData.get(name)
+    if (typeof raw !== "string") return null
+    const trimmed = raw.trim()
+    return trimmed === "" ? null : trimmed
+  }
+
+  const patch: ClientProfilePatch = {}
+
+  const rawValue = value("value")
+  patch.valueMinor = rawValue === null ? 0 : (parseAmountToMinor(rawValue) ?? 0)
+
+  const rawBilling = String(formData.get("billingType") ?? "one_off")
+  patch.billingType = isBillingType(rawBilling) ? rawBilling : "one_off"
+
+  const rawDealType = String(formData.get("dealType") ?? "cash")
+  patch.dealType = isDealType(rawDealType) ? rawDealType : "cash"
+  patch.barterTerms = patch.dealType === "barter" ? value("barterTerms") : null
+
+  const updated = await updateClient(id, patch)
+  const stripe = getStripe()
+  if (stripe && updated) await pushClientToStripe(stripe, updated)
+  revalidateLead(id)
+}
+
 /** Add a lead or a customer by hand — the meetup contact, the word-of-mouth
  * introduction, the client who was already paying before this dashboard
  * existed. One row per person either way; `status` is the only thing that says
