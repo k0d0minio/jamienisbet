@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Pull all repos",
+      "type": "shell",
+      "command": "${workspaceFolder}/_system/pull-all.sh",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "focus": true
+      },
+      "group": "none",
+      "detail": "git pull --ff-only across every repo under Apps/"
+    },
+    {
+      "label": "Pull all repos (dry run)",
+      "type": "shell",
+      "command": "${workspaceFolder}/_system/pull-all.sh",
+      "args": ["-n"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "focus": true
+      },
+      "group": "none",
+      "detail": "Report what would be pulled, without pulling"
+    }
+  ]
+}

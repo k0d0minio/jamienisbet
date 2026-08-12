@@ -21,3 +21,10 @@ workspaces/finance/stages/*/output/*
 .idea/
 .vercel
 .env*
+
+# The client repos live in projects/ as separate git repos — never tracked here.
+# This whitelist-by-exclusion is the consolidation mechanism; never loosen it.
+/projects/
+
+# Claude Code accretion layer stays per-machine (settings.json is clean policy).
+.claude/settings.local.json
