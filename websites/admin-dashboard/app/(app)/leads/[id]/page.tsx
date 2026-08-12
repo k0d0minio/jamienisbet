@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ChevronLeft, Mail, Phone } from "lucide-react"
+import { ChevronLeft, Mail, MessageCircle } from "lucide-react"
 
 import {
   Badge,
@@ -37,6 +37,7 @@ import {
   formatDateTime,
   formatServiceId,
   waitingLabel,
+  whatsappUrl,
 } from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
 import { listOnboardingForms } from "@/lib/onboarding"
@@ -228,9 +229,15 @@ export default async function LeadDetailPage({
       <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 no-scrollbar sm:mx-0 sm:px-0 sm:pb-0">
         {client.phone ? (
           <Button asChild variant="outline" className="shrink-0">
-            <a href={`tel:${client.phone}`}>
-              <Phone />
-              Call
+            {/* WhatsApp chat, not a call — tapping a lead's number should open
+                the conversation, never surprise-dial them. */}
+            <a
+              href={whatsappUrl(client.phone)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MessageCircle />
+              WhatsApp
             </a>
           </Button>
         ) : null}

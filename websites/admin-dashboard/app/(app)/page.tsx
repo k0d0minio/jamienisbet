@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Mail, Phone } from "lucide-react"
+import { Mail, MessageCircle } from "lucide-react"
 
 import {
   Alert,
@@ -28,7 +28,7 @@ import { ComplianceList, type ComplianceItem } from "@/components/compliance-lis
 import { DealBadges } from "@/components/deal-badges"
 import { TaskList, type TaskItem, type TaskLead } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
-import { daysSince, waitingLabel } from "@/lib/format"
+import { daysSince, waitingLabel, whatsappUrl } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 
 export const metadata: Metadata = { title: "Leads" }
@@ -152,8 +152,9 @@ function TotalsLine({
   )
 }
 
-// Tap-to-call / tap-to-email straight off the row — on a phone these are the
-// actions, not decoration next to an address you'd copy with a mouse.
+// Tap-to-chat / tap-to-email straight off the row — on a phone these are the
+// actions, not decoration next to an address you'd copy with a mouse. External
+// links (WhatsApp) open in a new tab so the board stays where you left it.
 function ContactButton({
   href,
   label,
@@ -161,11 +162,16 @@ function ContactButton({
 }: {
   href: string
   label: string
-  icon: typeof Phone
+  icon: typeof Mail
 }) {
+  const external = href.startsWith("http")
   return (
     <Button asChild variant="ghost" size="icon-sm" aria-label={label}>
-      <a href={href}>
+      <a
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+      >
         <Icon />
       </a>
     </Button>
@@ -398,9 +404,9 @@ export default async function LeadsPage({
                     <div className="ml-auto flex items-center gap-1">
                       {row.phone ? (
                         <ContactButton
-                          href={`tel:${row.phone}`}
-                          label={`Call ${row.name}`}
-                          icon={Phone}
+                          href={whatsappUrl(row.phone)}
+                          label={`WhatsApp ${row.name}`}
+                          icon={MessageCircle}
                         />
                       ) : null}
                       {row.email ? (
@@ -475,9 +481,13 @@ export default async function LeadsPage({
                               </div>
                             ) : null}
                             {row.phone ? (
+                              {/* The number reads as itself but opens the
+                                  WhatsApp chat — never dials. */}
                               <a
                                 className="text-muted-foreground underline underline-offset-2"
-                                href={`tel:${row.phone}`}
+                                href={whatsappUrl(row.phone)}
+                                target="_blank"
+                                rel="noreferrer"
                               >
                                 {row.phone}
                               </a>
