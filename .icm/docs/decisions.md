@@ -7,10 +7,12 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
 
 ## Structure
 - **Stage contract = split:** `README.md` (narrative) + `CONTEXT.md` (contract). Root `CLAUDE.md`
-  stays the only Layer-0 file. → [`readme-as-context.md`](readme-as-context.md)
+  stays the only Layer-0 file. _(The per-decision companion docs referenced throughout this
+  register were retired with the factory in 2026-08; this register is the surviving record.)_
 - **Delivery lives in the client's external repo** — docs *and* code. _(The founding "`projects/` =
-  in-repo, docs-only per client" model is retired — see the 2026-07 dashboard-first reversal; the
-  dashboard seeds delivery docs into the client repo.)_ → [`client-and-slug.md`](client-and-slug.md)
+  in-repo, docs-only per client" model is retired — see the 2026-07 dashboard-first reversal.
+  Dashboard-driven delivery-doc seeding was itself retired in 2026-08 along with the templates it
+  seeded from; repos start from `_system/icm-template` via `/onboard` instead.)_
 - **`websites/` here = `portfolio/`, `payment-gateway/`, `admin-dashboard/`, `sellers-site/`**
   (Next.js + Vercel). Client sites are **external repos**. No `clients/` or `personal/` here.
 - **Daily todos + morning brief = the dashboard's working list.** _(The founding standalone
@@ -20,10 +22,11 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   run-time, not referenced from a shared workspace.
 
 ## Automation & integrations
-- **Scripts = bash**, agent-invoked, each with a tiny contract. Shipped: `send-email` (Resend) and
-  the read-only `stripe-*` fetchers. (`new-client` was planned but never built — client creation is
-  the dashboard's job; `new-project` shipped and was later retired with `projects/`, see the 2026-07
-  reversal.) → [`scripts-and-integrations.md`](scripts-and-integrations.md)
+- **Scripts = bash**, agent-invoked, each with a tiny contract. _(The `scripts/` folder is gone
+  entirely: `send-email` and the `stripe-*` fetchers were retired with the factory in 2026-08;
+  `new-client` was planned but never built — client creation is the dashboard's job; `new-project`
+  shipped and was retired with `projects/`, see the 2026-07 reversal. The estate scripts that
+  remain live in `_system/`.)_
 - **Wired services: Stripe, Vercel, GitHub.** Accounting via Stripe.
 - **Hard boundary:** no outbound action without a human-reviewed `output/` file first. No
   exceptions. Per-stage `## Integrations` declares any external call.
@@ -31,7 +34,7 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
 ## State & process
 - **State = the Neon `biz.*` schema, the sole store.** The repo holds no pipeline state (no client
   records, statuses, or generated dashboard); the admin dashboard drives the pipeline, and there
-  is no sync-back. → [`state-and-status.md`](state-and-status.md)
+  is no sync-back.
   _(Reverses the original "State = per-entity YAML front-matter" decision — see the 2026-07 entry
   below.)_
 - **Status vocabularies are defined in code** (`@jamie-nisbet/services`: `clientStatuses`,
@@ -47,8 +50,8 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   dashboard is where the business *runs* day-to-day (pipeline, deals, invoices, daily brief,
   outreach drafts); the repo carries the AI factory (stage contracts, references, brand, templates)
   that the ICM runtime reads, plus the code that ships it. Consequences: `projects/` and
-  `scripts/new-project.sh` retired (delivery docs are seeded into the client's external repo by the
-  dashboard from `shared/templates/delivery/`); `tracker/` retired (the morning brief is the
+  `scripts/new-project.sh` retired (delivery docs moved to the client's external repo; the
+  dashboard-seeding mechanism that replaced the script was itself retired in 2026-08); `tracker/` retired (the morning brief is the
   dashboard's working list, todos live in `biz.tasks`); empty `shared/knowledge/` deleted;
   outreach is drafted in the dashboard (draft-only — sending stays manual and off-platform).
 - **2026-07 — State store: one DB, not a repo mirror.** The founding "State = per-entity YAML
@@ -56,29 +59,30 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   **retired**, along with the later "repo is a synced mirror maintained by sync-back" plan. The
   Neon `biz.*` schema is the **sole** source of truth; the repo carries no pipeline state and
   nothing is written back to git on approval. Zero real entities existed in the markdown model, so
-  this removed specification and scaffolding, not data. → [`state-and-status.md`](state-and-status.md)
+  this removed specification and scaffolding, not data.
 
 - **2026-08 — The dashboard tracks people, it does not generate documents.** The three-step AI
   deal pipeline in the admin dashboard (brainstorm with web research → pitch → proposal →
   milestone invoicing), its versioned review-gated `biz.documents`, AI provenance/spend tracking,
   draft-only outreach composition, and the won-deal onboarding checklist are **retired**. ~14
-  screens became **three**: Leads, a lead's profile, and Money. Consequences: the `deals`,
+  screens became **four**: Leads, a lead's profile, the read-only Tickets board, and Money.
+  Consequences: the `deals`,
   `documents`, `generations`, `touches` and `workshop_messages` tables dropped; the
   `app/api/ai/*` routes and the `@jamie-nisbet/icm` package deleted (those routes were its only
   consumer); **one row per person** — a lead who comes back for more work is the same
   relationship, carrying `value_minor` + `billing_type` (`one_off` | `monthly`) instead of a
   deal record; the leads list sorts on `coalesce(last_touched_at, created_at)` so whoever has
   waited longest is at the top. The markdown factory (`_config/`, `shared/templates/`,
-  `workspaces/*/stages/`) is **untouched** — those contracts are now walked directly by an agent,
-  writing a reviewed file to the stage's `output/`, rather than being loaded by a route handler.
+  `workspaces/*/stages/`) survived this decision but was **retired later the same month** with the
+  estate consolidation (2026-08-12): the whole ICM-factory ambition is gone, and the control layer
+  that replaced it is the lean `_system/` + `.claude/` pair (see the root `CLAUDE.md`).
   Reason: too much machinery for a one-person consultancy whose actual need is knowing who is
-  waiting to hear back. → [`macro-pipeline.md`](macro-pipeline.md) ·
-  [`state-and-status.md`](state-and-status.md)
+  waiting to hear back.
 
 ## Business parameters (used by later passes)
-- **All pricing numbers live in [`_config/business/rates.md`](../business/rates.md)** — the single
-  source of truth for rate, anchor, floor, retainer reduction, affiliate percentage and the
-  landing-page minimum. Never restate figures elsewhere. Tiered good/better/best by default; price
+- **Pricing numbers are never restated in docs.** _(Their former single source of truth,
+  `_config/business/rates.md`, was retired with the factory in 2026-08; deal terms now live per
+  client in Neon `biz.*` via the dashboard.)_ Tiered good/better/best by default; price
   against client upside. **Account for a retainer client type from the start** (one is live).
 - **Affiliate:** sellers quote the landing-page offer freely at/above the `rates.md` minimum without
   approval; anything more complex needs Jamie's sign-off. Commission paid on payment received. Lead

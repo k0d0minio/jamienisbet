@@ -186,7 +186,7 @@ the Leads screen is unaffected. The client-facing pay page lives in
 The dashboard used to run a three-step AI deal pipeline (brainstorm with web research → pitch →
 proposal → milestone invoicing), with versioned review-gated documents, AI provenance and spend
 tracking, draft-only outreach composition, and a won-deal onboarding checklist — around 14
-screens in total. It was removed in favour of the three above: too much machinery for a
+screens in total. It was removed in favour of the four above: too much machinery for a
 one-person consultancy whose actual need is knowing who is waiting to hear back.
 
 Gone with it: the `deals`, `documents`, `generations`, `touches` and `workshop_messages` tables,
