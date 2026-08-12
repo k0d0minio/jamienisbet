@@ -12,7 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@jamie-nisbet/ui"
-import { getClient, listOpenTasksForClient, type Client } from "@jamie-nisbet/services"
+import {
+  getClient,
+  listFormLinksForClient,
+  listOpenTasksForClient,
+  type Client,
+} from "@jamie-nisbet/services"
 
 import { ClientActions } from "@/components/client-actions"
 import { ClientProfileForm } from "@/components/client-profile-form"
@@ -21,6 +26,7 @@ import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
 import { DealBadges } from "@/components/deal-badges"
 import { FoldCard } from "@/components/fold-card"
+import { FormLinks } from "@/components/form-links"
 import { MarkTouchedButton } from "@/components/mark-touched-button"
 import { TaskList } from "@/components/task-list"
 import { WorkStartedButton } from "@/components/work-started-button"
@@ -32,6 +38,7 @@ import {
   waitingLabel,
 } from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
+import { listOnboardingForms } from "@/lib/onboarding"
 
 export const metadata: Metadata = { title: "Lead" }
 export const dynamic = "force-dynamic"
@@ -69,9 +76,18 @@ async function loadLead(id: string) {
   const client = await getClient(id)
   if (!client) return null
 
+  // The questionnaire library (markdown in git) and this lead's sent links (rows
+  // in Neon) are independent reads — one is what *can* be sent, the other what
+  // already was — so they go together rather than in series.
+  const [rawTasks, formLinks, formLibrary] = await Promise.all([
+    listOpenTasksForClient(client.id),
+    listFormLinksForClient(client.id),
+    listOnboardingForms(),
+  ])
+
   // Every todo here is this lead's, so the list is rendered without the lead
   // picker the leads screen carries — the name would be the same on each row.
-  const tasks = (await listOpenTasksForClient(client.id)).map((t) => ({
+  const tasks = rawTasks.map((t) => ({
     id: t.id,
     title: t.title,
     clientId: t.clientId,
@@ -84,6 +100,8 @@ async function loadLead(id: string) {
   return {
     client,
     tasks,
+    formLinks,
+    formLibrary,
     lastWorked: waitingLabel(
       daysSince(client.lastTouchedAt ?? client.createdAt, now)
     ),
@@ -141,7 +159,7 @@ export default async function LeadDetailPage({
   const loaded = await loadLead(id)
   if (!loaded) notFound()
 
-  const { client, tasks, lastWorked } = loaded
+  const { client, tasks, formLinks, formLibrary, lastWorked } = loaded
   const archived = client.archivedAt !== null
 
   return (
@@ -227,6 +245,29 @@ export default async function LeadDetailPage({
             </CardHeader>
             <CardContent>
               <ClientProfileForm client={client} />
+            </CardContent>
+          </Card>
+
+          {/* Questionnaires. The link is copied here and emailed by hand — per
+              the estate rule, the dashboard never sends anything itself. */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Forms</CardTitle>
+              <CardDescription>
+                Send {client.name} a questionnaire from{" "}
+                <code className="rounded-xs bg-muted px-1 py-0.5 text-xs">
+                  .icm/onboarding/
+                </code>
+                , then paste the link into an email. Answers come back here.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormLinks
+                clientId={client.id}
+                links={formLinks}
+                forms={formLibrary.forms}
+                formErrors={formLibrary.errors}
+              />
             </CardContent>
           </Card>
 
