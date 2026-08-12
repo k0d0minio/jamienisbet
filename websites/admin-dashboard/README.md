@@ -110,7 +110,7 @@ and paste the link it gives you into an email you write yourself.
 - **Questions are content, answers are business state.** The questionnaires are markdown files
   in [`.icm/onboarding/`](../../.icm/onboarding/) (format documented in that folder's README),
   parsed by [`lib/onboarding.ts`](lib/onboarding.ts) into the snapshot type shared with the
-  portfolio. The answers land in Neon (`biz.form_links`) and are never mirrored back into git.
+  portfolio. The answers land in Neon (`biz.form_links`), which stays the record.
 - **The library is two repos, scoped per lead.** The picker offers the house questionnaires
   from this repo *plus* any in the lead's own connected delivery repo (`clients.github_repo`,
   the same roster the Tickets board uses) — read over the GitHub API, sorted first, and
@@ -130,6 +130,12 @@ and paste the link it gives you into an email you write yourself.
   takes its answers with it, so it asks first.
 - A questionnaire that doesn't parse is reported by name in the card — with what is wrong with
   it — instead of quietly vanishing from the picker, and nothing is inserted.
+- **Write to repo closes the loop.** An answered form with a connected delivery repo gains a
+  **Write to repo** button: the answers are rendered to readable markdown and committed to the
+  client's repo as `.icm/docs/form-<slug>-<YYYY-MM-DD>.md`, so a session working there reads the
+  client's own words instead of writing tickets from memory. Deliberate, never automatic; the
+  file is a rendered copy (it says so in its header) and an existing file is never overwritten —
+  a same-day rewrite lands as `-2`, `-3`, ….
 
 The public page lives on the portfolio (`/f/[token]`) because that app already has the brand
 chrome and a server action writing to `biz.clients`; nothing customer-facing is served from the

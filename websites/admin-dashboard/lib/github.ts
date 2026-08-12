@@ -161,3 +161,76 @@ export async function createRepo(input: {
   return toSummary((await res.json()) as Parameters<typeof toSummary>[0])
 }
 
+// ---------------------------------------------------------------------------
+// Single-file commit — how rendered copies of business state (completed
+// questionnaire answers) land in a client's delivery repo. Uses the contents
+// API (PUT). A classic PAT's `repo` scope covers this; a fine-grained token
+// additionally needs **Contents: write** on the target repos.
+
+export type CommitFileResult =
+  | { outcome: "created"; path: string; htmlUrl: string | null }
+  /** The path is already taken — nothing was written. Never overwrites. */
+  | { outcome: "exists"; path: string }
+  | { outcome: "failed"; path: string; error: string }
+
+/**
+ * Commit one new file. A PUT without a `sha` fails with 422 when the file
+ * already exists, which comes back as "exists" — existing files are never
+ * touched; the caller picks a different path if it still wants the write.
+ */
+export async function commitRepoFile(
+  fullName: string,
+  path: string,
+  content: string,
+  message: string
+): Promise<CommitFileResult> {
+  if (!isGithubConfigured()) {
+    return {
+      outcome: "failed",
+      path,
+      error: "GitHub is not configured in this environment.",
+    }
+  }
+  try {
+    const res = await gh(
+      `/repos/${fullName}/contents/${path
+        .split("/")
+        .map(encodeURIComponent)
+        .join("/")}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          content: Buffer.from(content, "utf8").toString("base64"),
+        }),
+      }
+    )
+    if (res.ok) {
+      const body = (await res.json().catch(() => null)) as {
+        content?: { html_url?: string }
+      } | null
+      return {
+        outcome: "created",
+        path,
+        htmlUrl: body?.content?.html_url ?? null,
+      }
+    }
+    if (res.status === 422) return { outcome: "exists", path }
+    const body = (await res.json().catch(() => null)) as {
+      message?: string
+    } | null
+    return {
+      outcome: "failed",
+      path,
+      error: body?.message || `HTTP ${res.status}`,
+    }
+  } catch (err) {
+    return {
+      outcome: "failed",
+      path,
+      error: err instanceof Error ? err.message : "network error",
+    }
+  }
+}
+
