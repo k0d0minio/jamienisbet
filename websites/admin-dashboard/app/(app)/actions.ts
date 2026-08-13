@@ -78,9 +78,16 @@ export async function setWorkStarted(id: string, started: boolean) {
   revalidateLead(id)
 }
 
-// Editable profile fields, read straight off the form. Empty strings become
-// null so a cleared field doesn't persist as "".
-export async function saveClientProfile(id: string, formData: FormData) {
+// The profile is edited in slices — contact, notes, deal — each from its own
+// sheet on the lead's page, so no form ever posts fields it didn't show.
+// Empty strings become null so a cleared field doesn't persist as "".
+
+/**
+ * The contact slice of the profile on its own — who they are and how to reach
+ * them. Touches nothing about the deal, so the contact edit sheet on a lead's
+ * page can never zero a value it didn't show.
+ */
+export async function saveClientContact(id: string, formData: FormData) {
   const value = (name: string): string | null => {
     const raw = formData.get(name)
     if (typeof raw !== "string") return null
@@ -89,61 +96,35 @@ export async function saveClientProfile(id: string, formData: FormData) {
   }
 
   const patch: ClientProfilePatch = {
-    name: value("name") ?? undefined,
     email: value("email"),
     phone: value("phone"),
     company: value("company"),
-    notes: value("notes"),
   }
-
-  // `name` is NOT NULL — never blank it out. If the field came back empty we
-  // simply leave the existing name untouched.
-  if (patch.name === undefined) delete patch.name
-
-  // What the relationship is worth, typed in major units ("1500", "2,500.00").
-  // A cleared field means "no figure", which is zero rather than untouched.
-  const rawValue = value("value")
-  patch.valueMinor = rawValue === null ? 0 : (parseAmountToMinor(rawValue) ?? 0)
-
-  const rawBilling = String(formData.get("billingType") ?? "one_off")
-  patch.billingType = isBillingType(rawBilling) ? rawBilling : "one_off"
-
-  // How the deal is settled. Anything unrecognised is cash — the safe reading,
-  // since it keeps the figure in the pipeline total rather than silently moving
-  // it out of the money you're expecting.
-  const rawDealType = String(formData.get("dealType") ?? "cash")
-  patch.dealType = isDealType(rawDealType) ? rawDealType : "cash"
-  // The barter terms box only exists while "exchange of services" is selected,
-  // so switching back to cash clears what was written for the old arrangement
-  // rather than leaving it behind, invisible and still stored.
-  patch.barterTerms = patch.dealType === "barter" ? value("barterTerms") : null
-
-  // Commission and equity, typed as percentages ("8.5", "10 %"). A cleared or
-  // unparseable field means "not part of this deal", which is null rather than
-  // zero — zero would read on the row as a nil cut deliberately agreed.
-  const percent = (name: string): number | null => {
-    const raw = value(name)
-    return raw === null ? null : parsePercentToBps(raw)
-  }
-  patch.commissionBps = percent("commission")
-  patch.equityBps = percent("equity")
+  // `name` is NOT NULL — an emptied field leaves the existing name untouched.
+  const name = value("name")
+  if (name !== null) patch.name = name
 
   const updated = await updateClient(id, patch)
-
-  // Keep an already-linked Stripe customer in step with the edited profile.
-  // Best-effort and only when linked: editing a profile never *creates* a Stripe
-  // customer (that happens at first invoice, or an explicit link).
   const stripe = getStripe()
   if (stripe && updated) await pushClientToStripe(stripe, updated)
+  revalidateLead(id)
+}
 
+/** Working notes on their own, for the notes edit sheet. */
+export async function saveClientNotes(id: string, formData: FormData) {
+  const raw = formData.get("notes")
+  const notes = typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null
+  await updateClient(id, { notes })
   revalidateLead(id)
 }
 
 /**
  * The deal-terms slice of the profile on its own — what the Convert flow's
- * third step saves. Touches only value/billing/deal-type/barter-terms, so it
- * can never blank a contact field the way posting a partial profile form
- * through `saveClientProfile` would.
+ * third step and the deal edit sheet save. Touches only the deal, so it can
+ * never blank a contact field the way posting a partial profile form through
+ * `saveClientProfile` would. Commission and equity are read only when the form
+ * posted them — the Convert flow's shorter form doesn't carry those fields and
+ * must not null them out.
  */
 export async function saveDealTerms(id: string, formData: FormData) {
   const value = (name: string): string | null => {
@@ -164,6 +145,17 @@ export async function saveDealTerms(id: string, formData: FormData) {
   const rawDealType = String(formData.get("dealType") ?? "cash")
   patch.dealType = isDealType(rawDealType) ? rawDealType : "cash"
   patch.barterTerms = patch.dealType === "barter" ? value("barterTerms") : null
+
+  // A cleared percentage means "not part of this deal" (null, not zero — zero
+  // would read as a nil cut deliberately agreed).
+  if (formData.has("commission")) {
+    const raw = value("commission")
+    patch.commissionBps = raw === null ? null : parsePercentToBps(raw)
+  }
+  if (formData.has("equity")) {
+    const raw = value("equity")
+    patch.equityBps = raw === null ? null : parsePercentToBps(raw)
+  }
 
   const updated = await updateClient(id, patch)
   const stripe = getStripe()

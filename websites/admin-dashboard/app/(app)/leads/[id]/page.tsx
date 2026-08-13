@@ -20,8 +20,11 @@ import {
 } from "@jamie-nisbet/services"
 
 import { ClientActions } from "@/components/client-actions"
-import { ClientProfileForm } from "@/components/client-profile-form"
 import { ConvertFlow } from "@/components/convert-flow"
+import { DisclosureCard } from "@/components/disclosure-card"
+import { LeadContactCard } from "@/components/lead-contact-card"
+import { LeadDealCard } from "@/components/lead-deal-card"
+import { LeadNotesCard } from "@/components/lead-notes-card"
 import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ClientStripeLink } from "@/components/client-stripe-link"
@@ -45,10 +48,12 @@ export const metadata: Metadata = { title: "Lead" }
 export const dynamic = "force-dynamic"
 
 // One person, ordered by what you actually do on a phone: reach them, say you
-// worked them, move their status, write a note. Everything that is reference
-// (how they came in) or rare and destructive (archive, delete) sits at the
-// bottom, and the intake block folds away on a small screen. On a wide screen
-// the same blocks lay out in two columns.
+// worked them, move their status, write a note. The record itself — contact,
+// deal, notes — reads as facts on cards, each edited in its own bottom sheet,
+// never as a wall of input fields parked in the middle of the page. Everything
+// that is reference (how they came in) or rare and destructive (archive,
+// delete) sits at the bottom, folded. On a wide screen the same blocks lay out
+// in two columns.
 
 // What a converted lead is still missing. Each gap is a downstream breakage —
 // no repo means invisible on the tickets board, no value means the header money
@@ -299,20 +304,32 @@ export default async function LeadDetailPage({
             </Card>
           ) : null}
 
-          {/* Editable profile — the record grows here. */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile</CardTitle>
-              <CardDescription>
-                Contact details, the deal — what it&apos;s worth, whether it&apos;s
-                cash or an exchange, any commission or equity — and working notes.
-                How they came in stays read-only under Intake.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ClientProfileForm client={client} />
-            </CardContent>
-          </Card>
+          {/* The record, read as facts. Contact rows are the actions themselves
+              (tap to call, tap to email, copy beside each); the deal is what
+              it's worth and how it settles; notes are the running memory. Each
+              card edits in its own bottom sheet — how they came in stays
+              read-only under Intake. */}
+          <LeadContactCard
+            client={{
+              id: client.id,
+              name: client.name,
+              company: client.company,
+              email: client.email,
+              phone: client.phone,
+            }}
+          />
+          <LeadDealCard
+            client={{
+              id: client.id,
+              valueMinor: client.valueMinor,
+              billingType: client.billingType,
+              dealType: client.dealType,
+              barterTerms: client.barterTerms,
+              commissionBps: client.commissionBps,
+              equityBps: client.equityBps,
+            }}
+          />
+          <LeadNotesCard id={client.id} notes={client.notes} />
 
           {/* Questionnaires. The link is copied here and emailed by hand — per
               the estate rule, the dashboard never sends anything itself. */}
@@ -353,7 +370,12 @@ export default async function LeadDetailPage({
             </CardContent>
           </Card>
 
-          {/* Where their work lives and how they get billed. */}
+        </div>
+
+        <div className="flex flex-col gap-4 sm:gap-6">
+          {/* Where their work lives and how they get billed — plumbing you set
+              once, so it sits in the reference column, not between the record
+              and the todos. */}
           <Card>
             <CardHeader>
               <CardTitle>Delivery &amp; billing</CardTitle>
@@ -385,32 +407,28 @@ export default async function LeadDetailPage({
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        <div className="flex flex-col gap-4 sm:gap-6">
           <FoldCard title="Intake" description="How this lead came in.">
             <IntakeDetails client={client} />
           </FoldCard>
 
-          {/* Rare and irreversible — last on the page, never beside the title
-              where a thumb reaching for the status could find it. */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Danger zone</CardTitle>
-              <CardDescription>
+          {/* Rare and irreversible — last on the page and folded shut, never
+              beside the title where a thumb reaching for the status could
+              find it. */}
+          <DisclosureCard title="Danger zone" titleClassName="text-destructive">
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">
                 Archiving takes them off the list and keeps the record. Deleting
                 can&apos;t be undone.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </p>
               <ClientActions
                 id={client.id}
                 archived={archived}
                 redirectOnDelete
                 className="justify-start"
               />
-            </CardContent>
-          </Card>
+            </div>
+          </DisclosureCard>
         </div>
       </div>
     </div>

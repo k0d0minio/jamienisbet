@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, ExternalLink } from "lucide-react"
 
 import {
   Alert,
   AlertDescription,
   AlertTitle,
+  Button,
   Card,
   CardContent,
   cn,
@@ -16,6 +17,7 @@ import { CopyButton } from "@/components/copy-button"
 import { Markdown } from "@/components/markdown"
 import {
   TICKET_STATUSES,
+  claudeSessionUrl,
   listTickets,
   type Ticket,
   type TicketStatus,
@@ -57,6 +59,7 @@ function priorityClass(priority: string | null): string {
 // the FoldCard idea, per row). The summary is the scan line; opening it shows
 // the actions and the full ticket markdown as written in the repo.
 function TicketRow({ ticket }: { ticket: Ticket }) {
+  const sessionUrl = claudeSessionUrl(ticket)
   return (
     <li className="rounded-lg border bg-card text-card-foreground">
       <details className="group">
@@ -92,8 +95,19 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
 
         <div className="flex flex-col gap-4 border-t px-4 py-4">
           <div className="flex flex-wrap items-center gap-2">
-            {ticket.prompt ? (
-              <CopyButton value={ticket.prompt} label="Copy prompt" />
+            {ticket.prompt && sessionUrl ? (
+              <>
+                {/* The board's one real action: a new Claude Code session with
+                    the prompt already pasted and the repo already picked. Copy
+                    stays beside it for every other surface a prompt goes to. */}
+                <Button asChild size="sm">
+                  <a href={sessionUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink aria-hidden />
+                    Start in Claude Code
+                  </a>
+                </Button>
+                <CopyButton value={ticket.prompt} label="Copy prompt" />
+              </>
             ) : (
               <span className="text-xs text-muted-foreground">
                 No prompt section in this ticket.
