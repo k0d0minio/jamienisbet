@@ -71,6 +71,7 @@ layer is lean rules, not a factory.
   read the checks.
 - **Client repos in `projects/` are never tracked here** and never created by hand —
   the dashboard creates them (`createClientRepo`); `/onboard` adopts them.
-- **Sustentus-v2 is exempt** from the estate baseline — its `pipeline/` is authoritative.
-  Gates everywhere are human checkboxes: read, never tick.
+- **Sustentus is exempt** from the estate baseline — its `.icm/` is authoritative (own
+  pipeline semantics, not TICKETS-SPEC). Gates everywhere are human checkboxes: read,
+  never tick.
 - **No secrets in git, ever.** Env vars only; flag any plaintext credential found.

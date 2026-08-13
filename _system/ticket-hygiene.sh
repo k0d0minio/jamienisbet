@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ticket-hygiene.sh — report ticket drift across the estate (read-only, never fixes).
 #
-# For every repo with .icm/intake/ (sustentus-v2 exempt), reports:
+# For every repo with .icm/intake/ (sustentus exempt), reports:
 #   possibly-done   open ticket whose ID appears in commits on the default branch
 #   today-dilution  more than 3 tickets flagged `today` (spec cap, estate-wide)
 #   off-ticket      repo committed to in the last 14 days but has zero open tickets
@@ -18,7 +18,7 @@ APPS_ROOT="${1:-}"
 [[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [[ -d "$APPS_ROOT" ]] || { echo "Not a directory: $APPS_ROOT" >&2; exit 2; }
 
-EXEMPT=("sustentus-v2")
+EXEMPT=("sustentus")
 
 bold=$'\033[1m'; yellow=$'\033[33m'; green=$'\033[32m'; dim=$'\033[2m'; off=$'\033[0m'
 [[ -t 1 ]] || { bold=; yellow=; green=; dim=; off=; }
