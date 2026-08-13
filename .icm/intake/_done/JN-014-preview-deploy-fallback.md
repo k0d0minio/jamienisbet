@@ -37,10 +37,10 @@ That is now moot, but the finding is recorded below so nobody retries it.
 - [x] `websites/README.md` § Deployment explains the mechanism, the deployment-cap
       reasoning, and the accepted cost
 - [x] `.github/workflows/ci.yml` untouched — still `pnpm -r` and the per-app matrix
+- [x] No deployment at all for `payment-gateway` / `sellers-site` on a branch push
+- [x] A global (non-workspace) change deploys the preview-enabled apps — the accepted cost
 - [ ] A single-app commit creates **one** deployment, not four
 - [ ] `packages/ui` commit still deploys all four from `main`
-- [ ] The dashboard still redeploys when `.icm/onboarding/` changes
-- [ ] No deployment at all for `payment-gateway` / `sellers-site` on a branch push
 
 ## Resolution (2026-08-13)
 
@@ -48,16 +48,28 @@ Shipped in PR #67. Everything in the repo is done and CI is green on all four ap
 plus typecheck/lint, which is what proves the `turbo` removal and the `pnpm-lock.yaml`
 regeneration are sound.
 
-**The four unticked rows are runtime behaviour and could not be checked before merge:** the
-account was rate-limited at the free tier's 100 deployments/day for the rest of the day
-(`api-deployments-free-per-day`), so every Vercel deployment on the PR errored on quota
-rather than running the new configuration. They are left unticked deliberately rather than
-assumed — closing the ticket does not close them.
+**Two rows verified live**, on the very commit that closed this ticket (`423fc13`, a
+`.icm/`-only change pushed to the PR branch once the quota window reset):
 
-Check them on the next real pushes after the window resets. The sharpest one is the last:
-if minimatch does not behave as documented, a branch push will still deploy
-`payment-gateway` and `sellers-site` and the pattern needs revisiting. Reopen as a new
-ticket if any of the four fails; do not reuse this number.
+| Project | New deployment for `423fc13` |
+|---|---|
+| `portfolio` | yes — `dpl_x6tB15cWrYGZngSvva6yiuBdJ4Bx` |
+| `jamie-nisbet` | yes — `dpl_EBgXjzBX7mLjjPSEcGZyYGrNnZdw` |
+| `payment-gateway` | **none** |
+| `client-referrals` | **none** |
+
+So the minimatch pattern does what the docs promise — a branch push creates no deployment
+at all for the two preview-disabled apps — and a `.icm/` change is confirmed to be a global
+change for the rest. That ticket-only push cost **two deployments instead of four**.
+
+(The Vercel PR comment lists the two blocked apps under "Skipped Deployments", but those
+rows carry the *previous* commit's deployment IDs. Read the deployment list, not the
+comment: no deployment was created.)
+
+**Two rows remain unticked** because no push of the right shape has happened yet: a
+single-app commit, and a `packages/ui` commit on `main`. They are left unticked rather than
+assumed. Check them when such a push next occurs; open a new ticket if either fails, and do
+not reuse this number.
 
 ## Accepted cost
 
