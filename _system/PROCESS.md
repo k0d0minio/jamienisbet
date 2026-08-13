@@ -98,8 +98,9 @@ The SessionStart hook prints the Today group whenever a session opens at the App
 - Never a loose `TODO.md`/`BACKLOG.md` — leftovers become tickets.
 - Ticket-only commits go straight to `main` (planning is data); everything else goes
   through a PR.
-- **sustentus-v2 is exempt** — its `pipeline/` is authoritative for intake, runs, and
-  gates. Gates everywhere are human checkboxes: read, never tick.
+- **sustentus is exempt** — its `.icm/` is authoritative for intake, runs, and gates
+  (own pipeline semantics, not TICKETS-SPEC). Gates everywhere are human checkboxes:
+  read, never tick.
 
 ---
 

@@ -9,7 +9,7 @@ Rolling record of the `Apps/` estate + `~/.claude` global layer.
 
 - **Process:** [PROCESS.md](PROCESS.md) (lead → delivery: onboarding, planning, shipping — driven by `/plan`, `/onboard`, `/wrap`, `/groom`)
 - **Tickets:** [TICKETS-SPEC.md](TICKETS-SPEC.md) (estate-wide `.icm/intake/` ticket standard) · [WORK-TRACKING.md](WORK-TRACKING.md) (2026-08-11 analysis behind it) · [tickets-board.sh](tickets-board.sh) / [ticket-hygiene.sh](ticket-hygiene.sh) (read-only board + drift report)
-- **Conformance:** [icm-check.sh](icm-check.sh) checks every repo (sustentus-v2 exempt) against the `.icm`/`.claude` baseline; `--fix` populates gaps from [icm-template/](icm-template/) (never overwrites). Driven by the `/icm-check` command in `Apps/.claude/commands/`, which adds a per-repo `.claude` review on top.
+- **Conformance:** [icm-check.sh](icm-check.sh) checks every repo (sustentus exempt) against the `.icm`/`.claude` baseline; `--fix` populates gaps from [icm-template/](icm-template/) (never overwrites). Driven by the `/icm-check` command in `Apps/.claude/commands/`, which adds a per-repo `.claude` review on top.
 - **Status:** global layer cleaned (2026-08-10). Repo-level changes deferred pending the open decisions below.
 
 ---
@@ -18,7 +18,7 @@ Rolling record of the `Apps/` estate + `~/.claude` global layer.
 
 | Generation | Pattern | Repos |
 |---|---|---|
-| Gen 3 — ICM engineering pipeline | thin routing `CLAUDE.md` + `/pipeline` skill + 6-stage `pipeline/` with contracts, gates, runs | **sustentus-v2** (reference impl, 11 runs) · **remi-ai** (specified, 0 runs) |
+| Gen 3 — ICM engineering pipeline | thin routing `CLAUDE.md` + `/pipeline` skill + 6-stage `pipeline/` with contracts, gates, runs | **sustentus** (reference impl, 11 runs; stages now under `.icm/`) · **remi-ai** (specified, 0 runs) |
 | Gen 2 — ICM business workspaces | 5-layer folder-is-the-architecture, no orchestration code | jamienisbet, barzinho, agorasim, curated-property |
 | Gen 1 — monolithic | one big always-loaded `CLAUDE.md` + copied skill library | courseday (294 lines), tenderdesk |
 | Gen 0 — stubs | `@AGENTS.md` one-liner or nothing | ~15 client sites (fine — build-once-hand-off) |
@@ -45,7 +45,7 @@ Rolling record of the `Apps/` estate + `~/.claude` global layer.
 
 ## Still open — broken config (pure fixes, no decision needed)
 
-- sustentus-v2: dead `impeccable` PostToolUse hook errors on **every** Edit/Write; two corrupted markdown tables; dead `architecture-map` + `automation-offload` links; orphaned `packages/ui/SKILL.md`.
+- sustentus: dead `impeccable` PostToolUse hook errors on **every** Edit/Write; two corrupted markdown tables; dead `architecture-map` + `automation-offload` links; orphaned `packages/ui/SKILL.md`.
 - courseday: `CLAUDE.md` calls a `caveman-mode` skill that's named `caveman`; routes to a nonexistent `TICKETS.md`.
 - remi-ai: `route-request.sh` present but unregistered while `SKILL.md` still expects it; `project-labels.sh` mislabelled read-only.
 - Permission cruft: dead sustentus session grants + nonexistent scripts; tenderdesk's byte-copy of courseday's local settings; stale `~/.claude/projects/` memory dirs for pre-move paths.

@@ -30,8 +30,10 @@ const REVALIDATE_SECONDS = 60
 const HOUSE_REPO = "k0d0minio/jamienisbet"
 
 // Sustentus stays off the board even if a client row ever points at it: its
-// `pipeline/intake/` is its own authoritative system and stays untouched.
-// Matched on the repo-name segment so the exclusion holds under any owner.
+// `.icm/intake/` carries its own pipeline semantics (not TICKETS-SPEC) and
+// stays untouched. Matched on the repo-name segment so the exclusion holds
+// under any owner; the legacy name stays listed so a stale client row still
+// matches.
 const EXCLUDED_REPO_NAMES = new Set(["sustentus", "sustentus-v2"])
 
 function isExcluded(fullName: string): boolean {

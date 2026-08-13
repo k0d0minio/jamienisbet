@@ -21,7 +21,7 @@ pasteable **prompt**, and roll up into one screen you can act on from your phone
 |---|---|---|
 | `jamienisbet/websites/admin-dashboard` | Mobile-first PWA on Vercel (Neon `biz.*`): leads, business todos, compliance dates, Stripe. Already has a `GITHUB_TOKEN`, `lib/github.ts`, and a `github_repo` pointer per client. Deals/deliverables tables were deliberately dropped (migration `0013_simplify_to_leads`). | **The natural home for the board.** It is already the one screen on your phone. |
 | `remi-ai/ISSUES/` | 39 tickets `REMI-NNN-slug.md`: H1 title, two-column metadata table (Type / Priority / Size / Depends on / Sources), Problem, Required steps, acceptance criteria, **Agent prompt** section. `README.md` index groups them into phases. | **You already invented the ticket format.** It just isn't standardised or aggregated. |
-| `sustentus-v2/pipeline/intake/` | Work items are stubs cut by the scope stage; `new-run.sh` consumes them, `_done/` archives them. Machine-integrated with runs, gates, PRs. | Its own system, and authoritative — don't replace it; adapt to it (§4). |
+| `sustentus/pipeline/intake/` | Work items are stubs cut by the scope stage; `new-run.sh` consumes them, `_done/` archives them. Machine-integrated with runs, gates, PRs. | Its own system, and authoritative — don't replace it; adapt to it (§4). |
 | `agorasim/workspaces/` | Work = a questionnaire flowing through stage folders. No ticket files. | Needs an `ISSUES/` folder for ad-hoc work. |
 | `berceo`, `kau-american-bbq`, `vinecliff` | No CLAUDE.md, no tickets. Work arrives as one big instruction doc (`REBRAND-INSTRUCTIONS.md`) or nothing. | Greenfield — seed `ISSUES/` directly. |
 
@@ -126,7 +126,7 @@ One new page in `websites/admin-dashboard`:
 
 ## 4. The sustentus question
 
-sustentus-v2's `pipeline/intake/` stubs *are* its tickets, and the repo owns its pipeline
+sustentus's `pipeline/intake/` stubs *are* its tickets, and the repo owns its pipeline
 semantics — an `ISSUES/` folder there would compete with the intake contract. Two clean
 options:
 

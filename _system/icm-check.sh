@@ -2,8 +2,8 @@
 # icm-check.sh — verify (and with --fix, populate) the estate-wide .icm/.claude baseline.
 #
 # Discovers git repos the same way pull-all.sh does (up to 2 levels below Apps/),
-# skips sustentus-v2 (its pipeline/ is authoritative — TICKETS-SPEC.md), and checks
-# each repo against _system/icm-template/:
+# skips sustentus (its .icm/ carries its own pipeline semantics, not TICKETS-SPEC.md),
+# and checks each repo against _system/icm-template/:
 #
 #   .icm/intake/README.md    micro-copy of the ticket contract ({{PREFIX}} substituted)
 #   .icm/intake/_done/       finished-ticket folder
@@ -37,7 +37,7 @@ if [[ ! -d "$TEMPLATE/icm" || ! -d "$TEMPLATE/claude" ]]; then
   echo "Template missing or incomplete: $TEMPLATE" >&2; exit 2
 fi
 
-EXEMPT=("sustentus-v2")
+EXEMPT=("sustentus")
 
 # Known ticket prefixes (TICKETS-SPEC.md); anything else is derived + flagged.
 prefix_for() {

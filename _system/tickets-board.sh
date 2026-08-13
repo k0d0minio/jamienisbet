@@ -2,7 +2,7 @@
 # tickets-board.sh — print the estate ticket board (read-only).
 #
 # Scans every repo's .icm/intake/*.md the same way icm-check.sh discovers repos
-# (up to 2 levels below Apps/, sustentus-v2 exempt — its pipeline/ is authoritative)
+# (up to 2 levels below Apps/, sustentus exempt — its .icm/ is authoritative)
 # and prints tickets grouped today → in-progress → blocked → ready, then counts.
 #
 # Usage: _system/tickets-board.sh [--today] [root]
@@ -23,7 +23,7 @@ done
 [[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [[ -d "$APPS_ROOT" ]] || { echo "Not a directory: $APPS_ROOT" >&2; exit 2; }
 
-EXEMPT=("sustentus-v2")
+EXEMPT=("sustentus")
 
 bold=$'\033[1m'; dim=$'\033[2m'; off=$'\033[0m'
 [[ -t 1 ]] || { bold=; dim=; off=; }
