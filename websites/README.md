@@ -37,15 +37,35 @@ Env vars live in each Vercel project (never in git) — each app's README lists 
 
 **Skipped builds.** Since the 2026-08-12 consolidation, ticket flips in `.icm/intake/` and
 `_system/` edits land on this repo's `main`; they must not trigger four app deploys. Each
-`vercel.json` has an `ignoreCommand`
-(`git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- <paths>`) that skips the
-build unless the push touched that app, a shared package it depends on, the workspace manifests,
-or (dashboard only) `.icm/onboarding/`. It diffs against the last *deployed* commit when Vercel
-provides it — `HEAD^` alone only sees the final commit of a multi-commit push, which is how this
-rule's first version skipped four real deploys. There is no turbo in this repo, so the paths are
-spelled out per app rather than inferred — adding a workspace dependency to an app means adding
-its path to that app's `ignoreCommand`. The command fails open: if the comparison commit doesn't
-exist (first deploy, shallow history), the build runs.
+`vercel.json` has an `ignoreCommand` of `npx turbo-ignore <workspace name>`, e.g.
+`npx turbo-ignore @jamie-nisbet/portfolio`. That is the only reason turbo is in this repo — it
+is **not** a build orchestrator or a cache here. CI still builds each app with `pnpm build`.
+
+`turbo-ignore` skips the build unless the push changed that workspace or something it depends on,
+reading the answer from the root [`turbo.json`](../turbo.json) `build` task plus each app's own
+`package.json` dependencies. **Nothing to maintain by hand:** add `@jamie-nisbet/services` to an
+app and that app starts deploying on `packages/services` changes automatically. Two inputs live
+outside the dependency graph and are wired explicitly:
+
+- Root `package.json` and `pnpm-workspace.yaml` are listed in `turbo.json`'s
+  `globalDependencies`, so touching either rebuilds all four. (`pnpm-lock.yaml` needs no entry —
+  turbo diffs the lockfile and rebuilds only the apps whose resolved dependencies actually moved.)
+- `.icm/onboarding/` is an input to the **dashboard** only, and turbo cannot see it — it is not a
+  package. So that one app chains a second check onto the ignore command:
+  `npx turbo-ignore @jamie-nisbet/admin && git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- ':(top).icm/onboarding'`.
+  `ignoreCommand` exit 0 means *skip*, so the `&&` means both checks must agree to skip and either
+  one alone can force the build.
+
+Two properties carried over from the hand-written rule this replaced:
+
+- **It compares against the last *deployed* commit,** not `HEAD^`. On Vercel, `turbo-ignore` uses
+  `VERCEL_GIT_PREVIOUS_SHA` (the last successful deployment of this branch); `HEAD^` alone only
+  sees the final commit of a multi-commit push, which is how the first version of this rule skipped
+  four real deploys.
+- **It fails open.** If no previous deployment exists (first deploy of a branch) or that commit is
+  unreachable (force push, shallow clone), `turbo-ignore` builds rather than skips — so no
+  `--fallback` is set, since supplying one would trade that safety for `HEAD^`. Every other failure
+  path — unreadable `turbo.json`, missing workspace, turbo itself erroring — also builds.
 
 ## Notes
 - Apps are deployed as separate Vercel projects off this monorepo (pnpm workspaces; shared packages ship TS source via `transpilePackages`).
