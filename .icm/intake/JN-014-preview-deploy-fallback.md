@@ -63,10 +63,22 @@ do not cover `--fallback`):
 - an unresolvable fallback ref is *not* pre-checked; it is passed to
   `turbo run build --filter=pkg...[ref]`, turbo errors, and `turbo-ignore` builds
 
-So the failure mode of a fetch that does not work is the current behaviour, not a worse
-one. The open question is whether turbo can compute a diff against a shallow-fetched
-`origin/main` in Vercel's build clone; if it cannot, previews keep building and the log
-will say so.
+So the failure mode of a fallback that does not resolve is the current behaviour, not a
+worse one.
+
+The first attempt fetched `main` before passing `--fallback=origin/main`. That does not
+work, and the build log says why:
+
+```
+fatal: 'origin' does not appear to be a git repository
+```
+
+**Vercel's build clone has no `origin` remote.** So the script instead probes for a ref
+that is already present — `origin/main`, `refs/remotes/origin/main`, `main`,
+`refs/heads/main` — and uses the first that resolves. Whether any of them does in a
+preview clone is the remaining open question; the script echoes which way it went, so the
+next new branch's log answers it. If none resolves, previews keep building and nothing is
+lost relative to today.
 
 `turbo-ignore` also now prints a deprecation notice on every run, pointing at Vercel's
 built-in monorepo skipping. That is **not** a viable move for this repo: built-in

@@ -36,22 +36,34 @@ extra_paths=("$@")
 # VERCEL_GIT_COMMIT_REF rather than VERCEL_ENV because turbo-ignore's own output
 # proves that variable is set this early, and an unset one defaults to "main",
 # i.e. to no fallback.
+# Vercel's build clone has no "origin" remote — fetching main is not an option,
+# so probe for a ref that is already there and use the first that resolves. If
+# none does, no fallback is passed and the no-previous-deploy case keeps
+# building, exactly as it did before.
 fallback=()
+fallback_ref=
 branch=${VERCEL_GIT_COMMIT_REF:-main}
 if [ "$branch" = "main" ]; then
 	echo "vercel-ignore: on $branch — no fallback, comparing main to itself would skip everything"
-elif git fetch --depth=20 origin main:refs/remotes/origin/main --quiet; then
-	fallback=(--fallback=origin/main)
-	echo "vercel-ignore: no previous deploy on $branch would mean comparing against origin/main"
 else
-	echo "vercel-ignore: could not fetch main — building if there is no previous deploy" >&2
+	for ref in origin/main refs/remotes/origin/main main refs/heads/main; do
+		if git cat-file -t "$ref" >/dev/null 2>&1; then
+			fallback_ref=$ref
+			fallback=(--fallback="$ref")
+			echo "vercel-ignore: no previous deploy on $branch would mean comparing against $ref"
+			break
+		fi
+	done
+	if [ -z "$fallback_ref" ]; then
+		echo "vercel-ignore: main is not in this clone — building if there is no previous deploy" >&2
+	fi
 fi
 
 # Exit 1 here means "affected" or "could not tell" — both build.
 npx turbo-ignore "$workspace" ${fallback[@]+"${fallback[@]}"} || exit 1
 
 # turbo-ignore wants to skip. The inputs it cannot see get the last word.
-base=${VERCEL_GIT_PREVIOUS_SHA:-origin/main}
+base=${VERCEL_GIT_PREVIOUS_SHA:-${fallback_ref:-__no_base__}}
 for path in ${extra_paths[@]+"${extra_paths[@]}"}; do
 	# --quiet exits 1 on a difference and 128 on an unusable base. Both build.
 	git diff --quiet "$base" HEAD -- ":(top)$path" || exit 1
