@@ -26,17 +26,25 @@ extra_paths=("$@")
 # with no fallback turbo-ignore builds: four apps, on every new branch, no
 # matter what the branch touched.
 #
-# On previews, fall back to the default branch. "Has this branch as a whole
-# touched the app?" is the right question for a preview, and unlike HEAD^ it
-# cannot be fooled by a multi-commit push whose last commit is incidental.
+# Off main, fall back to the default branch. "Has this branch as a whole touched
+# the app?" is the right question for a preview, and unlike HEAD^ it cannot be
+# fooled by a multi-commit push whose last commit is incidental.
 #
-# Never do this on production, where the deployed commit *is* main: comparing
+# Never do this on main itself, where the deployed commit *is* main: comparing
 # main against itself finds nothing affected, so every app would skip and a
-# first-ever production deploy would never build.
+# first-ever production deploy would never build. The guard keys off
+# VERCEL_GIT_COMMIT_REF rather than VERCEL_ENV because turbo-ignore's own output
+# proves that variable is set this early, and an unset one defaults to "main",
+# i.e. to no fallback.
 fallback=()
-if [ "${VERCEL_ENV:-}" = "preview" ] &&
-	git fetch --depth=20 origin main:refs/remotes/origin/main --quiet 2>/dev/null; then
+branch=${VERCEL_GIT_COMMIT_REF:-main}
+if [ "$branch" = "main" ]; then
+	echo "vercel-ignore: on $branch — no fallback, comparing main to itself would skip everything"
+elif git fetch --depth=20 origin main:refs/remotes/origin/main --quiet; then
 	fallback=(--fallback=origin/main)
+	echo "vercel-ignore: no previous deploy on $branch would mean comparing against origin/main"
+else
+	echo "vercel-ignore: could not fetch main — building if there is no previous deploy" >&2
 fi
 
 # Exit 1 here means "affected" or "could not tell" — both build.

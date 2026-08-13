@@ -40,7 +40,7 @@ four apps skip — a first-ever production deploy would never build.
 
 - [ ] New branches no longer build all four apps on their first push when the branch
       touches nothing an app depends on
-- [ ] The fallback applies to previews only (`VERCEL_ENV = preview`), never production
+- [ ] The fallback applies on branches other than `main` only, never on `main` itself
 - [ ] `VERCEL_GIT_PREVIOUS_SHA` still wins whenever Vercel sets it and it is reachable —
       the JN-004 last-deployed-commit property does not regress
 - [ ] Fail-open preserved on every path: unreachable base, unfetchable `main`, turbo

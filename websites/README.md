@@ -67,14 +67,17 @@ push, which is how the first version of this rule skipped four real deploys.
 
 Vercel does not set that variable on the **first push of a new branch**, because there is no
 previous deployment to point at. Left alone, `turbo-ignore` then builds — four apps, on every new
-branch, whatever the branch touched. So for previews only, the script fetches `main` and passes
-`--fallback=origin/main`, making the question "has this branch as a whole touched the app?" That is
-the right question for a preview, and unlike `HEAD^` it cannot be fooled by a multi-commit push
-whose last commit is incidental.
+branch, whatever the branch touched. So on any branch other than `main`, the script fetches `main`
+and passes `--fallback=origin/main`, making the question "has this branch as a whole touched the
+app?" That is the right question for a preview, and unlike `HEAD^` it cannot be fooled by a
+multi-commit push whose last commit is incidental.
 
-That fallback is deliberately **not** applied to production, where the deployed commit *is* `main`:
+That fallback is deliberately **not** applied on `main`, where the deployed commit *is* `main`:
 comparing `main` against itself finds nothing affected, so every app would skip and a first-ever
-production deploy would never build.
+production deploy would never build. The guard reads `VERCEL_GIT_COMMIT_REF` (which
+`turbo-ignore`'s own log line proves is set this early) and treats an unset value as `main`, so the
+conservative branch is also the default one. The script echoes which way it went, so the build log
+says whether a fallback was in play.
 
 **Everything fails open.** A missing or unreachable comparison commit, a `main` that would not
 fetch, an unreadable `turbo.json`, a missing workspace, turbo itself erroring — every one of these
