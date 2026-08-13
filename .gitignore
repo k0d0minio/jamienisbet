@@ -12,9 +12,6 @@ build/
 .vercel/
 *.tsbuildinfo
 
-# Generated financial reports — fetched from Stripe on demand; not committed (sensitive)
-workspaces/finance/stages/*/output/*
-
 # OS / editor
 .DS_Store
 *.log
