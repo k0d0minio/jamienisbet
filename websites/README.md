@@ -60,6 +60,11 @@ So a portfolio-only commit costs one deployment instead of four. This is also Ve
 recommendation for "monorepos with many projects", and `turbo-ignore` — which this repo used
 between JN-013 and JN-014 — is deprecated in favour of it.
 
+**There is no turbo in this repo.** It was only ever here to run `turbo-ignore`, never as a build
+orchestrator or a cache, so JN-014 removed the dependency and `turbo.json` along with the ignore
+commands. CI builds each app with `pnpm build`; Vercel builds each app with `next build` from its
+own Root Directory.
+
 ### The cost, and it is deliberate
 
 Anything **outside the workspace definition** (`packages/*`, `websites/*`) counts as a global change
@@ -74,16 +79,24 @@ majority of pushes, now cost one deployment instead of four.
 (traced into the bundle by [`next.config.ts`](admin-dashboard/next.config.ts)), it sits outside the
 workspace, and a global change redeploys the dashboard along with everything else.
 
-### If deployments still run short
+### Preview deployments are off for two apps
 
-The next lever is preview deployments, which are the bulk of the spend — every branch push costs up
-to four. Adding this to an app's `vercel.json` stops that project deploying anything but `main`:
+Previews are the bulk of the spend — every branch push otherwise costs up to four
+deployments. `payment-gateway` and `sellers-site` are rarely worth a preview URL, so both
+opt out of everything except `main` in their own `vercel.json`:
 
 ```json
-{ "git": { "deploymentEnabled": { "main": true } } }
+{ "git": { "deploymentEnabled": { "*": false, "**": false, "main": true } } }
 ```
 
-That trades away preview URLs for that app, so apply it per app rather than across the board.
+Branch keys are [minimatch](https://github.com/isaacs/minimatch) patterns and **unspecified
+branches default to `true`**, so the denial has to be explicit — `{ "main": true }` alone is
+a no-op. `*` covers flat names like `chore-x`, `**` covers slashed ones like `claude/x`, and
+`main` wins over both because a branch matching several rules deploys if *any* of them is
+`true`.
+
+`portfolio` and `admin-dashboard` keep previews: they are the two whose UI is worth looking
+at before merge. Extend the pattern to them only if the daily cap starts biting again.
 
 ## Notes
 - Apps are deployed as separate Vercel projects off this monorepo (pnpm workspaces; shared packages ship TS source via `transpilePackages`).

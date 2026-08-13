@@ -1,4 +1,4 @@
-# JN-014 · Stop paying four deployments a push — adopt Vercel's built-in skipping
+# JN-014 · Cut deployment spend — built-in skipping, no turbo, previews only where useful
 
 | | |
 |---|---|
@@ -35,6 +35,8 @@ That is now moot, but the finding is recorded below so nobody retries it.
 - [ ] A single-app commit creates **one** deployment, not four
 - [ ] `packages/ui` commit still deploys all four
 - [ ] The dashboard still redeploys when `.icm/onboarding/` changes
+- [ ] `turbo` and `turbo.json` removed — `turbo-ignore` was their only consumer
+- [ ] `payment-gateway` and `sellers-site` deploy only from `main`; no preview deployments
 - [ ] `websites/README.md` § Deployment explains the mechanism, the deployment-cap
       reasoning, and the accepted cost
 - [ ] `.github/workflows/ci.yml` untouched — still `pnpm -r` and the per-app matrix
@@ -51,11 +53,12 @@ app commits — the majority — drop from four deployments to one.
 
 ## Notes
 
-`turbo` and `turbo.json` now have no consumer; `turbo-ignore` was their only purpose, and
-it is deprecated in favour of the mechanism this ticket adopts. Removing them needs a
-`pnpm-lock.yaml` regeneration and changes Vercel's build auto-detection ("Detected Turbo.
-Adjusting default settings…" appears in every build log), so it is deliberately **not**
-bundled here. Cut a follow-up.
+`turbo` and `turbo.json` are removed here too — `turbo-ignore` was their only consumer, and
+it is deprecated in favour of the mechanism this ticket adopts. The `pnpm-lock.yaml` regen
+drops only `@turbo/*` platform binaries, no other version moves. Vercel's build logs will
+stop saying "Detected Turbo. Adjusting default settings…"; each app builds from its own
+Root Directory as a plain Next.js project, which is what CI already proves works (the
+per-app matrix has never used turbo).
 
 Why the preview fallback JN-014 originally proposed is impossible, so it is not attempted
 again: `turbo-ignore`'s comparison order is `VERCEL_GIT_PREVIOUS_SHA` → `--fallback` →
@@ -66,20 +69,28 @@ all probed on a live build and none resolved. No system variable exposes a base 
 either. `HEAD^` is the only ref that always resolves, and on a multi-commit first push it
 inspects only the last commit and skips real changes — the JN-004 bug.
 
-If deployments still run short, the next lever is preview deployments, which are the bulk
-of the spend. Per app, in its `vercel.json`:
+Preview deployments are switched off for `payment-gateway` and `sellers-site`, the two apps
+whose preview URL is rarely worth looking at. In each `vercel.json`:
 
 ```json
-{ "git": { "deploymentEnabled": { "main": true } } }
+{ "git": { "deploymentEnabled": { "*": false, "**": false, "main": true } } }
 ```
 
-That trades away preview URLs for that app, so it is a per-app call, not a blanket one.
+Branch keys are minimatch patterns and **unspecified branches default to `true`**, so the
+denial must be explicit — `{ "main": true }` on its own is a no-op. `*` catches flat branch
+names, `**` catches slashed ones like `claude/x`, and `main` wins over both because a branch
+matching several rules deploys if any rule is `true`.
+
+`portfolio` and `admin-dashboard` keep previews. Extend the pattern to them only if the cap
+starts biting again.
 
 Verification after merge, on real pushes:
 
-- `websites/portfolio`-only commit → one deployment total
-- `packages/ui` commit → four
-- ticket-only commit → four (expected; the accepted cost)
+- `websites/portfolio`-only commit on a branch → one deployment total
+- `packages/ui` commit on a branch → two (portfolio + dashboard; the other two are preview-off)
+- `packages/ui` commit on `main` → four
+- ticket-only commit on `main` → four (expected; the accepted cost)
+- any branch push → `payment-gateway` and `sellers-site` create no deployment at all
 
 ## Prompt
 
