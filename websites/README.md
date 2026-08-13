@@ -36,56 +36,54 @@ workspace install at the repo root, `next build` — is auto-detected):
 Env vars live in each Vercel project (never in git) — each app's README lists what it needs.
 
 **Skipped builds.** Since the 2026-08-12 consolidation, ticket flips in `.icm/intake/` and
-`_system/` edits land on this repo's `main`; they must not trigger four app deploys. Each
-`vercel.json` points its `ignoreCommand` at one shared script,
-[`scripts/vercel-ignore.sh`](../scripts/vercel-ignore.sh), passing its workspace name:
-`bash ../../scripts/vercel-ignore.sh @jamie-nisbet/portfolio`. The script wraps `turbo-ignore`,
-which is the only reason turbo is in this repo — it is **not** a build orchestrator or a cache
-here. CI still builds each app with `pnpm build`.
+`_system/` edits land on this repo's `main` alongside app work, and four Vercel projects watch the
+same repo. Skipping is handled by **Vercel's built-in monorepo skipping**, which is on by default
+and needs no configuration — there is deliberately no `ignoreCommand` in any `vercel.json`.
 
-`turbo-ignore` skips the build unless the push changed that workspace or something it depends on,
-reading the answer from the root [`turbo.json`](../turbo.json) `build` task plus each app's own
-`package.json` dependencies. **Nothing to maintain by hand:** add `@jamie-nisbet/services` to an
-app and that app starts deploying on `packages/services` changes automatically. Two inputs live
-outside the dependency graph and are wired explicitly:
+Vercel reads the pnpm workspace graph and deploys a project only when its own source changed, one
+of its internal `package.json` dependencies changed, or a lockfile change affects its dependencies.
+**Nothing to maintain by hand:** add `@jamie-nisbet/services` to an app and that app starts
+deploying on `packages/services` changes automatically.
 
-- Root `package.json` and `pnpm-workspace.yaml` are listed in `turbo.json`'s
-  `globalDependencies`, so touching either rebuilds all four. (`pnpm-lock.yaml` needs no entry —
-  turbo diffs the lockfile and rebuilds only the apps whose resolved dependencies actually moved.)
-- `.icm/onboarding/` is an input to the **dashboard** only, and turbo cannot see it — it is not a
-  package. The dashboard passes it as a trailing argument
-  (`… vercel-ignore.sh @jamie-nisbet/admin .icm/onboarding`) and the script `git diff`s that path
-  separately. `ignoreCommand` exit 0 means *skip*, so both checks must agree to skip and either
-  one alone forces the build.
+### Why not an ignoreCommand
 
-### What the comparison is against
+Because on the free tier the scarce resource is the **100 deployments per day** cap, and the two
+mechanisms differ in exactly that respect:
 
-`turbo-ignore` uses `VERCEL_GIT_PREVIOUS_SHA` — the last *deployed* commit of this branch —
-whenever Vercel sets it and the commit is reachable, and that always takes precedence over any
-fallback. Comparing against bare `HEAD^` instead would only see the final commit of a multi-commit
-push, which is how the first version of this rule skipped four real deploys.
+- An **Ignored Build Step** runs *after* Vercel creates the deployment. The build is skipped, but
+  per Vercel's docs the cancelled deployment still "count[s] towards your deployment and concurrent
+  build limits". Four projects means four deployments per push, always.
+- **Built-in skipping** decides *before* a deployment exists. An unaffected project gets no
+  deployment at all, so it costs nothing against the cap.
 
-Vercel does not set that variable on the **first push of a new branch**, because there is no
-previous deployment to point at. Left alone, `turbo-ignore` then builds — four apps, on every new
-branch, whatever the branch touched. So on any branch other than `main`, the script looks for
-`main` in the clone and passes it as `--fallback`, making the question "has this branch as a whole
-touched the app?" That is the right question for a preview, and unlike `HEAD^` it cannot be fooled
-by a multi-commit push whose last commit is incidental.
+So a portfolio-only commit costs one deployment instead of four. This is also Vercel's own
+recommendation for "monorepos with many projects", and `turbo-ignore` — which this repo used
+between JN-013 and JN-014 — is deprecated in favour of it.
 
-Vercel's build clone has **no `origin` remote**, so `main` cannot be fetched — the script probes
-`origin/main`, `refs/remotes/origin/main`, `main` and `refs/heads/main` and uses the first that
-resolves. If none does, no fallback is passed and that first push builds, exactly as it did before.
+### The cost, and it is deliberate
 
-That fallback is deliberately **not** applied on `main`, where the deployed commit *is* `main`:
-comparing `main` against itself finds nothing affected, so every app would skip and a first-ever
-production deploy would never build. The guard reads `VERCEL_GIT_COMMIT_REF` (which
-`turbo-ignore`'s own log line proves is set this early) and treats an unset value as `main`, so the
-conservative branch is also the default one. The script echoes which way it went, so the build log
-says whether a fallback was in play.
+Anything **outside the workspace definition** (`packages/*`, `websites/*`) counts as a global change
+and deploys all four apps: `.icm/`, `_system/`, `.claude/`, `.github/`, `CLAUDE.md`, root configs.
+Ticket-only commits therefore build all four apps where the old `ignoreCommand` skipped them.
 
-**Everything fails open.** A missing or unreachable comparison commit, a `main` that would not
-fetch, an unreadable `turbo.json`, a missing workspace, turbo itself erroring — every one of these
-builds rather than skips. A missed deploy costs far more than a wasted one.
+That trade is taken knowingly. Those commits already cost four deployments under either mechanism —
+the ignore step never saved the quota, only the build minutes — and app commits, which are the
+majority of pushes, now cost one deployment instead of four.
+
+`.icm/onboarding/` needs no special handling as a result. It is an input to the dashboard only
+(traced into the bundle by [`next.config.ts`](admin-dashboard/next.config.ts)), it sits outside the
+workspace, and a global change redeploys the dashboard along with everything else.
+
+### If deployments still run short
+
+The next lever is preview deployments, which are the bulk of the spend — every branch push costs up
+to four. Adding this to an app's `vercel.json` stops that project deploying anything but `main`:
+
+```json
+{ "git": { "deploymentEnabled": { "main": true } } }
+```
+
+That trades away preview URLs for that app, so apply it per app rather than across the board.
 
 ## Notes
 - Apps are deployed as separate Vercel projects off this monorepo (pnpm workspaces; shared packages ship TS source via `transpilePackages`).
