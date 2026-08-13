@@ -1,13 +1,21 @@
 "use client"
 
 import { useTransition } from "react"
-import { Archive, ArchiveRestore, Check, Mail, Phone, Trash2 } from "lucide-react"
+import {
+  Archive,
+  ArchiveRestore,
+  Check,
+  Mail,
+  MessageCircle,
+  Trash2,
+} from "lucide-react"
 
 import { archiveClient, markTouched, removeClient } from "@/app/(app)/actions"
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
+import { whatsappUrl } from "@/lib/format"
 
 // One lead in the phone list, wearing the list's gestures: swipe left for the
-// tray (call, email, archive — or restore and delete in the archive view),
+// tray (WhatsApp, email, archive — or restore and delete in the archive view),
 // swipe right to mark them touched in one stroke. The row content itself is
 // rendered by the server page and passed through as children, so this
 // component carries only what the gestures need.
@@ -53,11 +61,14 @@ export function LeadRow({
   ) : (
     <>
       {phone ? (
+        // WhatsApp chat, not a call — the number should open the conversation,
+        // never surprise-dial the lead.
         <SwipeAction
-          label="Call"
-          icon={<Phone className={icon} aria-hidden />}
+          label="WhatsApp"
+          icon={<MessageCircle className={icon} aria-hidden />}
           className="bg-success text-success-foreground"
-          href={`tel:${phone}`}
+          href={whatsappUrl(phone)}
+          external
         />
       ) : null}
       {email ? (

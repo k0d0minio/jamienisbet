@@ -1,7 +1,14 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Building2, Check, Copy, Mail, Pencil, Phone } from "lucide-react"
+import {
+  Building2,
+  Check,
+  Copy,
+  Mail,
+  MessageCircle,
+  Pencil,
+} from "lucide-react"
 
 import {
   Button,
@@ -17,6 +24,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { saveClientContact } from "@/app/(app)/actions"
+import { whatsappUrl } from "@/lib/format"
 
 // Who they are and how to reach them — as things to *act on*, not a form. Each
 // row is the action itself (tap the email row and the mail app opens), with a
@@ -62,11 +70,14 @@ function ContactRow({
   label,
   value,
   href,
+  external,
 }: {
   icon: typeof Mail
   label: string
   value: string
   href?: string
+  /** Open in a new tab — for links that leave the app, like WhatsApp. */
+  external?: boolean
 }) {
   const body = (
     <>
@@ -82,6 +93,8 @@ function ContactRow({
       {href ? (
         <a
           href={href}
+          target={external ? "_blank" : undefined}
+          rel={external ? "noreferrer" : undefined}
           className="-my-1 -ml-4 flex min-w-0 flex-1 items-center gap-3 self-stretch py-1 pl-4 transition-colors active:bg-muted/50"
         >
           {body}
@@ -190,11 +203,14 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
             />
           ) : null}
           {client.phone ? (
+            // The number reads as itself but opens the WhatsApp conversation —
+            // tapping it should never surprise-dial the lead.
             <ContactRow
-              icon={Phone}
-              label="Phone"
+              icon={MessageCircle}
+              label="WhatsApp"
               value={client.phone}
-              href={`tel:${client.phone}`}
+              href={whatsappUrl(client.phone)}
+              external
             />
           ) : null}
           {client.company ? (

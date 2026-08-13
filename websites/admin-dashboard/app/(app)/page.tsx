@@ -27,7 +27,7 @@ import { DealBadges } from "@/components/deal-badges"
 import { LeadRow } from "@/components/lead-row"
 import { TaskList, type TaskItem, type TaskLead } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
-import { daysSince, waitingLabel } from "@/lib/format"
+import { daysSince, waitingLabel, whatsappUrl } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 
 export const metadata: Metadata = { title: "Leads" }
@@ -433,10 +433,14 @@ export default async function LeadsPage({
                                 </a>
                               </div>
                             ) : null}
+                            {/* The number reads as itself but opens the
+                                WhatsApp chat — never dials. */}
                             {row.phone ? (
                               <a
                                 className="text-muted-foreground underline underline-offset-2"
-                                href={`tel:${row.phone}`}
+                                href={whatsappUrl(row.phone)}
+                                target="_blank"
+                                rel="noreferrer"
                               >
                                 {row.phone}
                               </a>

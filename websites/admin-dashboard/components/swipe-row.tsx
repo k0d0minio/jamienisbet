@@ -212,12 +212,16 @@ export function SwipeAction({
   className,
   onClick,
   href,
+  external,
 }: {
   label: string
   icon: React.ReactNode
   className?: string
   onClick?: () => void
   href?: string
+  /** Open in a new tab (for links that leave the app, like WhatsApp) so the
+   * board stays where the swipe happened. */
+  external?: boolean
 }) {
   const classes = cn(
     "flex w-[4.5rem] flex-col items-center justify-center gap-1 text-[11px] font-medium",
@@ -226,7 +230,13 @@ export function SwipeAction({
   )
   if (href) {
     return (
-      <a href={href} className={classes} aria-label={label}>
+      <a
+        href={href}
+        className={classes}
+        aria-label={label}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+      >
         {icon}
         <span>{label}</span>
       </a>
