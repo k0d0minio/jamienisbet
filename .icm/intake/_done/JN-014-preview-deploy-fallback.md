@@ -31,16 +31,33 @@ That is now moot, but the finding is recorded below so nobody retries it.
 
 ## Acceptance
 
-- [ ] No `ignoreCommand` in any `websites/*/vercel.json` — built-in skipping is in effect
-- [ ] A single-app commit creates **one** deployment, not four
-- [ ] `packages/ui` commit still deploys all four
-- [ ] The dashboard still redeploys when `.icm/onboarding/` changes
-- [ ] `turbo` and `turbo.json` removed — `turbo-ignore` was their only consumer
-- [ ] `payment-gateway` and `sellers-site` deploy only from `main`; no preview deployments
-- [ ] `websites/README.md` § Deployment explains the mechanism, the deployment-cap
+- [x] No `ignoreCommand` in any `websites/*/vercel.json` — built-in skipping is in effect
+- [x] `turbo` and `turbo.json` removed — `turbo-ignore` was their only consumer
+- [x] `payment-gateway` and `sellers-site` configured to deploy only from `main`
+- [x] `websites/README.md` § Deployment explains the mechanism, the deployment-cap
       reasoning, and the accepted cost
-- [ ] `.github/workflows/ci.yml` untouched — still `pnpm -r` and the per-app matrix
-- [ ] Post-merge, confirm on real pushes (see Notes)
+- [x] `.github/workflows/ci.yml` untouched — still `pnpm -r` and the per-app matrix
+- [ ] A single-app commit creates **one** deployment, not four
+- [ ] `packages/ui` commit still deploys all four from `main`
+- [ ] The dashboard still redeploys when `.icm/onboarding/` changes
+- [ ] No deployment at all for `payment-gateway` / `sellers-site` on a branch push
+
+## Resolution (2026-08-13)
+
+Shipped in PR #67. Everything in the repo is done and CI is green on all four app builds
+plus typecheck/lint, which is what proves the `turbo` removal and the `pnpm-lock.yaml`
+regeneration are sound.
+
+**The four unticked rows are runtime behaviour and could not be checked before merge:** the
+account was rate-limited at the free tier's 100 deployments/day for the rest of the day
+(`api-deployments-free-per-day`), so every Vercel deployment on the PR errored on quota
+rather than running the new configuration. They are left unticked deliberately rather than
+assumed — closing the ticket does not close them.
+
+Check them on the next real pushes after the window resets. The sharpest one is the last:
+if minimatch does not behave as documented, a branch push will still deploy
+`payment-gateway` and `sellers-site` and the pattern needs revisiting. Reopen as a new
+ticket if any of the four fails; do not reuse this number.
 
 ## Accepted cost
 
