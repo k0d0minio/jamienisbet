@@ -38,16 +38,17 @@ four apps skip — a first-ever production deploy would never build.
 
 ## Acceptance
 
-- [ ] New branches no longer build all four apps on their first push when the branch
-      touches nothing an app depends on
-- [ ] The fallback applies on branches other than `main` only, never on `main` itself
-- [ ] `VERCEL_GIT_PREVIOUS_SHA` still wins whenever Vercel sets it and it is reachable —
+- [ ] ~~New branches no longer build all four apps on their first push when the branch
+      touches nothing an app depends on~~ — **dropped, not achievable.** See Notes: the
+      build clone contains no ref that names the default branch
+- [x] The fallback applies on branches other than `main` only, never on `main` itself
+- [x] `VERCEL_GIT_PREVIOUS_SHA` still wins whenever Vercel sets it and it is reachable —
       the JN-004 last-deployed-commit property does not regress
-- [ ] Fail-open preserved on every path: unreachable base, unfetchable `main`, turbo
+- [x] Fail-open preserved on every path: unresolvable base, absent `main`, turbo
       erroring, bad `turbo.json` all build rather than skip
-- [ ] The dashboard's `.icm/onboarding/` check still forces a build on its own
-- [ ] `.github/workflows/ci.yml` untouched — still `pnpm -r` and the per-app matrix
-- [ ] Post-merge, confirm on real pushes (see Notes)
+- [x] The dashboard's `.icm/onboarding/` check still forces a build on its own
+- [x] `.github/workflows/ci.yml` untouched — still `pnpm -r` and the per-app matrix
+- [x] The build log states which comparison the ignore step used
 
 ## Notes
 
@@ -73,12 +74,28 @@ work, and the build log says why:
 fatal: 'origin' does not appear to be a git repository
 ```
 
-**Vercel's build clone has no `origin` remote.** So the script instead probes for a ref
-that is already present — `origin/main`, `refs/remotes/origin/main`, `main`,
-`refs/heads/main` — and uses the first that resolves. Whether any of them does in a
-preview clone is the remaining open question; the script echoes which way it went, so the
-next new branch's log answers it. If none resolves, previews keep building and nothing is
-lost relative to today.
+**Vercel's build clone has no `origin` remote.** So the script instead probed for a ref
+already present — `origin/main`, `refs/remotes/origin/main`, `main`, `refs/heads/main`.
+The next push answered that too:
+
+```
+vercel-ignore: main is not in this clone — building if there is no previous deploy
+```
+
+None of them resolve. The clone carries the deployed commit and some ancestors (turbo
+diffed against a commit two back quite happily) but **no branch refs and no remote**, so
+there is no way to name the default branch from inside the Ignored Build Step. Vercel
+exposes no base-branch SHA either — the git system variables are `VERCEL_GIT_COMMIT_SHA`,
+`VERCEL_GIT_PREVIOUS_SHA`, `VERCEL_GIT_COMMIT_REF`, `VERCEL_GIT_PULL_REQUEST_ID` and the
+repo identifiers, none of which is the merge base.
+
+`--fallback=HEAD^` is the only ref that always resolves, and it is precisely the option
+this ticket rules out: on a multi-commit first push it inspects only the last commit and
+skips real changes, which is the JN-004 bug.
+
+**So the preview cost is not removable from inside the ignore command.** The first push
+of a new branch builds all four apps; every push after it compares against the previous
+deployment and skips correctly.
 
 `turbo-ignore` also now prints a deprecation notice on every run, pointing at Vercel's
 built-in monorepo skipping. That is **not** a viable move for this repo: built-in
