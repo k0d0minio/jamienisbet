@@ -54,6 +54,7 @@ prefix_for() {
     casey-hebbel)     echo CASEY ;;
     cafe-jardim)      echo CAFE ;;
     messy-play)       echo MESSY ;;
+    dungeons-dragons) echo DND ;;
     *)                echo "" ;;
   esac
 }
