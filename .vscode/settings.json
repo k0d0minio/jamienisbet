@@ -1,0 +1,7 @@
+{
+  // Client repos live one level down (projects/<name>); the default scan depth of 1
+  // only finds the root monorepo. Depth 2 auto-opens every estate repo in Source Control.
+  "git.repositoryScanMaxDepth": 2,
+  // Show the whole estate in the Source Control Repositories list without scrolling.
+  "scm.repositories.visible": 25
+}
