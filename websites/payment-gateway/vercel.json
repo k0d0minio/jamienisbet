@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "ignoreCommand": "npx turbo-ignore @jamie-nisbet/payment-gateway"
+  "git": {
+    "deploymentEnabled": {
+      "*": false,
+      "**": false,
+      "main": true
+    }
+  }
 }
