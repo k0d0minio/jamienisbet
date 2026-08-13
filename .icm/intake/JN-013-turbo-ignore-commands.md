@@ -57,6 +57,26 @@ part of this ticket.
       four builds; a `packages/ui` commit builds all four; a `websites/portfolio`-only
       commit builds exactly one
 
+## Resolution (2026-08-13)
+
+Shipped in PR #65. Root `turbo.json` with one `build` task; `turbo@^2.10.9` as a root
+devDependency (a literal range, not `catalog:` — `turbo-ignore` reads that field to pin the
+turbo version it shells out to); all four path lists replaced by
+`npx turbo-ignore @jamie-nisbet/<workspace>`, with the dashboard chaining its
+`.icm/onboarding` check.
+
+Two deviations from the acceptance list as written:
+
+- **No `--fallback`.** The default already fails open: `turbo-ignore` gates
+  `VERCEL_GIT_PREVIOUS_SHA` behind a `git cat-file -t` reachability check, and with no
+  fallback a missing or unreachable ref exits 1 (build). `--fallback=HEAD^` would have
+  reintroduced the multi-commit-push bug this ticket's fifth acceptance row exists to prevent.
+- **`globalDependencies: ["package.json", "pnpm-workspace.yaml"]` added.** Without it turbo
+  skipped all four apps on a root-manifest change — a property the hand-written rule had.
+  `pnpm-lock.yaml` is deliberately *not* listed: turbo diffs the lockfile and rebuilds only
+  the apps whose resolved dependencies actually moved, which is finer-grained than the rule
+  it replaces.
+
 ## Notes
 
 - `turbo-ignore` runs `turbo build --filter=<pkg>...[<sha>]` under the hood, so the
