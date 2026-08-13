@@ -13,6 +13,7 @@ import {
 } from "@jamie-nisbet/ui"
 import { listClients } from "@jamie-nisbet/services"
 
+import { DisclosureCard } from "@/components/disclosure-card"
 import { InvoiceActions } from "@/components/invoice-actions"
 import {
   InvoiceCreateForm,
@@ -54,6 +55,22 @@ function BalanceFigure({ entries }: { entries: BalanceEntry[] }) {
           {formatMoney(e.amount, e.currency)}
         </CardTitle>
       ))}
+    </div>
+  )
+}
+
+// The same three figures as one compact row each — the phone rendering, where
+// three stacked cards of 3xl type would put the first invoice below the fold.
+function BalanceRow({ label, entries }: { label: string; entries: BalanceEntry[] }) {
+  const nonZero = entries.filter((e) => e.amount !== 0)
+  return (
+    <div className="flex items-baseline justify-between gap-3 px-4 py-3">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-right font-medium tabular-nums">
+        {nonZero.length === 0
+          ? "—"
+          : nonZero.map((e) => formatMoney(e.amount, e.currency)).join(" · ")}
+      </span>
     </div>
   )
 }
@@ -139,31 +156,42 @@ export default async function MoneyPage() {
     <div className="flex flex-col gap-8">
       <h1 className="text-2xl font-semibold">Money</h1>
 
-      {/* What's in the account, and what's owed. */}
+      {/* What's in the account, and what's owed. On a phone the three figures
+          share one card as rows; the 3xl stat cards are the desktop reading. */}
       {summary ? (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardDescription>Available balance</CardDescription>
-              <BalanceFigure entries={summary.available} />
-            </CardHeader>
+        <>
+          <Card className="divide-y gap-0 py-0 sm:hidden">
+            <BalanceRow label="Available" entries={summary.available} />
+            <BalanceRow label="Pending" entries={summary.pending} />
+            <BalanceRow
+              label={`Outstanding (${summary.openInvoiceCount} open)`}
+              entries={summary.outstanding}
+            />
           </Card>
-          <Card>
-            <CardHeader>
-              <CardDescription>Pending balance</CardDescription>
-              <BalanceFigure entries={summary.pending} />
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardDescription>
-                Outstanding ({summary.openInvoiceCount} open{" "}
-                {summary.openInvoiceCount === 1 ? "invoice" : "invoices"})
-              </CardDescription>
-              <BalanceFigure entries={summary.outstanding} />
-            </CardHeader>
-          </Card>
-        </div>
+          <div className="hidden gap-4 sm:grid sm:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardDescription>Available balance</CardDescription>
+                <BalanceFigure entries={summary.available} />
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardDescription>Pending balance</CardDescription>
+                <BalanceFigure entries={summary.pending} />
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardDescription>
+                  Outstanding ({summary.openInvoiceCount} open{" "}
+                  {summary.openInvoiceCount === 1 ? "invoice" : "invoices"})
+                </CardDescription>
+                <BalanceFigure entries={summary.outstanding} />
+              </CardHeader>
+            </Card>
+          </div>
+        </>
       ) : null}
 
       {/* Invoices — raise a draft, then finalize & send as a deliberate step. */}
@@ -172,11 +200,11 @@ export default async function MoneyPage() {
           title="Invoices"
           description="A new invoice is created as a draft. Emailing it is a separate, deliberate step."
         />
-        <Card>
-          <CardContent className="pt-6">
-            <InvoiceCreateForm clients={clientOptions} />
-          </CardContent>
-        </Card>
+        {/* Folded: raising an invoice is deliberate and occasional, and open
+            it stood between the heading and what's actually owed. */}
+        <DisclosureCard title="New invoice">
+          <InvoiceCreateForm clients={clientOptions} />
+        </DisclosureCard>
 
         {!invoices || invoices.length === 0 ? (
           <Card>
@@ -185,8 +213,47 @@ export default async function MoneyPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardContent className="p-0">
+          <>
+            {/* Phone: one card per invoice — who, how much, where it stands,
+                and the actions as a full-width touch row. */}
+            <ul className="flex flex-col gap-2 md:hidden">
+              {invoices.map((row) => (
+                <li
+                  key={row.id}
+                  className="flex flex-col rounded-lg border bg-card text-card-foreground"
+                >
+                  <div className="flex flex-col gap-1 px-4 pt-3 pb-2">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="truncate text-sm font-medium">
+                        {row.customerName ?? "—"}
+                      </span>
+                      <span className="shrink-0 font-medium tabular-nums">
+                        {formatMoney(row.amountDue, row.currency)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <span className="truncate">
+                        {row.number ? `${row.number} · ` : ""}
+                        {formatEpoch(row.createdDate)}
+                        {row.dueDate ? ` · due ${formatEpoch(row.dueDate)}` : ""}
+                      </span>
+                      <InvoiceStatusBadge status={row.status} />
+                    </div>
+                  </div>
+                  <div className="border-t px-3 py-2">
+                    <InvoiceActions
+                      id={row.id}
+                      isDraft={row.isDraft}
+                      status={row.status}
+                      hostedInvoiceUrl={row.hostedInvoiceUrl}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <Card className="hidden md:block">
+              <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b text-left text-muted-foreground">
@@ -237,8 +304,9 @@ export default async function MoneyPage() {
                   </tbody>
                 </table>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </>
         )}
       </section>
 
@@ -248,11 +316,9 @@ export default async function MoneyPage() {
           title="Payment links"
           description="A reusable link for a fixed amount — copy it and share it."
         />
-        <Card>
-          <CardContent className="pt-6">
-            <PaymentLinkCreateForm />
-          </CardContent>
-        </Card>
+        <DisclosureCard title="New payment link">
+          <PaymentLinkCreateForm />
+        </DisclosureCard>
 
         {!links || links.length === 0 ? (
           <Card>
@@ -261,8 +327,43 @@ export default async function MoneyPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardContent className="p-0">
+          <>
+            {/* Phone: product, amount, state, and the actions — the URL itself
+                stays behind Copy, where it's actually useful. */}
+            <ul className="flex flex-col gap-2 md:hidden">
+              {links.map((row) => (
+                <li
+                  key={row.id}
+                  className="flex flex-col rounded-lg border bg-card text-card-foreground"
+                >
+                  <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                      <span className="truncate text-sm font-medium">
+                        {row.productName ?? "—"}
+                      </span>
+                      <Badge variant={row.active ? "success" : "secondary"}>
+                        {row.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </span>
+                    <span className="shrink-0 font-medium tabular-nums">
+                      {row.amount !== null && row.currency
+                        ? formatMoney(row.amount, row.currency)
+                        : "—"}
+                    </span>
+                  </div>
+                  <div className="border-t px-3 py-2">
+                    <PaymentLinkActions
+                      id={row.id}
+                      url={row.url}
+                      active={row.active}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <Card className="hidden md:block">
+              <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b text-left text-muted-foreground">
@@ -312,8 +413,9 @@ export default async function MoneyPage() {
                   </tbody>
                 </table>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </>
         )}
       </section>
 
@@ -327,8 +429,40 @@ export default async function MoneyPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardContent className="p-0">
+          <>
+            {/* Phone: a read-only ledger line per payment. */}
+            <Card className="divide-y gap-0 py-0 md:hidden">
+              {payments.map((p) => (
+                <div key={p.id} className="flex flex-col gap-0.5 px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="truncate text-sm">
+                      {p.description ?? "—"}
+                    </span>
+                    <span className="shrink-0 font-medium tabular-nums">
+                      {formatMoney(p.amount, p.currency)}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-3 text-xs text-muted-foreground">
+                    <span className="capitalize">
+                      {formatEpoch(p.createdDate)} · {p.status}
+                    </span>
+                    {p.receiptUrl ? (
+                      <a
+                        className="underline underline-offset-2"
+                        href={p.receiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Receipt
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </Card>
+
+            <Card className="hidden md:block">
+              <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b text-left text-muted-foreground">
@@ -370,8 +504,9 @@ export default async function MoneyPage() {
                   </tbody>
                 </table>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </>
         )}
       </section>
     </div>

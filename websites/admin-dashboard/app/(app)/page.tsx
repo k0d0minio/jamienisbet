@@ -1,12 +1,10 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Mail, MessageCircle } from "lucide-react"
 
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-  Button,
   Card,
   CardContent,
   cn,
@@ -26,6 +24,7 @@ import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { ComplianceList, type ComplianceItem } from "@/components/compliance-list"
 import { DealBadges } from "@/components/deal-badges"
+import { LeadRow } from "@/components/lead-row"
 import { TaskList, type TaskItem, type TaskLead } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
 import { daysSince, waitingLabel, whatsappUrl } from "@/lib/format"
@@ -149,32 +148,6 @@ function TotalsLine({
         </span>
       ))}
     </p>
-  )
-}
-
-// Tap-to-chat / tap-to-email straight off the row — on a phone these are the
-// actions, not decoration next to an address you'd copy with a mouse. External
-// links (WhatsApp) open in a new tab so the board stays where you left it.
-function ContactButton({
-  href,
-  label,
-  icon: Icon,
-}: {
-  href: string
-  label: string
-  icon: typeof Mail
-}) {
-  const external = href.startsWith("http")
-  return (
-    <Button asChild variant="ghost" size="icon-sm" aria-label={label}>
-      <a
-        href={href}
-        target={external ? "_blank" : undefined}
-        rel={external ? "noreferrer" : undefined}
-      >
-        <Icon />
-      </a>
-    </Button>
   )
 }
 
@@ -347,80 +320,60 @@ export default async function LeadsPage({
         </Card>
       ) : (
         <>
-          {/* Phone: one row per lead. The card body is a single stretched tap
-              target into the profile; the strip under it holds the only two
-              things worth doing without opening them. Archive and delete are
-              deliberately not here — they live on the lead's own page, one tap
-              away, except in the archive where restoring is the whole point. */}
+          {/* Phone: one compact row per lead — two lines, no controls in the
+              body. The whole row is the tap target into the profile; the
+              actions ride behind it as gestures. Swipe left: call, email,
+              archive (restore/delete in the archive view). Swipe right: mark
+              touched. Status is read here and changed on the lead's page, one
+              tap away — the dropdown per row was most of the old chunk. */}
           <ul className="flex flex-col gap-2 md:hidden">
             {visible.map((row) => {
               const stale = isStale(row, now)
               const value = valueLabel(row)
               return (
-                <li
-                  key={row.id}
-                  className="relative rounded-lg border bg-card text-card-foreground"
-                >
-                  <Link
-                    href={`/leads/${row.id}`}
-                    className="flex flex-col gap-1 rounded-t-lg px-4 pt-3 pb-2 transition-colors after:absolute after:inset-0 after:rounded-lg active:bg-muted/50"
+                <li key={row.id}>
+                  <LeadRow
+                    id={row.id}
+                    name={row.name}
+                    phone={row.phone}
+                    email={row.email}
+                    archived={archived}
                   >
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span
-                        className={cn(
-                          "text-xs font-medium",
-                          stale ? "text-destructive" : "text-muted-foreground"
-                        )}
-                      >
-                        {waitedLabel(daysWaiting(row, now), isOpen(row))}
-                      </span>
-                      {value ? (
-                        <span className="shrink-0 text-sm font-medium tabular-nums">
-                          {value}
+                    <Link
+                      href={`/leads/${row.id}`}
+                      className="flex flex-col gap-0.5 bg-card px-4 py-3 transition-colors active:bg-muted/50"
+                    >
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className="truncate text-[15px] leading-snug font-medium">
+                          {row.name}
                         </span>
-                      ) : null}
-                    </div>
-                    <span className="text-base leading-tight font-medium">
-                      {row.name}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {row.company
-                        ? `${row.company} · ${sourceLabel(row.source)}`
-                        : sourceLabel(row.source)}
-                    </span>
-                    {/* Barter, commission, equity, work started — below the
-                        name rather than beside the figure, where they'd fight
-                        the amount for the same corner of a narrow card. */}
-                    <DealBadges client={row} className="mt-1" />
-                  </Link>
-
-                  {/* Above the stretched link, so these stay tappable. */}
-                  <div className="relative z-10 flex items-center gap-2 border-t px-3 py-2">
-                    <ClientStatusSelect
-                      id={row.id}
-                      value={row.status}
-                      className="w-32"
-                    />
-                    <div className="ml-auto flex items-center gap-1">
-                      {row.phone ? (
-                        <ContactButton
-                          href={whatsappUrl(row.phone)}
-                          label={`WhatsApp ${row.name}`}
-                          icon={MessageCircle}
-                        />
-                      ) : null}
-                      {row.email ? (
-                        <ContactButton
-                          href={`mailto:${row.email}`}
-                          label={`Email ${row.name}`}
-                          icon={Mail}
-                        />
-                      ) : null}
-                      {archived ? (
-                        <ClientActions id={row.id} archived compact />
-                      ) : null}
-                    </div>
-                  </div>
+                        {value ? (
+                          <span className="shrink-0 text-sm font-medium tabular-nums">
+                            {value}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="flex items-baseline justify-between gap-3 text-xs">
+                        <span
+                          className={cn(
+                            "truncate",
+                            stale
+                              ? "font-medium text-destructive"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {waitedLabel(daysWaiting(row, now), isOpen(row))}
+                          {row.company ? ` · ${row.company}` : ""}
+                        </span>
+                        <span className="shrink-0 text-muted-foreground capitalize">
+                          {row.status}
+                        </span>
+                      </span>
+                      {/* Barter, commission, equity, started — only the rows
+                          that carry them grow a third line. */}
+                      <DealBadges client={row} className="mt-1" />
+                    </Link>
+                  </LeadRow>
                 </li>
               )
             })}

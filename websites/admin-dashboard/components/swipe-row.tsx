@@ -1,0 +1,251 @@
+"use client"
+
+import { useEffect, useRef, useState } from "react"
+
+import { cn } from "@jamie-nisbet/ui"
+
+// The mobile list gesture: swipe a row left to reveal a tray of actions behind
+// its right edge, and (optionally) swipe it right past a threshold to commit
+// one action in a single stroke — the mail-app idiom. Pointer events rather
+// than a gesture library: the rows need exactly one gesture, and `touch-action:
+// pan-y` already splits the work with the browser (vertical stays native
+// scroll, horizontal comes here).
+//
+// The row's children stay whatever the caller renders — usually a stretched
+// <Link> — and a drag never leaks into a tap: any claimed gesture swallows the
+// click that would otherwise fire on release.
+
+// Only one row is open at a time. Opening (or starting to drag) one broadcasts
+// a close to every other row — cheaper than threading context through a list
+// that renders on the server.
+const CLOSE_EVENT = "jn:swipe-row-close"
+
+export type SwipeCommit = {
+  /** Announced to screen readers and shown in the reveal underlay. */
+  label: string
+  icon: React.ReactNode
+  /** Underlay colour classes, e.g. "bg-success text-white". */
+  className: string
+  onCommit: () => void
+}
+
+// How far a finger must travel before the gesture is ours (past tap wobble),
+// and how far right a swipe must go to fire the commit action.
+const CLAIM_PX = 12
+const COMMIT_PX = 88
+
+export function SwipeRow({
+  children,
+  // The action tray revealed by swiping left. Rendered behind the row content,
+  // so the buttons are real targets once revealed.
+  actions,
+  // Optional swipe-right commit (e.g. "mark touched").
+  commit,
+  className,
+}: {
+  children: React.ReactNode
+  actions?: React.ReactNode
+  commit?: SwipeCommit
+  className?: string
+}) {
+  // Identity token for the one-open-at-a-time broadcast — an object compared
+  // by reference, nothing more.
+  const rowId = useRef<object>({})
+  const trayRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  const [offset, setOffset] = useState(0)
+  const [dragging, setDragging] = useState(false)
+
+  // Gesture bookkeeping lives in refs — it changes on every move event and
+  // none of it should re-render until the offset actually moves.
+  const gesture = useRef({
+    startX: 0,
+    startY: 0,
+    base: 0,
+    claimed: false,
+    // Set once a gesture claimed the pointer; the next click is swallowed.
+    swallowClick: false,
+  })
+
+  const trayWidth = () => trayRef.current?.offsetWidth ?? 0
+
+  function broadcastClose() {
+    document.dispatchEvent(new CustomEvent(CLOSE_EVENT, { detail: rowId.current }))
+  }
+
+  useEffect(() => {
+    function onClose(event: Event) {
+      if ((event as CustomEvent).detail !== rowId.current) setOffset(0)
+    }
+    document.addEventListener(CLOSE_EVENT, onClose)
+    return () => document.removeEventListener(CLOSE_EVENT, onClose)
+  }, [])
+
+  function onPointerDown(e: React.PointerEvent) {
+    if (!e.isPrimary) return
+    gesture.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      base: offset,
+      claimed: false,
+      swallowClick: false,
+    }
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    if (!e.isPrimary) return
+    const g = gesture.current
+    const dx = e.clientX - g.startX
+    const dy = e.clientY - g.startY
+
+    if (!g.claimed) {
+      // Vertical intent belongs to the scroll; only a clearly horizontal move
+      // claims the pointer.
+      if (Math.abs(dx) < CLAIM_PX || Math.abs(dx) < Math.abs(dy) * 1.2) return
+      g.claimed = true
+      g.swallowClick = true
+      setDragging(true)
+      broadcastClose()
+      contentRef.current?.setPointerCapture(e.pointerId)
+    }
+
+    const max = commit ? COMMIT_PX * 1.35 : 0
+    const min = actions ? -trayWidth() : 0
+    let next = g.base + dx
+    // Rubber-band past the ends instead of hard-stopping.
+    if (next < min) next = min + (next - min) / 3
+    if (next > max) next = max + (next - max) / 3
+    setOffset(next)
+  }
+
+  function settle(e: React.PointerEvent) {
+    if (!gesture.current.claimed) return
+    setDragging(false)
+    contentRef.current?.releasePointerCapture(e.pointerId)
+
+    if (commit && offset >= COMMIT_PX) {
+      // Snap home and fire — the row's own content is the confirmation (it
+      // re-renders from the server once the action lands).
+      setOffset(0)
+      commit.onCommit()
+      return
+    }
+    // Past half the tray: snap open. Otherwise: closed.
+    const width = trayWidth()
+    setOffset(actions && offset < -width / 2 ? -width : 0)
+  }
+
+  function onClickCapture(e: React.MouseEvent) {
+    // A drag is not a tap — never let the stretched link underneath navigate.
+    if (gesture.current.swallowClick) {
+      gesture.current.swallowClick = false
+      e.preventDefault()
+      e.stopPropagation()
+      return
+    }
+    // Tapping an open row closes it rather than navigating.
+    if (offset !== 0) {
+      e.preventDefault()
+      e.stopPropagation()
+      setOffset(0)
+    }
+  }
+
+  return (
+    <div className={cn("relative overflow-hidden", className)}>
+      {/* The commit underlay — visible while the row is pulled right. */}
+      {commit ? (
+        <div
+          className={cn(
+            "absolute inset-y-0 left-0 flex items-center gap-2 pl-4 pr-2 text-sm font-medium transition-opacity",
+            commit.className,
+            offset > 8 ? "opacity-100" : "opacity-0"
+          )}
+          style={{ width: Math.max(offset, 0) + 16 }}
+          aria-hidden
+        >
+          {commit.icon}
+          {offset >= COMMIT_PX ? <span>{commit.label}</span> : null}
+        </div>
+      ) : null}
+
+      {/* The action tray behind the right edge. */}
+      {actions ? (
+        <div
+          ref={trayRef}
+          className={cn(
+            "absolute inset-y-0 right-0 flex items-stretch",
+            // Keep it out of the tab order (and off screen readers) while
+            // hidden — otherwise every row carries invisible buttons.
+            offset < 0 ? "" : "invisible"
+          )}
+        >
+          {actions}
+        </div>
+      ) : null}
+
+      <div
+        ref={contentRef}
+        className={cn(
+          "relative touch-pan-y",
+          !dragging && "transition-transform duration-200 ease-out"
+        )}
+        style={{ transform: offset !== 0 ? `translateX(${offset}px)` : undefined }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={settle}
+        onPointerCancel={settle}
+        onClickCapture={onClickCapture}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** A button in the swipe tray: a full-height coloured column, icon over label,
+ * wide enough to hit mid-swipe. */
+export function SwipeAction({
+  label,
+  icon,
+  className,
+  onClick,
+  href,
+  external,
+}: {
+  label: string
+  icon: React.ReactNode
+  className?: string
+  onClick?: () => void
+  href?: string
+  /** Open in a new tab (for links that leave the app, like WhatsApp) so the
+   * board stays where the swipe happened. */
+  external?: boolean
+}) {
+  const classes = cn(
+    "flex w-[4.5rem] flex-col items-center justify-center gap-1 text-[11px] font-medium",
+    "transition-opacity active:opacity-80",
+    className
+  )
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={classes}
+        aria-label={label}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+      >
+        {icon}
+        <span>{label}</span>
+      </a>
+    )
+  }
+  return (
+    <button type="button" className={classes} onClick={onClick} aria-label={label}>
+      {icon}
+      <span>{label}</span>
+    </button>
+  )
+}

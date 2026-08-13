@@ -39,12 +39,14 @@ relationship, and what was actually billed lives in Stripe.
 - **Filters** — All / Open / Customers / Lost, each with a count, in a rail that scrolls
   sideways on a phone rather than wrapping onto a second line. The **Archived** view is a switch
   beside the page title, not another chip — it changes what you are looking at rather than
-  filtering it. Status itself is a dropdown on every row, changed in place.
-- **On a phone, a row is one tap target.** The whole card opens the lead; the strip underneath
-  holds only what is worth doing without opening them — change status, call, email. Archive and
-  delete are deliberately absent there (they live on the lead's own page, one tap away), except
-  in the archive, where restoring is the point. The wide table is the desktop view of the same
-  list, not the source the phone shrinks down from.
+  filtering it. On desktop, status is a dropdown on every table row, changed in place.
+- **On a phone, a row is two lines and its actions are gestures.** The whole card opens the
+  lead; **swipe left** reveals call / email / archive (restore / delete in the archive view),
+  **swipe right** marks them touched in one stroke — the mail-app idiom, built on
+  [`components/swipe-row.tsx`](components/swipe-row.tsx). Status reads on the row and changes on
+  the lead's page, one tap away — a dropdown per row was most of what made the old cards tall.
+  The wide table is the desktop view of the same list, not the source the phone shrinks down
+  from.
 - **Value** — each lead carries what it is worth (`value_minor`) and whether that is a one-off
   or charged **every month** (`billing_type`). The header adds them up: open one-offs as
   *in play*, monthly customers as */ month*. Both are Jamie's own figures — Stripe stays the
@@ -81,16 +83,23 @@ relationship, and what was actually billed lives in Stripe.
 A lead's own page adds the read-only intake provenance (how they came in, what they asked for),
 their **delivery repo**, their **Stripe customer**, and the todos filed against them. It is
 ordered by what you actually do on a phone: reach them (call / email / mark touched / **work
-started**, as a rail of real buttons), move their status, then the profile and their todos. The
-profile's second half is the **Deal**: value, billed, paid in (cash or an exchange — which
-reveals a *what's being exchanged* box), commission %, equity %. **Work started** is a one-tap
+started**, as a rail of real buttons), move their status, then read the record. The record is
+**facts, not form fields**: a **Contact** card whose rows are the actions themselves (tap the
+email row and the mail app opens, tap phone to dial, copy beside each), a **Deal** card showing
+only the terms actually set (value, billed, paid in, commission %, equity %, what's being
+exchanged), and a **Notes** card. Each edits in its own bottom sheet
+([`Sheet` in `@jamie-nisbet/ui`](../../packages/ui/src/components/ui/sheet.tsx)) posting a
+server action scoped to exactly its own fields (`saveClientContact` / `saveDealTerms` /
+`saveClientNotes`), so no sheet can blank a field it never showed. **Work started** is a one-tap
 toggle in the rail rather than a field to save, because it is something you record on the day it
 happens; re-tapping undoes it, and marking an already-started engagement keeps the original date.
 
 Reference material and
 irreversible actions sink to the bottom — **Intake** folds into a tap-to-open `<details>` below
 `lg`, connecting a delivery repo folds away until asked for, and archive/delete live in a
-**Danger zone** card rather than beside the title where a thumb could find them.
+**Danger zone** that is folded shut on every size
+([`components/disclosure-card.tsx`](components/disclosure-card.tsx)) rather than beside the
+title where a thumb could find them.
 
 ### Delivery repos
 
@@ -156,10 +165,14 @@ each ticket links back to its client. Sustentus is excluded by name in `lib/tick
 
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
-and nothing is mirrored into the database. The one action here is **Copy prompt**: every ticket
-carries a pasteable `## Prompt` section, and the phone flow is open board → copy → paste into a
-Claude session. Each row also links to the file on GitHub. Uses the same `GITHUB_TOKEN` as the
-delivery-repo features; unset, the screen shows a "not configured" notice.
+and nothing is mirrored into the database. Every ticket carries a pasteable `## Prompt`
+section, and the board's one real action is **Start in Claude Code**: a deep link
+(`claude.ai/code?prompt=…&repositories=…`, built by `claudeSessionUrl` in
+[`lib/tickets.ts`](lib/tickets.ts)) that opens a fresh Claude Code session with the prompt
+already pasted and the ticket's repo already selected. **Copy prompt** stays beside it for
+handing the prompt to any other surface. Each row also links to the file on GitHub. Uses the
+same `GITHUB_TOKEN` as the delivery-repo features; unset, the screen shows a "not configured"
+notice.
 
 ## Money
 
@@ -229,6 +242,16 @@ The app is built mobile-first and installs to a phone home screen as **Consultan
   `bottom-above-tabs` and `no-scrollbar` utilities the fixed chrome and the horizontal rails use.
 - **Anything hover-only is a bug on a phone.** Row deletes in the todo and compliance lists are
   always visible below `sm` and only fade in on hover from `sm` up.
+- **Gestures** — list rows swipe ([`components/swipe-row.tsx`](components/swipe-row.tsx):
+  pointer-events + `touch-action: pan-y`, so vertical stays native scroll; one row open at a
+  time; a drag never fires the row's link), and the whole authenticated area supports
+  **pull-to-refresh** ([`components/pull-to-refresh.tsx`](components/pull-to-refresh.tsx)) —
+  every screen is a live read (Neon, Stripe, GitHub) and standalone mode has no reload button.
+  The body's `overscroll-behavior-y: contain` hands the pull gesture to the app.
+- **Sheets, not centred dialogs.** Anything a phone user opens one-handed — add a lead, edit
+  contact / deal / notes — is a bottom sheet (`Sheet` in `@jamie-nisbet/ui`), which falls back
+  to the ordinary centred dialog from `sm` up. On phones the Money tables become card lists,
+  and the two create forms fold shut until asked for.
 - **Manifest** ([`app/manifest.ts`](app/manifest.ts)) — name/short-name `Consultancy JN`,
   `standalone` display, brand-blue theme (`#3A5A78`), and PNG icons.
 - **Icons** — one favicon SVG ([`public/icon.svg`](public/icon.svg)) plus PNGs rendered on the
@@ -264,6 +287,12 @@ app/
 components/             # login form, nav, service-worker register, lead + money UI
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
                         #   fold-card.tsx — a card that folds into <details> below `lg`
+                        #   disclosure-card.tsx — a card folded shut on every size (single render)
+                        #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
+                        #   lead-row.tsx — the leads list's gestures (call/email/archive, touched)
+                        #   lead-contact-card.tsx / lead-deal-card.tsx / lead-notes-card.tsx
+                        #                — the record as facts, each edited in a bottom sheet
+                        #   pull-to-refresh.tsx — pull down from the top to re-read everything
                         #   client-create-form.tsx — add a lead or a customer by hand
                         #   deal-badges.tsx — barter / commission / equity / started, on the row
                         #   work-started-button.tsx — one-tap "the work has begun"
