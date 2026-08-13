@@ -71,6 +71,11 @@ Two deviations from the acceptance list as written:
   `VERCEL_GIT_PREVIOUS_SHA` behind a `git cat-file -t` reachability check, and with no
   fallback a missing or unreachable ref exits 1 (build). `--fallback=HEAD^` would have
   reintroduced the multi-commit-push bug this ticket's fifth acceptance row exists to prevent.
+
+  *Corrected by JN-014.* The conclusion held but the reason did not: a fallback is consulted
+  only when `VERCEL_GIT_PREVIOUS_SHA` is absent or unreachable, so it can never displace the
+  last-deployed-commit comparison. The real cost of no fallback is that every new branch's
+  first push builds all four apps.
 - **`globalDependencies: ["package.json", "pnpm-workspace.yaml"]` added.** Without it turbo
   skipped all four apps on a root-manifest change — a property the hand-written rule had.
   `pnpm-lock.yaml` is deliberately *not* listed: turbo diffs the lockfile and rebuilds only

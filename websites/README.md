@@ -36,36 +36,67 @@ workspace install at the repo root, `next build` — is auto-detected):
 Env vars live in each Vercel project (never in git) — each app's README lists what it needs.
 
 **Skipped builds.** Since the 2026-08-12 consolidation, ticket flips in `.icm/intake/` and
-`_system/` edits land on this repo's `main`; they must not trigger four app deploys. Each
-`vercel.json` has an `ignoreCommand` of `npx turbo-ignore <workspace name>`, e.g.
-`npx turbo-ignore @jamie-nisbet/portfolio`. That is the only reason turbo is in this repo — it
-is **not** a build orchestrator or a cache here. CI still builds each app with `pnpm build`.
+`_system/` edits land on this repo's `main` alongside app work, and four Vercel projects watch the
+same repo. Skipping is handled by **Vercel's built-in monorepo skipping**, which is on by default
+and needs no configuration — there is deliberately no `ignoreCommand` in any `vercel.json`.
 
-`turbo-ignore` skips the build unless the push changed that workspace or something it depends on,
-reading the answer from the root [`turbo.json`](../turbo.json) `build` task plus each app's own
-`package.json` dependencies. **Nothing to maintain by hand:** add `@jamie-nisbet/services` to an
-app and that app starts deploying on `packages/services` changes automatically. Two inputs live
-outside the dependency graph and are wired explicitly:
+Vercel reads the pnpm workspace graph and deploys a project only when its own source changed, one
+of its internal `package.json` dependencies changed, or a lockfile change affects its dependencies.
+**Nothing to maintain by hand:** add `@jamie-nisbet/services` to an app and that app starts
+deploying on `packages/services` changes automatically.
 
-- Root `package.json` and `pnpm-workspace.yaml` are listed in `turbo.json`'s
-  `globalDependencies`, so touching either rebuilds all four. (`pnpm-lock.yaml` needs no entry —
-  turbo diffs the lockfile and rebuilds only the apps whose resolved dependencies actually moved.)
-- `.icm/onboarding/` is an input to the **dashboard** only, and turbo cannot see it — it is not a
-  package. So that one app chains a second check onto the ignore command:
-  `npx turbo-ignore @jamie-nisbet/admin && git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- ':(top).icm/onboarding'`.
-  `ignoreCommand` exit 0 means *skip*, so the `&&` means both checks must agree to skip and either
-  one alone can force the build.
+### Why not an ignoreCommand
 
-Two properties carried over from the hand-written rule this replaced:
+Because on the free tier the scarce resource is the **100 deployments per day** cap, and the two
+mechanisms differ in exactly that respect:
 
-- **It compares against the last *deployed* commit,** not `HEAD^`. On Vercel, `turbo-ignore` uses
-  `VERCEL_GIT_PREVIOUS_SHA` (the last successful deployment of this branch); `HEAD^` alone only
-  sees the final commit of a multi-commit push, which is how the first version of this rule skipped
-  four real deploys.
-- **It fails open.** If no previous deployment exists (first deploy of a branch) or that commit is
-  unreachable (force push, shallow clone), `turbo-ignore` builds rather than skips — so no
-  `--fallback` is set, since supplying one would trade that safety for `HEAD^`. Every other failure
-  path — unreadable `turbo.json`, missing workspace, turbo itself erroring — also builds.
+- An **Ignored Build Step** runs *after* Vercel creates the deployment. The build is skipped, but
+  per Vercel's docs the cancelled deployment still "count[s] towards your deployment and concurrent
+  build limits". Four projects means four deployments per push, always.
+- **Built-in skipping** decides *before* a deployment exists. An unaffected project gets no
+  deployment at all, so it costs nothing against the cap.
+
+So a portfolio-only commit costs one deployment instead of four. This is also Vercel's own
+recommendation for "monorepos with many projects", and `turbo-ignore` — which this repo used
+between JN-013 and JN-014 — is deprecated in favour of it.
+
+**There is no turbo in this repo.** It was only ever here to run `turbo-ignore`, never as a build
+orchestrator or a cache, so JN-014 removed the dependency and `turbo.json` along with the ignore
+commands. CI builds each app with `pnpm build`; Vercel builds each app with `next build` from its
+own Root Directory.
+
+### The cost, and it is deliberate
+
+Anything **outside the workspace definition** (`packages/*`, `websites/*`) counts as a global change
+and deploys all four apps: `.icm/`, `_system/`, `.claude/`, `.github/`, `CLAUDE.md`, root configs.
+Ticket-only commits therefore build all four apps where the old `ignoreCommand` skipped them.
+
+That trade is taken knowingly. Those commits already cost four deployments under either mechanism —
+the ignore step never saved the quota, only the build minutes — and app commits, which are the
+majority of pushes, now cost one deployment instead of four.
+
+`.icm/onboarding/` needs no special handling as a result. It is an input to the dashboard only
+(traced into the bundle by [`next.config.ts`](admin-dashboard/next.config.ts)), it sits outside the
+workspace, and a global change redeploys the dashboard along with everything else.
+
+### Preview deployments are off for two apps
+
+Previews are the bulk of the spend — every branch push otherwise costs up to four
+deployments. `payment-gateway` and `sellers-site` are rarely worth a preview URL, so both
+opt out of everything except `main` in their own `vercel.json`:
+
+```json
+{ "git": { "deploymentEnabled": { "*": false, "**": false, "main": true } } }
+```
+
+Branch keys are [minimatch](https://github.com/isaacs/minimatch) patterns and **unspecified
+branches default to `true`**, so the denial has to be explicit — `{ "main": true }` alone is
+a no-op. `*` covers flat names like `chore-x`, `**` covers slashed ones like `claude/x`, and
+`main` wins over both because a branch matching several rules deploys if *any* of them is
+`true`.
+
+`portfolio` and `admin-dashboard` keep previews: they are the two whose UI is worth looking
+at before merge. Extend the pattern to them only if the daily cap starts biting again.
 
 ## Notes
 - Apps are deployed as separate Vercel projects off this monorepo (pnpm workspaces; shared packages ship TS source via `transpilePackages`).
