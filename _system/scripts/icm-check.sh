@@ -2,20 +2,21 @@
 # icm-check.sh — verify (and with --fix, populate) the estate-wide .icm/.claude baseline.
 #
 # Discovers git repos the same way pull-all.sh does (up to 2 levels below Apps/),
-# skips sustentus (its .icm/ carries its own pipeline semantics, not TICKETS-SPEC.md),
-# and checks each repo against _system/icm-template/:
+# skips sustentus (its .icm/ carries its own pipeline semantics, not the ticket spec),
+# and checks each repo against _system/template/:
 #
 #   .icm/intake/README.md    micro-copy of the ticket contract ({{PREFIX}} substituted)
 #   .icm/intake/_done/       finished-ticket folder
 #   .icm/docs/               ad hoc reports
 #   .claude/settings.json    clean policy baseline
 #   CLAUDE.md                reported only — never templated (each repo writes its own)
+#   .icm/project.md          reported only — /project writes it from an interrogation
 #
 # --fix creates ONLY what is missing, from the template; existing files are never
 # touched. Prefix resolution: existing tickets → known map → derived from repo name
 # (flagged "suggested" — confirm before cutting the first ticket).
 #
-# Usage: _system/icm-check.sh [--fix] [root]
+# Usage: _system/scripts/icm-check.sh [--fix] [root]
 # Exit:  0 all conformant (warnings allowed) · 1 gaps remain · 2 bad invocation
 
 set -uo pipefail
@@ -29,8 +30,8 @@ for arg in "$@"; do
     *) APPS_ROOT="$arg" ;;
   esac
 done
-[[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEMPLATE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/icm-template"
+[[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+TEMPLATE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/template"
 
 if [[ ! -d "$APPS_ROOT" ]]; then echo "Not a directory: $APPS_ROOT" >&2; exit 2; fi
 if [[ ! -d "$TEMPLATE/icm" || ! -d "$TEMPLATE/claude" ]]; then
@@ -39,7 +40,7 @@ fi
 
 EXEMPT=("sustentus")
 
-# Known ticket prefixes (TICKETS-SPEC.md); anything else is derived + flagged.
+# Known ticket prefixes (contracts/TICKETS.md); anything else is derived + flagged.
 prefix_for() {
   case "$1" in
     jamienisbet)      echo JN ;;
@@ -116,6 +117,9 @@ for repo in "${repos[@]}"; do
 
   # --- report-only checks (agent/human territory, never auto-fixed) ---
   [[ -f "$repo/CLAUDE.md" ]] || warns+=("no CLAUDE.md (Layer-0 identity/routing file)")
+  # Deliberately never templated: an empty register is worse than none, because it
+  # reads as established intent. /project writes it from a real interrogation.
+  [[ -f "$repo/.icm/project.md" ]] || warns+=("no .icm/project.md — /project has never run here")
   if git -C "$repo" check-ignore -q .icm 2>/dev/null; then
     warns+=(".gitignore excludes .icm — tickets would never reach the board")
   fi

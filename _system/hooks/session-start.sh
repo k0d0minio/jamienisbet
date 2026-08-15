@@ -5,5 +5,5 @@
 # must never break session start).
 set -uo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-"$DIR/tickets-board.sh" --today 2>/dev/null || true
+"$DIR/scripts/tickets-board.sh" --today 2>/dev/null || true
 exit 0

@@ -5,7 +5,7 @@
 # (up to 2 levels below Apps/, sustentus exempt — its .icm/ is authoritative)
 # and prints tickets grouped today → in-progress → blocked → ready, then counts.
 #
-# Usage: _system/tickets-board.sh [--today] [root]
+# Usage: _system/scripts/tickets-board.sh [--today] [root]
 #   --today   print only the Today group (used by the SessionStart hook)
 # Exit: 0 (always, unless bad invocation → 2)
 
@@ -20,7 +20,7 @@ for arg in "$@"; do
     *) APPS_ROOT="$arg" ;;
   esac
 done
-[[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+[[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 [[ -d "$APPS_ROOT" ]] || { echo "Not a directory: $APPS_ROOT" >&2; exit 2; }
 
 EXEMPT=("sustentus")
@@ -108,10 +108,10 @@ print_group() {
 
 if (( TODAY_ONLY )); then
   if (( n_today == 0 )); then
-    echo "No tickets flagged 'today'. Plan the day with /plan."
+    echo "No tickets flagged 'today'. Plan the day with /day."
   else
     print_group today "Today ($n_today)"
-    (( n_today > 3 )) && echo "warn: $n_today tickets flagged today — spec cap is 3 (see _system/PROCESS.md)"
+    (( n_today > 3 )) && echo "warn: $n_today tickets flagged today — spec cap is 3 (see _system/contracts/TICKETS.md)"
   fi
   echo "RESULT: $n_today today · $n_open open across $n_repos repos"
   exit 0

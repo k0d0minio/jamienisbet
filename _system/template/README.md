@@ -1,13 +1,13 @@
-# icm-template — canonical scaffold for estate conformance
+# template — canonical scaffold for estate conformance
 
-This is the template `_system/icm-check.sh --fix` copies from when a repo is missing
+This is the template `_system/scripts/icm-check.sh --fix` copies from when a repo is missing
 its `.icm/` or `.claude/` baseline. Sustentus-v2 is exempt (its `pipeline/` is
 authoritative).
 
 ```
 icm/                     → copied to <repo>/.icm/
   intake/
-    README.md            ← micro-copy of TICKETS-SPEC.md; {{PREFIX}} is substituted
+    README.md            ← micro-copy of contracts/TICKETS.md; {{PREFIX}} is substituted
     _done/.gitkeep
   docs/.gitkeep          ← ad hoc reports land here (estate convention)
 claude/                  → copied to <repo>/.claude/

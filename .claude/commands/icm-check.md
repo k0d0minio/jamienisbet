@@ -1,6 +1,6 @@
 ---
-description: Check every estate repo against the .icm/.claude baseline, populate gaps from _system/icm-template, then review each repo's .claude setup
-allowed-tools: Bash(_system/icm-check.sh:*), Bash(/home/jamie-nisbet/Apps/_system/icm-check.sh:*), Read, Glob, Grep, Agent
+description: Check every estate repo against the .icm/.claude baseline, populate gaps from _system/template, then review each repo's .claude setup
+allowed-tools: Bash(_system/scripts/icm-check.sh:*), Bash(/home/jamie-nisbet/Apps/_system/scripts/icm-check.sh:*), Read, Glob, Grep, Agent
 ---
 
 # /icm-check — estate conformance: check, populate, review
@@ -11,13 +11,13 @@ Jamie to review per repo.
 
 ## 1. Check
 
-Run `_system/icm-check.sh` (no flags) and show the report.
+Run `_system/scripts/icm-check.sh` (no flags) and show the report.
 
 ## 2. Populate
 
-If the check found gaps, run `_system/icm-check.sh --fix` and report what was created.
+If the check found gaps, run `_system/scripts/icm-check.sh --fix` and report what was created.
 
-- The script only creates missing files from `_system/icm-template/`; it never
+- The script only creates missing files from `_system/template/`; it never
   overwrites. Trust it — do not hand-create `.icm` or `.claude` files alongside it.
 - Any prefix the script flags as *suggested* (auto-derived): list these prominently.
   Prefixes must be short, unique across the estate, and are never reused — if a

@@ -25,8 +25,8 @@ engineer / AI consultant based in Mafra, Portugal. Two halves, one repo (consoli
   human guide in [`packages/ui/BRAND.md`](packages/ui/BRAND.md)) · `app-shell`
   (marketing-site chrome/i18n) · `services` (Neon `biz.*` data layer).
 
-**The control layer** — `_system/` (process, ticket spec, estate scripts) and this
-repo's `.claude/` (commands, agent, session hook). It operates on the client repos in
+**The control layer** — `_system/` (contracts, estate scripts, audit) and this
+repo's `.claude/` (three commands, two agents, session hook). It operates on the client repos in
 **[`projects/`](projects/)** — separate git repos, deliberately **gitignored here**
 (the `/projects/` line is the mechanism; never loosen it). They exist only on this
 machine: cloud sessions see the product + control layer, and the estate scripts find
@@ -40,12 +40,15 @@ layer is lean rules, not a factory.
 
 | The task | Go to |
 |---|---|
-| Lead → delivery process (onboarding, planning, shipping) | [`_system/PROCESS.md`](_system/PROCESS.md) |
-| Plan the day/week · onboard a won lead · end a session · ticket hygiene | `/plan` · `/onboard` · `/wrap` · `/groom` ([`.claude/commands/`](.claude/commands/)) |
-| Ticket standard (all repos' `.icm/intake/`) | [`_system/TICKETS-SPEC.md`](_system/TICKETS-SPEC.md) |
-| Estate audit, doctrine, open decisions | [`_system/README.md`](_system/README.md) |
-| Conformance check / seed a repo's baseline | [`_system/icm-check.sh`](_system/icm-check.sh) + `/icm-check` |
-| Estate board / drift / pull everything, from a script | [`_system/tickets-board.sh`](_system/tickets-board.sh) · [`_system/ticket-hygiene.sh`](_system/ticket-hygiene.sh) · [`_system/pull-all.sh`](_system/pull-all.sh) |
+| Adopt a repo · work out what to build · cut a sprint's tickets | **`/project <repo>`** — idempotent, re-run it freely ([`.claude/commands/`](.claude/commands/)) |
+| Pick today's ≤3 · reconcile the board · end a session | **`/day [wrap]`** |
+| What a project is *for* — intent, business logic, features, decisions | that repo's `.icm/project.md` ([`_system/contracts/PROJECT.md`](_system/contracts/PROJECT.md)) |
+| Ticket standard (all repos' `.icm/intake/`) | [`_system/contracts/TICKETS.md`](_system/contracts/TICKETS.md) |
+| How a repo gets analysed (the seven lenses) | [`_system/contracts/LENSES.md`](_system/contracts/LENSES.md) |
+| Estate doctrine, contracts, the three commands | [`_system/README.md`](_system/README.md) |
+| Estate audit — security, broken config, open decisions | [`_system/AUDIT.md`](_system/AUDIT.md) |
+| Conformance check / seed a repo's baseline | [`_system/scripts/icm-check.sh`](_system/scripts/icm-check.sh) + `/icm-check` |
+| Estate board / drift / pull everything, from a script | [`_system/scripts/tickets-board.sh`](_system/scripts/tickets-board.sh) · [`_system/scripts/ticket-hygiene.sh`](_system/scripts/ticket-hygiene.sh) · [`_system/scripts/pull-all.sh`](_system/scripts/pull-all.sh) |
 | Change the portfolio (content, case studies, contact form) | [`websites/portfolio/`](websites/portfolio/) |
 | Change the admin cockpit (Leads, Tickets, Money) | [`websites/admin-dashboard/`](websites/admin-dashboard/) |
 | Change how clients pay an invoice | [`websites/payment-gateway/`](websites/payment-gateway/) |
@@ -70,8 +73,8 @@ layer is lean rules, not a factory.
 - **CI is the source of truth.** Never run `build`/`lint`/`typecheck` locally; push and
   read the checks.
 - **Client repos in `projects/` are never tracked here** and never created by hand —
-  the dashboard creates them (`createClientRepo`); `/onboard` adopts them.
+  the dashboard creates them (`createClientRepo`); `/project` adopts them.
 - **Sustentus is exempt** from the estate baseline — its `.icm/` is authoritative (own
-  pipeline semantics, not TICKETS-SPEC). Gates everywhere are human checkboxes: read,
+  pipeline semantics, not the ticket spec). Gates everywhere are human checkboxes: read,
   never tick.
 - **No secrets in git, ever.** Env vars only; flag any plaintext credential found.

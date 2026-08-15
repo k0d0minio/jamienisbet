@@ -5,16 +5,16 @@
 # to 2 levels below Apps/ (the client repos in projects/<repo>). Nested repos
 # inside an already-found repo are not descended into.
 #
-# Usage: _system/pull-all.sh [-n] [root]
+# Usage: _system/scripts/pull-all.sh [-n] [root]
 #   -n   dry run — report status, pull nothing
 
 set -uo pipefail
 
-APPS_ROOT="${2:-${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}}"
+APPS_ROOT="${2:-${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}}"
 DRY_RUN=0
 if [[ "${1:-}" == "-n" ]]; then
   DRY_RUN=1
-  APPS_ROOT="${2:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+  APPS_ROOT="${2:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 fi
 
 if [[ ! -d "$APPS_ROOT" ]]; then

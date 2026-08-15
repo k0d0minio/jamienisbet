@@ -1,6 +1,6 @@
 ---
 name: ticket-scout
-description: Read-only scan of one estate repo — surfaces undocumented in-flight work and ticket candidates from its docs and git history. Used by /onboard and /groom; give it a single repo path per invocation.
+description: Read-only scan of one estate repo — surfaces undocumented in-flight work and ticket candidates from its docs and git history. Used by /project and /day; give it a single repo path per invocation.
 tools: Read, Glob, Grep, Bash
 ---
 

@@ -7,15 +7,15 @@
 #   off-ticket      repo committed to in the last 14 days but has zero open tickets
 #   no-status       count of open tickets with no Status row (spec: means `ready`)
 #
-# Fixing is judgment work — the /groom command applies fixes, this script never does.
+# Fixing is judgment work — the /day command applies fixes, this script never does.
 #
-# Usage: _system/ticket-hygiene.sh [root]
+# Usage: _system/scripts/ticket-hygiene.sh [root]
 # Exit:  0 clean · 1 findings · 2 bad invocation
 
 set -uo pipefail
 
 APPS_ROOT="${1:-}"
-[[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+[[ -n "$APPS_ROOT" ]] || APPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 [[ -d "$APPS_ROOT" ]] || { echo "Not a directory: $APPS_ROOT" >&2; exit 2; }
 
 EXEMPT=("sustentus")

@@ -2,8 +2,9 @@
 
 *System-wide standard. Canonical copy lives here in `_system`; each repo
 carries a self-contained micro-copy in `.icm/intake/README.md` so cloud sessions that
-only see the repo still have the contract. Proposal background:
-[WORK-TRACKING.md](WORK-TRACKING.md).*
+only see the repo still have the contract. Tickets are cut by `/project`, moved and
+flagged by `/day`. What a project is **for** lives in
+[PROJECT.md](PROJECT.md); this doc is only about the work.*
 
 Tickets are markdown files inside each repo. Repos own their tickets; the admin
 dashboard (`jamienisbet/websites/admin-dashboard` → `/tickets`) only reads and displays
@@ -71,9 +72,30 @@ checks — CI is the source of truth.
 - A missing `Status` row means `ready` — legacy tickets need no edit.
 - **Done is not a status**: `git mv` the file into `_done/`. The folder move is the
   state change; there is no field to forget.
-- `today` is the pick-up flag: flip 2–3 tickets to `today` the evening before (the
-  `/plan` command's job), and the board's Today group is tomorrow's worklist. **Hard cap:
+- `today` is the pick-up flag: flip 2–3 tickets to `today` the evening before (`/day`'s
+  job), and the board's Today group is tomorrow's worklist. **Hard cap:
   3 `today` tickets across the whole estate** — a diluted flag is no flag.
+- **Abandoned is also `_done/`.** A ticket that no longer fits the project's intent is
+  `git mv`'d there with a `> Dropped: <reason, date>` line prepended. Never delete a
+  ticket file; never reuse a number.
+
+## What the dashboard actually reads
+
+The board (`websites/admin-dashboard/lib/tickets.ts`) parses four things, leniently — a
+malformed ticket still appears rather than vanishing:
+
+| It reads | From |
+|---|---|
+| id + title | the H1, split on `·` (falls back to the filename) |
+| status, priority | two-column table rows, case-insensitive, `**bold**` tolerated |
+| every other meta row | shown in display order, no schema |
+| the prompt | `## Prompt` body, up to the next `##` |
+
+**The Prompt is the entire pick-up contract.** "Copy prompt" and the one-tap
+`claude.ai/code?prompt=…&repositories=…` deep link both send *only* that section into a
+fresh session — no ticket file, no repo context, no conversation. If it doesn't stand
+alone, the ticket cannot be picked up. Write it to be pasted cold, and have it tell the
+session to read the ticket file for the rest.
 
 **Optional, free-form:** `Type`, `Size`, `Depends on`, `Sources`, `Client`, acceptance
 detail, any other rows or sections. The board displays what it finds and never requires

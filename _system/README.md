@@ -1,84 +1,91 @@
-# `_system` — estate audit, distilled
+# `_system` — the estate control layer
 
-Rolling record of the `Apps/` estate + `~/.claude` global layer.
+**Start here.** Process, contracts and scripts for the `Apps/` estate. Lean rules, not a
+factory — the ICM business factory was retired 2026-08-12 and should not be rebuilt.
 
-> **Consolidated 2026-08-12:** this control layer now lives at the root of the
-> `k0d0minio/jamienisbet` monorepo (the Apps root); client repos moved to
-> `projects/<repo>`, gitignored. The former `k0d0minio/apps-estate` repo is archived.
-> References below to "k0d0minio/<repo>" paths mean `projects/<repo>` on disk.
+```
+_system/
+  README.md      ← you are here: what's where, and the house rules
+  AUDIT.md       ← what's currently broken or undecided across the estate
+  contracts/     ← the specs the commands read
+  scripts/       ← the four executables
+  template/      ← what icm-check.sh --fix seeds a repo from
+  hooks/         ← session hooks
+  reference/     ← background reading
+```
 
-- **Process:** [PROCESS.md](PROCESS.md) (lead → delivery: onboarding, planning, shipping — driven by `/plan`, `/onboard`, `/wrap`, `/groom`)
-- **Tickets:** [TICKETS-SPEC.md](TICKETS-SPEC.md) (estate-wide `.icm/intake/` ticket standard) · [WORK-TRACKING.md](WORK-TRACKING.md) (2026-08-11 analysis behind it) · [tickets-board.sh](tickets-board.sh) / [ticket-hygiene.sh](ticket-hygiene.sh) (read-only board + drift report)
-- **Conformance:** [icm-check.sh](icm-check.sh) checks every repo (sustentus exempt) against the `.icm`/`.claude` baseline; `--fix` populates gaps from [icm-template/](icm-template/) (never overwrites). Driven by the `/icm-check` command in `Apps/.claude/commands/`, which adds a per-repo `.claude` review on top.
-- **Status:** global layer cleaned (2026-08-10). Repo-level changes deferred pending the open decisions below.
+## Three commands
 
----
+They live in `Apps/.claude/commands/`. **The commands are the process** — there is no
+separate narrative describing what they do, deliberately: two sources for one process is
+how the old `PROCESS.md` drifted out of date.
 
-## The estate in one table
-
-| Generation | Pattern | Repos |
+| Command | Scope | When |
 |---|---|---|
-| Gen 3 — ICM engineering pipeline | thin routing `CLAUDE.md` + `/pipeline` skill + 6-stage `pipeline/` with contracts, gates, runs | **sustentus** (reference impl, 11 runs; stages now under `.icm/`) · **remi-ai** (specified, 0 runs) |
-| Gen 2 — ICM business workspaces | 5-layer folder-is-the-architecture, no orchestration code | jamienisbet, barzinho, agorasim, curated-property |
-| Gen 1 — monolithic | one big always-loaded `CLAUDE.md` + copied skill library | courseday (294 lines), tenderdesk |
-| Gen 0 — stubs | `@AGENTS.md` one-liner or nothing | ~15 client sites (fine — build-once-hand-off) |
+| **`/project <repo>`** | one repo, deep | Adopting a repo · before a sprint · whenever direction may have moved. Idempotent — re-run it freely. |
+| **`/day [wrap]`** | the estate, shallow | Evening: pick tomorrow's ≤3. End of a session: bank what shipped, cut what's left. |
+| **`/icm-check`** | the estate, structural | Conformance — does every repo carry the `.icm`/`.claude` baseline. |
 
-## House style (converged doctrine — worth templating)
+Two agents back them, in `Apps/.claude/agents/`: `project-lens` (one analysis lens per
+invocation) and `ticket-scout` (work in flight that no ticket knows about).
 
-- Thin Layer-0 `CLAUDE.md` that **routes, doesn't teach** (~29–88 lines).
-- **The folders are the orchestration** — never build an orchestrator.
-- Stage contracts share **Inputs / Process / Outputs / Verify** + a 2–8k token budget.
-- **CI is the source of truth**; the agent never runs local checks.
-- **Gates are human checkboxes** — the agent reads, never ticks.
-- **Adopt or STOP**: resolve an existing run, never fabricate one.
-- Scripts print a single `RESULT:` line; take config from env, never `.env`.
-- **Redirect files, not copies**, for cross-layer references.
-- `settings.local.json` is the accretion layer; `settings.json` stays clean policy.
+## `contracts/` — what the commands read
 
-## Still open — security
+| Doc | Owns |
+|---|---|
+| [contracts/TICKETS.md](contracts/TICKETS.md) | The ticket format, estate-wide, and exactly what the dashboard parses. |
+| [contracts/PROJECT.md](contracts/PROJECT.md) | `.icm/project.md` — a project's intent, business logic, features, constraints, decisions. |
+| [contracts/LENSES.md](contracts/LENSES.md) | The seven analysis lenses `/project` fans over a repo. |
 
-- **P0** Sanity token still plaintext in `~/.claude.json.bak-20260715`; needs server-side revocation **and** the backup deleted.
-- **P0** barzinho P&L PDFs are git-tracked — `.gitignore` pattern no longer matches after the move to `shared/profit-and-loss/`. Needs untrack + pattern fix + history scrub if the repo has a remote.
-- **P2** Over-broad grants: remi-ai `Bash(cat > *)` and home-wide `Read()`; `git push`/`gh pr merge` on allow.
-- **P3** Orphaned vercel-plugin OAuth material in `~/.claude/.credentials.json`; `garmani/.env` is tracked.
-- ✅ Global secrets deny-list now in place machine-wide (`.env*`, `*.pem`, `*.key`, `secrets/**`).
+## `scripts/` — the four executables
 
-## Still open — broken config (pure fixes, no decision needed)
+Each prints a single `RESULT:` line and takes config from the environment, never `.env`.
 
-- sustentus: dead `impeccable` PostToolUse hook errors on **every** Edit/Write; two corrupted markdown tables; dead `architecture-map` + `automation-offload` links; orphaned `packages/ui/SKILL.md`.
-- courseday: `CLAUDE.md` calls a `caveman-mode` skill that's named `caveman`; routes to a nonexistent `TICKETS.md`.
-- remi-ai: `route-request.sh` present but unregistered while `SKILL.md` still expects it; `project-labels.sh` mislabelled read-only.
-- Permission cruft: dead sustentus session grants + nonexistent scripts; tenderdesk's byte-copy of courseday's local settings; stale `~/.claude/projects/` memory dirs for pre-move paths.
+| Script | Does |
+|---|---|
+| [scripts/icm-check.sh](scripts/icm-check.sh) | Checks every repo against the baseline. `--fix` seeds gaps from [template/](template/) and **never overwrites**. |
+| [scripts/tickets-board.sh](scripts/tickets-board.sh) | The estate board. `--today` powers the SessionStart hook. |
+| [scripts/ticket-hygiene.sh](scripts/ticket-hygiene.sh) | Read-only drift report; `/day` applies the fixes with judgment. |
+| [scripts/pull-all.sh](scripts/pull-all.sh) | Pull every repo. |
 
-## Still open — docs vs reality
+## The shape of a repo
 
-The estate's consistent failure mode: **aspirational docs are richer than the running system.**
+What all of the above is aiming at. Every estate repo looks like this:
 
-- sustentus `SKILLS.md` claims no test infrastructure — tests exist in `turbo.json` + CI.
-- sustentus README (untouched since Jun 12) lists a nonexistent app, dead scripts, a pipeline shape that never existed.
-- jamienisbet README/BACKLOG stale in both directions; `.env.example` has **zero overlap** with the real `.env.local`; the ICM factory has never processed a real client.
-- barzinho: the deployed `site/` app and the newest analysis file are invisible to the declared routing; deal terms duplicated in 4 files.
-- learn-with-jake-van-clief: `CLAUDE.md`/`CONTEXT.md` are unfilled templates.
+```
+.icm/
+  project.md         ← what this is for, and why      → contracts/PROJECT.md
+  intake/            ← the work                       → contracts/TICKETS.md
+    <PREFIX>-NNN-slug.md
+    _done/           ← finished AND abandoned tickets; nothing is deleted
+  docs/              ← ad hoc reports, client words, runbooks
+  onboarding/        ← client questionnaires, when there's a client
+CLAUDE.md            ← Layer 0: identity + routing only
+```
 
-## Decisions needed from Jamie
+## House doctrine
 
-1. **Skills layering** — repo forks vs global copies: global-only, repo-only, or documented shadowing rule?
-2. **Pipeline upstream** — is Gen-3 a template product? If so, sustentus or remi-ai is canonical, and is remi-ai worth maintaining at zero runs?
-3. **Hook strategy** — repo copies exist for web/cloud parity but have drifted 3 ways. Keep, drop, or generate from the global?
-4. **Is merging a PR** an outward action Claude may take, or always yours?
-5. **`gh` CLI** — banned by sustentus docs, granted in settings. Which is real?
-6. **The ≤50-line `CLAUDE.md` rule** — teaching material says it, flagship repos break it. Which moves?
-7. **jamienisbet** — run a real client through it, or freeze it with a status banner?
-8. **barzinho** — is the deal still live? Gates the history-scrub urgency.
-9. **Scheduled routines** — wanted in July, none exist. First candidate: a weekly automated re-run of this audit's checks.
-10. **tenderdesk / courseday** — active, migrate, or archive?
+Converged conventions. Where these conflict with a repo's own contracts, **the repo wins**.
 
-## Done (don't re-litigate)
-
-- Old vercel-plugin disabled · global `CLAUDE.md` created · Sanity MCP removed from live config · `caveman-mode` + blocklist test entries cleaned · permissions deduplicated and tightened (2026-07-15).
-- Global skills emptied to `~/.claude/skills-archive-2026-08-10/` · hook double-fire fixed (global defers to repo copy) · ICM section added to global `CLAUDE.md` · `settings.json` allow shrunk 53→9 with a deny-list added · `settings.local.json` pruned to zero grants (2026-08-10).
-- Client sites are build-once-hand-off — stub configs are fine, by Jamie's July answer.
-
----
-
-*Decision-support only. Nothing here supersedes a repo's own contracts — the repo owns its pipeline semantics.*
+- **The folders are the orchestration.** Never build an orchestrator — no scripts or
+  frameworks to "drive" a pipeline.
+- **Tickets ARE the plan.** No sprint field, no plan file, never a loose `TODO.md` or
+  `BACKLOG.md`. A week's plan is the `Priority` rows; a day's plan is `Status: today` on at
+  most **3 tickets estate-wide**.
+- **Done is a folder, not a field.** `git mv` to `_done/`. Abandoned work goes there too,
+  with a `> Dropped:` line — nothing is deleted, no number is reused.
+- **CI is the source of truth.** The agent never runs `build`/`lint`/`typecheck`/`test`
+  locally; it pushes and reads the checks.
+- **Gates are human checkboxes** — the agent reads them, never ticks them.
+- **Adopt or stop.** Resolve an existing run, register or ticket set; never fabricate one.
+- **Thin Layer-0 `CLAUDE.md`** that routes rather than teaches.
+- **Redirect files, not copies**, for cross-layer references — except where a repo must
+  stand alone in a cloud session, which is why `.icm/intake/README.md` is a deliberate
+  micro-copy.
+- **Ticket-only commits go straight to `main`** (planning is data); code goes through a PR
+  on a `claude/` branch.
+- **No outbound action without review.** No secrets in git, ever — env vars only; flag any
+  plaintext credential found.
+- **`settings.local.json` is the accretion layer**; `settings.json` stays clean policy.
+- **Sustentus is exempt** from all of this — its `.icm/` carries its own pipeline
+  semantics.
