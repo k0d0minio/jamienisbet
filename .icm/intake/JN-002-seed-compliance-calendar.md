@@ -15,6 +15,11 @@ Segurança Social declarations, IES, IVA if applicable) must come from Jamie's c
 Blocked on: the entity decision (sole trader vs Unipessoal Lda) and the contabilista's
 confirmed obligations list. (Carried over from the retired BACKLOG.md, ticket B6.)
 
+A **draft** calendar now exists in [`.icm/docs/contabilista/`](../docs/contabilista/) — §5 of
+`02-trabalhador-independente-obligations.md`, with every entry marked confident or
+needs-confirmation. It is **not** yet enterable: it still needs the contabilista's sign-off, and
+the start date it derives from is undecided. Unblocks when she returns the pack reviewed.
+
 ## Acceptance
 
 - [ ] The known annual/quarterly PT obligations are entered with source + as-of date in the
