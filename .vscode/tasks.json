@@ -4,7 +4,7 @@
     {
       "label": "Pull all repos",
       "type": "shell",
-      "command": "${workspaceFolder}/_system/pull-all.sh",
+      "command": "${workspaceFolder}/_system/scripts/pull-all.sh",
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
@@ -18,7 +18,7 @@
     {
       "label": "Pull all repos (dry run)",
       "type": "shell",
-      "command": "${workspaceFolder}/_system/pull-all.sh",
+      "command": "${workspaceFolder}/_system/scripts/pull-all.sh",
       "args": ["-n"],
       "problemMatcher": [],
       "presentation": {
