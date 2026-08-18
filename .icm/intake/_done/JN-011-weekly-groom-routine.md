@@ -1,3 +1,5 @@
+> Dropped: superseded by JN-016 — acceptance referenced the retired /groom command and _system/PROCESS.md, so it could not be closed as written. 2026-08-18
+
 # JN-011 · Weekly automated /groom run (first scheduled routine)
 
 | | |

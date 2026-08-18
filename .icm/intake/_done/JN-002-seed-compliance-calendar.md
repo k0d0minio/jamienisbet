@@ -1,3 +1,5 @@
+> Dropped: superseded by JN-027 — same work, re-cut in the 2026-08-18 clean-slate intake rewrite. 2026-08-18
+
 # JN-002 · Seed the compliance calendar
 
 | | |

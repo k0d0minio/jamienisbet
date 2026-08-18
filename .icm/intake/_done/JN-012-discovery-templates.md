@@ -1,3 +1,5 @@
+> Dropped: superseded by JN-021 (house onboarding forms) + JN-022 (discovery templates) — referenced the retired /onboard command and _system/PROCESS.md. 2026-08-18
+
 # JN-012 · House discovery templates in _system (berceo/messy-play patterns)
 
 | | |

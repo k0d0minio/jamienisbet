@@ -1,3 +1,5 @@
+> Dropped: not part of the 2026-08-18 routines/onboarding plan — cut in the clean-slate rewrite; resurrect under a new number if still wanted. 2026-08-18
+
 # JN-003 · Replace the portfolio's placeholder case-study content
 
 | | |
