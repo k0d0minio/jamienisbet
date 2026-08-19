@@ -40,9 +40,9 @@ import { addClient } from "@/app/(app)/actions"
 // only findable by scrolling past it. Desktop keeps the plain inline button and
 // gets the same content as a centred dialog.
 
-// The two ways in. `status` is what actually gets stored — these are the entry
-// points of the pipeline's two halves, and anywhere else along it (contacted,
-// proposed, delivered…) is a dropdown away on the row itself.
+// The two ways in. `status` is what actually gets stored — these are the two
+// ends of the ladder, and the rungs between them (`talking`, or out to `lost`)
+// are a dropdown away on the row itself.
 const KINDS = [
   {
     key: "lead",
@@ -60,7 +60,7 @@ const KINDS = [
   {
     key: "customer",
     label: "Customer",
-    status: "won",
+    status: "client",
     title: "Add customer",
     description:
       "Someone already paying. Their value keeps the totals on this page honest from the start.",

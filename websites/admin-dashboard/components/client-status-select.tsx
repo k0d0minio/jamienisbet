@@ -16,15 +16,7 @@ import { updateClientStatus } from "@/app/(app)/actions"
 // Mirrors clientStatuses in @jamie-nisbet/services (the server action is the
 // authority — it re-validates). Kept local so this client component doesn't
 // pull the services barrel (and its DB client) into the browser bundle.
-const STATUSES = [
-  "new",
-  "contacted",
-  "qualified",
-  "proposed",
-  "won",
-  "delivered",
-  "lost",
-] as const
+const STATUSES = ["new", "talking", "client", "lost"] as const
 
 export function ClientStatusSelect({
   id,

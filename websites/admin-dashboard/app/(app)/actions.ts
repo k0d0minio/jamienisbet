@@ -179,9 +179,9 @@ export async function addClient(formData: FormData) {
   const name = value("name")
   if (!name) throw new Error("A lead needs a name.")
 
-  // The form offers "Lead" and "Customer", which post "new" and "won" — but the
-  // action is the authority, so anything unrecognised falls back to a new lead
-  // rather than reaching the insert.
+  // The form offers "Lead" and "Customer", which post "new" and "client" — but
+  // the action is the authority, so anything unrecognised falls back to a new
+  // lead rather than reaching the insert.
   const rawStatus = value("status") ?? "new"
   const status = isClientStatus(rawStatus) ? rawStatus : "new"
 

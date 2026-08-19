@@ -59,9 +59,11 @@ The first migration creates the `biz` schema and its tables.
 
 Today: a single **`clients`** table. Every intake — a portfolio contact enquiry or a sellers-site
 referral — creates one client row (the form only sets the `source` and which intake fields are
-populated); there is no separate table per form. Each client then gets fleshed out through the
-intake → delivery pipeline (`status`: `new` → `contacted` → `qualified` → `proposed` → `won` →
-`delivered`, or `lost`), with contact details and owner notes. A client can also be linked to its
+populated); there is no separate table per form. Each client then gets fleshed out as the
+relationship moves up the ladder (`status`: `new` → `talking` → `client`, or the terminal
+`lost` — three rungs and a drop-out; what each one *means* is
+[`_system/contracts/CLIENTS.md`](../../_system/contracts/CLIENTS.md)), with contact details
+and owner notes. A client can also be linked to its
 Stripe customer via `stripe_customer_id` (unique) — set by the admin's billing flow, which owns the
 Stripe side; `setClientStripeCustomerId` persists the link.
 

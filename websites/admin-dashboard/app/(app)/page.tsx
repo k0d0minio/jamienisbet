@@ -48,6 +48,9 @@ export const dynamic = "force-dynamic"
 const STALE_AFTER_DAYS = 7
 
 // The filters across the top. Each is a set of statuses; "all" means no filter.
+// With the ladder down to three rungs plus `lost`, the three named chips are a
+// clean partition of it — "Open" is new + talking, "Customers" is client — so
+// their counts add up to All rather than overlapping.
 const FILTERS = [
   { key: "all", label: "All", statuses: null },
   { key: "open", label: "Open", statuses: openStatuses },
@@ -76,7 +79,8 @@ function isOpen(client: Client): boolean {
   return (openStatuses as readonly string[]).includes(client.status)
 }
 
-/** Only an open lead can be "waiting" — a won or lost one isn't owed anything. */
+/** Only an open lead can be "waiting" — a client or a lost one isn't owed a
+ *  reply. */
 function isStale(client: Client, now: number): boolean {
   return isOpen(client) && daysWaiting(client, now) >= STALE_AFTER_DAYS
 }
@@ -116,8 +120,9 @@ function valueLabel(client: Client): string | null {
   return client.billingType === "monthly" ? `${amount}/mo` : amount
 }
 
-/** The leading line of a phone row — what the list is sorted on. A won or lost
- *  lead isn't waiting on anything, so it just reports when it last moved. */
+/** The leading line of a phone row — what the list is sorted on. A client or a
+ *  lost lead isn't waiting on anything, so it just reports when it last
+ *  moved. */
 function waitedLabel(days: number, open: boolean): string {
   if (days <= 0) return "Worked today"
   const elapsed = waitingLabel(days)

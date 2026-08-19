@@ -40,8 +40,9 @@ export const clients = biz.table("clients", {
   // ---- Provenance & pipeline -----------------------------------------------
   // Which form/route created the lead: 'portfolio' | 'referral' | 'manual'.
   source: varchar("source", { length: 30 }).notNull().default("portfolio"),
-  // Where the lead sits in the intake → delivery pipeline. See clientStatuses
-  // in queries/clients.ts for the ordered set.
+  // Which rung of the ladder they are on: 'new' | 'talking' | 'client', or the
+  // terminal 'lost'. See clientStatuses in queries/clients.ts for the ordered
+  // set, and _system/contracts/CLIENTS.md for what each rung means.
   status: varchar("status", { length: 20 }).notNull().default("new"),
 
   // ---- Intake payload ------------------------------------------------------
@@ -92,10 +93,10 @@ export const clients = biz.table("clients", {
   equityBps: integer("equity_bps"),
 
   // ---- Delivery --------------------------------------------------------------
-  // When work actually started. Distinct from `status`: a won lead is agreed,
-  // this says the doing has begun — which matters most on a barter or
-  // equity-only deal, where there is no invoice in Stripe to signal it.
-  // Null = not started.
+  // When work actually started. Deliberately orthogonal to `status`: 'client'
+  // says the deal is agreed, this says the doing has begun — which matters most
+  // on a barter or equity-only deal, where there is no invoice in Stripe to
+  // signal it. Null = not started.
   workStartedAt: timestamp("work_started_at", { withTimezone: true }),
 
   // ---- Internal ------------------------------------------------------------
