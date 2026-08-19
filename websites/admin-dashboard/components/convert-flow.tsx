@@ -20,13 +20,17 @@ import { saveDealTerms, updateClientStatus } from "@/app/(app)/actions"
 import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStripeLink } from "@/components/client-stripe-link"
 
-// Converting a won lead used to be four separate taps scattered across the
+// Converting a lead used to be four separate taps scattered across the
 // profile — status, repo, deal terms, Stripe — and the skipped ones each broke
 // something downstream (no repo: invisible on the tickets board; no terms: the
 // money numbers lie). This walks all four in order, composing the exact same
 // server actions the individual controls use; every step can be done here or
 // skipped explicitly. Skipping is honest — the profile's gap badges will keep
 // saying what's missing.
+//
+// Step one is the ladder's top rung: `client` (see _system/contracts/CLIENTS.md).
+// The three steps after it are the plumbing that rung implies, which is why they
+// are walked here rather than left to be remembered.
 
 const STEPS = ["Status", "Delivery repo", "Deal terms", "Stripe"] as const
 
@@ -80,12 +84,11 @@ function StatusStep({
   onNext: () => void
 }) {
   const [pending, startTransition] = useTransition()
-  const won = client.status === "won" || client.status === "delivered"
-  if (won) {
+  if (client.status === "client") {
     return (
       <div className="grid gap-2">
         <p className="text-xs text-muted-foreground">
-          Already {client.status} — nothing to change here.
+          Already a client — nothing to change here.
         </p>
         <Button type="button" size="sm" className="w-fit" onClick={onNext}>
           Continue
@@ -96,7 +99,7 @@ function StatusStep({
   return (
     <div className="grid gap-2">
       <p className="text-xs text-muted-foreground">
-        Move them from {client.status} to won.
+        Move them from {client.status} to client.
       </p>
       <div className="flex items-center gap-1">
         <Button
@@ -105,12 +108,12 @@ function StatusStep({
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              await updateClientStatus(client.id, "won")
+              await updateClientStatus(client.id, "client")
               onNext()
             })
           }
         >
-          {pending ? "Saving…" : "Mark as won"}
+          {pending ? "Saving…" : "Mark as client"}
         </Button>
         <Button type="button" size="sm" variant="ghost" onClick={onNext}>
           Skip
@@ -220,7 +223,7 @@ export function ConvertFlow({
   const [finished, setFinished] = useState(false)
 
   const stepDone = [
-    client.status === "won" || client.status === "delivered",
+    client.status === "client",
     client.githubRepo !== null,
     client.valueMinor > 0,
     client.stripeCustomerId !== null,

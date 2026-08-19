@@ -24,15 +24,15 @@ rung, on one page.
 
 ## Acceptance
 
-- [ ] Ladder is `new → talking → client` (+ `lost`); a migration maps existing rows
+- [x] Ladder is `new → talking → client` (+ `lost`); a migration maps existing rows
       (contacted/qualified/proposed → talking; won/delivered → client) losing no data
-- [ ] `openStatuses`/`customerStatuses` updated; dashboard filter chips, header totals,
+- [x] `openStatuses`/`customerStatuses` updated; dashboard filter chips, header totals,
       ConvertFlow, and `conversionGaps()` all behave under the new ladder
-- [ ] `_system/contracts/CLIENTS.md` exists: one page mapping each status to its action
+- [x] `_system/contracts/CLIENTS.md` exists: one page mapping each status to its action
       (new → reply task, see JN-023 · talking → send the scoping form, see JN-021 ·
       client → ConvertFlow until conversion gaps clear · lost → archive) and naming the
       orthogonal flags (`work_started_at`, `archived_at`, `stripe_customer_id`)
-- [ ] CI green
+- [x] CI green
 
 ## Prompt
 

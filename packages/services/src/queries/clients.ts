@@ -10,32 +10,31 @@ export type ListOptions = { archived?: boolean }
 export type NewClient = typeof clients.$inferInsert
 export type Client = typeof clients.$inferSelect
 
-// The lead lifecycle — intake through to delivered work. Ordered from first
-// touch to done; `lost` is the terminal drop-out. The admin moves a lead along
-// this pipeline from the list or their profile.
-export const clientStatuses = [
-  "new",
-  "contacted",
-  "qualified",
-  "proposed",
-  "won",
-  "delivered",
-  "lost",
-] as const
+// The lead lifecycle, in three rungs plus a drop-out. Ordered from first touch
+// to agreed; the admin moves a lead along it from the list or their profile.
+// What each rung *means* — and what you do when a lead is on it — is
+// _system/contracts/CLIENTS.md.
+//
+//   new     — they arrived, nobody has replied yet
+//   talking — in conversation: scoping, quoting, waiting on their answer
+//   client  — the deal is agreed; they are working with me
+//   lost    — terminal; the relationship ended without a deal
+//
+// Deliberately short. The old seven-rung CRM ladder (contacted/qualified/
+// proposed as three separate rungs, won and delivered as two) split states a
+// one-man business never acts on differently, and duplicated signals that
+// already exist orthogonally: whether the doing has begun is `work_started_at`,
+// and whether money has moved is Stripe.
+export const clientStatuses = ["new", "talking", "client", "lost"] as const
 export type ClientStatus = (typeof clientStatuses)[number]
 
 // The statuses that mean "still being worked" — the ones the leads list treats
-// as open, and the only ones that can go stale (a won or lost lead isn't
-// waiting on anything).
-export const openStatuses: readonly ClientStatus[] = [
-  "new",
-  "contacted",
-  "qualified",
-  "proposed",
-]
+// as open, and the only ones that can go stale (a client or a lost lead isn't
+// waiting on a reply).
+export const openStatuses: readonly ClientStatus[] = ["new", "talking"]
 
 // The statuses that mean "this person pays me" — what makes a lead a customer.
-export const customerStatuses: readonly ClientStatus[] = ["won", "delivered"]
+export const customerStatuses: readonly ClientStatus[] = ["client"]
 
 export function isClientStatus(value: string): value is ClientStatus {
   return (clientStatuses as readonly string[]).includes(value)
@@ -148,10 +147,11 @@ export async function createClientFromReferral(
  * defaults to "new" (a fresh lead) but any point in the lifecycle is valid, so
  * an existing customer can be entered where they actually are rather than being
  * created as a lead and immediately advanced. `valueMinor`/`billingType`/
- * `dealType` come with them, since a customer entered as "won" without a figure
- * — or with a barter figure counted as cash — would leave the totals wrong from
- * the moment they were added. The rest of the deal terms (commission, equity,
- * what is being swapped) distort nothing, so they are filled in on the profile.
+ * `dealType` come with them, since a customer entered as "client" without a
+ * figure — or with a barter figure counted as cash — would leave the totals
+ * wrong from the moment they were added. The rest of the deal terms (commission,
+ * equity, what is being swapped) distort nothing, so they are filled in on the
+ * profile.
  */
 export async function createClientManually(input: {
   name: string
@@ -242,13 +242,23 @@ export async function listClientRepos(): Promise<ClientRepo[]> {
 
 // ---- Updates (called by the admin dashboard) -------------------------------
 
+/**
+ * Move a lead along the ladder — new → talking → client, or out to lost.
+ *
+ * The `ClientStatus` type is the only gate: callers that take a status off the
+ * wire narrow it with `isClientStatus` first (the dashboard's server action
+ * does). Nothing else changes here on purpose — the rungs carry no side
+ * effects, because everything a rung might have implied is its own orthogonal
+ * flag: `work_started_at` for the doing, Stripe for the money, `archived_at`
+ * for getting a lost lead off the list. See _system/contracts/CLIENTS.md.
+ */
 export async function setClientStatus(
   id: string,
   status: ClientStatus
 ): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
-    // Working the pipeline counts as touching the relationship — which is what
+    // Working the ladder counts as touching the relationship — which is what
     // moves the lead back down the staleness sort.
     .set({ status, lastTouchedAt: new Date() })
     .where(eq(clients.id, id))

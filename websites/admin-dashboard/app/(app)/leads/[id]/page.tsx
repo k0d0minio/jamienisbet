@@ -58,8 +58,9 @@ export const dynamic = "force-dynamic"
 
 // What a converted lead is still missing. Each gap is a downstream breakage —
 // no repo means invisible on the tickets board, no value means the header money
-// numbers lie, no Stripe means the first invoice stalls on plumbing — so a won
-// or delivered client wears these until the pieces exist.
+// numbers lie, no Stripe means the first invoice stalls on plumbing — so anyone
+// on the `client` rung wears these until the pieces exist. Nothing here is a
+// status: the ladder says the deal is agreed, these say the plumbing is done.
 function conversionGaps(client: Client): string[] {
   const gaps: string[] = []
   if (!client.githubRepo) gaps.push("no delivery repo")
@@ -182,7 +183,7 @@ export default async function LeadDetailPage({
   const { client, tasks, formLinks, formLibrary, lastWorked } = loaded
   const archived = client.archivedAt !== null
 
-  const isCustomer = client.status === "won" || client.status === "delivered"
+  const isCustomer = client.status === "client"
   const gaps = isCustomer ? conversionGaps(client) : []
   // The Convert card walks the four pieces; it stays up for a customer with
   // gaps (to finish the job) and disappears once conversion is whole.
@@ -215,7 +216,7 @@ export default async function LeadDetailPage({
         {/* The same badges the leads list carries, so what kind of deal this is
             is answered before you scroll to the profile that sets it. */}
         <DealBadges client={client} className="mt-1" />
-        {/* Conversion gaps — a won client missing pieces says so where the
+        {/* Conversion gaps — a client missing pieces says so where the
             eye lands first, because each gap breaks something downstream. */}
         {gaps.length > 0 ? (
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -287,7 +288,7 @@ export default async function LeadDetailPage({
                 </CardTitle>
                 <CardDescription>
                   {isCustomer
-                    ? "Won, but missing pieces — walk the remaining steps."
+                    ? "A client, but missing pieces — walk the remaining steps."
                     : "Won the work? Walk status, repo, deal terms and Stripe in one pass."}
                 </CardDescription>
               </CardHeader>

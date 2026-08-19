@@ -45,6 +45,7 @@ layer is lean rules, not a factory.
 | What a project is *for* — intent, business logic, features, decisions | that repo's `.icm/project.md` ([`_system/contracts/PROJECT.md`](_system/contracts/PROJECT.md)) |
 | Ticket standard (all repos' `.icm/intake/`) | [`_system/contracts/TICKETS.md`](_system/contracts/TICKETS.md) |
 | How a repo gets analysed (the seven lenses) | [`_system/contracts/LENSES.md`](_system/contracts/LENSES.md) |
+| What a lead's status means — the client lifecycle and its orthogonal flags | [`_system/contracts/CLIENTS.md`](_system/contracts/CLIENTS.md) |
 | Estate doctrine, contracts, the three commands | [`_system/README.md`](_system/README.md) |
 | Estate audit — security, broken config, open decisions | [`_system/AUDIT.md`](_system/AUDIT.md) |
 | Conformance check / seed a repo's baseline | [`_system/scripts/icm-check.sh`](_system/scripts/icm-check.sh) + `/icm-check` |

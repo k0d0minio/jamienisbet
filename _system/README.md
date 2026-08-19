@@ -36,6 +36,7 @@ invocation) and `ticket-scout` (work in flight that no ticket knows about).
 | [contracts/TICKETS.md](contracts/TICKETS.md) | The ticket format, estate-wide, and exactly what the dashboard parses. |
 | [contracts/PROJECT.md](contracts/PROJECT.md) | `.icm/project.md` — a project's intent, business logic, features, constraints, decisions. |
 | [contracts/LENSES.md](contracts/LENSES.md) | The seven analysis lenses `/project` fans over a repo. |
+| [contracts/CLIENTS.md](contracts/CLIENTS.md) | The client lifecycle — `new → talking → client` (+ `lost`), and the flags that are deliberately not statuses. |
 
 ## `scripts/` — the four executables
 

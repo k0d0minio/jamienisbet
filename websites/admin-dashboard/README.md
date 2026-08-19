@@ -67,12 +67,12 @@ relationship, and what was actually billed lives in Stripe.
   bar on a phone (opening the form as a bottom sheet), an ordinary button beside the heading on
   desktop. The public contact form is one way in, not the only one. Because a lead and a customer
   are the same row, the sheet opens on a **Lead / Customer** choice, which is all that sets
-  `status` — `new` or `won`. A lead needs only a name; a customer also gets **Value** and
+  `status` — `new` or `client`. A lead needs only a name; a customer also gets **Value** and
   **Billed**, so entering one who has been paying since before this dashboard existed doesn't
   leave the recurring-revenue total understated from the moment they're added. The free-text box
   follows the same split: a lead's words are intake (`intake_message`), a customer's are working
-  notes (`notes`). Anywhere else along the pipeline — contacted, proposed, delivered, lost — is
-  the status dropdown on the row itself. The customer branch also asks **Paid in** (cash or
+  notes (`notes`). The rung between the two — `talking` — and the drop-out `lost` are the
+  status dropdown on the row itself. The customer branch also asks **Paid in** (cash or
   services) — and only that, of the deal terms: the rest skews no total by waiting for the
   profile, but a swap filed as cash overstates the pipeline from the moment it is typed.
 - **The working list** — todos and Portuguese compliance dates live in a strip above the list,
