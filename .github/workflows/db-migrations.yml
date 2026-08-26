@@ -1,7 +1,8 @@
 name: DB migrations
 
 # Keeps the shared Neon Postgres database in sync with the Drizzle schema in
-# packages/services. Two jobs:
+# projects/jamienisbet/packages/services (the pnpm workspace root is that
+# folder, not the repo root — this repo root is the ICM control layer). Two jobs:
 #   - validate: runs on every PR. Pure checks, NO database writes. Confirms the
 #     committed migrations are internally consistent and that the schema has no
 #     ungenerated changes (i.e. someone edited the schema but forgot to run
@@ -15,12 +16,12 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/services/**"
+      - "projects/jamienisbet/packages/services/**"
       - ".github/workflows/db-migrations.yml"
   pull_request:
     branches: [main]
     paths:
-      - "packages/services/**"
+      - "projects/jamienisbet/packages/services/**"
       - ".github/workflows/db-migrations.yml"
 
 # Never run two production migrations at once.
@@ -35,20 +36,23 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/services
+        working-directory: projects/jamienisbet/packages/services
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: projects/jamienisbet/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: projects/jamienisbet/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: .
+        working-directory: projects/jamienisbet
 
       # Checks the migration journal for collisions / broken sequencing.
       - name: Check migration consistency
@@ -74,20 +78,23 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/services
+        working-directory: projects/jamienisbet/packages/services
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: projects/jamienisbet/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: projects/jamienisbet/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: .
+        working-directory: projects/jamienisbet
 
       - name: Run migrations
         run: pnpm db:migrate

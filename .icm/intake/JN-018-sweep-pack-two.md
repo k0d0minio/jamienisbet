@@ -44,6 +44,6 @@ task exists for the same subject):
 Extend the admin dashboard's /api/cron/sweep route (built by JN-017) with three sweeps.
 Read .icm/intake/JN-018-sweep-pack-two.md for full context: unanswered form links
 (>10 days), conversion gaps across all customer-status clients (reuse conversionGaps in
-websites/admin-dashboard/app/(app)/leads/[id]/), and compliance dates due within 7 days.
+projects/jamienisbet/websites/admin-dashboard/app/(app)/leads/[id]/), and compliance dates due within 7 days.
 Same idempotency convention as the stale-lead sweep; tasks only, never email. Open a PR
 on a claude/ branch; do not run local checks — CI is the source of truth.

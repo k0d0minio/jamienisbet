@@ -3,7 +3,7 @@
 .env.*
 !.env.example
 
-# Web app builds (websites/* are Next.js on Vercel)
+# Web app builds (projects/jamienisbet/websites/* are Next.js on Vercel)
 node_modules/
 .next/
 out/
@@ -21,7 +21,12 @@ build/
 
 # The client repos live in projects/ as separate git repos — never tracked here.
 # This whitelist-by-exclusion is the consolidation mechanism; never loosen it.
-/projects/
+# The one exception is the house web estate: projects/jamienisbet/ is not a
+# separate repo, it is this repo's own product, kept here so the root stays the
+# ICM control layer. Adding a second `!` line would start tracking a client repo
+# — don't.
+/projects/*
+!/projects/jamienisbet/
 
 # Claude Code accretion layer stays per-machine (settings.json is clean policy).
 .claude/settings.local.json

@@ -22,7 +22,7 @@ never be able to mail anyone but Jamie.
 
 A daily Vercel cron on the admin dashboard (reuse the JN-017 guard pattern) that renders
 the digest and sends via Resend to jamie.nisbet@outlook.be. The dashboard has no Resend
-today — add the dependency + `RESEND_API_KEY` env var; `websites/portfolio` has the
+today — add the dependency + `RESEND_API_KEY` env var; `projects/jamienisbet/websites/portfolio` has the
 sending pattern to copy. Today's tickets come from the board's existing parser
 (`lib/tickets.ts`). Recipient hardcoded to Jamie; skip sending when the digest is empty.
 Register in ROUTINES.md.

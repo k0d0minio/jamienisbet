@@ -14,8 +14,8 @@ import { isFormFieldType } from "@jamie-nisbet/services"
 // Questionnaires come from **two repos**, the same way the tickets board reads
 // `.icm/intake/` from every connected repo rather than from one:
 //
-//   - The *house* library, `.icm/onboarding/` in this monorepo — general forms
-//     like `project-intake`, offered on every lead.
+//   - The *house* library, `.icm/onboarding/` at this repo's root — general
+//     forms like `project-intake`, offered on every lead.
 //   - The lead's own *delivery repo* (`biz.clients.github_repo`, the same field
 //     the tickets board rosters from) — questionnaires written for that one
 //     client, offered only on their profile. A form written for Casey has no
@@ -31,11 +31,12 @@ import { isFormFieldType } from "@jamie-nisbet/services"
 // build step, and no second lookup path for "read one" — editing a file in git
 // changes what the next "Send form" click sends, and nothing else.
 //
-// The house library is read from disk first (the whole monorepo ships with the
-// deployment, and next.config.ts traces `.icm/onboarding/` into the dashboard's
-// serverless bundle), falling back to GitHub so a tracing miss degrades to a
-// slower read rather than a dashboard that can't send anything. Client repos
-// are never on disk, so they are GitHub-only — like tickets.
+// The house library is read from disk first (the whole repo ships with the
+// deployment, and next.config.ts sets `outputFileTracingRoot` to the repo root
+// so `.icm/onboarding/` — which sits above the pnpm workspace — traces into the
+// dashboard's serverless bundle), falling back to GitHub so a tracing miss
+// degrades to a slower read rather than a dashboard that can't send anything.
+// Client repos are never on disk, so they are GitHub-only — like tickets.
 
 const FOLDER = ".icm/onboarding"
 const HOUSE_REPO = process.env.ONBOARDING_REPO || "k0d0minio/jamienisbet"
@@ -263,16 +264,17 @@ const isFormFile = (name: string) =>
   name.endsWith(".md") && name.toLowerCase() !== "readme.md"
 
 /**
- * Where `.icm/onboarding/` sits relative to the process. `next build` and the
- * server both run with cwd at the app directory, but a traced serverless bundle
- * can land a level or two elsewhere — so the candidates are tried in order
- * rather than assumed.
+ * Where `.icm/onboarding/` sits relative to the process. It lives at the *repo*
+ * root — four levels above this app (`projects/jamienisbet/websites/
+ * admin-dashboard`), since the web estate sits under `projects/` and `.icm/`
+ * stays at the top with the ICM control layer. `next build` and the server both
+ * run with cwd at the app directory, but a traced serverless bundle can land a
+ * level or two elsewhere — so the candidates are tried in order rather than
+ * assumed, longest hop first.
  */
-const DISK_CANDIDATES = [
-  resolve(process.cwd(), "../..", FOLDER),
-  resolve(process.cwd(), FOLDER),
-  resolve(process.cwd(), "..", FOLDER),
-]
+const DISK_CANDIDATES = ["../../../..", "../..", "..", "."].map((up) =>
+  resolve(process.cwd(), up, FOLDER)
+)
 
 async function readFromDisk(): Promise<RawForm[] | null> {
   for (const dir of DISK_CANDIDATES) {

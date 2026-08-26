@@ -2,9 +2,14 @@ name: CI
 
 # Light-touch app CI (backlog B5): typecheck + lint every workspace, then a
 # production build of each Next.js app. No database, Stripe, or Resend access
-# is needed — the shared clients are lazy (see packages/services/src/client.ts)
-# and every app builds with an empty environment. No unit-test or
-# pre-commit gates by design.
+# is needed — the shared clients are lazy (see
+# projects/jamienisbet/packages/services/src/client.ts) and every app builds with
+# an empty environment. No unit-test or pre-commit gates by design.
+#
+# The pnpm workspace root is projects/jamienisbet/, not the repo root — this repo
+# root is the ICM control layer and carries no package.json. Both actions below
+# therefore need pointing at it explicitly, and every run step names its own
+# working directory.
 
 on:
   push:
@@ -24,20 +29,26 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: projects/jamienisbet/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: projects/jamienisbet/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: projects/jamienisbet
 
       - name: Typecheck
         run: pnpm -r typecheck
+        working-directory: projects/jamienisbet
 
       - name: Lint
         run: pnpm -r lint
+        working-directory: projects/jamienisbet
 
   build:
     name: Build ${{ matrix.app }}
@@ -50,15 +61,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: projects/jamienisbet/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: projects/jamienisbet/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: projects/jamienisbet
 
       - name: Build
         run: pnpm build
-        working-directory: websites/${{ matrix.app }}
+        working-directory: projects/jamienisbet/websites/${{ matrix.app }}

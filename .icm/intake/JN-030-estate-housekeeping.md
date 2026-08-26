@@ -14,8 +14,8 @@ running system." Current instances, all small:
 
 1. `_system/TICKETS-SPEC.md` (now `_system/contracts/TICKETS.md`) still cited in four
    live places: `README.md:40`, `.icm/intake/README.md:4`,
-   `websites/admin-dashboard/lib/tickets.ts:5,33` (comments),
-   `websites/admin-dashboard/README.md:158`.
+   `projects/jamienisbet/websites/admin-dashboard/lib/tickets.ts:5,33` (comments),
+   `projects/jamienisbet/websites/admin-dashboard/README.md:158`.
 2. `.icm/docs/decisions.md:15` points at `_system/icm-template` and `/onboard`, both
    retired.
 3. `_system/template/README.md` cross-references "README.md § Decisions #3" — that

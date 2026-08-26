@@ -81,7 +81,7 @@ checks — CI is the source of truth.
 
 ## What the dashboard actually reads
 
-The board (`websites/admin-dashboard/lib/tickets.ts`) parses four things, leniently — a
+The board (`projects/jamienisbet/websites/admin-dashboard/lib/tickets.ts`) parses four things, leniently — a
 malformed ticket still appears rather than vanishing:
 
 | It reads | From |

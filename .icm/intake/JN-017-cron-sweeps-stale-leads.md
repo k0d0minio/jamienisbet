@@ -12,7 +12,7 @@
 A portfolio lead lands `status: new`, `last_touched_at: null`, and after 7 days the only
 signal is a red row (`STALE_AFTER_DAYS`) on a page nobody is obliged to open. Staleness
 is a colour, not a process. Everything a nudge needs already exists in
-`packages/services`: `openStatuses`, the `coalesce(last_touched_at, created_at)` sort,
+`projects/jamienisbet/packages/services`: `openStatuses`, the `coalesce(last_touched_at, created_at)` sort,
 and `createTask` — a task lands in the working-list strip and on the lead's profile with
 zero new UI.
 
@@ -22,7 +22,7 @@ deliberately skips `/api` — so the guard must be built alongside it.
 
 ## Build
 
-1. `/api/cron/sweep` route in `websites/admin-dashboard`, guarded by a `CRON_SECRET`
+1. `/api/cron/sweep` route in `projects/jamienisbet/websites/admin-dashboard`, guarded by a `CRON_SECRET`
    Bearer check inside the handler.
 2. A daily `crons` entry in the dashboard's `vercel.json`.
 3. First sweep: open leads (`openStatuses`) with
@@ -50,5 +50,5 @@ Build the stale-lead sweep for the jamienisbet admin dashboard. Read
 CRON_SECRET-guarded /api/cron/sweep route (proxy.ts skips /api — auth goes in the
 handler), a daily vercel.json cron, a `source` column on biz.tasks via drizzle
 migration, and the stale-open-lead query inserting idempotent follow-up tasks via
-packages/services. Tasks only — never send email or contact a client. Open a PR on a
+projects/jamienisbet/packages/services. Tasks only — never send email or contact a client. Open a PR on a
 claude/ branch; do not run local checks — CI is the source of truth.

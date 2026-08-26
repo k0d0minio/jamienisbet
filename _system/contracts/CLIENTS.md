@@ -39,7 +39,7 @@ delivered`, plus `lost`). For a one-man business the middle three were one state
 practice — "we're talking" — and the last two duplicated signals that already exist
 orthogonally. Rungs you never act on differently are not states; they are a form you fill
 in for a CRM nobody reads. Decided 2026-08-18, migrated in
-`packages/services/drizzle/0016_simplify_status_ladder.sql`.
+`projects/jamienisbet/packages/services/drizzle/0016_simplify_status_ladder.sql`.
 
 **A rung has no side effects.** Moving someone up the ladder changes `status` and stamps
 `last_touched_at`, and nothing else. Everything a rung might have implied is its own flag,
@@ -60,12 +60,12 @@ started" is `work_started_at`, not `client`. "Have they paid" is Stripe, not a r
 
 | Concern | File |
 |---|---|
-| The ordered set, `openStatuses`, `customerStatuses`, `isClientStatus` | `packages/services/src/queries/clients.ts` |
-| The column (`varchar(20)`, defaults `'new'`, no CHECK constraint) | `packages/services/src/schema/index.ts` |
+| The ordered set, `openStatuses`, `customerStatuses`, `isClientStatus` | `projects/jamienisbet/packages/services/src/queries/clients.ts` |
+| The column (`varchar(20)`, defaults `'new'`, no CHECK constraint) | `projects/jamienisbet/packages/services/src/schema/index.ts` |
 | Moving a lead | `setClientStatus`, re-validated in the dashboard's `updateClientStatus` action |
-| Filter chips + header totals | `websites/admin-dashboard/app/(app)/page.tsx` |
-| ConvertFlow + `conversionGaps()` | `websites/admin-dashboard/components/convert-flow.tsx` · `app/(app)/leads/[id]/page.tsx` |
-| The dropdown's option list | `websites/admin-dashboard/components/client-status-select.tsx` (mirrors the set; the server action is the authority) |
+| Filter chips + header totals | `projects/jamienisbet/websites/admin-dashboard/app/(app)/page.tsx` |
+| ConvertFlow + `conversionGaps()` | `projects/jamienisbet/websites/admin-dashboard/components/convert-flow.tsx` · `app/(app)/leads/[id]/page.tsx` |
+| The dropdown's option list | `projects/jamienisbet/websites/admin-dashboard/components/client-status-select.tsx` (mirrors the set; the server action is the authority) |
 
 ## Rules
 

@@ -9,7 +9,7 @@
 
 ## Problem
 
-`createClientRepo` (websites/admin-dashboard/app/(app)/actions.ts + lib/github.ts
+`createClientRepo` (projects/jamienisbet/websites/admin-dashboard/app/(app)/actions.ts + lib/github.ts
 `createRepo`) creates a bare `auto_init` repo — no `.icm/`. A freshly converted client
 is invisible to the tickets board and the form picker until someone hand-creates files,
 and `icm-check` later finds the repo as a gap. The scaffold already exists
@@ -38,7 +38,7 @@ lib/onboarding.ts already uses for `.icm/onboarding/`. Registering the prefix in
 
 Make createClientRepo scaffold the ICM baseline into new client repos. Read
 .icm/intake/JN-020-scaffold-icm-on-repo-create.md for full context. Use the existing
-commitRepoFile in websites/admin-dashboard/lib/github.ts to commit
+commitRepoFile in projects/jamienisbet/websites/admin-dashboard/lib/github.ts to commit
 _system/template/icm/ contents ({{PREFIX}} substituted from the repo name) right after
 repo creation in app/(app)/actions.ts; trace _system/template/ into the bundle via
 outputFileTracingIncludes in next.config.ts as lib/onboarding.ts does for

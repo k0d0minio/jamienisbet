@@ -13,7 +13,7 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   in-repo, docs-only per client" model is retired — see the 2026-07 dashboard-first reversal.
   Dashboard-driven delivery-doc seeding was itself retired in 2026-08 along with the templates it
   seeded from; repos start from `_system/icm-template` via `/onboard` instead.)_
-- **`websites/` here = `portfolio/`, `payment-gateway/`, `admin-dashboard/`, `sellers-site/`**
+- **`projects/jamienisbet/websites/` here = `portfolio/`, `payment-gateway/`, `admin-dashboard/`, `sellers-site/`**
   (Next.js + Vercel). Client sites are **external repos**. No `clients/` or `personal/` here.
 - **Daily todos + morning brief = the dashboard's working list.** _(The founding standalone
   `tracker/` — and its personal/business privacy wall — are both retired; see the 2026-07

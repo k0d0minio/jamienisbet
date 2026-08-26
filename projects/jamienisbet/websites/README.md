@@ -23,15 +23,26 @@ Each app consumes the shared design system from [`packages/ui`](../packages/ui/)
 
 Four Vercel projects on the **kodominio** team, all off this repo. Each app carries its own
 `vercel.json` (framework + skip-build rule); the one setting `vercel.json` cannot express is the
-**Root Directory**, so a fresh import needs exactly this mapping (everything else — pnpm
-workspace install at the repo root, `next build` — is auto-detected):
+**Root Directory**, so a fresh import needs exactly this mapping (everything else — the pnpm
+workspace install, `next build` — is auto-detected):
 
 | Vercel project | Root Directory | Production domain |
 |---|---|---|
-| `portfolio` | `websites/portfolio` | `jamienisbet.com` |
-| `jamie-nisbet` | `websites/admin-dashboard` | `app.jamienisbet.com` |
-| `payment-gateway` | `websites/payment-gateway` | `pay.jamienisbet.com` |
-| `client-referrals` | `websites/sellers-site` | `sell.jamienisbet.com` |
+| `portfolio` | `projects/jamienisbet/websites/portfolio` | `jamienisbet.com` |
+| `jamie-nisbet` | `projects/jamienisbet/websites/admin-dashboard` | `app.jamienisbet.com` |
+| `payment-gateway` | `projects/jamienisbet/websites/payment-gateway` | `pay.jamienisbet.com` |
+| `client-referrals` | `projects/jamienisbet/websites/sellers-site` | `sell.jamienisbet.com` |
+
+**These paths gained their `projects/jamienisbet/` prefix on 2026-08-26**, when the web estate moved
+under `projects/` so the repo root could be the ICM control layer alone. The workspace root moved
+with it — `pnpm` runs in `projects/jamienisbet/`, not at the repo root, which no longer has a
+`package.json`. Changing a Root Directory is a per-project Vercel setting, not something in git, so
+a checkout can be correct while the dashboard is not: if every app suddenly fails to build with a
+missing lockfile or "no Next.js version detected", this table is what to check first.
+
+"Include source files outside of the Root Directory in the Build Step" must stay **on** — the apps
+have always needed `packages/*` from above their own folder, and the dashboard additionally needs
+`.icm/onboarding/` from the repo root (see below).
 
 Env vars live in each Vercel project (never in git) — each app's README lists what it needs.
 
@@ -67,8 +78,9 @@ own Root Directory.
 
 ### The cost, and it is deliberate
 
-Anything **outside the workspace definition** (`packages/*`, `websites/*`) counts as a global change
-and deploys all four apps: `.icm/`, `_system/`, `.claude/`, `.github/`, `CLAUDE.md`, root configs.
+Anything **outside the workspace definition** (`projects/jamienisbet/{packages,websites}/*`) counts
+as a global change and deploys all four apps: `.icm/`, `_system/`, `.claude/`, `.github/`,
+`CLAUDE.md`, the workspace's own root configs.
 Ticket-only commits therefore build all four apps where the old `ignoreCommand` skipped them.
 
 That trade is taken knowingly. Those commits already cost four deployments under either mechanism —
@@ -76,8 +88,10 @@ the ignore step never saved the quota, only the build minutes — and app commit
 majority of pushes, now cost one deployment instead of four.
 
 `.icm/onboarding/` needs no special handling as a result. It is an input to the dashboard only
-(traced into the bundle by [`next.config.ts`](admin-dashboard/next.config.ts)), it sits outside the
-workspace, and a global change redeploys the dashboard along with everything else.
+(traced into the bundle by [`next.config.ts`](admin-dashboard/next.config.ts), whose
+`outputFileTracingRoot` is the **repo** root rather than the workspace root precisely so files above
+the workspace can be traced at all), it sits outside the workspace, and a global change redeploys
+the dashboard along with everything else.
 
 ### Preview deployments are off for two apps
 

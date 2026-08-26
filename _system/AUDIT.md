@@ -29,7 +29,7 @@ doctrine (stable) and audit (decays) stop sharing a file.*
 
 ## Still open — broken config (pure fixes, no decision needed)
 
-- sustentus: dead `impeccable` PostToolUse hook errors on **every** Edit/Write; two corrupted markdown tables; dead `architecture-map` + `automation-offload` links; orphaned `packages/ui/SKILL.md`.
+- sustentus: dead `impeccable` PostToolUse hook errors on **every** Edit/Write; two corrupted markdown tables; dead `architecture-map` + `automation-offload` links; orphaned `projects/jamienisbet/packages/ui/SKILL.md`.
 - courseday: `CLAUDE.md` calls a `caveman-mode` skill that's named `caveman`; routes to a nonexistent `TICKETS.md`.
 - remi-ai: `route-request.sh` present but unregistered while `SKILL.md` still expects it; `project-labels.sh` mislabelled read-only.
 - Permission cruft: dead sustentus session grants + nonexistent scripts; tenderdesk's byte-copy of courseday's local settings; stale `~/.claude/projects/` memory dirs for pre-move paths.
