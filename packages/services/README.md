@@ -62,7 +62,7 @@ referral — creates one client row (the form only sets the `source` and which i
 populated); there is no separate table per form. Each client then gets fleshed out as the
 relationship moves up the ladder (`status`: `new` → `talking` → `client`, or the terminal
 `lost` — three rungs and a drop-out; what each one *means* is
-[`_system/contracts/CLIENTS.md`](../../_system/contracts/CLIENTS.md)), with contact details
+`_system/contracts/CLIENTS.md` in the `icm-board` repo), with contact details
 and owner notes. A client can also be linked to its
 Stripe customer via `stripe_customer_id` (unique) — set by the admin's billing flow, which owns the
 Stripe side; `setClientStripeCustomerId` persists the link.

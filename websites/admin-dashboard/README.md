@@ -155,7 +155,7 @@ dashboard. `.icm/onboarding/` is traced into the deployment by
 
 The estate's engineering backlog in one place. Every active repo keeps its work items as
 markdown files in `.icm/intake/` — the estate-wide standard (canonical spec:
-`_system/TICKETS-SPEC.md` in the Apps estate) — and [`lib/tickets.ts`](lib/tickets.ts) reads
+`_system/contracts/TICKETS.md` in the `icm-board` repo) — and [`lib/tickets.ts`](lib/tickets.ts) reads
 those folders from `main` via the GitHub API (60-second revalidate) and groups them **Today /
 In progress / Blocked / Ready**, with a repo filter rail. The repo roster comes from the
 database: every delivery repo connected to an active client (`clients.github_repo`, via

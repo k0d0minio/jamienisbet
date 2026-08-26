@@ -37,7 +37,9 @@ jamienisbet/
   dates), operated through the admin dashboard. Nothing is mirrored back into git; money
   itself lives in Stripe (the payment gateway is its client-facing checkout surface).
 - **The Tickets screen** reads every active repo's `.icm/intake/` markdown backlog live from
-  GitHub (read-only; the repos own their tickets). Estate spec: `_system/TICKETS-SPEC.md`.
+  GitHub (read-only; the repos own their tickets) — the client repos plus the two house
+  repos, this one and `icm-board`. Canonical ticket spec: `_system/contracts/TICKETS.md`
+  in `icm-board`; the copy that matters here is [`.icm/intake/README.md`](.icm/intake/README.md).
 - **CI** (`.github/workflows/`) typechecks, lints and builds all four apps and guards DB
   migrations. CI is the source of truth — don't run checks locally.
 
@@ -45,7 +47,11 @@ jamienisbet/
 
 Until 2026-08 this repo was "the operating system for one business": a full ICM markdown
 factory (`_config/`, `shared/`, `workspaces/`) alongside the websites. The factory was
-retired in favour of exactly what's above — the story is preserved in
+retired in favour of exactly what's above. On 2026-08-26 the remaining estate control
+layer (`_system/`, the three commands, the two agents) left for its own repo,
+`k0d0minio/icm-board`, so that ticketing and CI would sit next to the code whose logic
+they describe. This repo kept the remote, the history and everything under it — the story
+is preserved in
 [`.icm/docs/decisions.md`](.icm/docs/decisions.md) and the original intent in
 [`.icm/docs/founder-brief.md`](.icm/docs/founder-brief.md).
 

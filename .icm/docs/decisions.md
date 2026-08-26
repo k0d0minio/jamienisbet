@@ -12,7 +12,9 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
 - **Delivery lives in the client's external repo** — docs *and* code. _(The founding "`projects/` =
   in-repo, docs-only per client" model is retired — see the 2026-07 dashboard-first reversal.
   Dashboard-driven delivery-doc seeding was itself retired in 2026-08 along with the templates it
-  seeded from; repos start from `_system/icm-template` via `/onboard` instead.)_
+  seeded from. Repos are seeded from the estate template by `icm-check.sh --fix`; the
+  `_system/icm-template` path and the `/onboard` command named here are both retired, and
+  since 2026-08-26 the template itself lives in `k0d0minio/icm-board`.)_
 - **`websites/` here = `portfolio/`, `payment-gateway/`, `admin-dashboard/`, `sellers-site/`**
   (Next.js + Vercel). Client sites are **external repos**. No `clients/` or `personal/` here.
 - **Daily todos + morning brief = the dashboard's working list.** _(The founding standalone
@@ -26,7 +28,7 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   entirely: `send-email` and the `stripe-*` fetchers were retired with the factory in 2026-08;
   `new-client` was planned but never built — client creation is the dashboard's job; `new-project`
   shipped and was retired with `projects/`, see the 2026-07 reversal. The estate scripts that
-  remain live in `_system/`.)_
+  remain live in `_system/` — which left this repo for `k0d0minio/icm-board` on 2026-08-26.)_
 - **Wired services: Stripe, Vercel, GitHub.** Accounting via Stripe.
 - **Hard boundary:** no outbound action without a human-reviewed `output/` file first. No
   exceptions. Per-stage `## Integrations` declares any external call.
@@ -75,7 +77,8 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   waited longest is at the top. The markdown factory (`_config/`, `shared/templates/`,
   `workspaces/*/stages/`) survived this decision but was **retired later the same month** with the
   estate consolidation (2026-08-12): the whole ICM-factory ambition is gone, and the control layer
-  that replaced it is the lean `_system/` + `.claude/` pair (see the root `CLAUDE.md`).
+  that replaced it is the lean `_system/` + `.claude/` pair — which itself moved out to
+  `k0d0minio/icm-board` on 2026-08-26 (see below).
   Reason: too much machinery for a one-person consultancy whose actual need is knowing who is
   waiting to hear back.
 
@@ -96,3 +99,26 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   documents and websites.
 - **Models:** heavy for negotiation/triage; cheap for formatting/scans.
 - **Goal of "powerful":** fewer admin hours, higher close rate, never miss a deadline.
+
+## 2026-08-26 — the control layer gets its own repo
+
+- **`icm-board` is the orchestrator; this repo is one of its projects.** `_system/`, the
+  three commands (`/project`, `/day`, `/icm-check`) and the two agents left for
+  `k0d0minio/icm-board`, which sits at `~/Apps` with every repo — this one included —
+  checked out beneath it as `projects/<name>`. This repo kept the remote, the history, the
+  CI, the Vercel wiring and the `JN-*` series.
+  Reason: **tickets and workflows belong next to the logic they describe.** A ticket about
+  `_system/scripts/` was being filed against a repo full of Next.js apps, and CI here was
+  building four websites on commits that only touched estate doctrine.
+- **The `JN-*` series split by subject, not by convenience.** Estate/process work became
+  `ICM-*` in the new repo (the heartbeat, the `/day` run log, ticket lint, housekeeping,
+  discovery templates, and the two open security P0s); product work stayed here. Numbers
+  were **not** reused on either side — `JN-016`, `-022`, `-025`, `-026`, `-028`, `-029`,
+  `-030` are retired here and their successors are named in each moved ticket.
+- **The dashboard's board shows both house repos.** `lib/tickets.ts` gained a
+  `HOUSE_REPOS` list, so estate tickets stay visible next to product and client work —
+  the board is now the only surface where the whole estate is seen at once, which is the
+  point of it.
+- **This repo must stand alone.** Nothing here reads `_system/` any more. Where a contract
+  is needed locally it is restated (`.icm/intake/README.md`) rather than linked, so a cloud
+  session on this repo is not missing half its rules.

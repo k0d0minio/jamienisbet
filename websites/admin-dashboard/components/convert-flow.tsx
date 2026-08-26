@@ -28,7 +28,8 @@ import { ClientStripeLink } from "@/components/client-stripe-link"
 // skipped explicitly. Skipping is honest — the profile's gap badges will keep
 // saying what's missing.
 //
-// Step one is the ladder's top rung: `client` (see _system/contracts/CLIENTS.md).
+// Step one is the ladder's top rung: `client` (see _system/contracts/CLIENTS.md,
+// in the icm-board repo).
 // The three steps after it are the plumbing that rung implies, which is why they
 // are walked here rather than left to be remembered.
 

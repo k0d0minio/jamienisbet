@@ -35,9 +35,10 @@ workspace install at the repo root, `next build` — is auto-detected):
 
 Env vars live in each Vercel project (never in git) — each app's README lists what it needs.
 
-**Skipped builds.** Since the 2026-08-12 consolidation, ticket flips in `.icm/intake/` and
-`_system/` edits land on this repo's `main` alongside app work, and four Vercel projects watch the
-same repo. Skipping is handled by **Vercel's built-in monorepo skipping**, which is on by default
+**Skipped builds.** Ticket flips in `.icm/intake/` land on this repo's `main` alongside app work,
+and four Vercel projects watch the same repo. (Estate-control edits no longer do: `_system/` and the
+three commands left for `k0d0minio/icm-board` on 2026-08-26, which removed a whole class of
+global-change commit from this repo.) Skipping is handled by **Vercel's built-in monorepo skipping**, which is on by default
 and needs no configuration — there is deliberately no `ignoreCommand` in any `vercel.json`.
 
 Vercel reads the pnpm workspace graph and deploys a project only when its own source changed, one
@@ -68,8 +69,8 @@ own Root Directory.
 ### The cost, and it is deliberate
 
 Anything **outside the workspace definition** (`packages/*`, `websites/*`) counts as a global change
-and deploys all four apps: `.icm/`, `_system/`, `.claude/`, `.github/`, `CLAUDE.md`, root configs.
-Ticket-only commits therefore build all four apps where the old `ignoreCommand` skipped them.
+and deploys all four apps: `.icm/`, `.claude/`, `.github/`, `CLAUDE.md`, root configs. Ticket-only
+commits therefore build all four apps where the old `ignoreCommand` skipped them.
 
 That trade is taken knowingly. Those commits already cost four deployments under either mechanism —
 the ignore step never saved the quota, only the build minutes — and app commits, which are the
