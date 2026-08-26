@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | ready |
+| Status | blocked |
 | Type | feature |
 | Priority | P1 |
 | Size | S |
@@ -15,6 +15,16 @@ is invisible to the tickets board and the form picker until someone hand-creates
 and `icm-check` later finds the repo as a gap. The scaffold already exists
 (`_system/template/icm/`) and so does the write path — `commitRepoFile` in
 lib/github.ts, proven by `writeFormAnswersToRepo` with the same token scope.
+
+> **Blocked on a cross-repo dependency since 2026-08-26.** `_system/template/icm/` now
+> lives in `k0d0minio/icm-board`, not in this repo, so the dashboard can no longer read it
+> off disk or trace it into its bundle. Decide first which of these the scaffold is:
+> a) fetched from `icm-board` over the contents API at call time (same `GITHUB_TOKEN`
+> pattern as `lib/onboarding.ts`'s client-repo reads, and stays a single source of truth);
+> b) vendored into this repo as a copy, with the drift risk that implies; or
+> c) moved out of the dashboard entirely, so `icm-check.sh --fix` in `icm-board` seeds the
+> repo on the next run instead of the dashboard doing it at creation time.
+> (a) is the obvious fit. Do not start the build until this is settled.
 
 ## Build
 

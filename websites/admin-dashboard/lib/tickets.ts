@@ -2,7 +2,7 @@ import "server-only"
 
 // The tickets board's read-only line to GitHub. Every active repo keeps its
 // work backlog as markdown files in `.icm/intake/` — the estate-wide standard
-// (canonical spec: `_system/TICKETS-SPEC.md` in the Apps estate) — and this
+// (canonical spec: `_system/contracts/TICKETS.md` in the icm-board repo) — and this
 // module pulls them into one list. The dashboard only *reads*: tickets are
 // created, edited, and finished (moved to `_done/`) inside each repo by the
 // session doing the work, never from here. Repos stay the source of truth and
@@ -21,16 +21,23 @@ const REVALIDATE_SECONDS = 60
 
 // The repos whose backlogs the board shows come from the database — every
 // delivery repo connected to an active client (`biz.clients.github_repo`) —
-// plus the house repo itself (its `JN-*` series: estate and process work).
-// Connecting a repo on a lead's profile *is* the onboarding step — the board
-// tolerates `.icm/intake/` not existing yet (the repo just reads as empty
-// until its first ticket lands).
+// plus the house repos, which belong to no client. Connecting a repo on a
+// lead's profile *is* the onboarding step; the board tolerates `.icm/intake/`
+// not existing yet (the repo just reads as empty until its first ticket lands).
 //
-// Same house-repo constant as `lib/onboarding.ts`.
-const HOUSE_REPO = "k0d0minio/jamienisbet"
+// There are two house repos because the estate split on 2026-08-26: this
+// monorepo keeps the `JN-*` series (the product — sites, dashboard, data), and
+// `icm-board` carries `ICM-*` (the control layer — contracts, estate scripts,
+// the three commands). A ticket lives next to the logic it describes, so the
+// board is the only place they are seen together — which is the whole point of
+// it. Order here is display order.
+//
+// `lib/onboarding.ts` keeps its own, single house-repo constant on purpose: the
+// questionnaire library lives in this repo only, and is not an estate-wide thing.
+const HOUSE_REPOS = ["k0d0minio/jamienisbet", "k0d0minio/icm-board"] as const
 
 // Sustentus stays off the board even if a client row ever points at it: its
-// `.icm/intake/` carries its own pipeline semantics (not TICKETS-SPEC) and
+// `.icm/intake/` carries its own pipeline semantics (not the ticket contract) and
 // stays untouched. Matched on the repo-name segment so the exclusion holds
 // under any owner; the legacy name stays listed so a stale client row still
 // matches.
@@ -298,10 +305,10 @@ function rank(t: Ticket): number {
 }
 
 /**
- * The board's repo roster: the client rows plus the house repo. Deduped by
+ * The board's repo roster: the client rows plus the house repos. Deduped by
  * repo (two clients pointing at one repo would double every ticket) — first
- * client row wins the attribution. The house repo is always present and never
- * attributed to a client, even if a client row points at it.
+ * client row wins the attribution. The house repos are always present and never
+ * attributed to a client, even if a client row points at one.
  */
 async function loadRepos(): Promise<TicketRepo[]> {
   const rows = await listClientRepos()
@@ -310,7 +317,7 @@ async function loadRepos(): Promise<TicketRepo[]> {
   for (const row of rows) {
     if (
       isExcluded(row.githubRepo) ||
-      row.githubRepo === HOUSE_REPO ||
+      HOUSE_REPOS.includes(row.githubRepo as (typeof HOUSE_REPOS)[number]) ||
       seen.has(row.githubRepo)
     )
       continue
@@ -322,12 +329,14 @@ async function loadRepos(): Promise<TicketRepo[]> {
       clientName: row.clientName,
     })
   }
-  repos.push({
-    fullName: HOUSE_REPO,
-    slug: HOUSE_REPO.split("/").pop() ?? HOUSE_REPO,
-    clientId: null,
-    clientName: null,
-  })
+  for (const fullName of HOUSE_REPOS) {
+    repos.push({
+      fullName,
+      slug: fullName.split("/").pop() ?? fullName,
+      clientId: null,
+      clientName: null,
+    })
+  }
   return repos
 }
 

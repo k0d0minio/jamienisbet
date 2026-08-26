@@ -42,7 +42,7 @@ export const clients = biz.table("clients", {
   source: varchar("source", { length: 30 }).notNull().default("portfolio"),
   // Which rung of the ladder they are on: 'new' | 'talking' | 'client', or the
   // terminal 'lost'. See clientStatuses in queries/clients.ts for the ordered
-  // set, and _system/contracts/CLIENTS.md for what each rung means.
+  // set, and _system/contracts/CLIENTS.md (icm-board repo) for what each rung means.
   status: varchar("status", { length: 20 }).notNull().default("new"),
 
   // ---- Intake payload ------------------------------------------------------

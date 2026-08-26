@@ -24,7 +24,8 @@ you") and `casey-onboarding.md` (post-sale content gathering).
 2. `.icm/onboarding/client-onboarding.md` — post-sale content/access gathering, from
    casey-onboarding.
 3. Fix the README's Files section to list what actually exists.
-4. Close the intake→project loop: one line in `_system/contracts/PROJECT.md` naming
+4. Close the intake→project loop: one line in `_system/contracts/PROJECT.md` — **in the
+   `icm-board` repo**, so a separate commit there — naming
    committed form answers (`.icm/docs/form-*.md` in the client repo) as first-class
    provenance input for `/project`'s first run.
 
@@ -52,5 +53,6 @@ projects/casey-hebbel/.icm/onboarding/casey-scoping.md and casey-onboarding.md (
 repo beside this one, only present on this machine) into .icm/onboarding/
 project-intake.md and client-onboarding.md, following the format spec in
 .icm/onboarding/README.md and fixing its Files section. Add the form-answer provenance
-line to _system/contracts/PROJECT.md. No client-specific content. Open a PR on a claude/
+line to _system/contracts/PROJECT.md in the icm-board repo (separate commit, that repo).
+No client-specific content. Open a PR on a claude/
 branch; do not run local checks — CI is the source of truth.

@@ -31,7 +31,8 @@ deliberately skips `/api` — so the guard must be built alongside it.
 4. Idempotency: routine tasks must be recognisable and must never stack. Recommend a
    `source` column on `biz.tasks` (migration; `manual` | `sweep`), and skip the insert
    while an open sweep task exists for the same client.
-5. Register the routine in `_system/contracts/ROUTINES.md` (created by JN-016).
+5. Register the routine in `_system/contracts/ROUTINES.md` (created by `ICM-001`) —
+   **that file is in the `icm-board` repo**, so this step is a separate commit there.
 
 The sweep writes tasks only — no email, no client contact, per the standing rule.
 

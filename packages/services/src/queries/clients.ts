@@ -13,7 +13,7 @@ export type Client = typeof clients.$inferSelect
 // The lead lifecycle, in three rungs plus a drop-out. Ordered from first touch
 // to agreed; the admin moves a lead along it from the list or their profile.
 // What each rung *means* — and what you do when a lead is on it — is
-// _system/contracts/CLIENTS.md.
+// _system/contracts/CLIENTS.md in the icm-board repo.
 //
 //   new     — they arrived, nobody has replied yet
 //   talking — in conversation: scoping, quoting, waiting on their answer
@@ -250,7 +250,7 @@ export async function listClientRepos(): Promise<ClientRepo[]> {
  * does). Nothing else changes here on purpose — the rungs carry no side
  * effects, because everything a rung might have implied is its own orthogonal
  * flag: `work_started_at` for the doing, Stripe for the money, `archived_at`
- * for getting a lost lead off the list. See _system/contracts/CLIENTS.md.
+ * for getting a lost lead off the list. See _system/contracts/CLIENTS.md in the icm-board repo.
  */
 export async function setClientStatus(
   id: string,
