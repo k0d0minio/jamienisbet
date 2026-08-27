@@ -31,6 +31,7 @@ import {
 
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
 import { renderFormAnswersMarkdown } from "@/lib/form-markdown"
+import { scaffoldIcmBaseline } from "@/lib/icm-scaffold"
 import { loadOnboardingForm } from "@/lib/onboarding"
 import { parseAmountToMinor } from "@/lib/money"
 import { parsePercentToBps } from "@/lib/percent"
@@ -265,13 +266,31 @@ export async function connectClientRepo(id: string, fullName: string) {
   revalidateLead(id)
 }
 
+export type CreateClientRepoResult = {
+  repo: RepoSummary
+  /**
+   * Null when the `.icm/` baseline landed. A sentence to put on screen
+   * otherwise — the repo is created and connected either way, so this is a
+   * warning about the seeding, never a failure of the create.
+   *
+   * Returned rather than thrown for the same reason `sendFormToClient` returns
+   * its errors: Next redacts server-action exceptions in production, and the
+   * detail is the whole value of the message.
+   */
+  scaffoldError: string | null
+}
+
 // Create a fresh delivery repo for this client and connect it in one step.
 // Private by default; the created repo's actual full name (owner may differ from
 // the token account via GITHUB_REPO_OWNER) and branch are what we store.
+//
+// A new repo is then seeded with the estate's `.icm/` baseline, so it shows up
+// on the tickets board (empty, not absent) and passes `icm-check.sh` from
+// minute one rather than waiting for someone to hand-create the folder.
 export async function createClientRepo(
   id: string,
   input: { name: string; description?: string; isPrivate?: boolean }
-) {
+): Promise<CreateClientRepoResult> {
   if (!isGithubConfigured()) {
     throw new Error("GitHub is not configured in this environment.")
   }
@@ -286,12 +305,24 @@ export async function createClientRepo(
     description: input.description?.trim() || null,
     private: input.isPrivate ?? true,
   })
+  // Store the pointer *before* seeding. From here on the repo exists on GitHub,
+  // and a scaffold that fails must never cost the lead its link to it — the
+  // baseline can be seeded later by hand or by `icm-check.sh --fix`.
   await setClientRepo(id, {
     githubRepo: repo.fullName,
     githubDefaultBranch: repo.defaultBranch,
   })
+  const scaffold = await scaffoldIcmBaseline(repo.fullName)
+  if (scaffold.error) {
+    console.error("[repo] ICM scaffold failed:", scaffold.error)
+  }
   revalidateLead(id)
-  return repo
+  return {
+    repo,
+    scaffoldError: scaffold.error
+      ? `${repo.fullName} was created and connected, but its .icm/ baseline didn't land: ${scaffold.error}. Seed it by hand or with icm-check.sh --fix.`
+      : null,
+  }
 }
 
 // Drop the pointer (the repo itself is untouched on GitHub).
