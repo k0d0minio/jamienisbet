@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | ready |
+| Status | in-progress |
 | Type | chore |
 | Priority | P1 |
 | Size | S |

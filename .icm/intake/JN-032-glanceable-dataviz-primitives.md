@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | ready |
+| Status | today |
 | Type | feature |
 | Priority | P1 |
 | Size | M |
