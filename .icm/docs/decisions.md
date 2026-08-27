@@ -115,6 +115,10 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   discovery templates, and the two open security P0s); product work stayed here. Numbers
   were **not** reused on either side — `JN-016`, `-022`, `-025`, `-026`, `-028`, `-029`,
   `-030` are retired here and their successors are named in each moved ticket.
+  _(Correction 2026-08-28: the 2026-08-27 design batch re-issued `-028` (biz API),
+  `-029` (design-dna skill) and `-030` (motion primitives) for new product work — those
+  three are no longer retired. `-016`, `-022`, `-025`, `-026` remain unused, and the
+  moved tickets' `ICM-*` successors are unaffected.)_
 - **The dashboard's board shows both house repos.** `lib/tickets.ts` gained a
   `HOUSE_REPOS` list, so estate tickets stay visible next to product and client work —
   the board is now the only surface where the whole estate is seen at once, which is the
