@@ -97,16 +97,19 @@ export function ViewTransitionLink({
     start(
       () =>
         new Promise<void>((resolve) => {
-          let timer: ReturnType<typeof setTimeout> | undefined
           let done = false
           const finish = () => {
             if (done) return
             done = true
-            clearTimeout(timer)
             resolve()
           }
-          timer = setTimeout(finish, MAX_FREEZE_MS)
-          settle.current = finish
+          const timer = setTimeout(finish, MAX_FREEZE_MS)
+          // Whoever gets there first wins: the effect above once the new page
+          // has committed, or the timer. `finish` guards against the second.
+          settle.current = () => {
+            clearTimeout(timer)
+            finish()
+          }
           startTransition(() => router.push(href))
         })
     )

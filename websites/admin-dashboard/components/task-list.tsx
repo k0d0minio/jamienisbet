@@ -187,8 +187,13 @@ export function TaskList({
                             type: "client",
                             id: task.id,
                             clientId: next,
+                            // `leads?.` rather than leaning on the narrowing
+                            // from the `leads ?` above: whether TypeScript
+                            // carries that into a callback depends on rules
+                            // that have moved between versions.
                             clientName:
-                              leads.find((lead) => lead.id === next)?.name ?? null,
+                              leads?.find((lead) => lead.id === next)?.name ??
+                              null,
                           })
                           try {
                             await setTaskClientAction(task.id, next)
