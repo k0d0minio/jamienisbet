@@ -45,14 +45,41 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Group | Components |
 |---|---|
 | Core | `Button`, `Badge`, `Card` (+ `CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`), `Avatar` (+ `AvatarImage`/`AvatarFallback`) |
-| Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch` |
+| Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch`, `PendingButton` |
 | Navigation | `Tabs` (+ `TabsList`/`TabsTrigger`/`TabsContent`) |
-| Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`), `Dialog` (+ parts) |
+| Overlays | `Dialog` (+ parts), `Sheet` (+ parts) — the phone-first bottom sheet, keyboard-aware |
+| Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`), `Skeleton` (+ `SkeletonText`/`SkeletonRow`/`SkeletonFigure`), `Spinner`, `Toaster` + `toast()` |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
 `text-2xs` chip with muted `success`/`warning` tints, `Alert` uses soft tinted variants.
+
+### Motion & feedback
+
+Four primitives cover the gap between "the action fired" and "the page came back", all
+driven by `tokens/motion.css` and all silent under `prefers-reduced-motion`:
+
+- **`Spinner`** — the "rolling deploy" loop, the one decorative animation BRAND.md
+  licenses. Inherits `currentColor` and `size-4`, so it drops into a button label as-is.
+  Pass `label=""` beside text that already says what's happening.
+- **`Skeleton`** and its shapes (`SkeletonText`, `SkeletonRow`, `SkeletonFigure`) — for
+  reads that leave the machine. A skeleton stands in for what's coming, at its size and
+  in its place; a lone spinner on an empty page is not one. Pair with `loading.tsx`.
+- **`toast(message, { tone })`** (plus `toast.success` / `toast.error`) with a single
+  **`<Toaster />`** mounted at the app root. For outcomes you can't see from where you're
+  standing — a row archived out of the list, a link copied, an optimistic edit the server
+  refused. Bottom-centre on a phone, bottom-right from `sm` up; pass `className` to clear
+  a fixed tab bar. No provider needed: `toast()` broadcasts on a document event.
+- **`PendingButton`** — a submit that shows it's working. Inside `<form action={…}>` it
+  reads `useFormStatus` on its own; drive it from `useTransition` by passing `pending`.
+  `pendingLabel` swaps the words while it runs.
+
+`Sheet` also lifts itself above the on-screen keyboard and scrolls the focused field into
+view (`useKeyboardInset`, exported for anything else pinned to the bottom edge). Apps
+that want the layout viewport to shrink instead should set
+`interactiveWidget: "resizes-content"` in their Next `viewport` export — the two don't
+fight.
 
 ## Usage (Next.js App Router website)
 The package ships **TSX source** (no build step), so consuming apps transpile it and let

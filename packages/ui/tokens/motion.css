@@ -19,3 +19,39 @@
                         box-shadow var(--duration-fast) var(--ease-out),
                         transform var(--duration-fast) var(--ease-out);
 }
+
+/* ------------------------------------------------------------
+   Loop durations. Everything above is a *transition* — these two
+   are the only animations the brand licenses: the "rolling deploy"
+   spinner and the skeleton's breathing placeholder.
+   ------------------------------------------------------------ */
+:root {
+  --duration-spin:  900ms;   /* @kind other */
+  --duration-pulse: 1400ms;  /* @kind other */
+}
+
+@keyframes jn-spin {
+  to { transform: rotate(1turn); }
+}
+
+@keyframes jn-pulse {
+  50% { opacity: 0.5; }
+}
+
+/* Applied by the Spinner and Skeleton primitives. Plain classes rather than
+   Tailwind utilities so the durations resolve from the tokens above instead of
+   being spelled out at every call site. */
+.jn-spin {
+  animation: jn-spin var(--duration-spin) linear infinite;
+}
+
+.jn-pulse {
+  animation: jn-pulse var(--duration-pulse) var(--ease-in-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* A spinner that doesn't move stops saying "working", so it slows rather
+     than stops — the skeleton's pulse is decorative and simply goes. */
+  .jn-spin { animation-duration: calc(var(--duration-spin) * 3); }
+  .jn-pulse { animation: none; opacity: 0.7; }
+}
