@@ -47,7 +47,7 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 | Change the admin cockpit (Leads, Tickets, Money) | [`websites/admin-dashboard/`](websites/admin-dashboard/) |
 | Change how clients pay an invoice | [`websites/payment-gateway/`](websites/payment-gateway/) |
 | Change the affiliate/referral intake | [`websites/sellers-site/`](websites/sellers-site/) |
-| Brand colours, tokens, components, voice | [`packages/ui/`](packages/ui/) + [`packages/ui/BRAND.md`](packages/ui/BRAND.md) |
+| Brand colours, tokens, components, voice | [`packages/ui/`](packages/ui/) + [`packages/ui/BRAND.md`](packages/ui/BRAND.md) — the per-turn UI checklist auto-loads from [`.claude/skills/design-dna/`](.claude/skills/design-dna/SKILL.md) |
 | Data model / queries (`biz.*`) | [`packages/services/`](packages/services/) |
 | Deployment, Vercel Root Directories, build skipping | [`websites/README.md`](websites/README.md) § Deployment |
 | CI, DB migrations | [`.github/workflows/`](.github/workflows/) |
