@@ -15,12 +15,14 @@ import {
   Card,
   Input,
   Label,
+  PendingButton,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  toast,
 } from "@jamie-nisbet/ui"
 
 import { saveClientContact } from "@/app/(app)/actions"
@@ -41,7 +43,16 @@ export type ContactDetails = {
   phone: string | null
 }
 
-function CopyValueButton({ value, label }: { value: string; label: string }) {
+function CopyValueButton({
+  value,
+  label,
+  what,
+}: {
+  value: string
+  label: string
+  /** What landed on the clipboard, for the toast ("Email", "Phone"). */
+  what: string
+}) {
   const [copied, setCopied] = useState(false)
   return (
     <Button
@@ -54,9 +65,12 @@ function CopyValueButton({ value, label }: { value: string; label: string }) {
         try {
           await navigator.clipboard.writeText(value)
           setCopied(true)
+          // The tick is a 24px icon at the end of a row; on a phone, mid-scroll,
+          // the toast is what actually gets seen.
+          toast(`${what} copied`)
           setTimeout(() => setCopied(false), 1500)
         } catch {
-          // Clipboard blocked — the value is still readable on the row.
+          toast.error("Couldn't reach the clipboard — copy it by hand")
         }
       }}
     >
@@ -102,7 +116,11 @@ function ContactRow({
       ) : (
         body
       )}
-      <CopyValueButton value={value} label={`Copy ${label.toLowerCase()}`} />
+      <CopyValueButton
+        value={value}
+        label={`Copy ${label.toLowerCase()}`}
+        what={label}
+      />
     </div>
   )
 }
@@ -134,8 +152,14 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
             <form
               action={(formData) =>
                 startTransition(async () => {
-                  await saveClientContact(client.id, formData)
-                  setOpen(false)
+                  try {
+                    await saveClientContact(client.id, formData)
+                    setOpen(false)
+                  } catch {
+                    // The sheet stays open on a failure, so the fields you
+                    // typed are still there to try again with.
+                    toast.error("Couldn't save the contact details")
+                  }
                 })
               }
               className="grid gap-3"
@@ -147,6 +171,9 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                   name="name"
                   defaultValue={client.name}
                   required
+                  autoComplete="name"
+                  autoCapitalize="words"
+                  enterKeyHint="next"
                 />
               </div>
               <div className="grid gap-1.5">
@@ -156,6 +183,9 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                   name="company"
                   defaultValue={client.company ?? ""}
                   placeholder="—"
+                  autoComplete="organization"
+                  autoCapitalize="words"
+                  enterKeyHint="next"
                 />
               </div>
               <div className="grid gap-1.5">
@@ -165,9 +195,11 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                   name="email"
                   type="email"
                   inputMode="email"
+                  autoComplete="email"
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
+                  enterKeyHint="next"
                   defaultValue={client.email ?? ""}
                   placeholder="—"
                 />
@@ -180,13 +212,20 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
+                  // Last field in the sheet — the return key saves rather than
+                  // asking for another one.
+                  enterKeyHint="done"
                   defaultValue={client.phone ?? ""}
                   placeholder="—"
                 />
               </div>
-              <Button type="submit" disabled={pending} className="w-full sm:w-fit">
-                {pending ? "Saving…" : "Save"}
-              </Button>
+              <PendingButton
+                pending={pending}
+                pendingLabel="Saving…"
+                className="w-full sm:w-fit"
+              >
+                Save
+              </PendingButton>
             </form>
           </SheetContent>
         </Sheet>

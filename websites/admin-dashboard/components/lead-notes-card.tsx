@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react"
 import {
   Button,
   Card,
+  PendingButton,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -13,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
   Textarea,
+  toast,
 } from "@jamie-nisbet/ui"
 
 import { saveClientNotes } from "@/app/(app)/actions"
@@ -45,8 +47,14 @@ export function LeadNotesCard({ id, notes }: { id: string; notes: string | null 
             <form
               action={(formData) =>
                 startTransition(async () => {
-                  await saveClientNotes(id, formData)
-                  setOpen(false)
+                  try {
+                    await saveClientNotes(id, formData)
+                    setOpen(false)
+                  } catch {
+                    // The sheet stays open on a failure, so the note you just
+                    // typed is still there to try again with.
+                    toast.error("Couldn't save the note")
+                  }
                 })
               }
               className="grid gap-3"
@@ -59,9 +67,13 @@ export function LeadNotesCard({ id, notes }: { id: string; notes: string | null 
                 placeholder="Working notes — calls, decisions, next steps…"
                 aria-label="Notes"
               />
-              <Button type="submit" disabled={pending} className="w-full sm:w-fit">
-                {pending ? "Saving…" : "Save"}
-              </Button>
+              <PendingButton
+                pending={pending}
+                pendingLabel="Saving…"
+                className="w-full sm:w-fit"
+              >
+                Save
+              </PendingButton>
             </form>
           </SheetContent>
         </Sheet>

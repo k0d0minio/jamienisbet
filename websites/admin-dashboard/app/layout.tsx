@@ -30,6 +30,11 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Fill the screen under the notch / home indicator when installed.
   viewportFit: "cover",
+  // Let the on-screen keyboard shrink the layout viewport rather than sit over
+  // it, so a bottom sheet is pushed up by the browser itself. Chrome-only for
+  // now; the Sheet primitive measures `visualViewport` for everywhere else
+  // (iOS especially), and with this on that measurement simply reads zero.
+  interactiveWidget: "resizes-content",
 }
 
 export default function RootLayout({

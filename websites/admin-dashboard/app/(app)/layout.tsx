@@ -1,3 +1,5 @@
+import { Toaster } from "@jamie-nisbet/ui"
+
 import { Nav } from "@/components/nav"
 import { PullToRefresh } from "@/components/pull-to-refresh"
 
@@ -21,6 +23,10 @@ export default function AppLayout({
           {children}
         </main>
       </PullToRefresh>
+      {/* Confirmations for what you can't see from where you're standing — a
+          row archived out of the list, a link copied, an edit the server
+          refused. Cleared past the tab bar so it never covers the thumb. */}
+      <Toaster className="bottom-above-tabs sm:bottom-6" />
     </div>
   )
 }

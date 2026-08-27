@@ -37,7 +37,12 @@ export function Nav() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      {/* `vt-app-header` names the bar out of the page snapshot so it holds
+          still while the content under it cross-fades — see globals.css
+          § View transitions. */}
+      <header
+        className="vt-app-header sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      >
         <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-2 sm:px-6 sm:py-3">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <LogoMark className="size-5" />
@@ -75,7 +80,7 @@ export function Nav() {
           Each tab is a full-height 3.5rem target so it can be hit one-handed;
           `bottom-above-tabs` in globals.css is keyed to that height. */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-safe sm:hidden"
+        className="vt-app-tabs fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-safe sm:hidden"
         aria-label="Primary"
       >
         <div className="mx-auto grid max-w-5xl grid-cols-3">

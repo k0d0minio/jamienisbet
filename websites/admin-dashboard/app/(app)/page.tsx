@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 
 import {
   Alert,
@@ -25,6 +24,7 @@ import { ClientStatusSelect } from "@/components/client-status-select"
 import { ComplianceList, type ComplianceItem } from "@/components/compliance-list"
 import { DealBadges } from "@/components/deal-badges"
 import { LeadRow } from "@/components/lead-row"
+import { ViewTransitionLink } from "@/components/view-transition-link"
 import { TaskList, type TaskItem, type TaskLead } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
 import { daysSince, waitingLabel, whatsappUrl } from "@/lib/format"
@@ -344,7 +344,10 @@ export default async function LeadsPage({
                     email={row.email}
                     archived={archived}
                   >
-                    <Link
+                    {/* Into the profile and back is the move this screen makes
+                        most; on a browser that supports it the two pages
+                        cross-fade instead of hard-cutting. */}
+                    <ViewTransitionLink
                       href={`/leads/${row.id}`}
                       className="flex flex-col gap-0.5 bg-card px-4 py-3 transition-colors active:bg-muted/50"
                     >
@@ -377,7 +380,7 @@ export default async function LeadsPage({
                       {/* Barter, commission, equity, started — only the rows
                           that carry them grow a third line. */}
                       <DealBadges client={row} className="mt-1" />
-                    </Link>
+                    </ViewTransitionLink>
                   </LeadRow>
                 </li>
               )
@@ -417,12 +420,12 @@ export default async function LeadsPage({
                             {waitingLabel(daysWaiting(row, now))}
                           </td>
                           <td className="px-4 py-3">
-                            <Link
+                            <ViewTransitionLink
                               href={`/leads/${row.id}`}
                               className="font-medium underline-offset-2 hover:underline"
                             >
                               {row.name}
-                            </Link>
+                            </ViewTransitionLink>
                             <div className="text-muted-foreground">
                               {row.company ?? sourceLabel(row.source)}
                             </div>

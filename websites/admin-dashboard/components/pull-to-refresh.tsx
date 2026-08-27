@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useRef, useState, useTransition } from "react"
 import { RefreshCw } from "lucide-react"
 
-import { cn } from "@jamie-nisbet/ui"
+import { Spinner, cn } from "@jamie-nisbet/ui"
 
 // Pull down from the top of the page to re-read everything — the gesture every
 // installed app answers, and this one especially: each screen is a live read
@@ -86,19 +86,21 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
         style={{ height: refreshing ? 40 : pull }}
         aria-hidden={!refreshing}
       >
-        <RefreshCw
-          className={cn(
-            "mb-2 size-5 text-muted-foreground",
-            refreshing && "animate-spin",
-            !active && "opacity-0"
-          )}
-          style={
-            refreshing ? undefined : { transform: `rotate(${pull * 2.5}deg)` }
-          }
-        />
-        <span className="sr-only" role="status">
-          {refreshing ? "Refreshing" : ""}
-        </span>
+        {/* Two states, one slot: while the finger is down the arrow winds up
+            with the pull, and once released it hands over to the design
+            system's spinner — the same loop every other pending action uses. */}
+        {refreshing ? (
+          <Spinner className="mb-2 size-5 text-muted-foreground" label="Refreshing" />
+        ) : (
+          <RefreshCw
+            className={cn(
+              "mb-2 size-5 text-muted-foreground",
+              !active && "opacity-0"
+            )}
+            style={{ transform: `rotate(${pull * 2.5}deg)` }}
+            aria-hidden
+          />
+        )}
       </div>
       {children}
     </div>

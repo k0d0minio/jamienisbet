@@ -2,7 +2,7 @@
 
 import { useTransition } from "react"
 
-import { Button } from "@jamie-nisbet/ui"
+import { Button, toast } from "@jamie-nisbet/ui"
 
 import { deactivatePaymentLink } from "@/app/(app)/money/actions"
 import { CopyButton } from "@/components/copy-button"
@@ -22,12 +22,19 @@ export function PaymentLinkActions({
 
   function onDeactivate() {
     if (!confirm("Deactivate this link? It will stop accepting payments.")) return
-    startTransition(() => deactivatePaymentLink(id))
+    startTransition(async () => {
+      try {
+        await deactivatePaymentLink(id)
+        toast("Payment link deactivated")
+      } catch {
+        toast.error("Couldn't deactivate the link")
+      }
+    })
   }
 
   return (
     <div className="flex justify-end gap-1 whitespace-nowrap">
-      <CopyButton value={url} />
+      <CopyButton value={url} what="Payment link" />
       {active ? (
         <Button
           type="button"

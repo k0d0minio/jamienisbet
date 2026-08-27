@@ -12,6 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  PendingButton,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -20,6 +21,7 @@ import {
   SheetTrigger,
   Textarea,
   cn,
+  toast,
 } from "@jamie-nisbet/ui"
 
 import { addClient } from "@/app/(app)/actions"
@@ -170,9 +172,13 @@ export function ClientCreateForm() {
             startTransition(async () => {
               setError(null)
               try {
+                const name = String(formData.get("name") ?? "").trim()
                 await addClient(formData)
                 formRef.current?.reset()
                 setOpen(false)
+                toast.success(
+                  name ? `Added ${name}` : `Added the ${kind.key}`
+                )
               } catch (err) {
                 setError(
                   err instanceof Error
@@ -187,20 +193,39 @@ export function ClientCreateForm() {
           <input type="hidden" name="status" value={kind.status} />
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input name="name" placeholder="Name" required autoFocus />
-            <Input name="company" placeholder="Company (optional)" />
+            <Input
+              name="name"
+              placeholder="Name"
+              required
+              autoFocus
+              autoComplete="name"
+              autoCapitalize="words"
+              enterKeyHint="next"
+            />
+            <Input
+              name="company"
+              placeholder="Company (optional)"
+              autoComplete="organization"
+              autoCapitalize="words"
+              enterKeyHint="next"
+            />
             <Input
               name="email"
               type="email"
               inputMode="email"
+              autoComplete="email"
               autoCapitalize="none"
               autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="next"
               placeholder="Email (optional)"
             />
             <Input
               name="phone"
               type="tel"
               inputMode="tel"
+              autoComplete="tel"
+              enterKeyHint="next"
               placeholder="Phone (optional)"
             />
           </div>
@@ -221,6 +246,7 @@ export function ClientCreateForm() {
                   id="value"
                   name="value"
                   inputMode="decimal"
+                  enterKeyHint="next"
                   placeholder="0.00"
                 />
               </div>
@@ -257,6 +283,7 @@ export function ClientCreateForm() {
             key={kind.field}
             name={kind.field}
             rows={2}
+            autoCapitalize="sentences"
             placeholder={kind.placeholder}
           />
 
@@ -273,9 +300,9 @@ export function ClientCreateForm() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Adding…" : kind.submit}
-            </Button>
+            <PendingButton pending={pending} pendingLabel="Adding…">
+              {kind.submit}
+            </PendingButton>
           </div>
         </form>
       </SheetContent>
