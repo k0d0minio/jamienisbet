@@ -52,7 +52,7 @@ export function Nav() {
                 href={link.href}
                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
                 className={cn(
-                  "transition-colors hover:text-foreground",
+                  "transition-colors hover:text-foreground active:text-foreground",
                   isActive(pathname, link.href)
                     ? "font-medium text-foreground"
                     : "text-muted-foreground"

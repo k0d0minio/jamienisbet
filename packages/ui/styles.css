@@ -78,6 +78,11 @@
   --color-input: var(--border-strong);
   --color-ring: var(--border-focus);
 
+  /* interaction ramps for the brand hue (BRAND.md: hover shifts, press
+     deepens) — existing aliases from tokens/colors.css, exposed as utilities */
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+
   /* brand extensions beyond the shadcn defaults */
   --color-success: var(--success);
   --color-success-foreground: var(--neutral-0);
@@ -91,6 +96,45 @@
 
   /* extra type-scale step the brand adds below Tailwind's --text-xs */
   --text-2xs: 0.6875rem;
+
+  /* Every `transition-*` utility runs on the brand clock (tokens/motion.css)
+     unless a duration/easing is set explicitly — quick, confident, ease-out. */
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-out);
+
+  /* The continuous loop BRAND.md licenses — the rolling-deploy spinner. */
+  --animate-roll: jn-roll var(--duration-spin) linear infinite;
+}
+
+@keyframes jn-roll {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes jn-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton loading surface — the sunken surface with a slow highlight sweep
+   (a translucent pass of --surface, so it deepens correctly in dark). Falls
+   back to the static sunken surface under prefers-reduced-motion. */
+@utility skeleton {
+  background-color: var(--surface-sunken);
+  @media (prefers-reduced-motion: no-preference) {
+    background-image: linear-gradient(
+      100deg,
+      transparent 40%,
+      color-mix(in srgb, var(--surface) 60%, transparent) 50%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    background-position: 200% 0;
+    animation: jn-shimmer var(--duration-shimmer) var(--ease-in-out) infinite;
+  }
 }
 
 @layer base {
