@@ -1,3 +1,5 @@
+> Dropped: the register records 'morning brief = the dashboard working list', and ICM-001's digest would be a second channel already; a third channel needs a new decision before a ticket. 2026-08-27 estate ticket audit.
+
 # JN-019 · Morning digest email to self
 
 | | |

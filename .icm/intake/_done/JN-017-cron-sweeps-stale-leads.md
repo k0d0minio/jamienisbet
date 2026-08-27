@@ -1,3 +1,5 @@
+> Dropped: no dashboard automation until the estate heartbeat question (ICM-001 in icm-board) is settled — its ROUTINES.md registry is the place such a sweep gets sanctioned; re-cut from whatever it decides. 2026-08-27 estate ticket audit.
+
 # JN-017 · Business sweeps — cron route, auth guard, stale-lead task
 
 | | |

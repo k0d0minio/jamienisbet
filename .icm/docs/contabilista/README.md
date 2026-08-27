@@ -24,7 +24,7 @@ Read any of them with `git show e4bd7cb^:<path>`.
 
 The compliance calendar that stage 05 of that workspace was meant to produce **was never generated** —
 it was blocked on exactly this conversation. Document 02 §5 is that calendar, pending her review;
-once confirmed it feeds [`JN-002`](../../intake/JN-002-seed-compliance-calendar.md) and the
+once confirmed it feeds [`JN-027`](../../intake/JN-027-seed-compliance-calendar.md) and the
 dashboard's `biz.compliance_dates`.
 
 ## Standing caveat

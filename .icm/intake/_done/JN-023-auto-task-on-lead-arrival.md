@@ -1,3 +1,5 @@
+> Dropped: the leads list already surfaces who is waiting (longest-waiting first, new leads on top); the auto-task would duplicate that signal. 2026-08-27 estate ticket audit.
+
 # JN-023 · Auto-task on lead arrival
 
 | | |

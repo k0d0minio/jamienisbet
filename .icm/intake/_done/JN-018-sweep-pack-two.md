@@ -1,3 +1,5 @@
+> Dropped: rides JN-017 entirely (dropped with it), and one leg gates on blocked JN-027; re-cut from evidence once a sweep exists. 2026-08-27 estate ticket audit.
+
 # JN-018 · Sweep pack two — forms chase, conversion gaps, compliance lookahead
 
 | | |

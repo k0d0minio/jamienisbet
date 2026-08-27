@@ -1,3 +1,5 @@
+> Dropped: contradicts the register — the 2026-08 simplification removed draft-only outreach composition ('the dashboard tracks people, it does not generate documents'); wanting it back means amending the decision first. 2026-08-27 estate ticket audit.
+
 # JN-024 · Draft-first reply composer on the lead profile
 
 | | |
