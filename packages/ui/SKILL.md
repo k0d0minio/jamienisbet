@@ -9,7 +9,7 @@ Read the `BRAND.md` file within this skill first — it holds the brand context,
 ## What's here
 - `styles.css` — the **Tailwind v4 + shadcn/ui** theme entry; React apps link this one file. `tokens.css` + `tokens/` — the variables-only token system (colour, type, spacing, radius, shadow, motion, fonts) for non-Tailwind surfaces. Light + dark via `[data-theme="dark"]`. Design against the semantic aliases (`--surface`, `--text-1`, `--border`, `--primary`) / the shadcn utilities (`bg-card`, `text-muted-foreground`).
 - `assets/logo/` — logo marks (JN monogram + slate-tile variant). `assets/brand/` — social card + email signature. `assets/lib/icons.js` — Lucide `<Icon>` helper for UMD/static surfaces.
-- `src/components/` — idiomatic shadcn/ui primitives (TSX, Button/Card/Input/Badge/Dialog/…) themed with the brand tokens, plus brand-only Eyebrow / IconButton / logo marks. Import from the package barrel (`@jamie-nisbet/ui`).
+- `src/components/` — idiomatic shadcn/ui primitives (TSX, Button/Card/Input/Badge/Dialog/…) themed with the brand tokens, the glanceable data-viz primitives (Stat / Delta / Sparkline / Meter — inline SVG, no chart library), plus brand-only Eyebrow / IconButton / logo marks. Import from the package barrel (`@jamie-nisbet/ui`).
 
 ## How to work
 - **Voice:** quiet, casual confidence. First person ("I…"), sentence case, no emoji, no hype. Mono for labels/figures. Let numbers carry weight. (Full rules in `BRAND.md` → Content fundamentals.)
