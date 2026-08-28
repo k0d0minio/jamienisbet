@@ -62,7 +62,7 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
   package; never fork tokens per site.
 - **Planning is tickets.** Any plan, backlog, or task list becomes markdown tickets in
   `.icm/intake/` — never a loose `TODO.md`/`BACKLOG.md`. Tickets ARE the plan: day =
-  `Status: today` (≤3 estate-wide), week = Priority rows. Ticket-only commits go straight
+  `Status: today` (≤10 estate-wide), week = Priority rows. Ticket-only commits go straight
   to `main`; everything else through a PR on a `claude/` branch.
 - **No outbound action without review.** Invoices are raised as drafts; finalizing and
   emailing is a separate, deliberate click. Outreach email is composed and sent by a human.
