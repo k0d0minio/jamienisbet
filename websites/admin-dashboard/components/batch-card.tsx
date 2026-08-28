@@ -194,11 +194,10 @@ export function BatchCard({
                 : ""}
             </SheetDescription>
           </SheetHeader>
-          {/* The batch's own maintenance button: a session that re-grounds the
-              breakdown in the current state of the code. */}
+          {/* The batch's own maintenance button: a session that re-grounds
+              the breakdown in the current state of the code. The sheet body
+              is a grid — justify, not align, keeps it hugging its label. */}
           {recutUrl ? (
-            {/* The sheet body is a grid — justify, not align, keeps the
-                button hugging its label width. */}
             <Button asChild variant="secondary" size="sm" className="justify-self-start">
               <a href={recutUrl} target="_blank" rel="noreferrer">
                 <Scissors aria-hidden />
