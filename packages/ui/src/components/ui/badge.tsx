@@ -10,16 +10,20 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+        // Chips rendered as links press-deepen (BRAND.md): hover shifts,
+        // :active lands on the deeper step so touch gets instant feedback.
+        default:
+          "bg-primary text-primary-foreground [a&]:hover:bg-primary-hover [a&]:active:bg-primary-active",
         secondary:
-          "bg-secondary text-secondary-foreground border-border [a&]:hover:bg-secondary/90",
+          "bg-secondary text-secondary-foreground border-border [a&]:hover:bg-secondary/90 [a&]:active:bg-muted",
         outline:
-          "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground [a&]:active:bg-accent [a&]:active:text-accent-foreground",
         success: "bg-success-soft text-success",
         warning: "bg-warning-soft text-warning",
         destructive: "bg-destructive-soft text-destructive",
-        ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 [a&]:hover:underline",
+        ghost:
+          "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground [a&]:active:bg-accent [a&]:active:text-accent-foreground",
+        link: "text-primary underline-offset-4 [a&]:hover:underline [a&]:active:text-primary-active",
       },
     },
     defaultVariants: {

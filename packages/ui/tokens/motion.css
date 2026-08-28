@@ -13,6 +13,11 @@
   --duration-slow:   260ms;   /* @kind other */
   --duration-slower: 400ms;   /* @kind other */
 
+  /* Continuous loops — the rolling-deploy spinner and the skeleton shimmer,
+     the only motion that runs longer than a transition. Still calm. */
+  --duration-spin:    900ms;  /* @kind other */
+  --duration-shimmer: 2200ms; /* @kind other */
+
   --transition-control: background-color var(--duration-fast) var(--ease-out),
                         border-color var(--duration-fast) var(--ease-out),
                         color var(--duration-fast) var(--ease-out),

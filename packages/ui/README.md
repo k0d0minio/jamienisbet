@@ -50,12 +50,16 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch` |
 | Navigation | `Tabs` (+ `TabsList`/`TabsTrigger`/`TabsContent`) |
 | Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`), `Dialog` (+ parts) |
+| Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
 `text-2xs` chip with muted `success`/`warning` tints, `Alert` uses soft tinted variants.
+Every interactive variant press-deepens on `:active` (the primary button lands on
+`--primary-active`) — press is a colour change, never a shrink — and `transition-*`
+utilities default to the brand clock from `tokens/motion.css` (120–260ms, ease-out).
 
 ### Data-viz primitives
 Four dependency-free primitives for the numbers on an operating screen — **inline SVG, no
@@ -176,6 +180,49 @@ Theming is driven by the `[data-theme="dark"]` attribute (not the `.dark` class)
 `data-theme` on `<html>` — e.g. with a small client toggle or `next-themes`
 (`attribute="data-theme"`). The brand semantic aliases flip, and every shadcn color token
 flips with them.
+
+### Motion & feedback
+All animation rides `tokens/motion.css` (durations, easings, and the two loop speeds
+`--duration-spin`/`--duration-shimmer`) and honours `prefers-reduced-motion`.
+
+- **`Skeleton`** — brand-quiet loading placeholder: the sunken surface with a slow
+  highlight sweep (static under reduced motion). `shape` picks a layout — `line` (a text
+  line), `row` (a list row), `card`, `stat` (a mono figure) — or the default free-form
+  `block` you size with `className`. Skeletons are `aria-hidden`; mark the region they
+  stand in for with `aria-busy`.
+- **`Spinner`** — the "rolling deploy": a ring of six segments turning steadily, the one
+  decorative loop the brand allows. Draws in `currentColor` at icon size, so it drops
+  into buttons as-is. Standalone it announces "Loading"; inside a labelled control pass
+  `aria-hidden`.
+- **`Toaster` + `toast()`** — quiet confirmations for actions that resolve off-screen.
+  Mount `<Toaster />` once in the root layout, then `toast("Saved")`,
+  `toast.success("Invoice sent")`, `toast.error("Couldn't save", { description: "…" })`.
+  Bottom-centre on phones (safe-area aware — set `--toaster-offset` to the height of any
+  fixed chrome, e.g. `3.5rem` for the admin's tab bar), bottom-right from `sm` up.
+  Auto-dismisses after 4s, three visible at most, tap to dismiss early — no stacking
+  circus.
+- **`PendingButton`** — a `Button` that acknowledges the press: spinner in, label
+  swapped for `pendingText`, disabled, `aria-busy`. Inside a `<form action={…}>` it
+  reads `useFormStatus()` by itself; for `useTransition` flows pass
+  `pending={isPending}`.
+
+```tsx
+// a server-action form — pending state comes free
+<form action={sendBrief}>
+  <PendingButton pendingText="Sending…">Send brief</PendingButton>
+</form>
+
+// a useTransition flow
+const [isPending, startTransition] = useTransition()
+<PendingButton
+  pending={isPending}
+  pendingText="Saving…"
+  variant="outline"
+  onClick={() => startTransition(() => markTouched(id))}
+>
+  Mark touched
+</PendingButton>
+```
 
 ### Icons
 The brand icon system is [Lucide](https://lucide.dev). In React apps import `lucide-react`
