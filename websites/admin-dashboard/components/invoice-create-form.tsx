@@ -156,7 +156,7 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
           <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       ) : null}
-      <PendingButton pending={pending} pendingLabel="Creating…" className="self-start">
+      <PendingButton pending={pending} pendingText="Creating…" className="self-start">
         Create draft invoice
       </PendingButton>
     </form>

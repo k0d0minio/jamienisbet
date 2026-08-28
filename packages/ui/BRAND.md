@@ -43,7 +43,7 @@ The brand voice is *quiet, casual confidence* — professional without being cor
 
 **Elevation.** Shadows are **soft and low** and used sparingly — a card resting state is usually *just a border*. Shadow appears mainly on hover (cards lift `translateY(-2px)` + `--shadow-md`) and on overlays/dialogs (`--shadow-xl`).
 
-**Motion.** Quick and confident: 120–260ms, ease-out (`cubic-bezier(0.2,0,0,1)`). **No bounce, no spring.** Transitions are fades and small (2px) translations. Hover = subtle background/border shift or a small lift; **press = colour deepens** (`--primary-active`), never a cartoonish shrink. A single decorative loop is allowed (the "rolling deploy" spinner). Respects `prefers-reduced-motion`.
+**Motion.** Quick and confident: 120–260ms, ease-out (`cubic-bezier(0.2,0,0,1)`). **No bounce, no spring.** Transitions are fades and small (2px) translations. Hover = subtle background/border shift or a small lift; **press = colour deepens** (`--primary-active`), never a cartoonish shrink. A single decorative loop is allowed (the "rolling deploy" spinner); loops — the spinner and the skeleton shimmer — run on `--duration-spin`/`--duration-shimmer`, far slower than any transition. Respects `prefers-reduced-motion` (loops stand still; transitions snap).
 
 **Cards.** Surface fill, 1px `--border`, 12px radius, generous padding (`--space-5`). Interactive cards add a hover lift. No coloured left-border accents, no drop-shadow-by-default.
 
@@ -80,7 +80,7 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 - `lib/icons.js` — shared Lucide → `<Icon>` helper for UMD/static surfaces.
 
 **Components** (TSX, idiomatic shadcn/ui themed with the brand tokens; import from the `@jamie-nisbet/ui` barrel)
-- `src/components/ui/` — Button, Badge, Card, Avatar, Input, Label, Textarea, Select, Checkbox, Switch, Tabs, Alert, Dialog, Sheet. Compositional where shadcn is (e.g. `Card` + `CardHeader` + `CardTitle`; `Tabs` + `TabsList` + `TabsTrigger`). Also the glanceable data-viz primitives — Stat, Delta, Sparkline, Meter (inline SVG, no chart library; see § Data & figures).
+- `src/components/ui/` — Button, Badge, Card, Avatar, Input, Label, Textarea, Select, Checkbox, Switch, Tabs, Alert, Dialog, Sheet, plus the motion/feedback set: Skeleton, Spinner, Toaster + `toast()`, PendingButton. Compositional where shadcn is (e.g. `Card` + `CardHeader` + `CardTitle`; `Tabs` + `TabsList` + `TabsTrigger`). Also the glanceable data-viz primitives — Stat, Delta, Sparkline, Meter (inline SVG, no chart library; see § Data & figures).
 - `src/components/brand/` — Eyebrow, IconButton, LogoMark / LogoMarkSolid (brand-only; no shadcn equivalent).
 - `src/lib/utils.ts` — the `cn()` class-merge helper. Types come from the TSX source.
 

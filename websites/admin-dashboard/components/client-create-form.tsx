@@ -300,7 +300,7 @@ export function ClientCreateForm() {
             >
               Cancel
             </Button>
-            <PendingButton pending={pending} pendingLabel="Adding…">
+            <PendingButton pending={pending} pendingText="Adding…">
               {kind.submit}
             </PendingButton>
           </div>

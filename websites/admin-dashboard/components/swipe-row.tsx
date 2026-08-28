@@ -193,7 +193,8 @@ export function SwipeRow({
         ref={contentRef}
         className={cn(
           "relative touch-pan-y",
-          !dragging && "transition-transform duration-200 ease-out"
+          // Snap-back rides the brand clock (tokens/motion.css).
+          !dragging && "transition-transform duration-(--duration-base) ease-(--ease-out)"
         )}
         style={{ transform: offset !== 0 ? `translateX(${offset}px)` : undefined }}
         onPointerDown={onPointerDown}
@@ -228,8 +229,11 @@ export function SwipeAction({
   external?: boolean
 }) {
   const classes = cn(
-    "flex w-[4.5rem] flex-col items-center justify-center gap-1 text-[11px] font-medium",
-    "transition-opacity active:opacity-80",
+    "relative isolate flex w-[4.5rem] flex-col items-center justify-center gap-1 text-[11px] font-medium",
+    // Press = colour deepens (BRAND.md), not a ghost fade: a foreground-tinted
+    // scrim behind the icon/label over the caller's solid colour — darkens in
+    // light, lifts in dark, the direction --primary-active moves.
+    "after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-foreground/0 after:transition-colors active:after:bg-foreground/10",
     className
   )
   if (href) {

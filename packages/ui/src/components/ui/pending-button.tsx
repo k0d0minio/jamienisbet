@@ -6,47 +6,51 @@ import { useFormStatus } from "react-dom"
 import { Button } from "./button"
 import { Spinner } from "./spinner"
 
-// A submit that shows it's working, so no call site has to wire the spinner and
-// the disabled state by hand again.
+// The pending-action affordance: a Button that shows the rolling-deploy
+// spinner and disables itself while its action is in flight, so a submit
+// acknowledges the press for free. Two ways in:
 //
-// Two ways in, because the app writes in two shapes:
-//   * inside a `<form action={…}>` — drop it in and `useFormStatus` supplies the
-//     pending flag for free;
-//   * driving a server action from `useTransition` — pass `pending` explicitly
-//     and it wins over the form status.
+//   - Inside a <form action={…}> it reads useFormStatus() on its own:
+//       <PendingButton>Send brief</PendingButton>
+//   - For useTransition flows, pass the flag:
+//       <PendingButton pending={isPending} pendingText="Saving…">Mark touched</PendingButton>
 //
-// The label stays put while pending — the spinner is added ahead of it rather
-// than swapped in, so the button keeps roughly its width and the thumb keeps its
-// target. `pendingLabel` replaces the words for the cases worth narrating
-// ("Saving…"), which is also how a call site drops an icon it doesn't want
-// sitting next to the spinner.
+// `pendingText` replaces the children while pending (use it when the resting
+// label carries an icon); without it the spinner slots in ahead of the label.
 function PendingButton({
-  children,
   pending: pendingProp,
-  pendingLabel,
+  pendingText,
+  type = "submit",
   disabled,
+  children,
   ...props
 }: React.ComponentProps<typeof Button> & {
-  /** Overrides the enclosing form's status — for `useTransition` callers. */
+  /** Overrides the surrounding form's status (e.g. from useTransition). */
   pending?: boolean
-  /** Replaces the label while pending. Defaults to keeping `children`. */
-  pendingLabel?: React.ReactNode
+  /** Label shown while pending, in place of the children. */
+  pendingText?: React.ReactNode
 }) {
-  // Safe outside a form: `useFormStatus` simply reports `false` there.
-  const { pending: formPending } = useFormStatus()
-  const pending = pendingProp ?? formPending
+  // Outside a <form> this reports { pending: false }, so the prop decides.
+  const formStatus = useFormStatus()
+  const pending = pendingProp ?? formStatus.pending
 
   return (
     <Button
-      type="submit"
-      disabled={disabled || pending}
-      // Disabled already dims it; this says *why*, for anything watching.
-      aria-busy={pending || undefined}
+      type={type}
       data-pending={pending || undefined}
+      disabled={disabled || pending}
+      aria-busy={pending || undefined}
       {...props}
     >
-      {pending ? <Spinner label="" /> : null}
-      {pending && pendingLabel !== undefined ? pendingLabel : children}
+      {pending ? (
+        <>
+          {/* aria-busy on the button already tells the story. */}
+          <Spinner aria-hidden="true" />
+          {pendingText ?? children}
+        </>
+      ) : (
+        children
+      )}
     </Button>
   )
 }

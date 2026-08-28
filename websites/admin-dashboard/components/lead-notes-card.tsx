@@ -69,7 +69,7 @@ export function LeadNotesCard({ id, notes }: { id: string; notes: string | null 
               />
               <PendingButton
                 pending={pending}
-                pendingLabel="Saving…"
+                pendingText="Saving…"
                 className="w-full sm:w-fit"
               >
                 Save

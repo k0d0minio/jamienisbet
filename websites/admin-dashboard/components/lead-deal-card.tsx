@@ -214,7 +214,7 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
 
               <PendingButton
                 pending={pending}
-                pendingLabel="Saving…"
+                pendingText="Saving…"
                 className="w-full sm:w-fit"
               >
                 Save

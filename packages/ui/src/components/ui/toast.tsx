@@ -1,161 +1,177 @@
 "use client"
 
 import * as React from "react"
-import { Check, TriangleAlert } from "lucide-react"
+import { Check, CircleAlert } from "lucide-react"
 
 import { cn } from "../../lib/utils"
 
-// Quiet confirmation for things that happen off-screen or can't be seen from
-// where you're standing: a row archived out of the list, an invoice raised, a
-// link on the clipboard, an optimistic edit that the server then refused.
+// Quiet confirmation for actions that resolve off-screen (server actions,
+// background saves). Hand-rolled rather than a dependency — one module store,
+// one viewport, no stacking circus: at most three visible, newest at the
+// bottom, each auto-dismissing. Copy is sentence case and one short line.
 //
-// Hand-rolled rather than wrapping sonner: what's needed here is a list, a
-// timer, and a live region — a dependency for that would be larger than the
-// thing itself, and it would arrive with its own animation vocabulary to
-// re-theme.
-//
-// Dispatched through a document event rather than a React context, so `toast()`
-// is callable from any client component without a provider having to sit above
-// it — the same broadcast idiom the swipe rows already use for their
-// one-open-at-a-time close.
+// Usage: mount <Toaster /> once in the app root layout, then call
+//   toast("Saved")
+//   toast.success("Invoice sent", { description: "INV-0042 · €1,200" })
+//   toast.error("Couldn't save")
+// Phones get it bottom-centre; set `--toaster-offset` (e.g. the tab bar
+// height) on the app root to keep it above fixed chrome. Desktop (sm+) gets
+// the bottom-right corner. Tapping a toast dismisses it early.
 
-const EVENT = "jn:toast"
+type ToastVariant = "default" | "success" | "error"
 
-export type ToastTone = "default" | "success" | "error"
-
-export type ToastOptions = {
-  tone?: ToastTone
-  /** Milliseconds on screen. Errors default to longer — they're read, not glanced. */
+type ToastOptions = {
+  /** A second, muted line under the message. */
+  description?: string
+  /** Milliseconds before auto-dismiss. */
   duration?: number
 }
 
-type ToastItem = ToastOptions & { id: number; message: string }
+type ToastItem = {
+  id: number
+  message: string
+  description?: string
+  variant: ToastVariant
+  duration: number
+  /** false while animating out; removed once the exit transition has run. */
+  open: boolean
+}
+
+const VISIBLE_MAX = 3
+const DEFAULT_DURATION = 4000
+// Cleanup delay, not an animation: just past --duration-slow (260ms) so the
+// exit transition has finished before the node is removed.
+const EXIT_MS = 300
 
 let nextId = 0
+let toasts: ToastItem[] = []
+const listeners = new Set<() => void>()
 
-/** Show a toast. A no-op on the server, so it's safe to call from an action
- *  handler without guarding. Sentence case, no full stop — it's a line, not a
- *  paragraph. */
-export function toast(message: string, options: ToastOptions = {}) {
-  if (typeof document === "undefined") return
-  document.dispatchEvent(
-    new CustomEvent<ToastItem>(EVENT, {
-      detail: { id: nextId++, message, ...options },
-    })
+function emit() {
+  for (const listener of listeners) listener()
+}
+
+function push(message: string, variant: ToastVariant, options: ToastOptions = {}) {
+  const id = ++nextId
+  // Cap the stack by dropping the oldest outright — no queueing theatre.
+  toasts = [
+    ...toasts.slice(-(VISIBLE_MAX - 1)),
+    {
+      id,
+      message,
+      variant,
+      open: true,
+      duration: options.duration ?? DEFAULT_DURATION,
+      description: options.description,
+    },
+  ]
+  emit()
+  return id
+}
+
+function dismiss(id?: number) {
+  if (typeof window === "undefined") return
+  if (!toasts.some((t) => t.open && (id === undefined || t.id === id))) return
+  toasts = toasts.map((t) =>
+    id === undefined || t.id === id ? { ...t, open: false } : t
+  )
+  emit()
+  window.setTimeout(() => {
+    toasts = toasts.filter((t) => t.open)
+    emit()
+  }, EXIT_MS)
+}
+
+/** Show a toast. Returns an id `toast.dismiss(id)` accepts. */
+function toast(message: string, options?: ToastOptions) {
+  return push(message, "default", options)
+}
+toast.success = (message: string, options?: ToastOptions) =>
+  push(message, "success", options)
+toast.error = (message: string, options?: ToastOptions) =>
+  push(message, "error", options)
+/** Dismiss one toast by id, or every toast with no argument. */
+toast.dismiss = dismiss
+
+function useToasts() {
+  return React.useSyncExternalStore(
+    (onStoreChange) => {
+      listeners.add(onStoreChange)
+      return () => {
+        listeners.delete(onStoreChange)
+      }
+    },
+    () => toasts,
+    () => toasts
   )
 }
 
-/** `toast(message, { tone: "error" })`, for the rollback path where that's the
- *  only thing being said. */
-toast.error = (message: string, options: ToastOptions = {}) =>
-  toast(message, { ...options, tone: "error" })
-
-toast.success = (message: string, options: ToastOptions = {}) =>
-  toast(message, { ...options, tone: "success" })
-
-const DEFAULT_DURATION = 3200
-const ERROR_DURATION = 5000
-
-// Three at once is a list; more is a circus. The oldest drops off the back.
-const MAX_VISIBLE = 3
-
-const TONE_STYLES: Record<ToastTone, string> = {
-  default: "",
-  success: "text-success",
-  error: "text-destructive",
-}
-
-function ToastIcon({ tone }: { tone: ToastTone }) {
-  if (tone === "success") return <Check className="size-4 shrink-0" aria-hidden />
-  if (tone === "error") {
-    return <TriangleAlert className="size-4 shrink-0" aria-hidden />
-  }
-  return null
-}
-
-/**
- * Mount once at the app root. Bottom-centre above the thumb on a phone, bottom
- * corner from `sm` up.
- *
- * `className` positions the stack: an app with a fixed bottom tab bar passes
- * its own offset so the toasts clear it (the admin's `bottom-above-tabs`).
- */
-export function Toaster({ className }: { className?: string }) {
-  const [items, setItems] = React.useState<ToastItem[]>([])
-  // Timers are keyed by toast id so a dismissal can cancel exactly its own.
-  const timers = React.useRef(new Map<number, ReturnType<typeof setTimeout>>())
-
-  const dismiss = React.useCallback((id: number) => {
-    const timer = timers.current.get(id)
-    if (timer) {
-      clearTimeout(timer)
-      timers.current.delete(id)
-    }
-    setItems((current) => current.filter((item) => item.id !== id))
-  }, [])
-
+function ToastCard({ item }: { item: ToastItem }) {
   React.useEffect(() => {
-    function onToast(event: Event) {
-      const item = (event as CustomEvent<ToastItem>).detail
-      setItems((current) => [...current, item].slice(-MAX_VISIBLE))
+    const timer = window.setTimeout(() => dismiss(item.id), item.duration)
+    return () => window.clearTimeout(timer)
+  }, [item.id, item.duration])
 
-      const duration =
-        item.duration ??
-        (item.tone === "error" ? ERROR_DURATION : DEFAULT_DURATION)
-      timers.current.set(
-        item.id,
-        setTimeout(() => dismiss(item.id), duration)
-      )
-    }
-
-    document.addEventListener(EVENT, onToast)
-    return () => {
-      document.removeEventListener(EVENT, onToast)
-    }
-  }, [dismiss])
-
-  // Clear every outstanding timer on unmount — separate from the listener
-  // effect so re-running that one never cancels a toast mid-life.
-  React.useEffect(() => {
-    const pending = timers.current
-    return () => {
-      pending.forEach(clearTimeout)
-      pending.clear()
-    }
-  }, [])
+  const Icon =
+    item.variant === "success" ? Check : item.variant === "error" ? CircleAlert : null
 
   return (
     <div
-      // `role="status"` (polite) rather than an alert: nothing here interrupts,
-      // and the region has to exist before the first toast for the announcement
-      // to land — so it renders empty rather than conditionally.
-      role="status"
-      aria-live="polite"
+      // Errors interrupt politely-but-now; confirmations wait their turn.
+      role={item.variant === "error" ? "alert" : "status"}
+      data-state={item.open ? "open" : "closed"}
+      onClick={() => dismiss(item.id)}
       className={cn(
-        "pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-50",
-        "flex flex-col items-center gap-2 px-4",
-        "sm:inset-x-auto sm:right-6 sm:bottom-6 sm:items-end sm:px-0",
-        className
+        "pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-md border bg-card px-4 py-3 text-sm text-card-foreground shadow-lg",
+        // Fade + 2px rise on the brand clock; instant under reduced motion.
+        "transition-[opacity,translate] duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none",
+        "starting:translate-y-0.5 starting:opacity-0",
+        "data-[state=closed]:translate-y-0.5 data-[state=closed]:opacity-0"
       )}
     >
-      {items.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          // Tapping dismisses early. It's the whole interaction — a toast with
-          // a close button is a dialog that hasn't admitted it yet.
-          onClick={() => dismiss(item.id)}
+      {Icon ? (
+        <Icon
+          aria-hidden="true"
           className={cn(
-            "pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-sm border bg-card px-3 py-2.5 text-left text-sm shadow-md",
-            "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
-            "transition-colors active:bg-muted sm:w-auto",
-            TONE_STYLES[item.tone ?? "default"]
+            "mt-0.5 size-4 shrink-0",
+            item.variant === "success" ? "text-success" : "text-destructive"
           )}
-        >
-          <ToastIcon tone={item.tone ?? "default"} />
-          <span className="flex-1 text-card-foreground">{item.message}</span>
-        </button>
-      ))}
+        />
+      ) : null}
+      <div className="grid gap-0.5">
+        <p className="font-medium">{item.message}</p>
+        {item.description ? (
+          <p className="text-muted-foreground">{item.description}</p>
+        ) : null}
+      </div>
     </div>
   )
 }
+
+function Toaster({ className, ...props }: React.ComponentProps<"section">) {
+  const items = useToasts()
+
+  return (
+    <section
+      data-slot="toaster"
+      aria-label="Notifications"
+      className={cn(
+        // Bottom-centre on phones, riding above the safe area and whatever
+        // fixed chrome the app declares via --toaster-offset; bottom-right
+        // corner from sm up. The viewport never intercepts taps — the cards do.
+        "pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-4",
+        "bottom-[calc(--spacing(4)+env(safe-area-inset-bottom,0px)+var(--toaster-offset,0px))]",
+        "sm:inset-x-auto sm:right-6 sm:bottom-6 sm:items-end sm:px-0",
+        className
+      )}
+      {...props}
+    >
+      {items.map((item) => (
+        <ToastCard key={item.id} item={item} />
+      ))}
+    </section>
+  )
+}
+
+export { Toaster, toast }
+export type { ToastOptions, ToastVariant }

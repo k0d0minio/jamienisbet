@@ -47,42 +47,28 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Group | Components |
 |---|---|
 | Core | `Button`, `Badge`, `Card` (+ `CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`), `Avatar` (+ `AvatarImage`/`AvatarFallback`) |
-| Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch`, `PendingButton` |
+| Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch` |
 | Navigation | `Tabs` (+ `TabsList`/`TabsTrigger`/`TabsContent`) |
 | Overlays | `Dialog` (+ parts), `Sheet` (+ parts) — the phone-first bottom sheet, keyboard-aware |
-| Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`), `Skeleton` (+ `SkeletonText`/`SkeletonRow`/`SkeletonFigure`), `Spinner`, `Toaster` + `toast()` |
+| Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`) |
+| Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
 `text-2xs` chip with muted `success`/`warning` tints, `Alert` uses soft tinted variants.
+Every interactive variant press-deepens on `:active` (the primary button lands on
+`--primary-active`) — press is a colour change, never a shrink — and `transition-*`
+utilities default to the brand clock from `tokens/motion.css` (120–260ms, ease-out).
 
-### Motion & feedback
+### Keyboard-aware sheets
 
-Four primitives cover the gap between "the action fired" and "the page came back", all
-driven by `tokens/motion.css` and all silent under `prefers-reduced-motion`:
-
-- **`Spinner`** — the "rolling deploy" loop, the one decorative animation BRAND.md
-  licenses. Inherits `currentColor` and `size-4`, so it drops into a button label as-is.
-  Pass `label=""` beside text that already says what's happening.
-- **`Skeleton`** and its shapes (`SkeletonText`, `SkeletonRow`, `SkeletonFigure`) — for
-  reads that leave the machine. A skeleton stands in for what's coming, at its size and
-  in its place; a lone spinner on an empty page is not one. Pair with `loading.tsx`.
-- **`toast(message, { tone })`** (plus `toast.success` / `toast.error`) with a single
-  **`<Toaster />`** mounted at the app root. For outcomes you can't see from where you're
-  standing — a row archived out of the list, a link copied, an optimistic edit the server
-  refused. Bottom-centre on a phone, bottom-right from `sm` up; pass `className` to clear
-  a fixed tab bar. No provider needed: `toast()` broadcasts on a document event.
-- **`PendingButton`** — a submit that shows it's working. Inside `<form action={…}>` it
-  reads `useFormStatus` on its own; drive it from `useTransition` by passing `pending`.
-  `pendingLabel` swaps the words while it runs.
-
-`Sheet` also lifts itself above the on-screen keyboard and scrolls the focused field into
+`Sheet` lifts itself above the on-screen keyboard and scrolls the focused field into
 view (`useKeyboardInset`, exported for anything else pinned to the bottom edge). Apps
 that want the layout viewport to shrink instead should set
 `interactiveWidget: "resizes-content"` in their Next `viewport` export — the two don't
-fight.
+fight, because the measurement reads zero once the layout viewport has already shrunk.
 
 ### Data-viz primitives
 Four dependency-free primitives for the numbers on an operating screen — **inline SVG, no
@@ -203,6 +189,49 @@ Theming is driven by the `[data-theme="dark"]` attribute (not the `.dark` class)
 `data-theme` on `<html>` — e.g. with a small client toggle or `next-themes`
 (`attribute="data-theme"`). The brand semantic aliases flip, and every shadcn color token
 flips with them.
+
+### Motion & feedback
+All animation rides `tokens/motion.css` (durations, easings, and the two loop speeds
+`--duration-spin`/`--duration-shimmer`) and honours `prefers-reduced-motion`.
+
+- **`Skeleton`** — brand-quiet loading placeholder: the sunken surface with a slow
+  highlight sweep (static under reduced motion). `shape` picks a layout — `line` (a text
+  line), `row` (a list row), `card`, `stat` (a mono figure) — or the default free-form
+  `block` you size with `className`. Skeletons are `aria-hidden`; mark the region they
+  stand in for with `aria-busy`.
+- **`Spinner`** — the "rolling deploy": a ring of six segments turning steadily, the one
+  decorative loop the brand allows. Draws in `currentColor` at icon size, so it drops
+  into buttons as-is. Standalone it announces "Loading"; inside a labelled control pass
+  `aria-hidden`.
+- **`Toaster` + `toast()`** — quiet confirmations for actions that resolve off-screen.
+  Mount `<Toaster />` once in the root layout, then `toast("Saved")`,
+  `toast.success("Invoice sent")`, `toast.error("Couldn't save", { description: "…" })`.
+  Bottom-centre on phones (safe-area aware — set `--toaster-offset` to the height of any
+  fixed chrome, e.g. `3.5rem` for the admin's tab bar), bottom-right from `sm` up.
+  Auto-dismisses after 4s, three visible at most, tap to dismiss early — no stacking
+  circus.
+- **`PendingButton`** — a `Button` that acknowledges the press: spinner in, label
+  swapped for `pendingText`, disabled, `aria-busy`. Inside a `<form action={…}>` it
+  reads `useFormStatus()` by itself; for `useTransition` flows pass
+  `pending={isPending}`.
+
+```tsx
+// a server-action form — pending state comes free
+<form action={sendBrief}>
+  <PendingButton pendingText="Sending…">Send brief</PendingButton>
+</form>
+
+// a useTransition flow
+const [isPending, startTransition] = useTransition()
+<PendingButton
+  pending={isPending}
+  pendingText="Saving…"
+  variant="outline"
+  onClick={() => startTransition(() => markTouched(id))}
+>
+  Mark touched
+</PendingButton>
+```
 
 ### Icons
 The brand icon system is [Lucide](https://lucide.dev). In React apps import `lucide-react`

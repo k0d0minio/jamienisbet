@@ -221,7 +221,7 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
               </div>
               <PendingButton
                 pending={pending}
-                pendingLabel="Saving…"
+                pendingText="Saving…"
                 className="w-full sm:w-fit"
               >
                 Save

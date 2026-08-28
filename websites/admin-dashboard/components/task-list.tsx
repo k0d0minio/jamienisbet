@@ -318,9 +318,10 @@ export function TaskList({
             pending={adding}
             aria-label="Add todo"
             className="shrink-0 px-3"
-            // While it runs the spinner stands in for the plus, so the button
-            // keeps its width on a phone where it is icon-only.
-            pendingLabel={<span className="hidden sm:inline">Adding…</span>}
+            // pendingText replaces the children, so the plus gives way to the
+            // spinner rather than sitting beside it — the button keeps its
+            // width on a phone, where it is icon-only.
+            pendingText={<span className="hidden sm:inline">Adding…</span>}
           >
             <Plus />
             <span className="hidden sm:inline">Add</span>

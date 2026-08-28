@@ -25,8 +25,9 @@ export default function AppLayout({
       </PullToRefresh>
       {/* Confirmations for what you can't see from where you're standing — a
           row archived out of the list, a link copied, an edit the server
-          refused. Cleared past the tab bar so it never covers the thumb. */}
-      <Toaster className="bottom-above-tabs sm:bottom-6" />
+          refused. `--toaster-offset` is the fixed tab bar's height, which the
+          Toaster adds to the safe area so it never covers the thumb. */}
+      <Toaster style={{ "--toaster-offset": "3.5rem" } as React.CSSProperties} />
     </div>
   )
 }

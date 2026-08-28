@@ -90,7 +90,14 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
             with the pull, and once released it hands over to the design
             system's spinner — the same loop every other pending action uses. */}
         {refreshing ? (
-          <Spinner className="mb-2 size-5 text-muted-foreground" label="Refreshing" />
+          // The Spinner labels itself "Loading"; the sr-only line below says the
+          // more specific thing, so here it is decorative.
+          <Spinner
+            className="mb-2 size-5 text-muted-foreground"
+            role={undefined}
+            aria-label={undefined}
+            aria-hidden="true"
+          />
         ) : (
           <RefreshCw
             className={cn(
@@ -101,6 +108,9 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
             aria-hidden
           />
         )}
+        <span className="sr-only" role="status">
+          {refreshing ? "Refreshing" : ""}
+        </span>
       </div>
       {children}
     </div>
