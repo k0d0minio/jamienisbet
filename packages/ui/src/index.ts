@@ -26,6 +26,12 @@ export * from "./components/ui/tabs"
 export * from "./components/ui/textarea"
 export * from "./components/ui/toast"
 
+// glanceable data-viz primitives (inline SVG, no chart library)
+export * from "./components/ui/delta"
+export * from "./components/ui/meter"
+export * from "./components/ui/sparkline"
+export * from "./components/ui/stat"
+
 // brand-only primitives
 export * from "./components/brand/eyebrow"
 export * from "./components/brand/icon-button"

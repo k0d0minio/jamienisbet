@@ -29,8 +29,10 @@ generous whitespace, and a full light **+ dark** theme. The longer brand guide l
   `[data-theme="dark"]`. **Always design against the semantic aliases** (`--surface`,
   `--text-1`, `--border`, `--primary`), not the raw ramps. These declare their variables
   *unlayered*, so they override Tailwind's defaults automatically.
-- **`src/components/ui/`** — the shadcn primitives (TSX). **`src/components/brand/`** — the
-  brand-only primitives (Eyebrow, IconButton, the JN logo marks).
+- **`src/components/ui/`** — the shadcn primitives (TSX), plus the glanceable data-viz
+  primitives (`Stat`, `Delta`, `Sparkline`, `Meter` — inline SVG, no chart library).
+  **`src/components/brand/`** — the brand-only primitives (Eyebrow, IconButton, the JN
+  logo marks).
 - **`src/lib/utils.ts`** — the `cn()` class-merge helper. **`src/index.ts`** — the barrel.
 - **`assets/`** — `logo/` (JN monogram SVGs), `brand/` (social card + email signature HTML),
   `lib/icons.js` (Lucide UMD helper for static HTML).
@@ -49,6 +51,7 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Navigation | `Tabs` (+ `TabsList`/`TabsTrigger`/`TabsContent`) |
 | Overlays | `Dialog` (+ parts), `Sheet` (+ parts) — the phone-first bottom sheet, keyboard-aware |
 | Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`), `Skeleton` (+ `SkeletonText`/`SkeletonRow`/`SkeletonFigure`), `Spinner`, `Toaster` + `toast()` |
+| Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
@@ -80,6 +83,70 @@ view (`useKeyboardInset`, exported for anything else pinned to the bottom edge).
 that want the layout viewport to shrink instead should set
 `interactiveWidget: "resizes-content"` in their Next `viewport` export — the two don't
 fight.
+
+### Data-viz primitives
+Four dependency-free primitives for the numbers on an operating screen — **inline SVG, no
+chart library**, every colour from a semantic token so they read in light and dark alike.
+They render from plain props: fetching, formatting, and what counts as good news are all
+the caller's call.
+
+| Component | What it is | Key props |
+|---|---|---|
+| `Stat` | The stat tile — mono figure, sentence-case label, optional delta, sparkline and caption. The canonical way a number appears. | `label`, `value`, `unit`, `valueLabel`, `delta`, `trend`, `caption`, `size` (`sm`/`md`/`lg`), `bordered` |
+| `Delta` | Trend arrow + signed value (`↗ +12%`). Muted semantic colouring. | `value`, `polarity` (`up-good`/`up-bad`/`none`), `unit`, `precision`, `format`, `comparison`, `size` |
+| `Sparkline` | A hairline line/area for a series — a shape, not a chart. No axes, no tooltips. | `data`, `width`, `height`, `strokeWidth`, `area`, `marker`, `fluid`, `tone`, `min`/`max`, `label`, `decorative` |
+| `Meter` | A thin bar for part-of-whole. Hairline track, flat brand fill, no gradients. | `value`, `max`, `label`, `valueLabel`, `tone`, `size` |
+
+```tsx
+import { Stat, Delta, Sparkline, Meter } from "@jamie-nisbet/ui"
+
+export function MonthAtAGlance() {
+  return (
+    <div className="grid gap-6 sm:grid-cols-3">
+      <Stat
+        bordered
+        label="Collected this month"
+        value="€12,480"
+        valueLabel="12,480 euro"
+        delta={<Delta value={12} unit="%" comparison="vs last month" />}
+        trend={<Sparkline data={[4, 6, 5, 9, 8, 12, 11, 14]} area marker decorative />}
+      />
+      <Stat
+        bordered
+        label="Average days to pay"
+        value="18"
+        // Up is not always good — the caller declares which way is.
+        delta={<Delta value={8} polarity="up-bad" unit="%" comparison="vs last month" />}
+      />
+      <Stat
+        bordered
+        label="Outstanding"
+        value="€3,120"
+        trend={<Meter value={12480} max={15600} valueLabel="80% collected" size="sm" />}
+      />
+    </div>
+  )
+}
+```
+
+Notes:
+- **Polarity is explicit.** `Delta` never assumes a rise is good; `up-bad` flips the tint and
+  `none` stays muted. A zero always renders flat (`→`) and neutral.
+- **Figures are mono, labels are sentence case.** The figure carries the weight; the label
+  reads as prose, not a heading.
+- **Accessibility.** `Delta` speaks its direction ("Up 12% vs last month") with the arrow
+  hidden; `Sparkline` is `role="img"` with a generated summary ("Trend: 8 points, low 4,
+  high 14, latest 14.") unless you pass `label`, or `decorative` when nearby text already
+  says it; `Meter` is a `role="meter"` with `aria-valuetext`; `Stat` takes `valueLabel` to
+  give a compacted figure a spoken form.
+- **Empty and out-of-range are handled.** An empty `Sparkline` series draws a hairline
+  baseline rather than collapsing; a flat series sits on the mid-line; `Meter` clamps to
+  `0…max` and treats `max <= 0` as empty.
+- **Fixed by default, `fluid` on request.** A `Sparkline` renders at its `width`/`height`;
+  pass `fluid` to stretch it to the container (the stroke stays hairline and the end marker
+  stays round).
+- **Formatting is yours.** `Stat` takes a pre-formatted `value`; `Delta`'s default figure is
+  `en-GB` (fixed, so server and client agree) — pass `format` for currency or a locale.
 
 ## Usage (Next.js App Router website)
 The package ships **TSX source** (no build step), so consuming apps transpile it and let
