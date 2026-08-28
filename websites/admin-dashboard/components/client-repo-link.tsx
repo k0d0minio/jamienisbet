@@ -139,7 +139,17 @@ function ConnectExisting({ id }: { id: string }) {
   )
 }
 
-function CreateNew({ id, suggestedName }: { id: string; suggestedName: string }) {
+function CreateNew({
+  id,
+  suggestedName,
+  onScaffoldError,
+}: {
+  id: string
+  suggestedName: string
+  /** Reported upwards rather than shown here: a scaffold warning arrives with
+   * the repo connected, which unmounts this form. */
+  onScaffoldError: (message: string) => void
+}) {
   const [name, setName] = useState(suggestedName)
   const [description, setDescription] = useState("")
   const [isPrivate, setIsPrivate] = useState(true)
@@ -182,11 +192,12 @@ function CreateNew({ id, suggestedName }: { id: string; suggestedName: string })
           setError(null)
           startTransition(async () => {
             try {
-              await createClientRepo(id, {
+              const { scaffoldError } = await createClientRepo(id, {
                 name,
                 description,
                 isPrivate,
               })
+              if (scaffoldError) onScaffoldError(scaffoldError)
             } catch (err) {
               setError(
                 err instanceof Error ? err.message : "Could not create the repo."
@@ -215,13 +226,26 @@ export function ClientRepoLink({
   configured: boolean
   suggestedName: string
 }) {
+  // A failed `.icm/` seeding is held here, not in the create form: the repo is
+  // created and connected regardless, so the moment it is reported this
+  // component has already flipped to the connected view. Keeping it at this
+  // level is what lets the sentence survive that flip.
+  const [scaffoldError, setScaffoldError] = useState<string | null>(null)
+
+  const scaffoldNotice = scaffoldError ? (
+    <p className="text-xs text-destructive">{scaffoldError}</p>
+  ) : null
+
   if (githubRepo) {
     return (
-      <Connected
-        id={id}
-        githubRepo={githubRepo}
-        githubDefaultBranch={githubDefaultBranch}
-      />
+      <div className="grid gap-2">
+        <Connected
+          id={id}
+          githubRepo={githubRepo}
+          githubDefaultBranch={githubDefaultBranch}
+        />
+        {scaffoldNotice}
+      </div>
     )
   }
 
@@ -256,7 +280,12 @@ export function ClientRepoLink({
           or
           <span className="h-px flex-1 bg-border" />
         </div>
-        <CreateNew id={id} suggestedName={suggestedName} />
+        <CreateNew
+          id={id}
+          suggestedName={suggestedName}
+          onScaffoldError={setScaffoldError}
+        />
+        {scaffoldNotice}
       </div>
     </details>
   )
