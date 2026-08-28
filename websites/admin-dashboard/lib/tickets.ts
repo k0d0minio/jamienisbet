@@ -99,18 +99,86 @@ export type Ticket = {
 
 export type TicketFetchError = { repo: TicketRepo; message: string }
 
+// ---------------------------------------------------------------------------
+// Claude deep links. Two shapes, kept side by side on purpose: both are
+// documented by Anthropic, and the comment on each names the doc it comes
+// from so the next reader can tell a documented URL from a guess. (The board
+// used to point at `claude.ai/code?prompt=…&repositories=…`, which is neither
+// documented nor versioned — the request to document it was closed *not
+// planned* — so it could change under us without notice.)
+//
+// Both carry the same prompt and stop at the same ceiling.
+
 /**
- * Deep link into a fresh Claude Code session on the web with this ticket's
- * prompt pre-filled and its repo pre-selected. One tap on the board goes from
- * "this is the pick" to a session already holding the prompt.
+ * The ceiling on an encoded prompt. A ticket's `## Prompt` section is
+ * unbounded, and the terminal scheme documents a 5,000-character maximum on
+ * `q` (the web link documents none, so it inherits this one — one cap, one
+ * fallback). Past it both builders return null and the row falls back to
+ * **Copy prompt**, which is right there and has no limit — better than
+ * emitting a URL that truncates without saying so.
+ *
+ * Measured on the *encoded* value, which is the conservative reading: the doc
+ * more likely means the decoded text (its own "prompts over 1,000 characters"
+ * warning counts what the user sees), so a budget spent here is never a
+ * budget overspent there.
+ *
+ * 4,500 leaves ~10% margin under the documented limit. It is not arbitrary:
+ * house prose is dense with em-dashes and backticks and encodes at roughly
+ * 1.5x, so this is about 3,000 characters of an actual ticket — clear of the
+ * longest prompt in this repo (3,826 encoded) with room to spare, where 4,000
+ * would have cleared it by 4%. Raising it past 5,000 is the one thing that
+ * needs Anthropic to say so first.
+ */
+const PROMPT_MAX_ENCODED_CHARS = 4500
+
+/** The prompt, URL-encoded — null when absent or past the ceiling. */
+function encodedPrompt(ticket: Ticket): string | null {
+  if (!ticket.prompt) return null
+  // `encodeURIComponent`, not `URLSearchParams`: the latter encodes spaces as
+  // `+`, and both docs' examples use `%20`.
+  const encoded = encodeURIComponent(ticket.prompt)
+  return encoded.length > PROMPT_MAX_ENCODED_CHARS ? null : encoded
+}
+
+/**
+ * The web/mobile session link — Anthropic's documented universal link
+ * (support.claude.com/en/articles/14898120). On a phone with the Claude app
+ * installed the OS hands the tap straight to the app's new-session composer;
+ * anywhere else the same URL opens that form in the browser. That fallback is
+ * the whole reason to prefer it: the board is a phone-first screen.
+ *
+ * Params are `q` (prompt), `repo` (one `owner/name`), and optional `branch`
+ * (requires `repo`) and `mode`. `mode=plan` because a stub is picked up by
+ * planning first, not by editing. `repo` is encoded to `owner%2Fname`, as the
+ * article's own example writes it.
+ *
+ * Null when the ticket has no prompt, or the prompt is past
+ * `PROMPT_MAX_ENCODED_CHARS`.
  */
 export function claudeSessionUrl(ticket: Ticket): string | null {
-  if (!ticket.prompt) return null
-  const params = new URLSearchParams({
-    prompt: ticket.prompt,
-    repositories: ticket.repo.fullName,
-  })
-  return `https://claude.ai/code?${params.toString()}`
+  const q = encodedPrompt(ticket)
+  if (q === null) return null
+  const repo = encodeURIComponent(ticket.repo.fullName)
+  return `https://claude.ai/code/new?q=${q}&repo=${repo}&mode=plan`
+}
+
+/**
+ * The terminal twin — the documented `claude-cli://` scheme
+ * (code.claude.com/docs/en/deep-links). Opens a local Claude Code session in
+ * whichever clone of the repo that machine last ran `claude` in, with the same
+ * prompt already in the input box. The click never sends anything: the prompt
+ * sits there, flagged as coming from an external link, until Enter is pressed
+ * — which is why a plain `<a href>` is safe here.
+ *
+ * `repo` keeps its literal slash, as the doc's example writes it; only `q` is
+ * documented as needing encoding.
+ *
+ * Null on the same terms as `claudeSessionUrl`.
+ */
+export function claudeTerminalUrl(ticket: Ticket): string | null {
+  const q = encodedPrompt(ticket)
+  if (q === null) return null
+  return `claude-cli://open?repo=${ticket.repo.fullName}&q=${q}`
 }
 
 function isConfigured(): boolean {

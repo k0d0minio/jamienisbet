@@ -166,13 +166,33 @@ each ticket links back to its client. Sustentus is excluded by name in `lib/tick
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
 and nothing is mirrored into the database. Every ticket carries a pasteable `## Prompt`
-section, and the board's one real action is **Start in Claude Code**: a deep link
-(`claude.ai/code?prompt=…&repositories=…`, built by `claudeSessionUrl` in
-[`lib/tickets.ts`](lib/tickets.ts)) that opens a fresh Claude Code session with the prompt
-already pasted and the ticket's repo already selected. **Copy prompt** stays beside it for
-handing the prompt to any other surface. Each row also links to the file on GitHub. Uses the
-same `GITHUB_TOKEN` as the delivery-repo features; unset, the screen shows a "not configured"
-notice.
+section, and the board's one real action is **Start in Claude Code**.
+
+That prompt reaches a session three ways, built by two deep-link builders that sit beside
+each other in [`lib/tickets.ts`](lib/tickets.ts) — both shapes documented by Anthropic, each
+carrying a comment naming its doc:
+
+| Action | Shape | Doc |
+|---|---|---|
+| **Start in Claude Code** (primary) | `claude.ai/code/new?q=…&repo=…&mode=plan` — `claudeSessionUrl()` | [universal link](https://support.claude.com/en/articles/14898120-open-the-claude-mobile-app-with-a-link) |
+| **Open in terminal** (quiet, desk-only) | `claude-cli://open?repo=…&q=…` — `claudeTerminalUrl()` | [deep links](https://code.claude.com/docs/en/deep-links) |
+| **Copy prompt** | the clipboard, for every other surface | — |
+
+The primary link is a *universal* link: on a phone with the Claude app installed the OS hands
+the tap to the app's new-session composer, and everywhere else the same URL opens that form in
+the browser — which is why it beats the older undocumented `claude.ai/code?prompt=…&repositories=…`
+shape on a screen built to be read one-handed. It passes `mode=plan`, because a stub is picked
+up by planning first. The terminal link is its desk-bound twin: it opens a local session in
+whichever clone that machine last ran `claude` in, prompt pre-filled and inert until Enter.
+
+Both stop at the same ceiling — 4,500 encoded characters, under the 5,000 the terminal scheme
+documents for `q` and measured on the encoded value, which is the conservative reading. A
+longer prompt drops both links rather than emitting a URL that truncates in silence, and the
+row falls back to **Copy prompt** with a line saying why. Estate prose encodes at roughly 1.5x,
+so that ceiling is about 3,000 characters of an actual ticket.
+
+Each row also links to the file on GitHub. Uses the same `GITHUB_TOKEN` as the delivery-repo
+features; unset, the screen shows a "not configured" notice.
 
 ## Money
 
