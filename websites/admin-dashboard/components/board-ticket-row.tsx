@@ -71,6 +71,10 @@ export function BoardTicketRow({
   return (
     <li className="rounded-lg border bg-card text-card-foreground">
       <SwipeRow
+        // The row's own clip — the tray is revealed inside it, so it has to
+        // carry the same radius as the card, or the reveal shows square
+        // corners over the rounded ones.
+        className="rounded-lg"
         actions={actions}
         commit={
           sessionUrl

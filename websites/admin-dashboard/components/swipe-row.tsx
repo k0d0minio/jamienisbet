@@ -16,6 +16,11 @@ import { hapticTick } from "@/lib/haptics"
 // The row's children stay whatever the caller renders — usually a stretched
 // <Link> — and a drag never leaks into a tap: any claimed gesture swallows the
 // click that would otherwise fire on release.
+//
+// Nothing here moves without a press. A mouse crossing a row emits the same
+// `pointermove` stream a drag does, so the gesture tracks the pointer that went
+// down on the row and ignores every other one — otherwise a desktop hover pulls
+// the row open and fires its commit action.
 
 // Only one row is open at a time. Opening (or starting to drag) one broadcasts
 // a close to every other row — cheaper than threading context through a list
@@ -60,8 +65,11 @@ export function SwipeRow({
   const [dragging, setDragging] = useState(false)
 
   // Gesture bookkeeping lives in refs — it changes on every move event and
-  // none of it should re-render until the offset actually moves.
+  // none of it should re-render until the offset actually moves. `pointerId`
+  // is the press that owns the row, and it is null between presses: that is
+  // the whole guard against a hovering mouse dragging anything.
   const gesture = useRef({
+    pointerId: null as number | null,
     startX: 0,
     startY: 0,
     base: 0,
@@ -69,6 +77,16 @@ export function SwipeRow({
     // Set once a gesture claimed the pointer; the next click is swallowed.
     swallowClick: false,
   })
+
+  // Where the row actually is. State paints it; the ref is what the release
+  // reads, so a fast flick commits on the distance the finger travelled rather
+  // than on whatever React last managed to render.
+  const offsetRef = useRef(0)
+
+  function moveTo(next: number) {
+    offsetRef.current = next
+    setOffset(next)
+  }
 
   const trayWidth = () => trayRef.current?.offsetWidth ?? 0
 
@@ -78,26 +96,37 @@ export function SwipeRow({
 
   useEffect(() => {
     function onClose(event: Event) {
-      if ((event as CustomEvent).detail !== rowId.current) setOffset(0)
+      if ((event as CustomEvent).detail !== rowId.current) moveTo(0)
     }
     document.addEventListener(CLOSE_EVENT, onClose)
     return () => document.removeEventListener(CLOSE_EVENT, onClose)
   }, [])
 
   function onPointerDown(e: React.PointerEvent) {
-    if (!e.isPrimary) return
+    // A second finger, and a right or middle click, are not this gesture.
+    if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return
     gesture.current = {
+      pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
-      base: offset,
+      base: offsetRef.current,
       claimed: false,
       swallowClick: false,
     }
   }
 
   function onPointerMove(e: React.PointerEvent) {
-    if (!e.isPrimary) return
     const g = gesture.current
+    // No press on this row, or a different pointer's move — a hover, most of
+    // the time. Nothing to drag.
+    if (g.pointerId !== e.pointerId) return
+    // A button let go outside the row never sends its pointerup here; the
+    // first buttonless move is that release.
+    if (e.pointerType === "mouse" && e.buttons === 0) {
+      settle(e)
+      return
+    }
+
     const dx = e.clientX - g.startX
     const dy = e.clientY - g.startY
 
@@ -118,26 +147,35 @@ export function SwipeRow({
     // Rubber-band past the ends instead of hard-stopping.
     if (next < min) next = min + (next - min) / 3
     if (next > max) next = max + (next - max) / 3
-    setOffset(next)
+    moveTo(next)
   }
 
   function settle(e: React.PointerEvent) {
-    if (!gesture.current.claimed) return
+    const g = gesture.current
+    if (g.pointerId !== e.pointerId) return
+    g.pointerId = null
+    if (!g.claimed) return
+    g.claimed = false
     setDragging(false)
-    contentRef.current?.releasePointerCapture(e.pointerId)
+    // A cancelled pointer has already lost its capture, and asking for it back
+    // throws — which would leave the row parked wherever the finger left it.
+    if (contentRef.current?.hasPointerCapture(e.pointerId)) {
+      contentRef.current.releasePointerCapture(e.pointerId)
+    }
 
-    if (commit && offset >= COMMIT_PX) {
+    const at = offsetRef.current
+    if (commit && at >= COMMIT_PX) {
       // Snap home and fire. The finger has already left the glass, so there is
       // no press state left to feel — one light tick is the confirmation that
       // the stroke counted, and it's the only place in the app that buzzes.
       hapticTick()
-      setOffset(0)
+      moveTo(0)
       commit.onCommit()
       return
     }
     // Past half the tray: snap open. Otherwise: closed.
     const width = trayWidth()
-    setOffset(actions && offset < -width / 2 ? -width : 0)
+    moveTo(actions && at < -width / 2 ? -width : 0)
   }
 
   function onClickCapture(e: React.MouseEvent) {
@@ -149,10 +187,10 @@ export function SwipeRow({
       return
     }
     // Tapping an open row closes it rather than navigating.
-    if (offset !== 0) {
+    if (offsetRef.current !== 0) {
       e.preventDefault()
       e.stopPropagation()
-      setOffset(0)
+      moveTo(0)
     }
   }
 
@@ -192,7 +230,9 @@ export function SwipeRow({
       <div
         ref={contentRef}
         className={cn(
-          "relative touch-pan-y",
+          // A swipe is a drag, and a drag across text selects it — on a mouse
+          // that leaves the row highlighted behind the gesture.
+          "relative touch-pan-y select-none",
           // Snap-back rides the brand clock (tokens/motion.css).
           !dragging && "transition-transform duration-(--duration-base) ease-(--ease-out)"
         )}
