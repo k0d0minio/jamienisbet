@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronRight, ExternalLink } from "lucide-react"
+import { Activity } from "lucide-react"
 
 import {
   Alert,
@@ -9,158 +9,103 @@ import {
   Button,
   Card,
   CardContent,
-  cn,
 } from "@jamie-nisbet/ui"
 
+import { BatchCard } from "@/components/batch-card"
+import { BoardRefresh } from "@/components/board-refresh"
+import { BoardTicketRow } from "@/components/board-ticket-row"
 import { Chip } from "@/components/chip"
-import { CopyButton } from "@/components/copy-button"
-import { Markdown } from "@/components/markdown"
+import { RepoMaintenance } from "@/components/repo-maintenance"
+import { TicketDetail } from "@/components/ticket-detail"
+import { TicketPeek } from "@/components/ticket-peek"
 import {
-  TICKET_GROUPS,
   claudeSessionUrl,
-  listTickets,
-  type Ticket,
-  type TicketGroup,
+  estateCheckSessionUrl,
+  listBoard,
+  recutSessionUrl,
+  repoMaintenanceLaunchers,
+  type RepoSection,
 } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Tickets" }
 export const dynamic = "force-dynamic"
 
-// The estate's work backlog in one place: every repo's `.icm/intake/` — epics
-// of sequenced stubs, the triage lane, still-unmigrated legacy tickets, and
-// the runs in flight — grouped positionally (today → in flight → blocked →
-// next → queued) per the estate spec. This screen is read-only by design — a
-// ticket changes by editing its file in the repo, and the one action that
-// matters on a phone is **Copy prompt** / the one-tap Claude session.
+// The estate's work backlog, read batch-first: a pinned "now" strip (today's
+// picks, runs in flight, what's stuck), then one section per repo whose intake
+// has anything open, each batch a line item that opens into its sequenced
+// stubs. This screen is read-only by design — a ticket changes by editing its
+// file in the repo — so every button here is either a link or a Claude Code
+// session with a prompt pre-filled, and the human sends it.
 
-const GROUP_LABELS: Record<TicketGroup, string> = {
-  today: "Today",
-  "in-flight": "In flight",
-  blocked: "Blocked",
-  next: "Next",
-  queued: "Queued",
-}
-
-// `today` is the pick-up list; it reads as the accent, not an alarm. Blocked
-// is amber, not red — stuck wants attention, it isn't a failure. Queued fades:
-// it's the part of an epic that isn't up yet.
-const GROUP_DOT: Record<TicketGroup, string> = {
-  today: "bg-primary",
-  "in-flight": "bg-success",
-  blocked: "bg-warning",
-  next: "bg-muted-foreground/40",
-  queued: "bg-muted-foreground/20",
-}
-
-function priorityClass(priority: string | null): string {
-  return priority === "P0"
-    ? "text-destructive font-medium"
-    : "text-muted-foreground"
-}
-
-// One ticket: a native <details> row (no JavaScript, works before hydration —
-// the FoldCard idea, per row). The summary is the scan line; opening it shows
-// the actions and the full ticket markdown as written in the repo.
-function TicketRow({ ticket }: { ticket: Ticket }) {
-  const sessionUrl = claudeSessionUrl(ticket)
+function RepoSectionView({ section }: { section: RepoSection }) {
+  const { repo } = section
   return (
-    <li className="rounded-lg border bg-card text-card-foreground">
-      <details className="group">
-        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-2.5 transition-colors active:bg-muted/50">
-          <span
-            className={cn(
-              "size-2 shrink-0 rounded-full",
-              GROUP_DOT[ticket.group]
-            )}
-            aria-hidden
-          />
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex items-baseline gap-2 text-xs">
-              <span className="font-medium text-muted-foreground">
-                {ticket.id}
-              </span>
-              <span className="text-muted-foreground">{ticket.repo.slug}</span>
-              {ticket.priority ? (
-                <span className={cn("ml-auto", priorityClass(ticket.priority))}>
-                  {ticket.priority}
-                </span>
-              ) : null}
-            </span>
-            <span className="truncate text-sm leading-tight font-medium">
-              {ticket.title}
-            </span>
-          </span>
-          <ChevronRight
-            className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
-            aria-hidden
-          />
-        </summary>
-
-        <div className="flex flex-col gap-4 border-t px-4 py-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {ticket.prompt && sessionUrl ? (
-              <>
-                {/* The board's one real action: a new Claude Code session with
-                    the prompt already pasted and the repo already picked. Copy
-                    stays beside it for every other surface a prompt goes to. */}
-                <Button asChild size="sm">
-                  <a href={sessionUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink aria-hidden />
-                    Start in Claude Code
-                  </a>
-                </Button>
-                <CopyButton value={ticket.prompt} label="Copy prompt" />
-              </>
-            ) : (
-              <span className="text-xs text-muted-foreground">
-                {ticket.kind === "run"
-                  ? "A run in flight — the work lives on its branch and PR."
-                  : "No prompt section in this ticket."}
-              </span>
-            )}
-            <span className="ml-auto flex items-center gap-3 text-xs">
-              {/* The repo is on the board because a client row points at it —
-                  the join back to the big picture is one tap. The house repo
-                  belongs to no client; it just says so. */}
-              {ticket.repo.clientId ? (
-                <Link
-                  href={`/leads/${ticket.repo.clientId}`}
-                  className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                >
-                  {ticket.repo.clientName}
-                </Link>
-              ) : (
-                <span className="text-muted-foreground">house</span>
-              )}
-              <a
-                href={ticket.htmlUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+    <section className="flex flex-col gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <h2 className="truncate font-mono text-sm font-medium">{repo.slug}</h2>
+        {repo.clientId ? (
+          <Link
+            href={`/leads/${repo.clientId}`}
+            className="truncate text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            {repo.clientName}
+          </Link>
+        ) : null}
+        <span className="ml-auto shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+          {section.open} open
+        </span>
+        <RepoMaintenance
+          repoSlug={repo.slug}
+          repoUrl={`https://github.com/${repo.fullName}`}
+          launchers={repoMaintenanceLaunchers(repo)}
+        />
+      </div>
+      {/* Phone: one column of batch lines. Desktop: the same lines, two up —
+          the board breathes instead of stretching. */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {section.batches.map((batch) => (
+          <BatchCard
+            key={batch.slug}
+            repoSlug={repo.slug}
+            clientHref={repo.clientId ? `/leads/${repo.clientId}` : null}
+            batch={{
+              slug: batch.slug,
+              kind: batch.kind,
+              title: batch.title,
+              htmlUrl: batch.htmlUrl,
+              planned: batch.planned,
+              done: batch.done,
+              open: batch.tickets.length,
+              todayCount: batch.todayCount,
+              blockedCount: batch.blockedCount,
+              p0Count: batch.p0Count,
+            }}
+            next={
+              batch.next
+                ? {
+                    title: batch.next.title,
+                    prompt: batch.next.prompt,
+                    sessionUrl: claudeSessionUrl(batch.next),
+                  }
+                : null
+            }
+            recutUrl={
+              batch.kind === "epic" ? recutSessionUrl(repo, batch.slug) : null
+            }
+          >
+            {batch.tickets.map((ticket) => (
+              <BoardTicketRow
+                key={ticket.path}
+                ticket={ticket}
+                sessionUrl={claudeSessionUrl(ticket)}
               >
-                Open on GitHub
-              </a>
-            </span>
-          </div>
-
-          {ticket.meta.length > 0 ? (
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
-              {ticket.meta.map(([key, value]) => (
-                <div key={key} className="contents">
-                  <dt className="text-muted-foreground">{key}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-
-          {/* The ticket, rendered. Markdown is the interface for *writing* a
-              ticket; reading one on a phone wants headings and lists, not
-              syntax. The unedited file is one tap away on GitHub. */}
-          {ticket.body ? <Markdown>{ticket.body}</Markdown> : null}
-        </div>
-      </details>
-    </li>
+                <TicketDetail ticket={ticket} sessionUrl={claudeSessionUrl(ticket)} />
+              </BoardTicketRow>
+            ))}
+          </BatchCard>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -171,18 +116,18 @@ export default async function TicketsPage({
 }) {
   const params = await searchParams
 
-  const { configured, repos, tickets, errors, dbError } = await listTickets()
+  const { configured, repos, tickets, sections, strip, errors, dbError } =
+    await listBoard()
   const repoSlug = repos.some((r) => r.slug === params.repo)
     ? params.repo
     : undefined
 
-  const visible = repoSlug
-    ? tickets.filter((t) => t.repo.slug === repoSlug)
-    : tickets
-  const groups = TICKET_GROUPS.map((group) => ({
-    group,
-    tickets: visible.filter((t) => t.group === group),
-  })).filter((g) => g.tickets.length > 0)
+  const visibleSections = repoSlug
+    ? sections.filter((s) => s.repo.slug === repoSlug)
+    : sections
+  const visibleStrip = repoSlug
+    ? strip.filter((t) => t.repo.slug === repoSlug)
+    : strip
 
   const countFor = (slug?: string): number =>
     slug ? tickets.filter((t) => t.repo.slug === slug).length : tickets.length
@@ -193,12 +138,25 @@ export default async function TicketsPage({
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="flex flex-col gap-0.5">
-        <h1 className="text-2xl font-semibold">Tickets</h1>
-        <p className="text-sm text-muted-foreground">
-          Each repo&apos;s <code>.icm/intake/</code>, read from main — edit in
-          the repo, not here.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-2xl font-semibold">Tickets</h1>
+          <p className="text-sm text-muted-foreground">
+            Each repo&apos;s <code>.icm/intake/</code>, read from main — edit in
+            the repo, not here.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <BoardRefresh />
+          {/* The estate-wide maintenance button: a session on icm-board with
+              the consistency pass prompted, sent by the human. */}
+          <Button asChild variant="secondary" size="sm">
+            <a href={estateCheckSessionUrl()} target="_blank" rel="noreferrer">
+              <Activity aria-hidden />
+              Estate check
+            </a>
+          </Button>
+        </div>
       </div>
 
       {!configured ? (
@@ -246,32 +204,41 @@ export default async function TicketsPage({
             </Alert>
           ))}
 
-          {groups.length === 0 ? (
+          {/* The now-strip: today's picks, runs in flight, what's stuck —
+              estate-wide, one glance. A rail on the phone, wrapping on
+              desktop. Tap a card to peek at the full ticket. */}
+          {visibleStrip.length > 0 ? (
+            <section className="flex flex-col gap-2">
+              <h2 className="flex items-baseline gap-2 text-xs font-medium text-muted-foreground">
+                Now
+                <span className="font-mono tabular-nums opacity-70">
+                  {visibleStrip.length}
+                </span>
+              </h2>
+              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+                {visibleStrip.map((ticket) => (
+                  <TicketPeek key={`${ticket.repo.fullName}/${ticket.path}`} ticket={ticket}>
+                    <TicketDetail
+                      ticket={ticket}
+                      sessionUrl={claudeSessionUrl(ticket)}
+                    />
+                  </TicketPeek>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {visibleSections.length === 0 && visibleStrip.length === 0 ? (
             <Card>
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                {visible.length === 0 && tickets.length > 0
+                {tickets.length > 0
                   ? "Nothing in this repo."
                   : "No open tickets — cut some into a repo's .icm/intake/."}
               </CardContent>
             </Card>
           ) : (
-            groups.map((group) => (
-              <section key={group.group} className="flex flex-col gap-2">
-                <h2 className="flex items-baseline gap-2 text-xs font-medium text-muted-foreground">
-                  {GROUP_LABELS[group.group]}
-                  <span className="tabular-nums opacity-70">
-                    {group.tickets.length}
-                  </span>
-                </h2>
-                <ul className="flex flex-col gap-2">
-                  {group.tickets.map((ticket) => (
-                    <TicketRow
-                      key={`${ticket.repo.fullName}/${ticket.path}`}
-                      ticket={ticket}
-                    />
-                  ))}
-                </ul>
-              </section>
+            visibleSections.map((section) => (
+              <RepoSectionView key={section.repo.fullName} section={section} />
             ))
           )}
         </>
