@@ -4,6 +4,7 @@
 //   import "@jamie-nisbet/ui/styles.css"
 
 export { cn } from "./lib/utils"
+export { useKeyboardInset } from "./lib/use-keyboard-inset"
 
 // shadcn/ui primitives (themed with the brand tokens)
 export * from "./components/ui/alert"

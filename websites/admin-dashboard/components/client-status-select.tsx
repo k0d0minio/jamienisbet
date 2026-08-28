@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useOptimistic, useTransition } from "react"
 
 import {
   Select,
@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
   cn,
+  toast,
 } from "@jamie-nisbet/ui"
 
 import { updateClientStatus } from "@/app/(app)/actions"
@@ -30,22 +31,37 @@ export function ClientStatusSelect({
   className?: string
 }) {
   const [pending, startTransition] = useTransition()
+  // The trigger reads as the new status the moment the sheet closes, not a
+  // round-trip later. `value` is the server's answer: when the action lands the
+  // optimistic layer falls away onto it, so a rejected change rolls back on its
+  // own and only the toast has to be written by hand.
+  const [status, setStatus] = useOptimistic(value)
 
   return (
     <Select
-      defaultValue={value}
-      disabled={pending}
+      // Controlled by the optimistic value rather than `defaultValue`, or the
+      // trigger would keep showing whatever it was first mounted with.
+      value={status}
+      // Still readable while it's in flight — only a second change is refused.
+      aria-busy={pending || undefined}
       onValueChange={(next) =>
-        startTransition(() => updateClientStatus(id, next))
+        startTransition(async () => {
+          setStatus(next)
+          try {
+            await updateClientStatus(id, next)
+          } catch {
+            toast.error("Couldn't change the status — put it back")
+          }
+        })
       }
     >
       <SelectTrigger size="sm" className={cn("capitalize", className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {STATUSES.map((status) => (
-          <SelectItem key={status} value={status} className="capitalize">
-            {status}
+        {STATUSES.map((option) => (
+          <SelectItem key={option} value={option} className="capitalize">
+            {option}
           </SelectItem>
         ))}
       </SelectContent>

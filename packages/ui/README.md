@@ -49,7 +49,8 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Core | `Button`, `Badge`, `Card` (+ `CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`), `Avatar` (+ `AvatarImage`/`AvatarFallback`) |
 | Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch` |
 | Navigation | `Tabs` (+ `TabsList`/`TabsTrigger`/`TabsContent`) |
-| Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`), `Dialog` (+ parts) |
+| Overlays | `Dialog` (+ parts), `Sheet` (+ parts) — the phone-first bottom sheet, keyboard-aware |
+| Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`) |
 | Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
@@ -60,6 +61,14 @@ Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radiu
 Every interactive variant press-deepens on `:active` (the primary button lands on
 `--primary-active`) — press is a colour change, never a shrink — and `transition-*`
 utilities default to the brand clock from `tokens/motion.css` (120–260ms, ease-out).
+
+### Keyboard-aware sheets
+
+`Sheet` lifts itself above the on-screen keyboard and scrolls the focused field into
+view (`useKeyboardInset`, exported for anything else pinned to the bottom edge). Apps
+that want the layout viewport to shrink instead should set
+`interactiveWidget: "resizes-content"` in their Next `viewport` export — the two don't
+fight, because the measurement reads zero once the layout viewport has already shrunk.
 
 ### Data-viz primitives
 Four dependency-free primitives for the numbers on an operating screen — **inline SVG, no

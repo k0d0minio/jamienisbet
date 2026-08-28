@@ -8,6 +8,7 @@ import {
   Card,
   Input,
   Label,
+  PendingButton,
   Select,
   SelectContent,
   SelectItem,
@@ -20,6 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
   Textarea,
+  toast,
 } from "@jamie-nisbet/ui"
 import type { DealType } from "@jamie-nisbet/services"
 
@@ -111,8 +113,14 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
             <form
               action={(formData) =>
                 startTransition(async () => {
-                  await saveDealTerms(client.id, formData)
-                  setOpen(false)
+                  try {
+                    await saveDealTerms(client.id, formData)
+                    setOpen(false)
+                  } catch {
+                    // The sheet stays open on a failure, so the fields you
+                    // typed are still there to try again with.
+                    toast.error("Couldn't save the deal terms")
+                  }
                 })
               }
               className="grid gap-3"
@@ -204,9 +212,13 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
                 </div>
               </div>
 
-              <Button type="submit" disabled={pending} className="w-full sm:w-fit">
-                {pending ? "Saving…" : "Save"}
-              </Button>
+              <PendingButton
+                pending={pending}
+                pendingText="Saving…"
+                className="w-full sm:w-fit"
+              >
+                Save
+              </PendingButton>
             </form>
           </SheetContent>
         </Sheet>

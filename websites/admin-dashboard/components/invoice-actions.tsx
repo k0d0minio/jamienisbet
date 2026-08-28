@@ -2,7 +2,7 @@
 
 import { useTransition } from "react"
 
-import { Button } from "@jamie-nisbet/ui"
+import { Button, toast } from "@jamie-nisbet/ui"
 
 import { cancelInvoice, sendInvoice } from "@/app/(app)/money/actions"
 import { CopyButton } from "@/components/copy-button"
@@ -24,20 +24,39 @@ export function InvoiceActions({
   const [pending, startTransition] = useTransition()
   const canCancel = isDraft || status === "open"
 
+  // Each of these ends with the row re-rendering as something else, or gone —
+  // the toast is what says which of the two happened, and whether the email
+  // actually left.
   function onSend() {
     if (!confirm("Finalize this invoice and email it to the customer?")) return
-    startTransition(() => sendInvoice(id))
+    startTransition(async () => {
+      try {
+        await sendInvoice(id)
+        toast.success(isDraft ? "Invoice finalized and sent" : "Invoice resent")
+      } catch {
+        toast.error("Couldn't send the invoice")
+      }
+    })
   }
 
   function onCancel() {
     const verb = isDraft ? "Delete this draft invoice?" : "Void this invoice? This can't be undone."
     if (!confirm(verb)) return
-    startTransition(() => cancelInvoice(id, isDraft))
+    startTransition(async () => {
+      try {
+        await cancelInvoice(id, isDraft)
+        toast(isDraft ? "Draft deleted" : "Invoice voided")
+      } catch {
+        toast.error(isDraft ? "Couldn't delete the draft" : "Couldn't void the invoice")
+      }
+    })
   }
 
   return (
     <div className="flex justify-end gap-1 whitespace-nowrap">
-      {hostedInvoiceUrl ? <CopyButton value={hostedInvoiceUrl} /> : null}
+      {hostedInvoiceUrl ? (
+        <CopyButton value={hostedInvoiceUrl} what="Invoice link" />
+      ) : null}
       {isDraft || status === "open" ? (
         <Button
           type="button"

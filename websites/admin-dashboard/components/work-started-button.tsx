@@ -1,9 +1,9 @@
 "use client"
 
-import { useTransition } from "react"
+import { useOptimistic, useTransition } from "react"
 import { Hammer } from "lucide-react"
 
-import { Button } from "@jamie-nisbet/ui"
+import { Button, toast } from "@jamie-nisbet/ui"
 
 import { setWorkStarted } from "@/app/(app)/actions"
 
@@ -23,7 +23,9 @@ export function WorkStartedButton({
   startedOn: string | null
 }) {
   const [pending, startTransition] = useTransition()
-  const started = startedOn !== null
+  // Fill and label flip on the tap. `startedOn !== null` is the server's
+  // answer underneath, so a refused write puts the button back where it was.
+  const [started, setStarted] = useOptimistic(startedOn !== null)
 
   return (
     <Button
@@ -34,16 +36,25 @@ export function WorkStartedButton({
       size="sm"
       className="shrink-0"
       aria-pressed={started}
-      disabled={pending}
-      onClick={() => startTransition(() => setWorkStarted(id, !started))}
+      aria-busy={pending || undefined}
+      onClick={() =>
+        startTransition(async () => {
+          setStarted(!started)
+          try {
+            await setWorkStarted(id, !started)
+          } catch {
+            toast.error("Couldn't change whether work has started")
+          }
+        })
+      }
       title={
         started
-          ? `Work started ${startedOn} — tap to undo`
+          ? `Work started${startedOn ? ` ${startedOn}` : ""} — tap to undo`
           : "Mark the work as begun"
       }
     >
       <Hammer />
-      {pending ? "Saving…" : started ? "Working" : "Work started"}
+      {started ? "Working" : "Work started"}
     </Button>
   )
 }

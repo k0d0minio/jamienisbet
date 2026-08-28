@@ -1,3 +1,5 @@
+import { Toaster } from "@jamie-nisbet/ui"
+
 import { Nav } from "@/components/nav"
 import { PullToRefresh } from "@/components/pull-to-refresh"
 
@@ -21,6 +23,11 @@ export default function AppLayout({
           {children}
         </main>
       </PullToRefresh>
+      {/* Confirmations for what you can't see from where you're standing — a
+          row archived out of the list, a link copied, an edit the server
+          refused. `--toaster-offset` is the fixed tab bar's height, which the
+          Toaster adds to the safe area so it never covers the thumb. */}
+      <Toaster style={{ "--toaster-offset": "3.5rem" } as React.CSSProperties} />
     </div>
   )
 }

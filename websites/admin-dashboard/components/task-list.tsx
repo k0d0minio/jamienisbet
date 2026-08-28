@@ -1,18 +1,19 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useOptimistic, useRef, useState, useTransition } from "react"
 import { Plus, Trash2 } from "lucide-react"
 
 import {
-  Button,
   Checkbox,
   Input,
+  PendingButton,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   cn,
+  toast,
 } from "@jamie-nisbet/ui"
 
 import {
@@ -48,12 +49,10 @@ const NO_LEAD = "__none__"
 function TaskLeadSelect({
   task,
   leads,
-  disabled,
   onChange,
 }: {
   task: TaskItem
   leads: TaskLead[]
-  disabled: boolean
   onChange: (clientId: string | null) => void
 }) {
   // A todo can point at a lead that has since been archived, and the archived
@@ -67,7 +66,6 @@ function TaskLeadSelect({
   return (
     <Select
       value={task.clientId ?? NO_LEAD}
-      disabled={disabled}
       onValueChange={(next) => onChange(next === NO_LEAD ? null : next)}
     >
       <SelectTrigger
@@ -92,6 +90,27 @@ function TaskLeadSelect({
   )
 }
 
+// Ticking a todo is the single most repeated action on the phone, and every
+// one of them used to mean a round-trip before the box even filled in. These
+// are the edits the list applies to itself the instant the thumb lifts; the
+// `tasks` prop underneath is the server's answer, so a refused write simply
+// reappears as it was and the toast says so.
+type TaskPatch =
+  | { type: "completed"; id: string; completed: boolean }
+  | { type: "deleted"; id: string }
+  | { type: "client"; id: string; clientId: string | null; clientName: string | null }
+
+function applyPatch(tasks: TaskItem[], patch: TaskPatch): TaskItem[] {
+  if (patch.type === "deleted") {
+    return tasks.filter((task) => task.id !== patch.id)
+  }
+  return tasks.map((task) => {
+    if (task.id !== patch.id) return task
+    if (patch.type === "completed") return { ...task, completed: patch.completed }
+    return { ...task, clientId: patch.clientId, clientName: patch.clientName }
+  })
+}
+
 export function TaskList({
   tasks,
   // When set, todos added here hang off that lead and also show on its profile.
@@ -105,7 +124,12 @@ export function TaskList({
   clientId?: string
   leads?: TaskLead[]
 }) {
-  const [pending, startTransition] = useTransition()
+  // Two transitions on purpose: the row edits are optimistic and show their
+  // result in the row itself, while the add form has a button that spins. One
+  // shared flag would set that button spinning every time a box was ticked.
+  const [, startTransition] = useTransition()
+  const [adding, startAdding] = useTransition()
+  const [items, patchTasks] = useOptimistic(tasks, applyPatch)
   const formRef = useRef<HTMLFormElement>(null)
   // The new todo's lead. Controlled rather than left to the form's own reset,
   // because the picker posts through a hidden input.
@@ -113,26 +137,31 @@ export function TaskList({
 
   return (
     <div className="flex flex-col gap-3">
-      {tasks.length === 0 ? (
+      {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Nothing on the list — add the first todo below.
         </p>
       ) : (
         <ul className="flex flex-col gap-1">
-          {tasks.map((task) => (
+          {items.map((task) => (
             <li
               key={task.id}
               className="group flex items-start gap-3 rounded-md px-2 py-2 sm:items-center sm:py-1.5"
             >
               <Checkbox
                 checked={task.completed}
-                disabled={pending}
                 aria-label={task.title}
                 className="mt-0.5 sm:mt-0"
                 onCheckedChange={(checked) =>
-                  startTransition(() =>
-                    setTaskCompletedAction(task.id, checked === true)
-                  )
+                  startTransition(async () => {
+                    const completed = checked === true
+                    patchTasks({ type: "completed", id: task.id, completed })
+                    try {
+                      await setTaskCompletedAction(task.id, completed)
+                    } catch {
+                      toast.error(`Couldn't tick off "${task.title}"`)
+                    }
+                  })
                 }
               />
               {/* Whose it is and when it's due drop under the title on a phone
@@ -152,9 +181,26 @@ export function TaskList({
                     <TaskLeadSelect
                       task={task}
                       leads={leads}
-                      disabled={pending}
                       onChange={(next) =>
-                        startTransition(() => setTaskClientAction(task.id, next))
+                        startTransition(async () => {
+                          patchTasks({
+                            type: "client",
+                            id: task.id,
+                            clientId: next,
+                            // `leads?.` rather than leaning on the narrowing
+                            // from the `leads ?` above: whether TypeScript
+                            // carries that into a callback depends on rules
+                            // that have moved between versions.
+                            clientName:
+                              leads?.find((lead) => lead.id === next)?.name ??
+                              null,
+                          })
+                          try {
+                            await setTaskClientAction(task.id, next)
+                          } catch {
+                            toast.error("Couldn't move that todo to another lead")
+                          }
+                        })
                       }
                     />
                   ) : null}
@@ -180,9 +226,20 @@ export function TaskList({
               <button
                 type="button"
                 aria-label={`Delete "${task.title}"`}
-                disabled={pending}
-                className="-mr-1 shrink-0 rounded-sm p-2 text-muted-foreground transition-opacity hover:text-destructive sm:p-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-                onClick={() => startTransition(() => deleteTaskAction(task.id))}
+                className="-mr-1 shrink-0 rounded-sm p-2 text-muted-foreground transition-colors hover:text-destructive active:text-destructive sm:p-0 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                onClick={() =>
+                  startTransition(async () => {
+                    patchTasks({ type: "deleted", id: task.id })
+                    try {
+                      await deleteTaskAction(task.id)
+                      // The row is already gone from the list, so the deletion
+                      // has to say so somewhere.
+                      toast(`Deleted "${task.title}"`)
+                    } catch {
+                      toast.error(`Couldn't delete "${task.title}"`)
+                    }
+                  })
+                }
               >
                 <Trash2 className="size-4" aria-hidden />
               </button>
@@ -194,10 +251,14 @@ export function TaskList({
       <form
         ref={formRef}
         action={(formData) =>
-          startTransition(async () => {
-            await addTaskAction(formData)
-            formRef.current?.reset()
-            setNewLead(NO_LEAD)
+          startAdding(async () => {
+            try {
+              await addTaskAction(formData)
+              formRef.current?.reset()
+              setNewLead(NO_LEAD)
+            } catch {
+              toast.error("Couldn't add that todo")
+            }
           })
         }
         className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center"
@@ -214,6 +275,10 @@ export function TaskList({
           name="title"
           placeholder="Add a todo…"
           required
+          // A todo is a sentence, so the keyboard capitalises and corrects; the
+          // return key says "add" rather than the generic newline arrow.
+          enterKeyHint="done"
+          autoCapitalize="sentences"
           className="sm:min-w-40 sm:flex-1"
         />
         {/* Who it's for gets a row of its own on a phone: crammed in beside the
@@ -248,16 +313,19 @@ export function TaskList({
             className="min-w-0 flex-1 sm:w-36 sm:flex-none"
             aria-label="Due date"
           />
-          <Button
-            type="submit"
+          <PendingButton
             variant="outline"
-            disabled={pending}
+            pending={adding}
             aria-label="Add todo"
             className="shrink-0 px-3"
+            // pendingText replaces the children, so the plus gives way to the
+            // spinner rather than sitting beside it — the button keeps its
+            // width on a phone, where it is icon-only.
+            pendingText={<span className="hidden sm:inline">Adding…</span>}
           >
             <Plus />
             <span className="hidden sm:inline">Add</span>
-          </Button>
+          </PendingButton>
         </div>
       </form>
     </div>

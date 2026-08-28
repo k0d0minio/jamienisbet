@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ChevronLeft, Mail, MessageCircle } from "lucide-react"
 
@@ -20,6 +19,7 @@ import {
 } from "@jamie-nisbet/services"
 
 import { ClientActions } from "@/components/client-actions"
+import { ViewTransitionLink } from "@/components/view-transition-link"
 import { ConvertFlow } from "@/components/convert-flow"
 import { DisclosureCard } from "@/components/disclosure-card"
 import { LeadContactCard } from "@/components/lead-contact-card"
@@ -192,13 +192,13 @@ export default async function LeadDetailPage({
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       {/* Back out of the detail view — a real target, not a 14px arrow. */}
-      <Link
+      <ViewTransitionLink
         href="/"
         className="-ml-2 inline-flex h-11 w-fit items-center gap-1 rounded-sm pr-3 pl-2 text-sm text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
       >
         <ChevronLeft className="size-4" aria-hidden />
         Leads
-      </Link>
+      </ViewTransitionLink>
 
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">

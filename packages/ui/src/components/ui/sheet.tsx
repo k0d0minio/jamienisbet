@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { cn } from "../../lib/utils"
+import { useKeyboardInset } from "../../lib/use-keyboard-inset"
 import {
   Dialog,
   DialogClose,
@@ -34,24 +35,83 @@ function SheetHeader({
   return <DialogHeader className={cn("text-left", className)} {...props} />
 }
 
+// How long to let the keyboard finish animating before chasing the focused
+// field — long enough for iOS, short enough not to read as a second gesture.
+const FOCUS_SETTLE_MS = 200
+
 function SheetContent({
   className,
   children,
+  style,
   ...props
 }: React.ComponentProps<typeof DialogContent>) {
+  const keyboardInset = useKeyboardInset()
+
+  // Keep the field you're typing in above the keyboard. The sheet scrolls
+  // itself (`overflow-y-auto`), so `block: "nearest"` moves the field the least
+  // it can rather than yanking the form to the top — and it fires on the
+  // keyboard's own resize too, since focus lands before the keyboard is up.
+  const contentRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    const node = contentRef.current
+    if (!node) return
+
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    function reveal(target: EventTarget | null) {
+      if (!(target instanceof HTMLElement)) return
+      if (!target.matches("input, textarea, select, [contenteditable]")) return
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        target.scrollIntoView({
+          block: "nearest",
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+        })
+      }, FOCUS_SETTLE_MS)
+    }
+
+    function onFocusIn(event: FocusEvent) {
+      reveal(event.target)
+    }
+    function onViewportResize() {
+      reveal(document.activeElement)
+    }
+
+    node.addEventListener("focusin", onFocusIn)
+    window.visualViewport?.addEventListener("resize", onViewportResize)
+    return () => {
+      clearTimeout(timer)
+      node.removeEventListener("focusin", onFocusIn)
+      window.visualViewport?.removeEventListener("resize", onViewportResize)
+    }
+  }, [])
+
   return (
     <DialogContent
+      ref={contentRef}
       className={cn(
         // Phone: pinned to the bottom edge, full-width, capped height with its
         // own scroll, padded past the home indicator.
-        "top-auto bottom-0 left-0 max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0",
+        "top-auto left-0 w-full max-w-none translate-x-0 translate-y-0",
         "overflow-y-auto rounded-b-none p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]",
+        // Ride above the keyboard rather than behind it, and give up the height
+        // it took so the sheet still scrolls to its own end.
+        "bottom-[var(--jn-keyboard-inset)] max-h-[calc(85dvh_-_var(--jn-keyboard-inset))]",
         "data-[state=open]:slide-in-from-bottom-8 data-[state=closed]:slide-out-to-bottom-8",
-        // Desktop: the ordinary centred dialog.
+        // Desktop: the ordinary centred dialog — no keyboard to dodge.
         "sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:max-h-[85vh] sm:max-w-lg",
         "sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:p-6",
         className
       )}
+      style={
+        {
+          "--jn-keyboard-inset": `${keyboardInset}px`,
+          ...style,
+        } as React.CSSProperties
+      }
       {...props}
     >
       {/* Grab handle — phones only; a centred dialog doesn't need one. */}

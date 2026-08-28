@@ -1,9 +1,9 @@
 "use client"
 
-import { useTransition } from "react"
+import { useOptimistic, useTransition } from "react"
 import { Check } from "lucide-react"
 
-import { Button } from "@jamie-nisbet/ui"
+import { Button, toast } from "@jamie-nisbet/ui"
 
 import { markTouched } from "@/app/(app)/actions"
 
@@ -20,6 +20,12 @@ export function MarkTouchedButton({
   lastWorked: string
 }) {
   const [pending, startTransition] = useTransition()
+  // The button is its own receipt: it flips to "Touched today" on the tap and
+  // stays there, because that is what the server will say too. If the write
+  // fails the optimistic layer falls away onto `lastWorked` and it reads as it
+  // did before.
+  const [worked, setWorked] = useOptimistic(lastWorked)
+  const touchedToday = worked === "today"
 
   return (
     <Button
@@ -29,12 +35,28 @@ export function MarkTouchedButton({
       // The action rail scrolls sideways rather than squeezing its buttons —
       // with "Work started" alongside, an unpinned one would compress first.
       className="shrink-0"
-      disabled={pending}
-      onClick={() => startTransition(() => markTouched(id))}
-      title={`Last worked ${lastWorked === "today" ? "today" : `${lastWorked} ago`}`}
+      // Tapping it again is harmless (it re-stamps today), so it stays live
+      // while in flight; only a second tap during the same round-trip is lost,
+      // and it would have been a no-op.
+      aria-busy={pending || undefined}
+      onClick={() =>
+        startTransition(async () => {
+          setWorked("today")
+          try {
+            await markTouched(id)
+          } catch {
+            toast.error("Couldn't mark them touched")
+          }
+        })
+      }
+      title={
+        touchedToday
+          ? "Last worked today"
+          : `Last worked ${worked} ago`
+      }
     >
-      <Check />
-      {pending ? "Saving…" : "Mark touched"}
+      <Check className={touchedToday ? "text-success" : undefined} />
+      {touchedToday ? "Touched today" : "Mark touched"}
     </Button>
   )
 }

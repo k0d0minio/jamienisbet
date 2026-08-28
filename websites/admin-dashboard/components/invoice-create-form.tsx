@@ -1,20 +1,21 @@
 "use client"
 
 import Link from "next/link"
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useRef, useState } from "react"
 
 import {
   Alert,
   AlertDescription,
-  Button,
   Input,
   Label,
+  PendingButton,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Textarea,
+  toast,
 } from "@jamie-nisbet/ui"
 
 import { createInvoice, type InvoiceFormState } from "@/app/(app)/money/actions"
@@ -49,6 +50,19 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
     setLastState(state)
     if (state.success) setFormKey((k) => k + 1)
   }
+
+  // The draft appears in the list further down the page — often below the fold,
+  // and the form has just blanked itself — so the confirmation is a toast. The
+  // ref is what keeps it to one: `state` is a fresh object per submit, and an
+  // effect that runs twice (development's strict double-invoke) would otherwise
+  // say it twice.
+  const toastedFor = useRef<InvoiceFormState | null>(null)
+  useEffect(() => {
+    if (state.success && toastedFor.current !== state) {
+      toastedFor.current = state
+      toast.success(state.success)
+    }
+  }, [state])
 
   if (clients.length === 0) {
     return (
@@ -106,13 +120,22 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
             id="amount"
             name="amount"
             inputMode="decimal"
+            enterKeyHint="next"
             placeholder="1500.00"
             required
           />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="currency">Currency</Label>
-          <Input id="currency" name="currency" defaultValue="eur" maxLength={3} />
+          <Input
+            id="currency"
+            name="currency"
+            defaultValue="eur"
+            maxLength={3}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="daysUntilDue">Due in (days)</Label>
@@ -120,6 +143,8 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
             id="daysUntilDue"
             name="daysUntilDue"
             type="number"
+            inputMode="numeric"
+            enterKeyHint="done"
             min={0}
             defaultValue={14}
           />
@@ -131,15 +156,9 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
           <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       ) : null}
-      {state.success ? (
-        <Alert variant="success">
-          <AlertDescription>{state.success}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      <Button type="submit" disabled={pending} className="self-start">
-        {pending ? "Creating…" : "Create draft invoice"}
-      </Button>
+      <PendingButton pending={pending} pendingText="Creating…" className="self-start">
+        Create draft invoice
+      </PendingButton>
     </form>
   )
 }

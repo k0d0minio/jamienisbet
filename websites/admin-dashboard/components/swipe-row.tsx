@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react"
 
 import { cn } from "@jamie-nisbet/ui"
 
+import { hapticTick } from "@/lib/haptics"
+
 // The mobile list gesture: swipe a row left to reveal a tray of actions behind
 // its right edge, and (optionally) swipe it right past a threshold to commit
 // one action in a single stroke — the mail-app idiom. Pointer events rather
@@ -125,8 +127,10 @@ export function SwipeRow({
     contentRef.current?.releasePointerCapture(e.pointerId)
 
     if (commit && offset >= COMMIT_PX) {
-      // Snap home and fire — the row's own content is the confirmation (it
-      // re-renders from the server once the action lands).
+      // Snap home and fire. The finger has already left the glass, so there is
+      // no press state left to feel — one light tick is the confirmation that
+      // the stroke counted, and it's the only place in the app that buzzes.
+      hapticTick()
       setOffset(0)
       commit.onCommit()
       return

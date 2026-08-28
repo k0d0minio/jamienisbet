@@ -213,3 +213,50 @@
     }
   }
 }
+
+/* ------------------------------------------------------------------
+   View transitions — the list ↔ lead profile move (components/
+   view-transition-link.tsx). Fades and a ~5px lift, from the motion
+   tokens; the whole block sits behind `no-preference`, so reduced
+   motion gets the browser's plain cut and the link stops asking for a
+   transition at all.
+
+   The chrome is named out of the root snapshot: a header and tab bar
+   that are the same on both pages should hold still while the content
+   under them changes, not fade with it.
+   ------------------------------------------------------------------ */
+
+/* The two pieces of chrome that must not move. Declared outside the
+   reduced-motion guard: naming an element is what *excludes* it from the
+   animation, so it has to hold in every case a transition can run. */
+.vt-app-header {
+  view-transition-name: app-header;
+}
+
+.vt-app-tabs {
+  view-transition-name: app-tabs;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes jn-page-out {
+    to {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+
+  @keyframes jn-page-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  ::view-transition-old(root) {
+    animation: jn-page-out var(--duration-fast) var(--ease-out) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: jn-page-in var(--duration-base) var(--ease-out) both;
+  }
+}
