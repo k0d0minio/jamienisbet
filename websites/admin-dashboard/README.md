@@ -153,26 +153,30 @@ dashboard. `.icm/onboarding/` is traced into the deployment by
 
 ## Tickets
 
-The estate's engineering backlog in one place. Every active repo keeps its work items as
-markdown files in `.icm/intake/` — the estate-wide standard (canonical spec:
-`_system/contracts/TICKETS.md` in the `icm-board` repo) — and [`lib/tickets.ts`](lib/tickets.ts) reads
-those folders from `main` via the GitHub API (60-second revalidate) and groups them **Today /
-In progress / Blocked / Ready**, with a repo filter rail. The repo roster comes from the
-database: every delivery repo connected to an active client (`clients.github_repo`, via
-`listClientRepos()`), so connecting a repo on a lead's profile is the whole onboarding step and
-each ticket links back to its client. Sustentus is excluded by name in `lib/tickets.ts` (its
-`pipeline/intake/` is its own system).
+The estate's engineering backlog in one place, read **batch-first**. Every active repo keeps
+its work items as markdown in `.icm/intake/` — the estate-wide standard (canonical spec:
+`_system/contracts/TICKETS.md` in the `icm-board` repo) — and [`lib/tickets.ts`](lib/tickets.ts)
+reads those folders from `main` via the GitHub API (60-second revalidate, tag-busted by the
+board's refresh button) and folds them into `listBoard()`: a pinned **now-strip** (today's
+picks from icm-board's `today.md`, runs in flight from `.icm/runs/`, blocked stubs), then one
+section per repo — urgency-ordered — whose intake batches are line items. Each epic folder is a
+batch showing its progress (from the stubs' `sequence: N of M` lines) and its next stub; the
+`triage/` one-offs and any unmigrated legacy tickets ride as **Triage** and **Backlog**
+pseudo-batches. Tapping a batch opens a bottom sheet (a dialog on desktop) with the stubs in
+sequence, each expanding to the full rendered ticket. The repo roster comes from the database
+plus every owner repo the token sees; each ticket links back to its client.
 
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
-and nothing is mirrored into the database. Every ticket carries a pasteable `## Prompt`
-section, and the board's one real action is **Start in Claude Code**: a deep link
-(`claude.ai/code?prompt=…&repositories=…`, built by `claudeSessionUrl` in
-[`lib/tickets.ts`](lib/tickets.ts)) that opens a fresh Claude Code session with the prompt
-already pasted and the ticket's repo already selected. **Copy prompt** stays beside it for
-handing the prompt to any other surface. Each row also links to the file on GitHub. Uses the
-same `GITHUB_TOKEN` as the delivery-repo features; unset, the screen shows a "not configured"
-notice.
+and nothing is mirrored into the database. Every button is therefore a link or a pre-filled
+Claude Code deep link (`claude.ai/code?prompt=…&repositories=…`, built in
+[`lib/tickets.ts`](lib/tickets.ts)) that a human sends: **Start in Claude Code** / swipe-right
+on a row or batch, **Copy prompt**, and the maintenance launchers — per-repo *triage the
+backlog* and *sweep finished work* (the wrench on each section), per-batch *recut this batch*,
+and the board-level *estate check* (the `/icm-check` pass on icm-board). Rows wear the Leads
+list's gestures: swipe left for a tray (copy, GitHub, client), swipe right to start the work.
+Uses the same `GITHUB_TOKEN` as the delivery-repo features; unset, the screen shows a "not
+configured" notice.
 
 ## Money
 
