@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, Terminal } from "lucide-react"
 
 import { Button } from "@jamie-nisbet/ui"
 
@@ -14,32 +14,57 @@ import type { Ticket } from "@/lib/tickets"
 export function TicketDetail({
   ticket,
   sessionUrl,
+  terminalUrl,
 }: {
   ticket: Ticket
   sessionUrl: string | null
+  /** The `claude-cli://` twin of `sessionUrl`; null on the same terms. */
+  terminalUrl: string | null
 }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        {ticket.prompt && sessionUrl ? (
-          <>
-            {/* The board's one real action: a new Claude Code session with
-                the prompt already pasted and the repo already picked. Copy
-                stays beside it for every other surface a prompt goes to. */}
-            <Button asChild size="sm">
-              <a href={sessionUrl} target="_blank" rel="noreferrer">
-                <ExternalLink aria-hidden />
-                Start in Claude Code
-              </a>
-            </Button>
-            <CopyButton value={ticket.prompt} label="Copy prompt" what="Prompt" />
-          </>
-        ) : (
+        {!ticket.prompt ? (
           <span className="text-xs text-muted-foreground">
             {ticket.kind === "run"
               ? "A run in flight — the work lives on its branch and PR."
               : "No prompt section in this ticket."}
           </span>
+        ) : (
+          <>
+            {/* The board's one real action: a new Claude Code session with
+                the prompt already pasted and the repo already picked. Copy
+                stays beside it for every other surface a prompt goes to — and
+                it is the whole fallback when a prompt is too long to ride in
+                a URL. */}
+            {sessionUrl ? (
+              <Button asChild size="sm">
+                <a href={sessionUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink aria-hidden />
+                  Start in Claude Code
+                </a>
+              </Button>
+            ) : null}
+            <CopyButton value={ticket.prompt} label="Copy prompt" what="Prompt" />
+            {/* The desk-bound twin of the same tap: a local terminal session
+                in whichever clone this machine last ran `claude` in. Quiet,
+                and last — on a phone (the primary surface here) there is no
+                handler to catch it, so it must never sit between the two
+                actions that do work there. */}
+            {terminalUrl ? (
+              <Button asChild size="sm" variant="ghost">
+                <a href={terminalUrl}>
+                  <Terminal aria-hidden />
+                  Open in terminal
+                </a>
+              </Button>
+            ) : null}
+            {!sessionUrl ? (
+              <span className="text-xs text-muted-foreground">
+                This prompt is too long for a link — copy it into a new session.
+              </span>
+            ) : null}
+          </>
         )}
         <span className="ml-auto flex items-center gap-3 text-xs">
           {/* The repo is on the board because a client row points at it — the

@@ -20,6 +20,7 @@ import { TicketDetail } from "@/components/ticket-detail"
 import { TicketPeek } from "@/components/ticket-peek"
 import {
   claudeSessionUrl,
+  claudeTerminalUrl,
   estateCheckSessionUrl,
   listBoard,
   recutSessionUrl,
@@ -99,7 +100,11 @@ function RepoSectionView({ section }: { section: RepoSection }) {
                 ticket={ticket}
                 sessionUrl={claudeSessionUrl(ticket)}
               >
-                <TicketDetail ticket={ticket} sessionUrl={claudeSessionUrl(ticket)} />
+                <TicketDetail
+                  ticket={ticket}
+                  sessionUrl={claudeSessionUrl(ticket)}
+                  terminalUrl={claudeTerminalUrl(ticket)}
+                />
               </BoardTicketRow>
             ))}
           </BatchCard>
@@ -221,6 +226,7 @@ export default async function TicketsPage({
                     <TicketDetail
                       ticket={ticket}
                       sessionUrl={claudeSessionUrl(ticket)}
+                      terminalUrl={claudeTerminalUrl(ticket)}
                     />
                   </TicketPeek>
                 ))}

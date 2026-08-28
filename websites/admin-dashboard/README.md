@@ -169,12 +169,37 @@ plus every owner repo the token sees; each ticket links back to its client.
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
 and nothing is mirrored into the database. Every button is therefore a link or a pre-filled
-Claude Code deep link (`claude.ai/code?prompt=…&repositories=…`, built in
-[`lib/tickets.ts`](lib/tickets.ts)) that a human sends: **Start in Claude Code** / swipe-right
-on a row or batch, **Copy prompt**, and the maintenance launchers — per-repo *triage the
-backlog* and *sweep finished work* (the wrench on each section), per-batch *recut this batch*,
-and the board-level *estate check* (the `/icm-check` pass on icm-board). Rows wear the Leads
-list's gestures: swipe left for a tray (copy, GitHub, client), swipe right to start the work.
+Claude Code deep link that a human sends: **Start in Claude Code** / swipe-right on a row or
+batch, **Copy prompt**, and the maintenance launchers — per-repo *triage the backlog* and
+*sweep finished work* (the wrench on each section), per-batch *recut this batch*, and the
+board-level *estate check* (the `/icm-check` pass on icm-board). Rows wear the Leads list's
+gestures: swipe left for a tray (copy, GitHub, client), swipe right to start the work.
+
+Those links come in two shapes, built side by side in [`lib/tickets.ts`](lib/tickets.ts) —
+both documented by Anthropic, each carrying a comment naming its doc:
+
+| Action | Shape | Doc |
+|---|---|---|
+| **Start in Claude Code**, and every maintenance launcher | `claude.ai/code/new?q=…&repo=…&mode=plan` | [universal link](https://support.claude.com/en/articles/14898120-open-the-claude-mobile-app-with-a-link) |
+| **Open in terminal** (quiet, desk-only, on an opened ticket) | `claude-cli://open?repo=…&q=…` | [deep links](https://code.claude.com/docs/en/deep-links) |
+| **Copy prompt** | the clipboard, for every other surface | — |
+
+The primary link is a *universal* link: on a phone with the Claude app installed the OS hands
+the tap to the app's new-session composer, and everywhere else the same URL opens that form in
+the browser — which is why it replaced the older undocumented
+`claude.ai/code?prompt=…&repositories=…` shape on a screen built to be read one-handed. Every
+launcher passes `mode=plan`, because a stub or a maintenance pass is picked up by planning
+first. The terminal link is its desk-bound twin: it opens a local session in whichever clone
+that machine last ran `claude` in, prompt pre-filled and inert until Enter.
+
+A ticket's prompt is unbounded, so the two ticket builders stop at 4,500 encoded characters —
+under the 5,000 the terminal scheme documents for `q`, measured on the encoded value, which is
+the conservative reading. A longer prompt drops both links rather than emitting a URL that
+truncates in silence, and the row falls back to **Copy prompt** with a line saying why. House
+prose encodes at roughly 1.5x, so that ceiling is about 3,000 characters of an actual ticket.
+The maintenance prompts are authored literals in `lib/tickets.ts`, short by construction, and
+need no cap.
+
 Uses the same `GITHUB_TOKEN` as the delivery-repo features; unset, the screen shows a "not
 configured" notice.
 
