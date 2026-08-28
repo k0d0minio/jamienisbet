@@ -3,34 +3,52 @@ import { Skeleton } from "@jamie-nisbet/ui"
 // Tickets is a fan-out of GitHub reads — every connected repo's `.icm/intake/`
 // folder, fetched on every visit (`dynamic = "force-dynamic"`). On a phone on
 // mobile data that is a second or two of nothing, so the shape of the board
-// arrives first: the filter rail, then two status groups of collapsed rows.
+// arrives first: the filter rail, the now-strip, then a repo section of batch
+// lines.
 //
-// Sized against page.tsx deliberately — the chips are the Chip height, the rows
-// are the `min-h-14` summary — so the real board replaces this without the page
-// jumping under a thumb that has already started moving.
+// Sized against page.tsx deliberately — the chips are the Chip height, the
+// strip cards are the peek card, the batch lines carry the same three rows —
+// so the real board replaces this without the page jumping under a thumb that
+// has already started moving.
 
-function TicketRowSkeleton() {
+function PeekSkeleton() {
   return (
-    <li className="flex min-h-14 items-center gap-3 rounded-lg border bg-card px-4 py-2.5">
-      <Skeleton className="size-2 shrink-0 rounded-full" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <Skeleton className="h-3 w-28" />
-        <Skeleton className="h-3.5 w-3/5" />
+    <div className="flex w-44 shrink-0 flex-col gap-1.5 rounded-lg border bg-card px-3 py-2.5">
+      <div className="flex items-center gap-1.5">
+        <Skeleton className="size-2 shrink-0 rounded-full" />
+        <Skeleton className="h-3 w-20" />
       </div>
-      <Skeleton className="size-4 shrink-0" />
-    </li>
+      <Skeleton className="h-3.5 w-4/5" />
+    </div>
   )
 }
 
-function GroupSkeleton({ rows }: { rows: number }) {
+function BatchSkeleton() {
+  return (
+    <div className="flex min-h-14 flex-col justify-center gap-2 rounded-lg border bg-card px-4 py-3">
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-3.5 w-2/5" />
+        <Skeleton className="ml-auto h-3 w-12" />
+      </div>
+      <Skeleton className="h-1.5 w-full rounded-full" />
+      <Skeleton className="h-3 w-3/5" />
+    </div>
+  )
+}
+
+function SectionSkeleton({ batches }: { batches: number }) {
   return (
     <section className="flex flex-col gap-2">
-      <Skeleton className="h-3 w-20" />
-      <ul className="flex flex-col gap-2">
-        {Array.from({ length: rows }, (_, i) => (
-          <TicketRowSkeleton key={i} />
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-3.5 w-28" />
+        <Skeleton className="ml-auto h-3 w-12" />
+        <Skeleton className="size-9 rounded-md" />
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {Array.from({ length: batches }, (_, i) => (
+          <BatchSkeleton key={i} />
         ))}
-      </ul>
+      </div>
     </section>
   )
 }
@@ -40,12 +58,18 @@ export default function TicketsLoading() {
     <div className="flex flex-col gap-4 sm:gap-6">
       {/* The heading is static copy — it renders for real, and having it hold
           still is most of why this reads as loading rather than as broken. */}
-      <div className="flex flex-col gap-0.5">
-        <h1 className="text-2xl font-semibold">Tickets</h1>
-        <p className="text-sm text-muted-foreground">
-          Each repo&apos;s <code>.icm/intake/</code>, read from main — edit in
-          the repo, not here.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-2xl font-semibold">Tickets</h1>
+          <p className="text-sm text-muted-foreground">
+            Each repo&apos;s <code>.icm/intake/</code>, read from main — edit in
+            the repo, not here.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <Skeleton className="size-9 rounded-md" />
+          <Skeleton className="h-8 w-28 rounded-md" />
+        </div>
       </div>
 
       {/* Repo filter rail. */}
@@ -55,8 +79,18 @@ export default function TicketsLoading() {
         ))}
       </div>
 
-      <GroupSkeleton rows={2} />
-      <GroupSkeleton rows={3} />
+      {/* The now-strip. */}
+      <section className="flex flex-col gap-2">
+        <Skeleton className="h-3 w-10" />
+        <div className="-mx-4 flex gap-2 overflow-hidden px-4 sm:mx-0 sm:px-0">
+          {Array.from({ length: 4 }, (_, i) => (
+            <PeekSkeleton key={i} />
+          ))}
+        </div>
+      </section>
+
+      <SectionSkeleton batches={2} />
+      <SectionSkeleton batches={3} />
 
       <span className="sr-only" role="status">
         Loading tickets

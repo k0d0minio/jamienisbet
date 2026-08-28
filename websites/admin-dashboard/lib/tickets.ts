@@ -27,7 +27,14 @@ import "server-only"
 // Reuses the delivery-repo `GITHUB_TOKEN`; a fine-grained token needs Contents
 // read on the connected repos. Every fetch carries a 60-second revalidate —
 // the board is a glanceable list where "up to a minute behind main" is the
-// right trade against hammering the API on every phone refresh.
+// right trade against hammering the API on every phone refresh. Every fetch is
+// also tagged, so the board's explicit refresh control can bust the whole
+// minute in one `revalidateTag` when "current right now" is the point.
+//
+// The board reads batch-first: `listBoard()` folds the tickets into repo
+// sections of batches (each epic folder, plus a Triage pseudo-batch for the
+// one-offs and a Backlog pseudo-batch for unmigrated legacy tickets), and a
+// "now" strip of today's picks, runs in flight, and blocked stubs.
 
 import { listClientRepos } from "@jamie-nisbet/services"
 
@@ -35,6 +42,9 @@ import { listAccessibleRepos } from "@/lib/github"
 
 const API = "https://api.github.com"
 const REVALIDATE_SECONDS = 60
+
+/** Cache tag on every GitHub read, so the refresh action can bust them all. */
+export const BOARD_CACHE_TAG = "tickets"
 
 // The board shows every repo the token can see (the estate lives under one
 // owner), with client attribution joined in from the database rows that
@@ -86,6 +96,14 @@ export type Ticket = {
   group: TicketGroup
   /** "stub" (new shape) | "legacy" (flat PREFIX-NNN) | "run" (.icm/runs/ in flight) */
   kind: "stub" | "legacy" | "run"
+  /** Which batch line the ticket files under: the epic folder's name,
+   * "triage" for one-offs, "backlog" for legacy flat tickets. Null for runs —
+   * they surface on the now-strip, not inside a batch. */
+  batch: string | null
+  /** Position in the batch, from the stub's `sequence: N of M` line. */
+  sequence: number | null
+  /** The M of `N of M` — what the breakdown planned, driving batch progress. */
+  sequenceTotal: number | null
   /** "P0" | "P1" | "P2"; null when absent (sustentus stubs carry none). */
   priority: string | null
   /** Remaining metadata (dash-lines or table rows), display order. */
@@ -100,21 +118,55 @@ export type Ticket = {
 export type TicketFetchError = { repo: TicketRepo; message: string }
 
 // ---------------------------------------------------------------------------
-// Claude deep links. Two shapes, kept side by side on purpose: both are
-// documented by Anthropic, and the comment on each names the doc it comes
-// from so the next reader can tell a documented URL from a guess. (The board
-// used to point at `claude.ai/code?prompt=…&repositories=…`, which is neither
-// documented nor versioned — the request to document it was closed *not
-// planned* — so it could change under us without notice.)
+// Claude deep links. Every launcher on this board — a ticket row, a batch
+// sheet, a maintenance button — is a pre-filled session link that a human
+// sends, which is what keeps the board read-only. They come in two shapes,
+// kept side by side on purpose: both are documented by Anthropic, and the
+// comment on each names the doc it comes from, so the next reader can tell a
+// documented URL from a guess.
 //
-// Both carry the same prompt and stop at the same ceiling.
+// The board used to point at `claude.ai/code?prompt=…&repositories=…`, which
+// is neither documented nor versioned — the request to document it was closed
+// *not planned* — so it could change under us without notice.
 
 /**
- * The ceiling on an encoded prompt. A ticket's `## Prompt` section is
+ * The web/mobile session link — Anthropic's documented universal link
+ * (support.claude.com/en/articles/14898120). On a phone with the Claude app
+ * installed the OS hands the tap straight to the app's new-session composer;
+ * anywhere else the same URL opens that form in the browser. That fallback is
+ * the whole reason to prefer it: the board is a phone-first screen.
+ *
+ * Params are `q` (prompt), `repo` (one `owner/name`), and optional `branch`
+ * (requires `repo`) and `mode`. Every launcher here passes `mode=plan`: a stub
+ * or a maintenance pass is picked up by planning first, not by editing. `repo`
+ * is encoded to `owner%2Fname`, as the article's own example writes it.
+ *
+ * Takes the prompt already encoded, so the one caller with an unbounded prompt
+ * can measure it against the cap before committing to a URL.
+ */
+function newSessionUrl(repoFullName: string, encodedPrompt: string): string {
+  // `encodeURIComponent`, not `URLSearchParams`: the latter encodes spaces as
+  // `+`, and both docs' examples use `%20`.
+  const repo = encodeURIComponent(repoFullName)
+  return `https://claude.ai/code/new?q=${encodedPrompt}&repo=${repo}&mode=plan`
+}
+
+/**
+ * A session link for one of this file's own launcher prompts — triage, sweep,
+ * recut, estate check. Those prompts are authored literals a few hundred
+ * characters long, so unlike a ticket's they cannot outgrow a URL at runtime
+ * and need no cap: this returns a string, and its callers stay total.
+ */
+function claudePromptUrl(repoFullName: string, prompt: string): string {
+  return newSessionUrl(repoFullName, encodeURIComponent(prompt))
+}
+
+/**
+ * The ceiling on an encoded ticket prompt. A ticket's `## Prompt` section is
  * unbounded, and the terminal scheme documents a 5,000-character maximum on
  * `q` (the web link documents none, so it inherits this one — one cap, one
- * fallback). Past it both builders return null and the row falls back to
- * **Copy prompt**, which is right there and has no limit — better than
+ * fallback). Past it both ticket builders return null and the row falls back
+ * to **Copy prompt**, which is right there and has no limit — better than
  * emitting a URL that truncates without saying so.
  *
  * Measured on the *encoded* value, which is the conservative reading: the doc
@@ -131,35 +183,22 @@ export type TicketFetchError = { repo: TicketRepo; message: string }
  */
 const PROMPT_MAX_ENCODED_CHARS = 4500
 
-/** The prompt, URL-encoded — null when absent or past the ceiling. */
-function encodedPrompt(ticket: Ticket): string | null {
+/** A ticket's prompt, URL-encoded — null when absent or past the ceiling. */
+function encodedTicketPrompt(ticket: Ticket): string | null {
   if (!ticket.prompt) return null
-  // `encodeURIComponent`, not `URLSearchParams`: the latter encodes spaces as
-  // `+`, and both docs' examples use `%20`.
   const encoded = encodeURIComponent(ticket.prompt)
   return encoded.length > PROMPT_MAX_ENCODED_CHARS ? null : encoded
 }
 
 /**
- * The web/mobile session link — Anthropic's documented universal link
- * (support.claude.com/en/articles/14898120). On a phone with the Claude app
- * installed the OS hands the tap straight to the app's new-session composer;
- * anywhere else the same URL opens that form in the browser. That fallback is
- * the whole reason to prefer it: the board is a phone-first screen.
- *
- * Params are `q` (prompt), `repo` (one `owner/name`), and optional `branch`
- * (requires `repo`) and `mode`. `mode=plan` because a stub is picked up by
- * planning first, not by editing. `repo` is encoded to `owner%2Fname`, as the
- * article's own example writes it.
- *
- * Null when the ticket has no prompt, or the prompt is past
- * `PROMPT_MAX_ENCODED_CHARS`.
+ * One tap on a ticket goes from "this is the pick" to a session already
+ * holding its prompt. Null when the ticket has no prompt, or the prompt is
+ * past `PROMPT_MAX_ENCODED_CHARS`.
  */
 export function claudeSessionUrl(ticket: Ticket): string | null {
-  const q = encodedPrompt(ticket)
+  const q = encodedTicketPrompt(ticket)
   if (q === null) return null
-  const repo = encodeURIComponent(ticket.repo.fullName)
-  return `https://claude.ai/code/new?q=${q}&repo=${repo}&mode=plan`
+  return newSessionUrl(ticket.repo.fullName, q)
 }
 
 /**
@@ -176,7 +215,7 @@ export function claudeSessionUrl(ticket: Ticket): string | null {
  * Null on the same terms as `claudeSessionUrl`.
  */
 export function claudeTerminalUrl(ticket: Ticket): string | null {
-  const q = encodedPrompt(ticket)
+  const q = encodedTicketPrompt(ticket)
   if (q === null) return null
   return `claude-cli://open?repo=${ticket.repo.fullName}&q=${q}`
 }
@@ -192,7 +231,7 @@ async function gh(path: string, accept: string): Promise<Response> {
       Accept: accept,
       "X-GitHub-Api-Version": "2022-11-28",
     },
-    next: { revalidate: REVALIDATE_SECONDS },
+    next: { revalidate: REVALIDATE_SECONDS, tags: [BOARD_CACHE_TAG] },
   })
 }
 
@@ -239,6 +278,7 @@ type Stub = {
   title: string
   priority: string | null
   sequence: number | null
+  sequenceTotal: number | null
   blocked: string | null
   dependsOn: string[]
   meta: [string, string][]
@@ -298,6 +338,7 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
     title,
     priority: priorityToken ? `P${priorityToken[1]}` : null,
     sequence: seqMatch ? Number(seqMatch[1]) : null,
+    sequenceTotal: seqMatch ? Number(seqMatch[2]) : null,
     blocked: fields.get("blocked") ?? null,
     dependsOn,
     meta,
@@ -379,6 +420,9 @@ function parseLegacy(
     title,
     group,
     kind: "legacy",
+    batch: "backlog",
+    sequence: null,
+    sequenceTotal: null,
     priority,
     meta,
     prompt: extractPrompt(lines),
@@ -519,6 +563,9 @@ async function fetchRepoTickets(
         title: s.title,
         group,
         kind: "stub",
+        batch: s.epic,
+        sequence: s.sequence,
+        sequenceTotal: s.sequenceTotal,
         priority: s.priority,
         meta,
         prompt: s.prompt ?? synthesizedPrompt(repo, s.path),
@@ -535,6 +582,9 @@ async function fetchRepoTickets(
         title: slug,
         group: "in-flight",
         kind: "run",
+        batch: null,
+        sequence: null,
+        sequenceTotal: null,
         priority: null,
         meta: [["Run", `.icm/runs/${slug}`]],
         prompt: null,
@@ -630,23 +680,161 @@ async function loadRepos(): Promise<TicketRepo[]> {
   return repos
 }
 
+// ---------------------------------------------------------------------------
+// Batch assembly — the board's shape. A batch is one line item: an epic folder
+// with its stubs in sequence, or one of the two pseudo-batches every repo can
+// carry ("triage" one-offs, "backlog" legacy tickets).
+
+export type BatchKind = "epic" | "triage" | "backlog"
+
+export type Batch = {
+  /** The epic folder's name, or the pseudo-batch's ("triage"/"backlog"). */
+  slug: string
+  kind: BatchKind
+  /** Humanized slug — the line item's label. */
+  title: string
+  /** The folder on GitHub — the batch's "open the real thing" escape hatch. */
+  htmlUrl: string
+  /** What the breakdown planned (max `N of M`); null when unsequenced —
+   * always covers the open count, so `planned - tickets.length` is done. */
+  planned: number | null
+  /** Stubs already through: planned minus still open. 0 when unsequenced. */
+  done: number
+  /** Open tickets, batch order: sequence for epics, priority for the rest. */
+  tickets: Ticket[]
+  /** The stub a swipe-right starts: the epic's "next", else the top of the
+   * pile. Null only for an empty batch, which the board never renders. */
+  next: Ticket | null
+  todayCount: number
+  blockedCount: number
+  p0Count: number
+}
+
+export type RepoSection = {
+  repo: TicketRepo
+  /** Epics by name, then triage, then backlog — stable positions. */
+  batches: Batch[]
+  /** Open tickets across the section's batches (runs live on the strip). */
+  open: number
+}
+
+function humanize(slug: string): string {
+  const words = slug.replace(/[-_]+/g, " ").trim()
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+function batchKind(slug: string): BatchKind {
+  if (slug === "triage") return "triage"
+  if (slug === "backlog") return "backlog"
+  return "epic"
+}
+
+function batchTitle(kind: BatchKind, slug: string): string {
+  if (kind === "triage") return "Triage"
+  if (kind === "backlog") return "Backlog"
+  return humanize(slug)
+}
+
+function batchFolderUrl(repo: TicketRepo, kind: BatchKind, slug: string): string {
+  // The legacy backlog has no folder of its own — its flat files sit directly
+  // in intake/, so the batch points there.
+  const folder = kind === "backlog" ? ".icm/intake" : `.icm/intake/${slug}`
+  return `https://github.com/${repo.fullName}/tree/HEAD/${folder}`
+}
+
+/** Batch-internal order: epics read in sequence (unsequenced stubs sink),
+ * triage and backlog read by priority — they're piles, not pipelines. */
+function batchOrder(kind: BatchKind) {
+  return (a: Ticket, b: Ticket): number =>
+    kind === "epic"
+      ? (a.sequence ?? Number.MAX_SAFE_INTEGER) -
+          (b.sequence ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id)
+      : rank(a) - rank(b) || a.id.localeCompare(b.id)
+}
+
+function assembleBatches(repo: TicketRepo, tickets: Ticket[]): Batch[] {
+  const byBatch = new Map<string, Ticket[]>()
+  for (const t of tickets) {
+    if (t.batch === null) continue
+    const list = byBatch.get(t.batch) ?? []
+    list.push(t)
+    byBatch.set(t.batch, list)
+  }
+
+  const batches: Batch[] = []
+  for (const [slug, members] of byBatch) {
+    const kind = batchKind(slug)
+    const ordered = [...members].sort(batchOrder(kind))
+    // What the breakdown planned, if the stubs are sequenced. A batch that
+    // grew past its own plan (recut mid-flight) still reads sanely: planned
+    // never shows less than what's open.
+    const totals = ordered
+      .map((t) => t.sequenceTotal)
+      .filter((n): n is number => n !== null)
+    const planned =
+      kind === "epic" && totals.length > 0
+        ? Math.max(...totals, ordered.length)
+        : null
+    batches.push({
+      slug,
+      kind,
+      title: batchTitle(kind, slug),
+      htmlUrl: batchFolderUrl(repo, kind, slug),
+      planned,
+      done: planned === null ? 0 : planned - ordered.length,
+      tickets: ordered,
+      next: ordered.find((t) => t.group === "next") ?? ordered[0] ?? null,
+      todayCount: ordered.filter((t) => t.group === "today").length,
+      blockedCount: ordered.filter((t) => t.group === "blocked").length,
+      p0Count: ordered.filter((t) => t.priority === "P0").length,
+    })
+  }
+
+  const kindOrder: Record<BatchKind, number> = { epic: 0, triage: 1, backlog: 2 }
+  return batches.sort(
+    (a, b) => kindOrder[a.kind] - kindOrder[b.kind] || a.slug.localeCompare(b.slug)
+  )
+}
+
+/** The pinned strip: what's happening across the estate right now — today's
+ * picks first, then runs in flight, then what's stuck. */
+function assembleStrip(tickets: Ticket[]): Ticket[] {
+  const of = (group: TicketGroup) => tickets.filter((t) => t.group === group)
+  return [...of("today"), ...of("in-flight"), ...of("blocked")]
+}
+
 /**
- * Every open ticket across the estate, sorted board-ready: the page groups by
- * `group`, so the sort here is priority first, then repo, then path — stable
- * enough that the list doesn't reshuffle between refreshes. Returns
+ * Section order is urgency: repos holding a today-pick first, then repos with
+ * something blocked, then repos with a run in flight, then the rest by name —
+ * the daily glance starts where the action is.
+ */
+function sectionUrgency(section: RepoSection, hasRun: boolean): number {
+  if (section.batches.some((b) => b.todayCount > 0)) return 0
+  if (section.batches.some((b) => b.blockedCount > 0)) return 1
+  if (hasRun) return 2
+  return 3
+}
+
+/**
+ * The whole board in one read: every open ticket across the estate, folded
+ * into repo sections of batches plus the now-strip. Returns
  * `configured: false` when GITHUB_TOKEN is unset; a database failure is its
  * own banner (`dbError`), not an empty board that lies about there being no
  * work.
  */
-export async function listTickets(): Promise<{
+export async function listBoard(): Promise<{
   configured: boolean
   repos: TicketRepo[]
+  /** Every open item (batch tickets and runs) — the chip counts' source. */
   tickets: Ticket[]
+  sections: RepoSection[]
+  strip: Ticket[]
   errors: TicketFetchError[]
   dbError: string | null
 }> {
+  const empty = { repos: [], tickets: [], sections: [], strip: [], errors: [] }
   if (!isConfigured()) {
-    return { configured: false, repos: [], tickets: [], errors: [], dbError: null }
+    return { configured: false, ...empty, dbError: null }
   }
 
   let repos: TicketRepo[] = []
@@ -655,9 +843,7 @@ export async function listTickets(): Promise<{
   } catch (err) {
     return {
       configured: true,
-      repos: [],
-      tickets: [],
-      errors: [],
+      ...empty,
       dbError:
         err instanceof Error ? err.message : "Could not reach the database.",
     }
@@ -668,6 +854,8 @@ export async function listTickets(): Promise<{
     fetchTodayKeys(),
   ])
 
+  // Stable base order (priority, repo, id) so nothing reshuffles between
+  // refreshes; the batches re-sort their own members afterwards.
   const tickets = results
     .flatMap((r) => r.tickets)
     .map((t) =>
@@ -679,8 +867,92 @@ export async function listTickets(): Promise<{
         a.repo.slug.localeCompare(b.repo.slug) ||
         a.id.localeCompare(b.id)
     )
+
+  const sections = repos
+    .map((repo) => {
+      const own = tickets.filter((t) => t.repo.fullName === repo.fullName)
+      const batches = assembleBatches(repo, own)
+      return {
+        section: {
+          repo,
+          batches,
+          open: batches.reduce((n, b) => n + b.tickets.length, 0),
+        },
+        hasRun: own.some((t) => t.kind === "run"),
+      }
+    })
+    .filter(({ section }) => section.batches.length > 0)
+    .sort(
+      (a, b) =>
+        sectionUrgency(a.section, a.hasRun) - sectionUrgency(b.section, b.hasRun) ||
+        a.section.repo.slug.localeCompare(b.section.repo.slug)
+    )
+    .map(({ section }) => section)
+
   const errors = results
     .map((r) => r.error)
     .filter((e): e is TicketFetchError => e !== null)
-  return { configured: true, repos, tickets, errors, dbError: null }
+  return {
+    configured: true,
+    repos,
+    tickets,
+    sections,
+    strip: assembleStrip(tickets),
+    errors,
+    dbError: null,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance launchers — the board's "button tied to a script" surface, kept
+// inside the read-only contract: each one is a Claude Code session link with
+// the maintenance prompt pre-filled, and a human sends it. Prompts follow the
+// intake README's rules and stand alone in a fresh session at the repo root.
+
+export type MaintenanceLauncher = {
+  key: string
+  title: string
+  /** One line under the title saying what the session will actually do. */
+  hint: string
+  url: string
+}
+
+export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[] {
+  return [
+    {
+      key: "triage",
+      title: "Triage the backlog",
+      hint: "Batch related one-offs into epics, tighten what stays",
+      url: claudePromptUrl(
+        repo.fullName,
+        "Read .icm/intake/README.md for this repo's ticket contract, then triage .icm/intake/triage/: where a real batch has formed, group the related one-off stubs into a sequenced epic folder (a breakdown.md beside sequenced stubs); tighten titles and priorities on what stays; move anything already done to the matching _done/ folder. Ticket-only changes commit straight to main."
+      ),
+    },
+    {
+      key: "sweep",
+      title: "Sweep finished work",
+      hint: "Move done stubs and merged runs to _done/",
+      url: claudePromptUrl(
+        repo.fullName,
+        "Read .icm/intake/README.md for this repo's ticket contract, then sweep for finished work: check the open stubs in .icm/intake/ and the run folders in .icm/runs/ against what has actually merged, and git mv anything finished into the matching _done/ folder. Verify against the code and PR history before moving anything — when unsure, leave it open. Ticket-only changes commit straight to main."
+      ),
+    },
+  ]
+}
+
+/** Lives on an epic's sheet: re-ground the batch in the current state of the
+ * code — refresh, resequence, split, or retire its remaining stubs. */
+export function recutSessionUrl(repo: TicketRepo, batchSlug: string): string {
+  return claudePromptUrl(
+    repo.fullName,
+    `Read .icm/intake/${batchSlug}/breakdown.md and every stub beside it, compare them against the current state of the code, and recut the batch: refresh stale stubs, resequence what remains, split anything too big, and move anything already done to _done/. Keep the breakdown honest — it should describe the work as it stands today. Ticket-only changes commit straight to main.`
+  )
+}
+
+/** One board-level button: the estate consistency pass, run where it lives. */
+export function estateCheckSessionUrl(): string {
+  return claudePromptUrl(
+    TODAY_REPO,
+    "Run the /icm-check pass across the estate and report what has drifted — intake shape, runs hygiene, today.md pointing at real stubs. Propose fixes as tickets in the offending repos rather than fixing anything silently."
+  )
 }
