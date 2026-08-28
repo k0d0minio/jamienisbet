@@ -1,99 +1,99 @@
 import "server-only"
 
 // The tickets board's read-only line to GitHub. Every active repo keeps its
-// work backlog as markdown files in `.icm/intake/` — the estate-wide standard
-// (canonical spec: `_system/contracts/TICKETS.md` in the icm-board repo) — and this
-// module pulls them into one list. The dashboard only *reads*: tickets are
-// created, edited, and finished (moved to `_done/`) inside each repo by the
-// session doing the work, never from here. Repos stay the source of truth and
-// nothing is mirrored into the database.
+// work backlog as markdown in `.icm/intake/` — the estate-wide standard
+// (canonical spec: `_system/contracts/TICKETS.md` in the icm-board repo, re-founded
+// 2026-08-28 on the sustentus intake model) — and this module pulls it into one
+// list. The dashboard only *reads*: tickets are created, edited, and finished
+// (moved to `_done/`) inside each repo by the session doing the work, never
+// from here. Repos stay the source of truth and nothing is mirrored into the
+// database.
+//
+// Two shapes parse side by side, because migration is per-repo and gradual:
+//
+//   • NEW (the standard): stubs grouped in epics — `intake/<epic>/<slug>.md`
+//     beside a `breakdown.md`, sequenced and dependency-ordered — plus one-off
+//     `intake/triage/<slug>.md` stubs. Status is positional: a `- blocked:`
+//     line, the epic's lowest open sequence ("next"), a run folder in
+//     `.icm/runs/` ("in flight"), an entry in icm-board's `.icm/today.md`
+//     ("today"). Metadata is `- key: value` dash-lines, not a table.
+//   • LEGACY: flat `PREFIX-NNN-slug.md` files with an H1 `# <ID> · <title>`,
+//     a two-column metadata table and a Status row.
+//
+// Fetching is one git-tree call per repo (recursive, so epic folders and
+// `runs/` come back in the same response), then one raw read per open ticket
+// file. `_done/` is never fetched.
 //
 // Reuses the delivery-repo `GITHUB_TOKEN`; a fine-grained token needs Contents
-// read on the connected repos. Every fetch carries a 60-second revalidate — unlike
-// the live delivery-repo calls in `lib/github.ts`, the board is a glanceable
-// list where "up to a minute behind main" is the right trade against hammering
-// the API on every phone refresh.
+// read on the connected repos. Every fetch carries a 60-second revalidate —
+// the board is a glanceable list where "up to a minute behind main" is the
+// right trade against hammering the API on every phone refresh.
 
 import { listClientRepos } from "@jamie-nisbet/services"
+
+import { listAccessibleRepos } from "@/lib/github"
 
 const API = "https://api.github.com"
 const REVALIDATE_SECONDS = 60
 
-// The repos whose backlogs the board shows come from the database — every
-// delivery repo connected to an active client (`biz.clients.github_repo`) —
-// plus the house repos, which belong to no client. Connecting a repo on a
-// lead's profile *is* the onboarding step; the board tolerates `.icm/intake/`
-// not existing yet (the repo just reads as empty until its first ticket lands).
-//
-// There are two house repos because the estate split on 2026-08-26: this
-// monorepo keeps the `JN-*` series (the product — sites, dashboard, data), and
-// `icm-board` carries `ICM-*` (the control layer — contracts, estate scripts,
-// the three commands). A ticket lives next to the logic it describes, so the
-// board is the only place they are seen together — which is the whole point of
-// it. Order here is display order.
-//
-// `lib/onboarding.ts` keeps its own, single house-repo constant on purpose: the
-// questionnaire library lives in this repo only, and is not an estate-wide thing.
+// The board shows every repo the token can see (the estate lives under one
+// owner), with client attribution joined in from the database rows that
+// connect a repo to a lead. The house repos are pinned so they exist even if
+// the accessible-repos call fails. Sustentus lives under its own org — outside
+// `affiliation=owner` — and is added explicitly: its `.icm/` is exempt from the
+// estate *tooling*, but its stubs are the very shape this parser speaks, and
+// seeing the whole estate on one board is the point (icm-board decision D13).
 const HOUSE_REPOS = ["k0d0minio/jamienisbet", "k0d0minio/icm-board"] as const
+const EXTRA_REPOS = ["sustentus/sustentus"] as const
 
-// Sustentus stays off the board even if a client row ever points at it: its
-// `.icm/intake/` carries its own pipeline semantics (not the ticket contract) and
-// stays untouched. Matched on the repo-name segment so the exclusion holds
-// under any owner; the legacy name stays listed so a stale client row still
-// matches.
-const EXCLUDED_REPO_NAMES = new Set(["sustentus", "sustentus-v2"])
-
-function isExcluded(fullName: string): boolean {
-  const name = fullName.split("/").pop() ?? fullName
-  return EXCLUDED_REPO_NAMES.has(name.toLowerCase())
-}
+// icm-board is where `/day` writes the one home of the today flag.
+const TODAY_REPO = "k0d0minio/icm-board"
+const TODAY_PATH = ".icm/today.md"
 
 export type TicketRepo = {
-  /** "owner/name" as stored on the client row. */
+  /** "owner/name". */
   fullName: string
   /** The repo's own name — the filter-chip label and URL param. */
   slug: string
   /** The client the repo is connected to, for linking board → lead.
-   * Null for the house repo — estate work belongs to no client. */
+   * Null for house/unattributed repos. */
   clientId: string | null
   clientName: string | null
 }
 
-const INTAKE_PATH = ".icm/intake"
-
-// The status ladder from the spec. Board order is workflow order: what was
-// picked for today first, then what's moving, then what's stuck, then the pool.
-export const TICKET_STATUSES = [
+// Board order is workflow order: the day's picks, then what's moving, then
+// what's stuck, then each epic's next stub (and the triage pool), then the
+// rest of every epic's queue.
+export const TICKET_GROUPS = [
   "today",
-  "in-progress",
+  "in-flight",
   "blocked",
-  "ready",
+  "next",
+  "queued",
 ] as const
 
-export type TicketStatus = (typeof TICKET_STATUSES)[number]
+export type TicketGroup = (typeof TICKET_GROUPS)[number]
 
 export type Ticket = {
   repo: TicketRepo
-  /** Path within the repo, e.g. ".icm/intake/REMI-001-admin-docs-exposure.md" */
+  /** Path within the repo, e.g. ".icm/intake/business-state/neon-at-the-gate.md" */
   path: string
   /** GitHub blob URL — "open the real file" escape hatch. */
   htmlUrl: string
-  /** Ticket id from the H1 (falls back to the filename). */
+  /** Path identity for stubs ("epic/slug", "triage/slug"), legacy ID otherwise. */
   id: string
   title: string
-  status: TicketStatus
-  /** "P0" | "P1" | "P2" per the spec; null when the row is missing. */
+  group: TicketGroup
+  /** "stub" (new shape) | "legacy" (flat PREFIX-NNN) | "run" (.icm/runs/ in flight) */
+  kind: "stub" | "legacy" | "run"
+  /** "P0" | "P1" | "P2"; null when absent (sustentus stubs carry none). */
   priority: string | null
-  /** Remaining metadata-table rows (Type, Size, Depends on, …), display order. */
+  /** Remaining metadata (dash-lines or table rows), display order. */
   meta: [string, string][]
-  /** The pasteable body of `## Prompt` (or the remi-ai alias `## Agent prompt`). */
+  /** The pasteable `## Prompt` body — synthesized from the path for stubs
+   * that don't carry one, so the one-tap pick-up works estate-wide. */
   prompt: string | null
-  /**
-   * The ticket markdown to read on the spot, rendered as markdown on the
-   * board. The H1 and the metadata table are stripped — the row's summary and
-   * the meta list already show them, and repeating them pushes the actual
-   * ticket below the fold. "Open on GitHub" is the unedited file.
-   */
+  /** The ticket markdown minus its header block, rendered on the board. */
   body: string
 }
 
@@ -101,10 +101,8 @@ export type TicketFetchError = { repo: TicketRepo; message: string }
 
 /**
  * Deep link into a fresh Claude Code session on the web with this ticket's
- * prompt pre-filled and its repo pre-selected — the documented
- * `claude.ai/code?prompt=…&repositories=…` integration. One tap on the board
- * goes from "this is today's ticket" to a session already holding the prompt;
- * Copy prompt stays alongside for handing it to any other surface.
+ * prompt pre-filled and its repo pre-selected. One tap on the board goes from
+ * "this is the pick" to a session already holding the prompt.
  */
 export function claudeSessionUrl(ticket: Ticket): string | null {
   if (!ticket.prompt) return null
@@ -131,31 +129,10 @@ async function gh(path: string, accept: string): Promise<Response> {
 }
 
 // ---------------------------------------------------------------------------
-// Parsing. The spec keeps the format deliberately trivial: an H1
-// `# <ID> · <title>`, a two-column metadata table, and `##` sections. Parsing
-// is lenient everywhere — a malformed ticket still shows up (as `ready`, with
-// whatever could be read) rather than silently vanishing from the board.
+// Parsing — shared pieces. Lenient everywhere: a malformed ticket still shows
+// up (with whatever could be read) rather than silently vanishing.
 
-const STATUS_ALIASES: Record<string, TicketStatus> = {
-  today: "today",
-  "in-progress": "in-progress",
-  "in progress": "in-progress",
-  blocked: "blocked",
-  ready: "ready",
-}
-
-function parseHeading(line: string): { id: string; title: string } | null {
-  const h1 = line.match(/^#\s+(.+)$/)
-  if (!h1) return null
-  // "REMI-001 · Title" — the separator is the estate's middle dot.
-  const parts = h1[1].split("·")
-  if (parts.length >= 2) {
-    return { id: parts[0].trim(), title: parts.slice(1).join("·").trim() }
-  }
-  return { id: h1[1].trim(), title: h1[1].trim() }
-}
-
-/** The `## Prompt` (or `## Agent prompt`) section body, up to the next `##`. */
+/** The `## Prompt` (or the remi-ai alias `## Agent prompt`) body, up to the next `##`. */
 function extractPrompt(lines: string[]): string | null {
   const start = lines.findIndex((l) => /^##\s+(agent\s+)?prompt\s*$/i.test(l))
   if (start === -1) return null
@@ -166,54 +143,159 @@ function extractPrompt(lines: string[]): string | null {
 }
 
 /**
- * The reading body: the ticket minus its H1 and its metadata table — both
- * already on screen as the row's title strip and meta list. Only the *header*
- * block is stripped (everything up to the first `##`), so a table inside a
- * section of the ticket itself survives and renders as a table.
+ * The reading body: the ticket minus its H1 and its metadata header (table
+ * rows or dash-lines) — both already on screen as the row's title strip and
+ * meta list. Only the header block (up to the first `##`) is stripped, so
+ * tables and lists inside the ticket's own sections survive.
  */
 function readingBody(lines: string[]): string {
   const firstSection = lines.findIndex((l) => /^##\s/.test(l))
   const header = firstSection === -1 ? lines : lines.slice(0, firstSection)
   const rest = firstSection === -1 ? [] : lines.slice(firstSection)
   const keptHeader = header.filter(
-    (l) => !/^#\s/.test(l) && !/^\s*\|.*\|\s*$/.test(l)
+    (l) =>
+      !/^#\s/.test(l) &&
+      !/^\s*\|.*\|\s*$/.test(l) &&
+      !/^-\s+[a-z-]+:/i.test(l) &&
+      !/^>\s*Recut/i.test(l)
   )
   return [...keptHeader, ...rest].join("\n").trim()
 }
 
-export function parseTicket(
+// --- NEW shape: a stub with dash-line metadata ------------------------------
+
+type Stub = {
+  path: string
+  epic: string
+  slug: string
+  title: string
+  priority: string | null
+  sequence: number | null
+  blocked: string | null
+  dependsOn: string[]
+  meta: [string, string][]
+  prompt: string | null
+  body: string
+}
+
+function dashFields(lines: string[]): Map<string, string> {
+  const fields = new Map<string, string>()
+  for (const line of lines) {
+    if (/^##\s/.test(line)) break
+    const m = line.match(/^-\s+([a-z][a-z-]*):\s*(.*)$/i)
+    if (!m) continue
+    const key = m[1].toLowerCase()
+    if (!fields.has(key)) fields.set(key, m[2].trim())
+  }
+  return fields
+}
+
+function parseStub(path: string, epic: string, markdown: string): Stub {
+  const lines = markdown.split("\n")
+  const slug = (path.split("/").pop() ?? path).replace(/\.md$/, "")
+  const h1 = lines.find((l) => /^#\s/.test(l))
+  const title =
+    h1?.replace(/^#\s+/, "").replace(/^Stub:\s*/i, "").trim() || slug
+
+  const fields = dashFields(lines)
+  const priorityRaw = fields.get("priority") ?? null
+  const priorityToken = priorityRaw?.match(/^p([0-2])\b/i)
+  const seqMatch = fields.get("sequence")?.match(/^(\d+)\s+of\s+(\d+)/i)
+  const dependsRaw = fields.get("depends-on") ?? ""
+  const dependsOn = dependsRaw
+    .replace(/`/g, "")
+    .split(",")
+    .map((d) => d.trim())
+    .filter((d) => d && d.toLowerCase() !== "none")
+
+  // Everything informative that isn't identity goes to the meta list, in a
+  // stable order — the row's detail view shows it as key/value pairs.
+  const meta: [string, string][] = []
+  const push = (label: string, key: string) => {
+    const v = fields.get(key)
+    if (v) meta.push([label, v])
+  }
+  push("Lane", "lane")
+  push("Size", "size")
+  if (seqMatch) meta.push(["Sequence", `${seqMatch[1]} of ${seqMatch[2]}`])
+  if (dependsOn.length > 0) meta.push(["Depends on", dependsOn.join(", ")])
+  push("Blocked", "blocked")
+  push("Found by", "found-by")
+  push("Sources", "sources")
+
+  return {
+    path,
+    epic,
+    slug,
+    title,
+    priority: priorityToken ? `P${priorityToken[1]}` : null,
+    sequence: seqMatch ? Number(seqMatch[1]) : null,
+    blocked: fields.get("blocked") ?? null,
+    dependsOn,
+    meta,
+    prompt: extractPrompt(lines),
+    body: readingBody(lines),
+  }
+}
+
+/** A pick-up prompt for stubs that don't carry one (sustentus's, mostly), so
+ * the one-tap session link works estate-wide. */
+function synthesizedPrompt(repo: TicketRepo, path: string): string {
+  return [
+    `Read ${path} in ${repo.fullName} for full context, then do the work it describes.`,
+    "Follow that repo's own conventions and pipeline contracts (its CLAUDE.md and .icm/ own the rules).",
+  ].join(" ")
+}
+
+// --- LEGACY shape: flat PREFIX-NNN ticket with a metadata table -------------
+
+const LEGACY_STATUS_TO_GROUP: Record<string, TicketGroup> = {
+  today: "today",
+  "in-progress": "in-flight",
+  "in progress": "in-flight",
+  blocked: "blocked",
+  ready: "next",
+}
+
+function parseLegacy(
   repo: TicketRepo,
   path: string,
   htmlUrl: string,
   markdown: string
 ): Ticket {
   const lines = markdown.split("\n")
-
   const filename = path.split("/").pop() ?? path
   const fallbackId = filename.replace(/\.md$/, "")
-  const heading =
-    lines.map(parseHeading).find((h) => h !== null) ?? null
 
-  // Two-column metadata table rows: `| Key | Value |`. Separator rows and the
-  // headerless `| | |` opener parse to empty/dash cells and are skipped.
-  let status: TicketStatus = "ready"
+  let id = fallbackId
+  let title = fallbackId
+  const h1 = lines.find((l) => /^#\s/.test(l))
+  if (h1) {
+    const parts = h1.replace(/^#\s+/, "").split("·")
+    if (parts.length >= 2) {
+      id = parts[0].trim()
+      title = parts.slice(1).join("·").trim()
+    } else {
+      id = title = h1.replace(/^#\s+/, "").trim()
+    }
+  }
+
+  let group: TicketGroup = "next"
   let priority: string | null = null
   const meta: [string, string][] = []
   for (const line of lines) {
     const row = line.match(/^\|([^|]*)\|([^|]*)\|\s*$/)
     if (!row) continue
-    // Bold metadata is valid markdown (`| **Status** |`, remi-ai style) —
-    // strip emphasis before comparing keys or reading the value.
+    // Bold metadata is valid markdown (`| **Status** |`, remi-ai style).
     const key = row[1].replace(/\*/g, "").trim()
     const value = row[2].trim()
     if (!key || !value || /^[-:\s]+$/.test(key)) continue
     const keyLower = key.toLowerCase()
     const plainValue = value.replace(/\*/g, "").trim()
     if (keyLower === "status") {
-      status = STATUS_ALIASES[plainValue.toLowerCase()] ?? "ready"
+      group = LEGACY_STATUS_TO_GROUP[plainValue.toLowerCase()] ?? "next"
     } else if (keyLower === "priority") {
-      // Verbose priorities (`P0 — live exposure, close today`) still rank:
-      // a leading P0–P2 token wins; anything else passes through verbatim.
+      // Verbose priorities (`P0 — live exposure, close today`) still rank.
       const token = plainValue.match(/^p([0-2])\b/i)
       priority = token ? `P${token[1]}` : plainValue.toUpperCase()
     } else {
@@ -225,9 +307,10 @@ export function parseTicket(
     repo,
     path,
     htmlUrl,
-    id: heading?.id ?? fallbackId,
-    title: heading?.title ?? fallbackId,
-    status,
+    id,
+    title,
+    group,
+    kind: "legacy",
     priority,
     meta,
     prompt: extractPrompt(lines),
@@ -236,55 +319,163 @@ export function parseTicket(
 }
 
 // ---------------------------------------------------------------------------
-// Fetching. One directory listing per repo, then the raw content of each
+// Fetching. One recursive git-tree call per repo, then one raw read per open
 // ticket file. Best-effort per repo: one unreachable repo becomes a banner on
 // the board, not an empty page.
 
-type ContentsEntry = {
-  type: string
-  name: string
-  path: string
-  html_url: string
+type TreeEntry = { path: string; type: string }
+
+function blobUrl(repo: TicketRepo, path: string): string {
+  return `https://github.com/${repo.fullName}/blob/HEAD/${path}`
+}
+
+async function fetchRaw(repo: TicketRepo, path: string): Promise<string | null> {
+  const res = await gh(
+    `/repos/${repo.fullName}/contents/${path
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/")}`,
+    "application/vnd.github.raw+json"
+  )
+  if (!res.ok) return null
+  return res.text()
 }
 
 async function fetchRepoTickets(
   repo: TicketRepo
 ): Promise<{ tickets: Ticket[]; error: TicketFetchError | null }> {
   try {
-    const listing = await gh(
-      `/repos/${repo.fullName}/contents/${INTAKE_PATH}`,
+    const res = await gh(
+      `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
       "application/vnd.github+json"
     )
-    // No `.icm/intake/` on main yet just means no tickets — a repo is onboard
-    // the moment its first ticket lands, with no config change here.
-    if (listing.status === 404) return { tickets: [], error: null }
-    if (!listing.ok) {
+    // 404: no access or no commits — either way, nothing to show, not an error
+    // (a repo is onboard the moment its first ticket lands). 409: empty repo.
+    if (res.status === 404 || res.status === 409)
+      return { tickets: [], error: null }
+    if (!res.ok) {
       return {
         tickets: [],
-        error: { repo, message: `GitHub returned HTTP ${listing.status}` },
+        error: { repo, message: `GitHub returned HTTP ${res.status}` },
       }
     }
-    const entries = (await listing.json()) as ContentsEntry[]
-    const files = entries.filter(
-      (e) =>
-        e.type === "file" &&
-        e.name.endsWith(".md") &&
-        e.name.toLowerCase() !== "readme.md"
-    )
-    const tickets = await Promise.all(
-      files.map(async (file) => {
-        const res = await gh(
-          `/repos/${repo.fullName}/contents/${file.path
-            .split("/")
-            .map(encodeURIComponent)
-            .join("/")}`,
-          "application/vnd.github.raw+json"
-        )
-        if (!res.ok) return null
-        return parseTicket(repo, file.path, file.html_url, await res.text())
+    const { tree } = (await res.json()) as { tree: TreeEntry[] }
+
+    const stubPaths: { path: string; epic: string }[] = []
+    const legacyPaths: string[] = []
+    const runSlugs = new Set<string>()
+
+    for (const entry of tree) {
+      if (entry.type !== "blob") {
+        // In-flight runs: any directory directly under .icm/runs/ except the
+        // _done archive. Sustentus archives merged runs elsewhere (its own
+        // CI), so its runs/ holds history, not flight — skip it; its intake
+        // stubs still show.
+        const run = entry.path.match(/^\.icm\/runs\/([^/]+)$/)
+        if (run && run[1] !== "_done" && repo.slug !== "sustentus")
+          runSlugs.add(run[1])
+        continue
+      }
+      const m = entry.path.match(/^\.icm\/intake\/(.+)$/)
+      if (!m) continue
+      const rel = m[1]
+      if (rel.includes("/_done/") || !rel.endsWith(".md")) continue
+      const segments = rel.split("/")
+      if (segments.length === 1) {
+        const nameLower = segments[0].toLowerCase()
+        if (nameLower === "readme.md" || nameLower === "context.md") continue
+        legacyPaths.push(entry.path)
+      } else if (segments.length === 2) {
+        if (segments[1].toLowerCase() === "breakdown.md") continue
+        stubPaths.push({ path: entry.path, epic: segments[0] })
+      }
+    }
+
+    const [stubResults, legacyResults] = await Promise.all([
+      Promise.all(
+        stubPaths.map(async ({ path, epic }) => {
+          const raw = await fetchRaw(repo, path)
+          return raw === null ? null : parseStub(path, epic, raw)
+        })
+      ),
+      Promise.all(
+        legacyPaths.map(async (path) => {
+          const raw = await fetchRaw(repo, path)
+          return raw === null
+            ? null
+            : parseLegacy(repo, path, blobUrl(repo, path), raw)
+        })
+      ),
+    ])
+
+    const stubs = stubResults.filter((s): s is Stub => s !== null)
+
+    // Positional grouping, per epic: the lowest-sequence unblocked stub is
+    // "next"; a stub whose in-epic dependency is still open is waiting (shown
+    // in Blocked); everything else queues. Triage stubs are all "next" — a
+    // backlog, not a batch.
+    const openByEpic = new Map<string, Set<string>>()
+    for (const s of stubs) {
+      if (!openByEpic.has(s.epic)) openByEpic.set(s.epic, new Set())
+      openByEpic.get(s.epic)!.add(s.slug)
+    }
+    const nextOf = new Map<string, string>()
+    for (const s of stubs) {
+      if (s.epic === "triage" || s.blocked !== null) continue
+      const current = nextOf.get(s.epic)
+      const currentSeq = current
+        ? (stubs.find((x) => x.epic === s.epic && x.slug === current)
+            ?.sequence ?? Number.MAX_SAFE_INTEGER)
+        : Number.MAX_SAFE_INTEGER
+      if ((s.sequence ?? Number.MAX_SAFE_INTEGER - 1) < currentSeq)
+        nextOf.set(s.epic, s.slug)
+    }
+
+    const tickets: Ticket[] = stubs.map((s) => {
+      const openDep = s.dependsOn.find((d) => openByEpic.get(s.epic)?.has(d))
+      let group: TicketGroup
+      if (s.blocked !== null) group = "blocked"
+      else if (s.epic === "triage") group = "next"
+      else if (nextOf.get(s.epic) === s.slug) group = "next"
+      else if (openDep) group = "blocked"
+      else group = "queued"
+      const meta: [string, string][] =
+        openDep && s.blocked === null
+          ? [...s.meta, ["Waiting on", openDep]]
+          : s.meta
+      return {
+        repo,
+        path: s.path,
+        htmlUrl: blobUrl(repo, s.path),
+        id: `${s.epic}/${s.slug}`,
+        title: s.title,
+        group,
+        kind: "stub",
+        priority: s.priority,
+        meta,
+        prompt: s.prompt ?? synthesizedPrompt(repo, s.path),
+        body: s.body,
+      }
+    })
+
+    for (const slug of [...runSlugs].sort()) {
+      tickets.push({
+        repo,
+        path: `.icm/runs/${slug}`,
+        htmlUrl: `https://github.com/${repo.fullName}/tree/HEAD/.icm/runs/${slug}`,
+        id: `runs/${slug}`,
+        title: slug,
+        group: "in-flight",
+        kind: "run",
+        priority: null,
+        meta: [["Run", `.icm/runs/${slug}`]],
+        prompt: null,
+        body: "",
       })
-    )
-    return { tickets: tickets.filter((t) => t !== null), error: null }
+    }
+
+    tickets.push(...legacyResults.filter((t): t is Ticket => t !== null))
+    return { tickets, error: null }
   } catch (err) {
     return {
       tickets: [],
@@ -296,6 +487,31 @@ async function fetchRepoTickets(
   }
 }
 
+// --- today.md — the one home of the today flag ------------------------------
+
+/** "<repo-slug> <path-id>" keys from icm-board's .icm/today.md, e.g.
+ * "jamienisbet estate-board/tree-fetch" or legacy "icm-board ICM-001". */
+async function fetchTodayKeys(): Promise<Set<string>> {
+  const keys = new Set<string>()
+  try {
+    const res = await gh(
+      `/repos/${TODAY_REPO}/contents/${TODAY_PATH}`,
+      "application/vnd.github.raw+json"
+    )
+    if (!res.ok) return keys
+    for (const line of (await res.text()).split("\n")) {
+      const m = line.match(/^-\s+([^·]+)·\s*(\S+)/)
+      if (!m) continue
+      keys.add(`${m[1].trim()} ${m[2].trim()}`)
+    }
+  } catch {
+    // No today.md (or unreachable) just means no picks — never an error.
+  }
+  return keys
+}
+
+// ---------------------------------------------------------------------------
+
 const PRIORITY_RANK: Record<string, number> = { P0: 0, P1: 1, P2: 2 }
 
 function rank(t: Ticket): number {
@@ -305,49 +521,54 @@ function rank(t: Ticket): number {
 }
 
 /**
- * The board's repo roster: the client rows plus the house repos. Deduped by
- * repo (two clients pointing at one repo would double every ticket) — first
- * client row wins the attribution. The house repos are always present and never
- * attributed to a client, even if a client row points at one.
+ * The board's repo roster: every repo the token owns (most-recently-pushed
+ * first from GitHub, re-sorted by name), joined with the client rows for
+ * attribution, plus the pinned house repos and sustentus. Deduped by full
+ * name — first source wins; client attribution is applied wherever a client
+ * row points at a repo.
  */
 async function loadRepos(): Promise<TicketRepo[]> {
   const rows = await listClientRepos()
+  const attribution = new Map<string, { clientId: string; clientName: string }>()
+  for (const row of rows) {
+    if (!attribution.has(row.githubRepo))
+      attribution.set(row.githubRepo, {
+        clientId: row.clientId,
+        clientName: row.clientName,
+      })
+  }
+
+  const accessible = await listAccessibleRepos()
+  const ordered: string[] = [
+    ...HOUSE_REPOS,
+    ...rows.map((r) => r.githubRepo),
+    ...accessible.map((r) => r.fullName),
+    ...EXTRA_REPOS,
+  ]
+
   const seen = new Set<string>()
   const repos: TicketRepo[] = []
-  for (const row of rows) {
-    if (
-      isExcluded(row.githubRepo) ||
-      HOUSE_REPOS.includes(row.githubRepo as (typeof HOUSE_REPOS)[number]) ||
-      seen.has(row.githubRepo)
-    )
-      continue
-    seen.add(row.githubRepo)
-    repos.push({
-      fullName: row.githubRepo,
-      slug: row.githubRepo.split("/").pop() ?? row.githubRepo,
-      clientId: row.clientId,
-      clientName: row.clientName,
-    })
-  }
-  for (const fullName of HOUSE_REPOS) {
+  for (const fullName of ordered) {
+    if (seen.has(fullName)) continue
+    seen.add(fullName)
+    const client = attribution.get(fullName)
     repos.push({
       fullName,
       slug: fullName.split("/").pop() ?? fullName,
-      clientId: null,
-      clientName: null,
+      clientId: client?.clientId ?? null,
+      clientName: client?.clientName ?? null,
     })
   }
   return repos
 }
 
 /**
- * Every open ticket across the estate, sorted board-ready: status is grouped
- * by the caller, so the sort here is priority first, then repo, then id —
- * stable enough that the list doesn't reshuffle between refreshes. Returns
- * `configured: false` (and nothing else) when GITHUB_TOKEN is unset, so the
- * page can show the same "not configured" notice the delivery-repo UI uses.
- * A database failure is its own banner (`dbError`), not an empty board that
- * lies about there being no work.
+ * Every open ticket across the estate, sorted board-ready: the page groups by
+ * `group`, so the sort here is priority first, then repo, then path — stable
+ * enough that the list doesn't reshuffle between refreshes. Returns
+ * `configured: false` when GITHUB_TOKEN is unset; a database failure is its
+ * own banner (`dbError`), not an empty board that lies about there being no
+ * work.
  */
 export async function listTickets(): Promise<{
   configured: boolean
@@ -374,9 +595,16 @@ export async function listTickets(): Promise<{
     }
   }
 
-  const results = await Promise.all(repos.map(fetchRepoTickets))
+  const [results, todayKeys] = await Promise.all([
+    Promise.all(repos.map(fetchRepoTickets)),
+    fetchTodayKeys(),
+  ])
+
   const tickets = results
     .flatMap((r) => r.tickets)
+    .map((t) =>
+      todayKeys.has(`${t.repo.slug} ${t.id}`) ? { ...t, group: "today" as const } : t
+    )
     .sort(
       (a, b) =>
         rank(a) - rank(b) ||
