@@ -16,37 +16,40 @@ import { Chip } from "@/components/chip"
 import { CopyButton } from "@/components/copy-button"
 import { Markdown } from "@/components/markdown"
 import {
-  TICKET_STATUSES,
+  TICKET_GROUPS,
   claudeSessionUrl,
   listTickets,
   type Ticket,
-  type TicketStatus,
+  type TicketGroup,
 } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Tickets" }
 export const dynamic = "force-dynamic"
 
-// The estate's work backlog in one place: the `.icm/intake/` tickets of every
-// delivery repo connected to an active client, grouped by where they are in
-// the day (today → in progress → blocked → ready). This screen is read-only by
-// design — a ticket changes by editing its file in the repo, and the one
-// action that matters on a phone is **Copy prompt**: grab the ticket's
-// pasteable prompt and hand it to a Claude session.
+// The estate's work backlog in one place: every repo's `.icm/intake/` — epics
+// of sequenced stubs, the triage lane, still-unmigrated legacy tickets, and
+// the runs in flight — grouped positionally (today → in flight → blocked →
+// next → queued) per the estate spec. This screen is read-only by design — a
+// ticket changes by editing its file in the repo, and the one action that
+// matters on a phone is **Copy prompt** / the one-tap Claude session.
 
-const STATUS_LABELS: Record<TicketStatus, string> = {
+const GROUP_LABELS: Record<TicketGroup, string> = {
   today: "Today",
-  "in-progress": "In progress",
+  "in-flight": "In flight",
   blocked: "Blocked",
-  ready: "Ready",
+  next: "Next",
+  queued: "Queued",
 }
 
-// `today` is the pick-up flag; it reads as the accent, not an alarm. Blocked
-// is amber, not red — stuck wants attention, it isn't a failure.
-const STATUS_DOT: Record<TicketStatus, string> = {
+// `today` is the pick-up list; it reads as the accent, not an alarm. Blocked
+// is amber, not red — stuck wants attention, it isn't a failure. Queued fades:
+// it's the part of an epic that isn't up yet.
+const GROUP_DOT: Record<TicketGroup, string> = {
   today: "bg-primary",
-  "in-progress": "bg-success",
+  "in-flight": "bg-success",
   blocked: "bg-warning",
-  ready: "bg-muted-foreground/40",
+  next: "bg-muted-foreground/40",
+  queued: "bg-muted-foreground/20",
 }
 
 function priorityClass(priority: string | null): string {
@@ -67,7 +70,7 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
           <span
             className={cn(
               "size-2 shrink-0 rounded-full",
-              STATUS_DOT[ticket.status]
+              GROUP_DOT[ticket.group]
             )}
             aria-hidden
           />
@@ -110,7 +113,9 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
               </>
             ) : (
               <span className="text-xs text-muted-foreground">
-                No prompt section in this ticket.
+                {ticket.kind === "run"
+                  ? "A run in flight — the work lives on its branch and PR."
+                  : "No prompt section in this ticket."}
               </span>
             )}
             <span className="ml-auto flex items-center gap-3 text-xs">
@@ -152,7 +157,7 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
           {/* The ticket, rendered. Markdown is the interface for *writing* a
               ticket; reading one on a phone wants headings and lists, not
               syntax. The unedited file is one tap away on GitHub. */}
-          <Markdown>{ticket.body}</Markdown>
+          {ticket.body ? <Markdown>{ticket.body}</Markdown> : null}
         </div>
       </details>
     </li>
@@ -174,13 +179,17 @@ export default async function TicketsPage({
   const visible = repoSlug
     ? tickets.filter((t) => t.repo.slug === repoSlug)
     : tickets
-  const groups = TICKET_STATUSES.map((status) => ({
-    status,
-    tickets: visible.filter((t) => t.status === status),
+  const groups = TICKET_GROUPS.map((group) => ({
+    group,
+    tickets: visible.filter((t) => t.group === group),
   })).filter((g) => g.tickets.length > 0)
 
   const countFor = (slug?: string): number =>
     slug ? tickets.filter((t) => t.repo.slug === slug).length : tickets.length
+
+  // The roster is every owner repo; only repos with something on the board get
+  // a chip, so the rail doesn't drown in empty client stubs.
+  const chipRepos = repos.filter((repo) => countFor(repo.slug) > 0)
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -218,7 +227,7 @@ export default async function TicketsPage({
             <Chip href="/tickets" active={!repoSlug} count={countFor()}>
               All
             </Chip>
-            {repos.map((repo) => (
+            {chipRepos.map((repo) => (
               <Chip
                 key={repo.slug}
                 href={`/tickets?repo=${repo.slug}`}
@@ -247,9 +256,9 @@ export default async function TicketsPage({
             </Card>
           ) : (
             groups.map((group) => (
-              <section key={group.status} className="flex flex-col gap-2">
+              <section key={group.group} className="flex flex-col gap-2">
                 <h2 className="flex items-baseline gap-2 text-xs font-medium text-muted-foreground">
-                  {STATUS_LABELS[group.status]}
+                  {GROUP_LABELS[group.group]}
                   <span className="tabular-nums opacity-70">
                     {group.tickets.length}
                   </span>
