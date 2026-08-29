@@ -123,7 +123,9 @@ ships its own, and raw values are as banned at an app-tier call site as anywhere
 - `Material` — the translucent surface wrapper (`level` / `elevation` / `edge`).
 - `GroupedList` / `GroupedSection` / `GroupedRow` — the inset grouped list, the tier's main
   structural unit; it replaces the table on an operating screen. A row can carry an
-  `accessory` (a copy button, a delete) outside its own element.
+  `accessory` (a copy button, a delete) outside its own element, and a `variant`:
+  `tint` for the affirmative action a sheet leads with, `destructive` for the one that
+  can't be taken back. Colour only — neither changes the geometry.
 - `GroupedBlock` / `GroupedDisclosure` — the two things inside a slab that are not a row:
   prose and controls, and a native `<details>` fold for reference you read once.
 - `CollapsingHeader` — the scroll-linked hand-off on its own: a masthead in flow, a

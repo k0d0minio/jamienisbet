@@ -1,13 +1,21 @@
 "use client"
 
-import { useActionState, useEffect, useRef } from "react"
+import { useActionState, useEffect, useRef, useState } from "react"
+import { Plus } from "lucide-react"
 
 import {
   Alert,
   AlertDescription,
+  GroupedRow,
   Input,
   Label,
   PendingButton,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
   toast,
 } from "@jamie-nisbet/ui"
 
@@ -17,21 +25,56 @@ import {
 } from "@/app/(app)/money/actions"
 import { CopyButton } from "@/components/copy-button"
 
-// Mint a reusable payment link for a fixed amount. On success the new URL is
-// shown with a copy button so it can be shared straight away.
+// Mint a reusable link for a fixed amount. Unlike an invoice it is addressed to
+// nobody and emails nobody — it only becomes outbound when it is copied and
+// shared, which is why it is safe to create in one step.
+//
+// The sheet stays open after a successful mint, which is the one place this
+// differs from every other create flow here: the URL is the thing you came for
+// and it has to be copyable before it goes anywhere. Everything else about the
+// link is already in the list behind.
+
 export function PaymentLinkCreateForm() {
-  const [state, formAction, pending] = useActionState<PaymentLinkFormState, FormData>(
-    createPaymentLink,
-    {}
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <GroupedRow icon={<Plus />} label="New payment link" />
+      </SheetTrigger>
+
+      {/* Three short fields fit the half sheet with the list still visible
+          behind it; the drag up is there for the minted URL, which wraps. */}
+      <SheetContent detents={["medium", "large"]}>
+        <SheetHeader>
+          <SheetTitle>New payment link</SheetTitle>
+          <SheetDescription>
+            A reusable link for a fixed amount. Nothing is sent — it goes out
+            when you copy it.
+          </SheetDescription>
+        </SheetHeader>
+
+        {/* Mounted only while the sheet is open, so its action state starts
+            clean each time rather than reopening on the last result. */}
+        <PaymentLinkForm />
+      </SheetContent>
+    </Sheet>
   )
+}
+
+function PaymentLinkForm() {
+  const [state, formAction, pending] = useActionState<
+    PaymentLinkFormState,
+    FormData
+  >(createPaymentLink, {})
   const formRef = useRef<HTMLFormElement>(null)
 
-  // The link itself stays on screen in the alert below — it's the thing you
-  // came for and it has to be copyable — so the toast only says it worked.
-  const toastedFor = useRef<PaymentLinkFormState | null>(null)
+  // The link itself stays on screen below — it is the thing you came for — so
+  // the toast only says it worked, and the fields clear for the next one.
+  const toasted = useRef<PaymentLinkFormState | null>(null)
   useEffect(() => {
-    if (state.success && toastedFor.current !== state) {
-      toastedFor.current = state
+    if (state.success && toasted.current !== state) {
+      toasted.current = state
       formRef.current?.reset()
       toast.success("Payment link created")
     }
@@ -39,19 +82,20 @@ export function PaymentLinkCreateForm() {
 
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="flex flex-col gap-2 sm:col-span-1">
-          <Label htmlFor="name">Product / service</Label>
-          <Input
-            id="name"
-            name="name"
-            placeholder="Discovery call"
-            required
-            enterKeyHint="next"
-            autoCapitalize="sentences"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="name">Product / service</Label>
+        <Input
+          id="name"
+          name="name"
+          placeholder="Discovery call"
+          required
+          enterKeyHint="next"
+          autoCapitalize="sentences"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="amount">Amount</Label>
           <Input
             id="amount"
@@ -62,7 +106,7 @@ export function PaymentLinkCreateForm() {
             required
           />
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="currency">Currency</Label>
           <Input
             id="currency"
@@ -85,13 +129,13 @@ export function PaymentLinkCreateForm() {
       {state.success && state.url ? (
         <Alert variant="success">
           <AlertDescription className="flex flex-wrap items-center gap-3">
-            <span className="break-all font-mono text-xs">{state.url}</span>
+            <span className="font-mono text-xs break-all">{state.url}</span>
             <CopyButton value={state.url} what="Payment link" />
           </AlertDescription>
         </Alert>
       ) : null}
 
-      <PendingButton pending={pending} pendingText="Creating…" className="self-start">
+      <PendingButton pending={pending} pendingText="Creating…" className="w-full">
         Create payment link
       </PendingButton>
     </form>
