@@ -52,7 +52,11 @@ function LargeTitleHeader({
             {title}
           </h1>
           {subtitle != null && (
-            <p className="mt-1 text-app-subhead text-app-label-3">{subtitle}</p>
+            // A div rather than a <p>: a screen's subtitle is one line either
+            // way, and the loading state of a screen puts a Skeleton bar here
+            // — which is a div, and a div inside a <p> is a hydration error
+            // the browser fixes by rearranging the DOM out from under React.
+            <div className="mt-1 text-app-subhead text-app-label-3">{subtitle}</div>
           )}
           {children}
         </div>

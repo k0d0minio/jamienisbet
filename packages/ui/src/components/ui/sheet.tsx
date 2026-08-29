@@ -262,6 +262,11 @@ function SheetContent({
             // which stand still under reduced motion.
             [
               "h-[var(--jn-sheet-height)] max-h-[calc(92dvh_-_var(--jn-keyboard-inset))]",
+              // The dialog body is a grid, and a grid told to be taller than
+              // its rows stretches them: content shorter than its detent came
+              // out spread down the sheet with a hole in the middle of it.
+              // Stack from the top and let the rest of the detent be space.
+              "content-start",
               "transition-[height] duration-[var(--duration-sheet)] ease-[var(--spring-sheet)]",
               dragHeight !== null && "transition-none",
             ]

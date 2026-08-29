@@ -99,6 +99,23 @@ function GroupedSection({
 
 type GroupedRowElement = "a" | "button" | "div"
 
+// A row's colour, and nothing else. `tint` is the affirmative action an action
+// sheet leads with (send this, open that); `destructive` is the one that can't
+// be undone. Everything in between is a plain row.
+type GroupedRowVariant = "default" | "tint" | "destructive"
+
+const VARIANT_LABEL: Record<GroupedRowVariant, string> = {
+  default: "",
+  tint: "text-app-tint",
+  destructive: "text-destructive",
+}
+
+const VARIANT_ICON: Record<GroupedRowVariant, string> = {
+  default: "text-app-label-3",
+  tint: "text-app-tint",
+  destructive: "text-destructive",
+}
+
 type GroupedRowProps = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "value" | "type"
@@ -123,8 +140,10 @@ type GroupedRowProps = Omit<
   /** A second control on the trailing edge, outside the row's own element:
    *  the copy button beside an address, the delete beside a todo. */
   accessory?: React.ReactNode
-  /** `destructive` tints the label and icon; it does not change the geometry. */
-  variant?: "default" | "destructive"
+  /** `tint` and `destructive` colour the label and icon — the affirmative
+   *  action in a sheet, and the one that can't be taken back. Neither changes
+   *  the geometry. */
+  variant?: GroupedRowVariant
   /** Hand the row's element to a child — a Next `<Link>`, most often. */
   asChild?: boolean
 }
@@ -184,7 +203,7 @@ function GroupedRow({
         // Press = colour deepens, on the app tier's press spring.
         interactive &&
           "transition-colors spring-press active:bg-app-press disabled:pointer-events-none disabled:opacity-50",
-        variant === "destructive" && "text-destructive",
+        VARIANT_LABEL[variant],
         className
       )}
       style={accessory == null ? { ...inset, ...style } : style}
@@ -196,7 +215,7 @@ function GroupedRow({
           aria-hidden="true"
           className={cn(
             "flex size-6 shrink-0 items-center justify-center [&>svg]:size-5",
-            variant === "destructive" ? "text-destructive" : "text-app-label-3"
+            VARIANT_ICON[variant]
           )}
         >
           {icon}
@@ -380,4 +399,5 @@ export {
   GroupedBlock,
   GroupedDisclosure,
   type GroupedRowProps,
+  type GroupedRowVariant,
 }

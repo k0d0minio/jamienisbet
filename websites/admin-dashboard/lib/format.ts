@@ -21,11 +21,20 @@ export function formatDate(value: Date | string | null): string {
   return dateFormatter.format(date)
 }
 
-// Stripe returns timestamps as epoch seconds; render them the same way as the
-// DB timestamps above.
-export function formatEpoch(seconds: number | null): string {
+// Stripe returns its timestamps as epoch seconds, and every one of them the
+// admin shows is read as a *day*: an invoice is raised on a day, due on a day,
+// paid on a day. The hour was never set by anyone and, on a grouped row, it
+// costs exactly the width the figure and the state need. Two digits of year,
+// so a figure from last year can never be mistaken for one from this one.
+const shortEpochFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "2-digit",
+})
+
+export function formatEpochDay(seconds: number | null): string {
   if (!seconds) return "—"
-  return formatter.format(new Date(seconds * 1000))
+  return shortEpochFormatter.format(new Date(seconds * 1000))
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
