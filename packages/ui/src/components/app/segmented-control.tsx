@@ -7,7 +7,7 @@ import { cn } from "../../lib/utils"
 //
 // A small, closed set of mutually exclusive choices, shown all at once: the
 // native way to filter a list without spending a screen on it. A sunken track
-// with equal-width segments; the chosen one is a raised slab that has visibly
+// of segments; the chosen one is a raised slab that has visibly
 // lifted out of it — the same "selected reads as a card against the page"
 // recipe the rest of the system uses, because weight alone does not carry a
 // selection in the light theme.
@@ -41,10 +41,10 @@ function SegmentedControl({ className, ...props }: React.ComponentProps<"div">) 
     <div
       data-slot="segmented-control"
       className={cn(
-        // The track is sunken rather than filled: --app-press is the same
-        // wash a pressed row picks up, so it reads as page recessed by a
-        // stop in both modes without inventing a colour for it.
-        "flex items-stretch gap-1 rounded-app-control bg-app-press p-1",
+        // The track is sunken, not filled — and it needs its own token to be
+        // sunken in *both* modes. A press wash lifts on a dark page, which
+        // would put the track above the segment lifted out of it.
+        "flex items-stretch gap-1 rounded-app-control bg-app-track p-1",
         className
       )}
       {...props}
@@ -100,15 +100,23 @@ function SegmentedItem({
       {...(navigational && active ? { "aria-current": "page" as const } : {})}
       {...(radio ? { "aria-checked": active } : {})}
       className={cn(
-        // Equal widths, so the segments sit on a rhythm and a label growing
-        // by a character can't shove its neighbours around.
-        "flex min-w-0 flex-1 basis-0 items-center justify-center gap-1.5 px-2",
+        // Sized from their content, then given an equal share of what is
+        // left. Rigidly equal thirds is the more familiar segmented control,
+        // but four filters on a 390px phone leaves each one 85px, and
+        // "Customers" plus its count does not fit in that — it truncated to
+        // "Cus…". Native segmented controls have the same escape hatch
+        // (`apportionsSegmentWidthsByContent`), and it is what a set of uneven
+        // labels wants: the long segment takes the room it needs and the short
+        // ones still share the slack, so they stay near-even.
+        "flex min-w-0 flex-1 basis-auto items-center justify-center gap-1 px-2.5",
         // The 44px floor lands on the segment itself, not on the track around
         // it — the segment is what a thumb has to hit. --app-radius-row is
         // the tier's inner radius (the press highlight inside a group), which
         // is what a segment nested in a track is.
         "min-h-app-touch rounded-app-row",
-        "text-app-subhead transition-colors spring-press",
+        // Footnote, not subhead: 13px is where the native control sets, and it
+        // is what lets four labels and four counts share a phone's width.
+        "text-app-footnote transition-colors spring-press",
         active
           ? // Lifted out of the track. `raised` is the elevation step that
             // means exactly that, and the group fill is the page's card.

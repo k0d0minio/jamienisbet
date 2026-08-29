@@ -56,12 +56,18 @@ export default function LeadsLoading() {
         <GlanceRow>
           {/* Two, not three: the third figure only exists when something is
               being traded in kind, and a bar that resolves into nothing is a
-              worse guess than one fewer bar. */}
+              worse guess than one fewer bar.
+
+              They stand on the page canvas rather than inside a group, and
+              Skeleton's own fill is a near-match for the canvas in dark — the
+              bars simply vanished there. --app-press is the tier's "one stop
+              off whatever is under you" wash: it darkens in light and lifts in
+              dark, which is exactly what a bar on the canvas needs. */}
           {[0, 1].map((i) => (
             <GlanceFigure
               key={i}
-              value={<Skeleton className="h-6 w-20" />}
-              label={<Skeleton className="mt-1 h-2.5 w-14" />}
+              value={<Skeleton className="h-6 w-20 bg-app-press" />}
+              label={<Skeleton className="mt-1 h-2.5 w-14 bg-app-press" />}
             />
           ))}
         </GlanceRow>

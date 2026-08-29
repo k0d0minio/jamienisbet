@@ -135,7 +135,7 @@ export function ClientCreateForm() {
 
       {/* Phone: a floating disc riding above the floating tab bar, reachable
           one-handed. `bottom-above-tabs` reads the bar's own geometry, and
-          `right-app-gutter` puts it on the same margin as everything else on
+          the gutter token puts it on the same margin as everything else on
           the screen — the tab bar's pill is capped at `max-w-sm` and centred,
           so on any phone this clears it sideways as well as vertically.
           `shadow-app-chrome` is the tier's "this floats" step, the same one
@@ -145,7 +145,7 @@ export function ClientCreateForm() {
           type="button"
           aria-label="Add lead or customer"
           className={cn(
-            "fixed right-app-gutter bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
+            "fixed right-(--app-gutter) bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
             "rounded-full bg-app-tint text-primary-foreground shadow-app-chrome",
             // Press = colour deepens, never a shrink (BRAND.md § Motion).
             "transition-colors spring-press active:bg-primary-active"

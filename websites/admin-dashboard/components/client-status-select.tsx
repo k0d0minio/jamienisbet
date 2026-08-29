@@ -35,7 +35,11 @@ const STATUSES = ["new", "talking", "client", "lost"] as const
 export function ClientStatusSelect({
   id,
   value,
-  className,
+  // A fixed column rather than a control that shrinks to its word. The rows
+  // are one flex line each, so a "New" three characters shorter than a
+  // "Talking" moved everything to its left — and the values, which are the
+  // one thing on this screen you read *down*, came out ragged.
+  className = "w-28",
 }: {
   id: string
   value: string
@@ -70,7 +74,9 @@ export function ClientStatusSelect({
         size="sm"
         className={cn(
           // Strip the field: a row's control is the value plus a chevron.
-          "gap-1 rounded-app-control border-0 bg-transparent px-2 shadow-none",
+          // Left-aligned inside its fixed column, so the chevron stays with
+          // the word instead of drifting to the far edge of the slot.
+          "justify-start gap-1 rounded-app-control border-0 bg-transparent px-2 shadow-none",
           "min-h-app-touch text-app-subhead font-medium text-app-tint capitalize",
           "transition-colors spring-press hover:bg-app-press active:bg-app-press",
           "dark:bg-transparent dark:hover:bg-app-press",

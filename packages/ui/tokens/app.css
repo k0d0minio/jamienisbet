@@ -207,6 +207,12 @@
   --app-canvas: var(--bg);
   --app-group: var(--surface);
   --app-separator: var(--border);
+  /* The groove a raised control sits in — a segmented control's track. It has
+     to be a stop *below* --app-group in both modes, or the chosen segment
+     reads as a hole rather than as something lifted out. Light darkens the
+     page; dark cannot (a white wash there is what --app-press is, and it
+     would put the track above the segment), so dark deepens towards black. */
+  --app-track: color-mix(in srgb, var(--text-1) 8%, transparent);
   /* Press = colour deepens (never a shrink), so a pressed row picks
      up a wash of the text colour rather than losing size. */
   --app-press: color-mix(in srgb, var(--text-1) 6%, transparent);
@@ -260,6 +266,9 @@
   /* A dark page lifts a pressed row rather than darkening it — the
      direction --primary-active already moves in dark. */
   --app-press: color-mix(in srgb, #ffffff 8%, transparent);
+  /* A track goes the other way from a press: it must stay under the card
+     that lifts out of it, so in dark it deepens rather than lightens. */
+  --app-track: color-mix(in srgb, #000000 45%, transparent);
 }
 
 /* ------------------------------------------------------------
