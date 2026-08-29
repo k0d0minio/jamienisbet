@@ -6,6 +6,7 @@ import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui
 import {
   clientStatusLabel,
   getClient,
+  hasDeal,
   listFormLinksForClient,
   listOpenTasksForClient,
   type Client,
@@ -14,7 +15,7 @@ import {
 import { AppProfileScreen } from "@/components/app-screen"
 import { ClientActions } from "@/components/client-actions"
 import { ViewTransitionLink } from "@/components/view-transition-link"
-import { DealBadges, hasDealTerms } from "@/components/deal-badges"
+import { DealBadges, hasDealBadges } from "@/components/deal-badges"
 import { FormLinks } from "@/components/form-links"
 import { LeadActionRow } from "@/components/lead-action-row"
 import { LeadContactCard } from "@/components/lead-contact-card"
@@ -27,7 +28,7 @@ import { LeadStatusRow } from "@/components/lead-status-row"
 import { LeadTodos } from "@/components/lead-todos"
 import { daysSince, formatDate, waitingLabel } from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
-import { formatMoney } from "@/lib/money"
+import { dealFigure } from "@/lib/leads"
 import { listOnboardingForms } from "@/lib/onboarding"
 
 export const metadata: Metadata = { title: "Lead" }
@@ -46,14 +47,18 @@ export const dynamic = "force-dynamic"
 // folded) and finally the two red rows nothing else should sit near.
 
 // What a converted lead is still missing. Each gap is a downstream breakage —
-// no repo means invisible on the tickets board, no value means the header money
-// numbers lie, no Stripe means the first invoice stalls on plumbing — so anyone
-// on the `active` rung wears these until the pieces exist. Nothing here is a
-// status: the ladder says the deal is agreed, these say the plumbing is done.
+// no repo means invisible on the tickets board, no terms means nobody can say
+// what was agreed, no Stripe means the first invoice stalls on plumbing — so
+// anyone on the `active` rung wears these until the pieces exist. Nothing here
+// is a status: the ladder says the deal is agreed, these say the plumbing is.
+//
+// The deal gap asks `hasDeal`, not for a euro figure: an engagement paid in a
+// stake or a cut is a whole deal, and the old `valueMinor > 0` test nagged it
+// forever for a number it will never have.
 function conversionGaps(client: Client): string[] {
   const gaps: string[] = []
   if (!client.githubRepo) gaps.push("no delivery repo")
-  if (client.valueMinor <= 0) gaps.push("no deal value")
+  if (!hasDeal(client)) gaps.push("no deal terms")
   if (!client.stripeCustomerId) gaps.push("no Stripe customer")
   return gaps
 }
@@ -117,7 +122,9 @@ export default async function LeadDetailPage({
   // The masthead reads the status through the one label lookup — the stored
   // strings ("not_won", "discussing") are never capitalised into the UI.
   const statusLabel = clientStatusLabel(client.status)
-  const money = client.valueMinor > 0 ? formatMoney(client.valueMinor, "eur") : null
+  // Whatever this deal leads with — its euros, or the percentage that *is* the
+  // deal when there are none. The caption below the figure says which.
+  const figure = dealFigure(client)
 
   return (
     <AppProfileScreen
@@ -127,17 +134,17 @@ export default async function LeadDetailPage({
       // changed — here it is only being said.
       meta={[client.company, statusLabel].filter(Boolean).join(" · ")}
       // The figure that qualifies the whole record, in mono beside the name.
-      figure={money ?? undefined}
-      figureLabel={
-        money ? (client.billingType === "monthly" ? "Per month" : "Value") : undefined
-      }
+      // Captioned, so it needs no word of its own: "12%" under "Equity".
+      figure={figure?.value}
+      figureLabel={figure?.label}
       badges={
-        archived || gaps.length > 0 || hasDealTerms(client) ? (
+        archived || gaps.length > 0 || hasDealBadges(client, figure?.kind) ? (
           <div className="flex flex-wrap items-center gap-1.5">
             {archived ? <Badge variant="outline">Archived</Badge> : null}
             {/* The same badges the leads list carries, so what kind of deal
-                this is is answered before you scroll. */}
-            <DealBadges client={client} />
+                this is is answered before you scroll — minus whichever term
+                the figure above has already said. */}
+            <DealBadges client={client} omit={figure?.kind} />
             {/* Conversion gaps — a client missing pieces says so where the eye
                 lands first, because each gap breaks something downstream. */}
             {gaps.map((gap) => (
@@ -205,6 +212,8 @@ export default async function LeadDetailPage({
                 billingType: client.billingType,
                 dealType: client.dealType,
                 barterTerms: client.barterTerms,
+                commissionBps: client.commissionBps,
+                equityBps: client.equityBps,
               }}
               githubConfigured={isGithubConfigured()}
               suggestedRepoName={clientSlug(client.name)}

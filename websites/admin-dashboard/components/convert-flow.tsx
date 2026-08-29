@@ -15,17 +15,19 @@ import {
   Button,
   cn,
 } from "@jamie-nisbet/ui"
+import { hasDeal } from "@jamie-nisbet/services"
 
 import { saveDealTerms, updateClientStatus } from "@/app/(app)/actions"
 import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStripeLink } from "@/components/client-stripe-link"
 import { hapticTick } from "@/lib/haptics"
+import { bpsToPercentInput } from "@/lib/percent"
 
 // Converting a lead used to be four separate taps scattered across the
 // profile — status, repo, deal terms, Stripe — and the skipped ones each broke
-// something downstream (no repo: invisible on the tickets board; no terms: the
-// money numbers lie). This walks all four in order, composing the exact same
-// server actions the individual controls use; every step can be done here or
+// something downstream (no repo: invisible on the tickets board; no terms:
+// nobody can say what was agreed). This walks all four in order, composing the
+// exact same server actions the individual controls use; every step can be done here or
 // skipped explicitly. Skipping is honest — the profile's gap badges will keep
 // saying what's missing.
 //
@@ -56,6 +58,8 @@ type ClientView = {
   billingType: string
   dealType: string
   barterTerms: string | null
+  commissionBps: number | null
+  equityBps: number | null
 }
 
 function StepHeading({
@@ -207,6 +211,27 @@ function DealTermsStep({
           />
         </AppField>
       ) : null}
+      {/* A deal is any combination of these, and none of them is required —
+          an engagement paid in a stake has no euro figure to type, so the
+          step has to be completable without one. */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <AppField label="Commission (%)">
+          <AppInput
+            name="commission"
+            inputMode="decimal"
+            defaultValue={bpsToPercentInput(client.commissionBps)}
+            placeholder="—"
+          />
+        </AppField>
+        <AppField label="Equity (%)">
+          <AppInput
+            name="equity"
+            inputMode="decimal"
+            defaultValue={bpsToPercentInput(client.equityBps)}
+            placeholder="—"
+          />
+        </AppField>
+      </div>
       <div className="flex items-center gap-1">
         <Button type="submit" size="sm" disabled={pending}>
           {pending ? "Saving…" : "Save terms"}
@@ -234,7 +259,8 @@ export function ConvertFlow({
   const stepDone = [
     client.status === "active",
     client.githubRepo !== null,
-    client.valueMinor > 0,
+    // Any one term is a deal — cash, a swap, a stake, a cut. Never a euro test.
+    hasDeal(client),
     client.stripeCustomerId !== null,
   ]
 
