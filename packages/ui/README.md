@@ -22,6 +22,11 @@ generous whitespace, and a full light **+ dark** theme. The longer brand guide l
   the brand token variables, and maps the brand semantic aliases onto shadcn's color tokens
   (`@theme inline`) so utilities like `bg-primary` / `text-muted-foreground` render in the
   brand palette and flip with `[data-theme="dark"]`.
+- **`app.css`** — the **app tier** entry, opt-in. An *operated* surface (the admin PWA)
+  links it right after `styles.css` and gains translucent materials, real elevation, spring
+  motion, the native type scale on the system font stack, and larger continuous corners. No
+  marketing site links it, and nothing in `styles.css` reaches it. Values live in
+  `tokens/app.css`. See [`BRAND.md`](BRAND.md) § App tier and [App tier](#app-tier) below.
 - **`tokens.css`** — the **variables-only** layer (no Tailwind). Link this from non-React /
   non-Tailwind surfaces (static HTML, email, slides). `styles.css` is built on top of it.
 - **`tokens/`** — CSS custom properties, one file per concern (`colors`, `typography`,
@@ -54,6 +59,7 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
+| App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`), `LargeTitleHeader`, `Material` — see [App tier](#app-tier) |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
@@ -183,6 +189,88 @@ export function Brief() {
   )
 }
 ```
+
+### App tier
+
+`websites/admin-dashboard` is not a website with a login — it is an installed, one-handed
+PWA, and it ships on a second sanctioned tier of this package. The tier is **opt-in**: link
+it after the theme, and nothing else in the estate changes.
+
+```css
+/* app/globals.css — the app tier, on top of the theme. Order matters:
+   app.css assumes Tailwind and the brand tokens are already loaded. */
+@import "@jamie-nisbet/ui/styles.css";
+@import "@jamie-nisbet/ui/app.css";
+@source "../../../packages/ui/src";
+```
+
+Then put `app-tier` on the shell's root element — one class that switches the subtree to the
+system font stack at the native body size, on the grouped-content canvas.
+
+What it adds, all through utilities so a call site never touches a raw value:
+
+| | Utilities | Tokens |
+|---|---|---|
+| **Materials** | `material-thin` / `material-regular` / `material-thick`, `text-material-label`(`-2`/`-3`), `border-material-hairline` | `--material-*` |
+| **Elevation** | `shadow-app-raised` / `-chrome` / `-sheet` / `-popover` | `--elevation-*` |
+| **Motion** | `spring-sheet` / `spring-header` / `spring-press` / `spring-pop` | `--spring-*`, `--duration-*` |
+| **Type** | `font-app`, `text-app-large-title` → `text-app-caption-2` | `--app-font`, `--app-text-*`, `--app-leading-*`, `--app-tracking-*` |
+| **Shape** | `rounded-app-row` / `-control` / `-group` / `-card` / `-chrome` / `-sheet` | `--app-radius-*` |
+| **Surfaces** | `bg-app-canvas` / `bg-app-group` / `bg-app-press`, `text-app-label`(`-2`/`-3`), `text-app-tint`, `border-app-separator` | `--app-*` |
+| **Layout** | `px-app-gutter`, `gap-app-section`, `min-h-app-touch`, `min-h-app-bar` | `--app-gutter`, `--app-group-gap`, `--app-touch-min`, `--app-bar-height` |
+
+Springs are **critically damped** — they settle, they never overshoot — so the brand's
+no-bounce rule survives; only the shape of the deceleration changes. Durations collapse to
+nothing under `prefers-reduced-motion` at the token level, on top of the brand's global
+reduced-motion reset. Both colour modes are complete and flip on `[data-theme="dark"]` like
+everything else, so the app follows the OS appearance through one mechanism.
+
+```tsx
+import {
+  GroupedList, GroupedSection, GroupedRow, LargeTitleHeader, Material,
+} from "@jamie-nisbet/ui"
+import { Mail, Phone, Receipt } from "lucide-react"
+
+export function LeadProfile() {
+  return (
+    <>
+      <LargeTitleHeader title="Ana Ribeiro" subtitle="Keel · first touched 12 Aug" />
+
+      <GroupedList>
+        <GroupedSection header="Contact">
+          <GroupedRow icon={<Mail />} label="Email" value="ana@keel.pt" href="mailto:ana@keel.pt" />
+          <GroupedRow icon={<Phone />} label="Phone" value="—" />
+        </GroupedSection>
+
+        <GroupedSection header="Money" footer="Drafts are never sent from here.">
+          <GroupedRow
+            icon={<Receipt />}
+            label="Outstanding"
+            value={<span className="font-mono">€3,120</span>}
+            href="/money"
+          />
+        </GroupedSection>
+      </GroupedList>
+
+      {/* The tab bar the tier is built for: a material that floats over content. */}
+      <Material asChild level="thick" elevation="chrome" edge="top">
+        <nav className="fixed inset-x-0 bottom-0">…</nav>
+      </Material>
+    </>
+  )
+}
+```
+
+- **`GroupedRow` is one of four elements**, decided by its props: an `<a>` with `href`, a
+  `<button>` with `onClick`, whatever you hand it with `asChild` (a Next `<Link>`, usually),
+  and otherwise a read-only `<div>`. Interactive rows press-deepen, sit on the 44px floor,
+  and take the disclosure chevron unless `chevron={false}`.
+- **`LargeTitleHeader` does not listen to scroll.** The large title is in ordinary flow and
+  simply scrolls away; a sentinel and an `IntersectionObserver` fade the material and the
+  compact title in at the moment it clears the bar. `onCollapsedChange` reports the hand-off
+  to anything else that should follow it.
+- **A figure is still mono.** Pass `<span className="font-mono">€3,120</span>` into a row's
+  `value` — the tier changes the UI face, never the brand's signature for numbers.
 
 ### Dark mode
 Theming is driven by the `[data-theme="dark"]` attribute (not the `.dark` class). Set

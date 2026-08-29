@@ -1,0 +1,230 @@
+/* ============================================================
+   Jamie Nisbet Design System — APP TIER entry (opt-in).
+
+   The marketing sites link styles.css and nothing else. An *app*
+   surface — the admin dashboard: an installed, one-handed PWA that
+   should feel like an iOS-class app — links this file directly after
+   it, and gains the app tier: translucent materials, real elevation,
+   spring motion, the native type scale on the system font stack, and
+   larger continuous corners.
+
+       @import "@jamie-nisbet/ui/styles.css";
+       @import "@jamie-nisbet/ui/app.css";
+       @source "../../../packages/ui/src";
+
+   Order matters: this file assumes Tailwind and the brand tokens are
+   already loaded (styles.css does both). It never imports Tailwind
+   itself — importing it twice would duplicate the whole framework.
+
+   Values live in tokens/app.css, which this file imports and then
+   maps into Tailwind's theme namespaces (--color-*, --text-*,
+   --radius-*, --shadow-*, --font-*) so call sites reach the app tier
+   through utilities — `bg-app-group`, `text-app-body`,
+   `rounded-app-group`, `shadow-app-chrome` — and never a raw value.
+   `inline` keeps the var() reference in the generated utility, so
+   every one of them still flips with [data-theme="dark"].
+
+   Non-Tailwind app surfaces can import tokens/app.css on its own and
+   use the custom properties directly.
+   ============================================================ */
+
+@import "./tokens/app.css";
+
+@theme inline {
+  /* ---- Families -------------------------------------------- */
+  /* UI text sets in the system stack; figures stay mono (--font-mono,
+     IBM Plex Mono) — the brand signature holds on every tier. */
+  --font-app: var(--app-font);
+
+  /* ---- The native type scale -------------------------------- */
+  /* Each step carries its own leading and tracking. Weight stays a
+     separate decision (font-bold / font-semibold / font-normal), so
+     a headline can set at body weight where the layout wants it. */
+  --text-app-large-title: var(--app-text-large-title);
+  --text-app-large-title--line-height: var(--app-leading-large-title);
+  --text-app-large-title--letter-spacing: var(--app-tracking-large-title);
+
+  --text-app-title-1: var(--app-text-title-1);
+  --text-app-title-1--line-height: var(--app-leading-title-1);
+  --text-app-title-1--letter-spacing: var(--app-tracking-title);
+
+  --text-app-title-2: var(--app-text-title-2);
+  --text-app-title-2--line-height: var(--app-leading-title-2);
+  --text-app-title-2--letter-spacing: var(--app-tracking-title);
+
+  --text-app-title-3: var(--app-text-title-3);
+  --text-app-title-3--line-height: var(--app-leading-title-3);
+  --text-app-title-3--letter-spacing: var(--app-tracking-title);
+
+  --text-app-headline: var(--app-text-headline);
+  --text-app-headline--line-height: var(--app-leading-headline);
+  --text-app-headline--letter-spacing: var(--app-tracking-headline);
+
+  --text-app-body: var(--app-text-body);
+  --text-app-body--line-height: var(--app-leading-body);
+  --text-app-body--letter-spacing: var(--app-tracking-body);
+
+  --text-app-callout: var(--app-text-callout);
+  --text-app-callout--line-height: var(--app-leading-callout);
+  --text-app-callout--letter-spacing: var(--app-tracking-body);
+
+  --text-app-subhead: var(--app-text-subhead);
+  --text-app-subhead--line-height: var(--app-leading-subhead);
+  --text-app-subhead--letter-spacing: var(--app-tracking-small);
+
+  --text-app-footnote: var(--app-text-footnote);
+  --text-app-footnote--line-height: var(--app-leading-footnote);
+  --text-app-footnote--letter-spacing: var(--app-tracking-small);
+
+  --text-app-caption: var(--app-text-caption);
+  --text-app-caption--line-height: var(--app-leading-caption);
+  --text-app-caption--letter-spacing: var(--app-tracking-small);
+
+  --text-app-caption-2: var(--app-text-caption-2);
+  --text-app-caption-2--line-height: var(--app-leading-caption-2);
+  --text-app-caption-2--letter-spacing: var(--app-tracking-small);
+
+  /* ---- Layout ----------------------------------------------- */
+  /* Named spacing steps, so a call site writes `px-app-gutter` and
+     `min-h-app-touch` rather than a number nobody can check. */
+  --spacing-app-gutter: var(--app-gutter);
+  --spacing-app-section: var(--app-group-gap);
+  --spacing-app-touch: var(--app-touch-min);
+  --spacing-app-bar: var(--app-bar-height);
+
+  /* ---- Shape ------------------------------------------------ */
+  --radius-app-row: var(--app-radius-row);
+  --radius-app-control: var(--app-radius-control);
+  --radius-app-group: var(--app-radius-group);
+  --radius-app-card: var(--app-radius-card);
+  --radius-app-chrome: var(--app-radius-chrome);
+  --radius-app-sheet: var(--app-radius-sheet);
+
+  /* ---- Elevation -------------------------------------------- */
+  /* Resting content takes none of these. A shadow means "floats". */
+  --shadow-app-raised: var(--elevation-raised);
+  --shadow-app-chrome: var(--elevation-chrome);
+  --shadow-app-sheet: var(--elevation-sheet);
+  --shadow-app-popover: var(--elevation-popover);
+
+  /* ---- Surfaces and text ------------------------------------ */
+  --color-app-canvas: var(--app-canvas);
+  --color-app-group: var(--app-group);
+  --color-app-separator: var(--app-separator);
+  --color-app-press: var(--app-press);
+  --color-app-label: var(--app-label);
+  --color-app-label-2: var(--app-label-2);
+  --color-app-label-3: var(--app-label-3);
+  /* One tint, slate, for everything interactive. */
+  --color-app-tint: var(--app-tint);
+
+  /* Text and hairlines that sit ON a material, where a scrolling
+     page underneath eats the contrast a flat surface would keep. */
+  --color-material-label: var(--material-label);
+  --color-material-label-2: var(--material-label-2);
+  --color-material-label-3: var(--material-label-3);
+  --color-material-hairline: var(--material-border);
+}
+
+/* ============================================================
+   MATERIALS
+   The translucent, blurring surface that floating chrome, headers,
+   sheets, and popovers are made of. Pair with an elevation utility
+   (`shadow-app-chrome`, `shadow-app-sheet`) — the blur says "over
+   the content", the shadow says "how far over".
+
+   Every level falls back to an opaque surface where backdrop-filter
+   is missing, so chrome is never unreadably transparent.
+   ============================================================ */
+
+@utility material-thin {
+  background-color: var(--material-thin);
+  -webkit-backdrop-filter: blur(var(--material-blur-thin))
+    saturate(var(--material-saturate));
+  backdrop-filter: blur(var(--material-blur-thin))
+    saturate(var(--material-saturate));
+  @supports not
+    ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--material-thin-opaque);
+  }
+}
+
+@utility material-regular {
+  background-color: var(--material-regular);
+  -webkit-backdrop-filter: blur(var(--material-blur-regular))
+    saturate(var(--material-saturate));
+  backdrop-filter: blur(var(--material-blur-regular))
+    saturate(var(--material-saturate));
+  @supports not
+    ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--material-regular-opaque);
+  }
+}
+
+@utility material-thick {
+  background-color: var(--material-thick);
+  -webkit-backdrop-filter: blur(var(--material-blur-thick))
+    saturate(var(--material-saturate));
+  backdrop-filter: blur(var(--material-blur-thick))
+    saturate(var(--material-saturate));
+  @supports not
+    ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--material-thick-opaque);
+  }
+}
+
+/* ============================================================
+   MOTION — the sanctioned springs
+   Critically damped, so they settle without bouncing. Call sites
+   name the pattern, not the curve: a sheet moves like every other
+   sheet, and retuning one pattern retunes them all.
+
+   Each utility sets a duration as well as an easing — pair it with
+   `transition-*` to say which properties move. Reduced motion is
+   handled at the token level (tokens/app.css) and again by the
+   brand's global reduced-motion reset, so nothing here needs a
+   guard of its own.
+   ============================================================ */
+
+@utility spring-sheet {
+  transition-timing-function: var(--spring-sheet);
+  transition-duration: var(--duration-sheet);
+}
+
+@utility spring-header {
+  transition-timing-function: var(--spring-header);
+  transition-duration: var(--duration-header);
+}
+
+@utility spring-press {
+  transition-timing-function: var(--spring-press);
+  transition-duration: var(--duration-press);
+}
+
+@utility spring-pop {
+  transition-timing-function: var(--spring-pop);
+  transition-duration: var(--duration-pop);
+}
+
+/* ============================================================
+   THE APP TIER SWITCH
+   One class, applied once at the top of an app surface's tree
+   (the shell's <body> or its root element). Below it, text sets in
+   the system stack at the native body size, and the page reads as
+   the grouped-content canvas. Nothing outside it changes — which
+   is what keeps the marketing sites untouched even in a build that
+   loads this file.
+   ============================================================ */
+
+@utility app-tier {
+  font-family: var(--app-font);
+  font-size: var(--app-text-body);
+  line-height: var(--app-leading-body);
+  letter-spacing: var(--app-tracking-body);
+  color: var(--app-label);
+  background-color: var(--app-canvas);
+  /* The system faces are drawn for this, and a dense operating
+     screen reads better thin than smeared. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
