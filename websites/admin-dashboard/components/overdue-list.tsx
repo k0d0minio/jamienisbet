@@ -66,7 +66,15 @@ function resolve(state: Resolved, patch: Partial<Resolved>): Resolved {
 }
 
 /** A due date as it reads on a row: short day and month in mono, tinted only
- *  once it has actually passed. */
+ *  once it has actually passed.
+ *
+ *  It leads the row's *second* line rather than sitting in the trailing value
+ *  slot, which is where it started. A phone row that carries an icon, a date
+ *  and a trailing control has about 200px left for its label, and a todo is
+ *  mostly its wording — "Send Keel the revised scope" came out as "Send Keel
+ *  the revi…". On the second line the date still leads and still carries the
+ *  tint, so what is late is scanned just as fast, and the title gets the whole
+ *  width on every size. */
 function Due({ iso, late }: { iso: string; late: boolean }) {
   return (
     <span
@@ -80,6 +88,25 @@ function Due({ iso, late }: { iso: string; late: boolean }) {
         month: "short",
       })}
     </span>
+  )
+}
+
+/** The second line: the date, then whatever else the row files under. */
+function Detail({
+  iso,
+  late,
+  rest,
+}: {
+  iso: string
+  late: boolean
+  rest: (string | null)[]
+}) {
+  const tail = rest.filter(Boolean).join(" · ")
+  return (
+    <>
+      <Due iso={iso} late={late} />
+      {tail ? ` · ${tail}` : null}
+    </>
   )
 }
 
@@ -137,8 +164,13 @@ export function OverdueList({
           aria-checked={false}
           icon={<Circle />}
           label={todo.title}
-          description={todo.clientName}
-          value={<Due iso={todo.dueDate} late={todo.late} />}
+          description={
+            <Detail
+              iso={todo.dueDate}
+              late={todo.late}
+              rest={[todo.clientName]}
+            />
+          }
           onClick={() =>
             startTransition(async () => {
               markResolved({ todos: [todo.id] })
@@ -187,17 +219,18 @@ export function OverdueList({
           key={item.id}
           icon={<CalendarClock />}
           label={item.title}
-          // What it repeats as, and whatever the row was filed with — the
-          // source and as-of date the standing rule asks for.
+          // When it is due, what it repeats as, and whatever the row was filed
+          // with — the source and as-of date the standing rule asks for.
           description={
-            [
-              item.recurrence !== "none" ? item.recurrence : null,
-              item.notes,
-            ]
-              .filter(Boolean)
-              .join(" · ") || undefined
+            <Detail
+              iso={item.dueDate}
+              late={item.late}
+              rest={[
+                item.recurrence !== "none" ? item.recurrence : null,
+                item.notes,
+              ]}
+            />
           }
-          value={<Due iso={item.dueDate} late={item.late} />}
           // The row itself does nothing: completing a recurring obligation
           // re-arms the next occurrence, which is too much to hang off a
           // mis-tap while scrolling. The button beside it is the deliberate
@@ -209,6 +242,7 @@ export function OverdueList({
               variant="outline"
               size="sm"
               disabled={pending}
+              aria-label={`Mark "${item.title}" done`}
               onClick={() =>
                 startTransition(async () => {
                   markResolved({ compliance: [item.id] })
@@ -222,7 +256,12 @@ export function OverdueList({
               }
             >
               <Check aria-hidden />
-              Done
+              {/* The word is what makes a consequential act legible, and it
+                  costs about 55px — which on a phone is the difference between
+                  "IRS 1st payment on account" and "IRS 1st payment on a…". So
+                  it waits for the room: icon-only under `sm`, where the
+                  aria-label carries it, and spelled out above. */}
+              <span className="hidden sm:inline">Done</span>
             </Button>
           }
         />

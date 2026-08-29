@@ -36,7 +36,7 @@ import {
   listInvoicesNeedingAction,
   type InvoiceNeedingAction,
 } from "@/lib/finance"
-import { daysWaiting, isStale, whoLabel } from "@/lib/leads"
+import { daysWaiting, isStale, waitedLabel, whoLabel } from "@/lib/leads"
 import { formatMoney } from "@/lib/money"
 import { isStripeConfigured } from "@/lib/stripe"
 import { listBoard, type Ticket } from "@/lib/tickets"
@@ -81,6 +81,10 @@ const DAY_MS = 24 * 60 * 60 * 1000
 // and each says so in its own words when it is not there.
 
 type DbReads = {
+  /** When the read happened. Sampled here rather than during render — `now`
+   *  is impure, and every "how late is this" on the screen has to be measured
+   *  against one instant anyway. */
+  now: number
   waiting: Client[]
   todos: OverdueTodo[]
   compliance: OverdueCompliance[]
@@ -92,8 +96,9 @@ type DbReads = {
   error: string | null
 }
 
-async function loadDb(now: number): Promise<DbReads> {
-  const empty = { waiting: [], todos: [], compliance: [], filed: 0, leads: [] }
+async function loadDb(): Promise<DbReads> {
+  const now = Date.now()
+  const empty = { now, waiting: [], todos: [], compliance: [], filed: 0, leads: [] }
   try {
     const [clients, tasks, dates] = await Promise.all([
       listClients({ archived: false }),
@@ -138,6 +143,7 @@ async function loadDb(now: number): Promise<DbReads> {
       }))
 
     return {
+      now,
       waiting,
       todos,
       compliance,
@@ -223,9 +229,8 @@ export default async function NeedsYouPage({
     redirect(suffix ? `/leads?${suffix}` : "/leads")
   }
 
-  const now = Date.now()
   const [db, money, tickets] = await Promise.all([
-    loadDb(now),
+    loadDb(),
     loadMoney(),
     loadTickets(),
   ])
@@ -272,7 +277,7 @@ export default async function NeedsYouPage({
         ) : null}
 
         {db.waiting.length > 0 ? (
-          <WaitingOnYou leads={db.waiting} now={now} />
+          <WaitingOnYou leads={db.waiting} now={db.now} />
         ) : null}
 
         {db.todos.length > 0 || db.compliance.length > 0 ? (
@@ -365,14 +370,21 @@ function WaitingOnYou({ leads, now }: { leads: Client[]; now: number }) {
                         {lead.name}
                       </span>
                       {/* How long they have waited is the figure this section
-                          is sorted on, so it sets in mono and carries the
-                          tint that says it has gone past the threshold. */}
+                          is sorted on, so it sets in mono and carries the tint
+                          that says it has gone past the threshold. Compact on
+                          screen, spoken in full — "12d" is a glance, not a
+                          sentence. */}
                       <span className="shrink-0 font-mono text-app-subhead font-semibold tabular-nums text-destructive">
-                        {days}d
+                        <span aria-hidden>{days}d</span>
+                        <span className="sr-only">
+                          {waitedLabel(days, true)}
+                        </span>
                       </span>
                     </span>
+                    {/* Where they sit and who they are — the two things the
+                        figure beside them doesn't already say. */}
                     <span className="truncate text-app-footnote text-app-label-3">
-                      Silent since you last worked them
+                      <span className="capitalize">{lead.status}</span>
                       {who ? ` · ${who}` : ""}
                     </span>
                   </ViewTransitionLink>
