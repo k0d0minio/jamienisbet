@@ -117,6 +117,10 @@
   --color-app-label-3: var(--app-label-3);
   /* One tint, slate, for everything interactive. */
   --color-app-tint: var(--app-tint);
+  /* The soft tinted fill under a circular action, and its press step. */
+  --color-app-fill: var(--app-fill);
+  --color-app-fill-press: var(--app-fill-press);
+  --color-app-fill-label: var(--app-fill-label);
 
   /* Text and hairlines that sit ON a material, where a scrolling
      page underneath eats the contrast a flat surface would keep. */

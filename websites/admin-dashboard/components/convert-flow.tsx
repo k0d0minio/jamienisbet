@@ -59,13 +59,13 @@ function StepHeading({
   return (
     <span
       className={cn(
-        "flex items-center gap-2 text-sm",
-        active ? "font-medium" : "text-muted-foreground"
+        "flex items-center gap-2 text-app-subhead",
+        active ? "font-medium text-app-label" : "text-app-label-3"
       )}
     >
       <span
         className={cn(
-          "flex size-5 shrink-0 items-center justify-center rounded-full border text-xs",
+          "flex size-5 shrink-0 items-center justify-center rounded-full border border-app-separator text-app-caption",
           done && "border-success bg-success-soft text-success",
           active && !done && "border-primary text-primary"
         )}
@@ -88,7 +88,7 @@ function StatusStep({
   if (client.status === "client") {
     return (
       <div className="grid gap-2">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-app-footnote text-app-label-3">
           Already a client — nothing to change here.
         </p>
         <Button type="button" size="sm" className="w-fit" onClick={onNext}>
@@ -99,7 +99,7 @@ function StatusStep({
   }
   return (
     <div className="grid gap-2">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-app-footnote text-app-label-3">
         Move them from {client.status} to client.
       </p>
       <div className="flex items-center gap-1">
@@ -236,17 +236,17 @@ export function ConvertFlow({
   if (finished) {
     const missing = STEPS.filter((_, i) => !stepDone[i])
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-app-subhead text-app-label-3">
         {missing.length === 0
           ? "Converted — all four pieces are in place."
-          : `Done. Still open: ${missing.join(", ").toLowerCase()} — the badges above will keep pointing at them.`}{" "}
+          : `Done. Still open: ${missing.join(", ").toLowerCase()} — the badges on the profile will keep pointing at them.`}{" "}
         <button
           type="button"
           onClick={() => {
             setStep(0)
             setFinished(false)
           }}
-          className="underline underline-offset-2 hover:text-foreground"
+          className="underline underline-offset-2 hover:text-app-label"
         >
           Walk it again
         </button>
@@ -270,7 +270,7 @@ export function ConvertFlow({
             />
           </button>
           {index === step ? (
-            <div className="border-l-2 border-muted pl-4">
+            <div className="border-l-2 border-app-separator pl-4">
               {index === 0 ? (
                 <StatusStep client={client} onNext={next} />
               ) : index === 1 ? (

@@ -1,9 +1,9 @@
-import { LargeTitleHeader } from "@jamie-nisbet/ui"
+import { IdentityHeader, LargeTitleHeader } from "@jamie-nisbet/ui"
 
 import { AppMenu } from "@/components/app-menu"
 
-// Every screen in the authenticated area opens through this: the app tier's
-// large title, and the content column under it.
+// Every screen in the authenticated area opens through one of these: the app
+// tier's scroll-linked header, and the content column under it.
 //
 // It is what replaced the sticky brand bar. The wordmark used to lead every
 // page and the screen's own name came second, in the content, at 24px — so the
@@ -48,6 +48,61 @@ export function AppScreen({
         trailing={<AppMenu />}
       />
       <div className="px-app-gutter">{children}</div>
+    </>
+  )
+}
+
+// A profile screen — one person, one record — opens on *them* rather than on a
+// heading: the Contacts masthead, then the actions, then the record as grouped
+// sections. Same bar, same hand-off, same menu as AppScreen; the difference is
+// what scrolls away above the fold, and that the content here is a
+// `GroupedList`, which owns the gutter itself.
+export function AppProfileScreen({
+  name,
+  compactTitle,
+  meta,
+  figure,
+  figureLabel,
+  badges,
+  avatar,
+  back,
+  actions,
+  children,
+}: {
+  /** Whose screen this is. Becomes the page's real <h1>. */
+  name: string
+  compactTitle?: React.ReactNode
+  /** What they are, under the name — company, status. */
+  meta?: React.ReactNode
+  /** The figure that qualifies the record, set in mono beside the name. */
+  figure?: React.ReactNode
+  figureLabel?: React.ReactNode
+  /** Terms and warnings that ride with the identity. */
+  badges?: React.ReactNode
+  /** Replaces the derived monogram — a skeleton disc while the record loads. */
+  avatar?: React.ReactNode
+  back?: React.ReactNode
+  /** The circular action row, directly under the identity. */
+  actions?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <>
+      <IdentityHeader
+        className="vt-app-header"
+        name={name}
+        compactTitle={compactTitle}
+        meta={meta}
+        figure={figure}
+        figureLabel={figureLabel}
+        badges={badges}
+        avatar={avatar}
+        leading={back}
+        trailing={<AppMenu />}
+      >
+        {actions}
+      </IdentityHeader>
+      {children}
     </>
   )
 }

@@ -215,6 +215,14 @@
   --app-label-3: var(--text-3);
   /* The one interactive tint. Slate, as everywhere else. */
   --app-tint: var(--primary);
+  /* The tinted disc a circular action sits on, and what it deepens to under
+     a thumb. Soft rather than solid: a row of five solid slate discs would
+     shout, and the tint's job here is "this is pressable", not "this first".
+     Both sides are derived from --primary, so both flip in dark on their
+     own. */
+  --app-fill: var(--primary-soft);
+  --app-fill-press: color-mix(in srgb, var(--primary) 22%, transparent);
+  --app-fill-label: var(--primary-soft-fg);
 
   --app-gutter: var(--space-4); /* 16px page margin */
   --app-group-gap: var(--space-6); /* 32px between grouped sections */

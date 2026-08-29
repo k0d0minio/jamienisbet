@@ -3,9 +3,12 @@ import { ChevronRight } from "lucide-react"
 import { Card, cn } from "@jamie-nisbet/ui"
 
 // A card that folds to its title on every size — for the occasional thing (a
-// create form, the danger zone) that would otherwise sit fully open between
-// the reader and the list they came for. Unlike FoldCard, the children render
-// exactly once, so interactive client components are safe inside.
+// create form) that would otherwise sit fully open between the reader and the
+// list they came for. The children render exactly once, so interactive client
+// components are safe inside.
+//
+// Money is the last screen still on cards; on the app tier's grouped surfaces
+// the equivalent is `GroupedDisclosure` from @jamie-nisbet/ui.
 export function DisclosureCard({
   title,
   titleClassName,

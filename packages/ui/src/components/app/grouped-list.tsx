@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight } from "lucide-react"
 import { Slot } from "radix-ui"
 
 import { cn } from "../../lib/utils"
@@ -28,6 +28,10 @@ import { cn } from "../../lib/utils"
 // an `onClick`, a `<Link>` with `asChild`, and otherwise a plain read-only
 // line. Interactive rows press-deepen (BRAND.md — press is a colour change,
 // never a shrink) and get the chevron unless you say otherwise.
+//
+// A row can also carry an `accessory` — a second, smaller control on the
+// trailing edge (copy this address, delete this todo). It sits *outside* the
+// row's own element, because a button inside a button is not a thing.
 
 function GroupedList({ className, ...props }: React.ComponentProps<"div">) {
   // The list owns the page gutter, so a section's slab lines up with every
@@ -112,8 +116,13 @@ type GroupedRowProps = Omit<
   /** Anchor target, when `href` is set. */
   target?: string
   rel?: string
-  /** Force the disclosure chevron on or off. Defaults to "interactive". */
+  /** Force the disclosure chevron on or off. Defaults to "interactive",
+   *  and to off when the row carries an accessory — two trailing affordances
+   *  is one too many. */
   chevron?: boolean
+  /** A second control on the trailing edge, outside the row's own element:
+   *  the copy button beside an address, the delete beside a todo. */
+  accessory?: React.ReactNode
   /** `destructive` tints the label and icon; it does not change the geometry. */
   variant?: "default" | "destructive"
   /** Hand the row's element to a child — a Next `<Link>`, most often. */
@@ -127,6 +136,7 @@ function GroupedRow({
   value,
   href,
   chevron,
+  accessory,
   variant = "default",
   asChild = false,
   className,
@@ -135,7 +145,21 @@ function GroupedRow({
   ...props
 }: GroupedRowProps) {
   const interactive = asChild || href != null || props.onClick != null
-  const showChevron = chevron ?? interactive
+  const showChevron = chevron ?? (interactive && accessory == null)
+
+  // Where the hairline starts: the label column with an icon (gutter + icon
+  // slot + gap), the slab's own padding without. It is set on whichever
+  // element is the section body's direct child, since `first:` is what
+  // decides whether the group's own edge has already closed the row.
+  const inset = {
+    "--app-row-inset": icon != null ? "3.25rem" : "1rem",
+  } as React.CSSProperties
+
+  // The hairline between rows, inset the way a native list insets it, and
+  // skipped on the first row. `display: none` is what actually removes the
+  // pseudo-element.
+  const hairline =
+    "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-[var(--app-row-inset)] before:h-px before:bg-app-separator first:before:hidden"
 
   const element: GroupedRowElement =
     href != null ? "a" : interactive ? "button" : "div"
@@ -144,7 +168,7 @@ function GroupedRow({
   // block below serve all of them.
   const Comp = (asChild ? Slot.Root : element) as React.ElementType
 
-  return (
+  const row = (
     <Comp
       data-slot="grouped-row"
       data-variant={variant}
@@ -153,28 +177,17 @@ function GroupedRow({
       className={cn(
         "relative flex w-full min-h-app-touch items-center gap-3 px-4 py-2.5 text-left",
         "text-app-body text-app-label",
-        // The separator between rows, inset to the label column the way a
-        // native list insets it — drawn by the row itself so it survives
-        // any ordering, and skipped on the first row where the slab's own
-        // edge already closes the group.
-        "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-[var(--app-row-inset)] before:h-px before:bg-app-separator",
-        // display:none is what actually removes the pseudo — the first row
-        // sits against the slab's own edge and needs no hairline above it.
-        "first:before:hidden",
+        // With an accessory beside it the row is no longer the section
+        // body's direct child: the wrapper draws the hairline, and the row
+        // takes the width that is left rather than all of it.
+        accessory == null ? hairline : "min-w-0 flex-1",
         // Press = colour deepens, on the app tier's press spring.
         interactive &&
           "transition-colors spring-press active:bg-app-press disabled:pointer-events-none disabled:opacity-50",
         variant === "destructive" && "text-destructive",
         className
       )}
-      style={
-        {
-          // Where the hairline starts: the label column with an icon
-          // (gutter + icon slot + gap), the slab's own padding without.
-          "--app-row-inset": icon != null ? "3.25rem" : "1rem",
-          ...style,
-        } as React.CSSProperties
-      }
+      style={accessory == null ? { ...inset, ...style } : style}
       {...props}
     >
       {icon != null && (
@@ -224,6 +237,147 @@ function GroupedRow({
       )}
     </Comp>
   )
+
+  if (accessory == null) return row
+
+  // The accessory rides outside the row's element, so the row keeps its whole
+  // width as one target and the accessory keeps its own. The wrapper takes
+  // over the hairline and the inset, being what the section body now holds.
+  return (
+    <div
+      data-slot="grouped-row-with-accessory"
+      className={cn("relative flex items-stretch", hairline)}
+      style={{ ...inset, ...style }}
+    >
+      {row}
+      <div className="flex shrink-0 items-center pr-2">{accessory}</div>
+    </div>
+  )
 }
 
-export { GroupedList, GroupedSection, GroupedRow, type GroupedRowProps }
+// Not everything inside a slab is a row. A running note, a lead's own words
+// from an intake form, a repo's connect form — prose and controls that need
+// the group's fill and its hairline, but not its 44px single-line geometry.
+//
+//   <GroupedSection header="Notes">
+//     <GroupedRow label="Edit" onClick={…} />
+//     <GroupedBlock>{notes}</GroupedBlock>
+//   </GroupedSection>
+function GroupedBlock({ className, style, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="grouped-block"
+      className={cn(
+        "relative px-4 py-3 text-app-callout text-app-label-2",
+        // The same inset hairline a row draws, so a block reads as part of
+        // the group rather than as something bolted under it.
+        "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-[var(--app-row-inset)] before:h-px before:bg-app-separator",
+        "first:before:hidden",
+        className
+      )}
+      style={
+        {
+          "--app-row-inset": "1rem",
+          ...style,
+        } as React.CSSProperties
+      }
+      {...props}
+    />
+  )
+}
+
+// A row that opens onto its own contents rather than onto another screen —
+// reference material you read once (how a lead came in), or a long answer you
+// only sometimes want. Native <details>, so it costs no JavaScript, works
+// before hydration, and a server component can render the body.
+//
+// The chevron points down rather than trailing right: this discloses in place,
+// and the trailing chevron on a GroupedRow means "this navigates".
+function GroupedDisclosure({
+  icon,
+  label,
+  description,
+  value,
+  defaultOpen = false,
+  className,
+  style,
+  children,
+  ...props
+}: Omit<React.ComponentProps<"details">, "open"> & {
+  icon?: React.ReactNode
+  label: React.ReactNode
+  description?: React.ReactNode
+  value?: React.ReactNode
+  /** Open on arrival — for the one set of answers you came to read. */
+  defaultOpen?: boolean
+}) {
+  return (
+    <details
+      data-slot="grouped-disclosure"
+      open={defaultOpen}
+      className={cn(
+        "group/disclosure relative",
+        "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-[var(--app-row-inset)] before:h-px before:bg-app-separator",
+        "first:before:hidden",
+        className
+      )}
+      style={
+        {
+          "--app-row-inset": icon != null ? "3.25rem" : "1rem",
+          ...style,
+        } as React.CSSProperties
+      }
+      {...props}
+    >
+      <summary
+        className={cn(
+          "flex min-h-app-touch cursor-pointer list-none items-center gap-3 px-4 py-2.5 text-app-body text-app-label",
+          "transition-colors spring-press active:bg-app-press",
+          "[&::-webkit-details-marker]:hidden"
+        )}
+      >
+        {icon != null && (
+          <span
+            aria-hidden="true"
+            className="flex size-6 shrink-0 items-center justify-center text-app-label-3 [&>svg]:size-5"
+          >
+            {icon}
+          </span>
+        )}
+
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate">{label}</span>
+          {description != null && (
+            <span className="truncate text-app-footnote text-app-label-3">
+              {description}
+            </span>
+          )}
+        </span>
+
+        {value != null && (
+          <span className="ml-auto min-w-0 shrink truncate text-right text-app-label-2">
+            {value}
+          </span>
+        )}
+
+        <ChevronDown
+          aria-hidden="true"
+          className="size-4 shrink-0 text-app-label-3 transition-transform spring-press group-open/disclosure:rotate-180"
+        />
+      </summary>
+
+      <div className="px-4 pt-1 pb-3 text-app-callout text-app-label-2">
+        {children}
+      </div>
+    </details>
+  )
+}
+
+export {
+  GroupedList,
+  GroupedSection,
+  GroupedRow,
+  GroupedBlock,
+  GroupedDisclosure,
+  type GroupedRowProps,
+}

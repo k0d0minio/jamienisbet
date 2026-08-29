@@ -1,16 +1,8 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { ChevronLeft, Mail, MessageCircle } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@jamie-nisbet/ui"
+import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
 import {
   getClient,
   listFormLinksForClient,
@@ -18,44 +10,39 @@ import {
   type Client,
 } from "@jamie-nisbet/services"
 
-import { AppScreen } from "@/components/app-screen"
+import { AppProfileScreen } from "@/components/app-screen"
 import { ClientActions } from "@/components/client-actions"
 import { ViewTransitionLink } from "@/components/view-transition-link"
-import { ConvertFlow } from "@/components/convert-flow"
-import { DisclosureCard } from "@/components/disclosure-card"
-import { LeadContactCard } from "@/components/lead-contact-card"
-import { LeadDealCard } from "@/components/lead-deal-card"
-import { LeadNotesCard } from "@/components/lead-notes-card"
-import { ClientRepoLink } from "@/components/client-repo-link"
-import { ClientStatusSelect } from "@/components/client-status-select"
-import { ClientStripeLink } from "@/components/client-stripe-link"
 import { DealBadges } from "@/components/deal-badges"
-import { FoldCard } from "@/components/fold-card"
 import { FormLinks } from "@/components/form-links"
-import { MarkTouchedButton } from "@/components/mark-touched-button"
-import { TaskList } from "@/components/task-list"
-import { WorkStartedButton } from "@/components/work-started-button"
-import {
-  daysSince,
-  formatDate,
-  formatDateTime,
-  formatServiceId,
-  waitingLabel,
-  whatsappUrl,
-} from "@/lib/format"
+import { LeadActionRow } from "@/components/lead-action-row"
+import { LeadContactCard } from "@/components/lead-contact-card"
+import { LeadConvertRow } from "@/components/lead-convert-row"
+import { LeadDealCard } from "@/components/lead-deal-card"
+import { LeadDeliveryCard } from "@/components/lead-delivery-card"
+import { LeadIntake } from "@/components/lead-intake"
+import { LeadNotesCard } from "@/components/lead-notes-card"
+import { LeadStatusRow } from "@/components/lead-status-row"
+import { LeadTodos } from "@/components/lead-todos"
+import { daysSince, formatDate, waitingLabel } from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
+import { formatMoney } from "@/lib/money"
 import { listOnboardingForms } from "@/lib/onboarding"
 
 export const metadata: Metadata = { title: "Lead" }
 export const dynamic = "force-dynamic"
 
-// One person, ordered by what you actually do on a phone: reach them, say you
-// worked them, move their status, write a note. The record itself — contact,
-// deal, notes — reads as facts on cards, each edited in its own bottom sheet,
-// never as a wall of input fields parked in the middle of the page. Everything
-// that is reference (how they came in) or rare and destructive (archive,
-// delete) sits at the bottom, folded. On a wide screen the same blocks lay out
-// in two columns.
+// One person, in the Contacts idiom: they are the masthead — disc, name, what
+// they are, what they're worth — the five things you'd open this page on a
+// phone to do are discs directly under it, and the record itself is grouped
+// inset sections you scan rather than read. Every section edits in its own
+// bottom sheet, posting the same scoped server actions as before; nothing on
+// this page is a wall of input fields.
+//
+// The order down the page is working order: where they stand, how to reach
+// them, what the deal is, what you know, what you've asked them, where the
+// work lives, what's outstanding — then the reference (how they came in,
+// folded) and finally the two red rows nothing else should sit near.
 
 // What a converted lead is still missing. Each gap is a downstream breakage —
 // no repo means invisible on the tickets board, no value means the header money
@@ -68,26 +55,6 @@ function conversionGaps(client: Client): string[] {
   if (client.valueMinor <= 0) gaps.push("no deal value")
   if (!client.stripeCustomerId) gaps.push("no Stripe customer")
   return gaps
-}
-
-function sourceLabel(source: string): string {
-  if (source === "portfolio") return "Contact form"
-  if (source === "referral") return "Referral"
-  return "Added by hand"
-}
-
-// A read-only line in the intake card; renders "—" for anything unset.
-function Detail({ label, children }: { label: string; children?: React.ReactNode }) {
-  const empty =
-    children === null || children === undefined || children === "" || children === "—"
-  return (
-    <div className="grid gap-1">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm">
-        {empty ? <span className="text-muted-foreground">—</span> : children}
-      </dd>
-    </div>
-  )
 }
 
 // Read outside the component so the render stays pure: `now` is sampled once
@@ -107,13 +74,11 @@ async function loadLead(id: string) {
     listOnboardingForms(client.githubRepo),
   ])
 
-  // Every todo here is this lead's, so the list is rendered without the lead
-  // picker the leads screen carries — the name would be the same on each row.
+  // Every todo here is this lead's, so the rows carry no name and no lead
+  // picker — it would be the same name on each one.
   const tasks = rawTasks.map((t) => ({
     id: t.id,
     title: t.title,
-    clientId: t.clientId,
-    clientName: client.name,
     dueDate: t.dueDate?.toISOString() ?? null,
     overdue: t.dueDate !== null && t.dueDate.getTime() < now,
     completed: false,
@@ -130,48 +95,6 @@ async function loadLead(id: string) {
   }
 }
 
-// Read-only provenance. Pulled out so FoldCard can render it as a folded
-// <details> on a phone and an open card on a wide screen.
-function IntakeDetails({ client }: { client: Client }) {
-  return (
-    <dl className="grid gap-4">
-      <Detail label="Source">
-        <Badge variant="secondary">{sourceLabel(client.source)}</Badge>
-      </Detail>
-      <Detail label="Received">{formatDateTime(client.createdAt)}</Detail>
-      {client.source === "portfolio" ? (
-        <Detail label="Service">
-          {client.service ? (
-            <Badge variant="secondary">{formatServiceId(client.service)}</Badge>
-          ) : (
-            "—"
-          )}
-        </Detail>
-      ) : null}
-      {client.source === "referral" ? (
-        <Detail label="Referral code">
-          {client.referralCode ? (
-            <span className="font-mono">{client.referralCode}</span>
-          ) : (
-            "—"
-          )}
-        </Detail>
-      ) : null}
-      <Detail label="Budget indicated">{client.budget}</Detail>
-      <Detail label="Preferred call time">
-        {formatDateTime(client.preferredCallTime)}
-      </Detail>
-      <Detail label="Intake message">
-        {client.intakeMessage ? (
-          <p className="whitespace-pre-wrap">{client.intakeMessage}</p>
-        ) : (
-          "—"
-        )}
-      </Detail>
-    </dl>
-  )
-}
-
 export default async function LeadDetailPage({
   params,
 }: {
@@ -186,18 +109,44 @@ export default async function LeadDetailPage({
 
   const isCustomer = client.status === "client"
   const gaps = isCustomer ? conversionGaps(client) : []
-  // The Convert card walks the four pieces; it stays up for a customer with
+  // The Convert row walks the four pieces; it stays up for a customer with
   // gaps (to finish the job) and disappears once conversion is whole.
   const showConvert = !archived && (!isCustomer || gaps.length > 0)
 
+  const statusLabel = client.status.charAt(0).toUpperCase() + client.status.slice(1)
+  const money = client.valueMinor > 0 ? formatMoney(client.valueMinor, "eur") : null
+
   return (
-    // The lead's name is the screen's name: it sets large and collapses into
-    // the bar on scroll, with the way back on the bar's leading edge — where a
-    // detail view keeps it, rather than as a link the content has to start
-    // with. The company rides under it as the subtitle.
-    <AppScreen
-      title={client.name}
-      subtitle={client.company || undefined}
+    <AppProfileScreen
+      name={client.name}
+      // Who they are, in one quiet line: the company they're from and where
+      // they stand. The status is also the first row below, where it can be
+      // changed — here it is only being said.
+      meta={[client.company, statusLabel].filter(Boolean).join(" · ")}
+      // The figure that qualifies the whole record, in mono beside the name.
+      figure={money ?? undefined}
+      figureLabel={
+        money ? (client.billingType === "monthly" ? "Per month" : "Value") : undefined
+      }
+      badges={
+        archived || gaps.length > 0 || client.workStartedAt !== null ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {archived ? <Badge variant="outline">Archived</Badge> : null}
+            {/* The same badges the leads list carries, so what kind of deal
+                this is is answered before you scroll. */}
+            <DealBadges client={client} />
+            {/* Conversion gaps — a client missing pieces says so where the eye
+                lands first, because each gap breaks something downstream. */}
+            {gaps.map((gap) => (
+              <Badge key={gap} variant="warning">
+                {gap}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <DealBadges client={client} />
+        )
+      }
       back={
         // A real target, not a 14px arrow, and tinted the way a back control
         // is on this tier.
@@ -209,246 +158,120 @@ export default async function LeadDetailPage({
           Leads
         </ViewTransitionLink>
       }
+      actions={
+        <LeadActionRow
+          id={client.id}
+          phone={client.phone}
+          email={client.email}
+          lastWorked={lastWorked}
+          workStartedOn={
+            client.workStartedAt ? formatDate(client.workStartedAt) : null
+          }
+        />
+      }
     >
-      <div className="flex flex-col gap-4 sm:gap-6">
-        <div className="flex flex-col gap-1">
-          {archived ? (
-            <Badge variant="outline" className="w-fit">
-              Archived
-            </Badge>
-          ) : null}
-          <p className="text-xs text-muted-foreground">
-            {lastWorked === "today"
-              ? "Worked today"
-              : `Last worked ${lastWorked} ago`}
-          </p>
-          {/* The same badges the leads list carries, so what kind of deal this is
-              is answered before you scroll to the profile that sets it. */}
-          <DealBadges client={client} className="mt-1" />
-          {/* Conversion gaps — a client missing pieces says so where the
-              eye lands first, because each gap breaks something downstream. */}
-          {gaps.length > 0 ? (
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {gaps.map((gap) => (
-                <Badge key={gap} variant="warning">
-                  {gap}
-                </Badge>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        {/* The things you came here to do. A rail rather than a wrapping row, so
-            it stays one line on any width; on a phone these are the whole point
-            of opening a lead on your phone in the first place. */}
-        <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 no-scrollbar sm:mx-0 sm:px-0 sm:pb-0">
-          {client.phone ? (
-            <Button asChild variant="outline" className="shrink-0">
-              {/* WhatsApp chat, not a call — tapping a lead's number should open
-                  the conversation, never surprise-dial them. */}
-              <a
-                href={whatsappUrl(client.phone)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <MessageCircle />
-                WhatsApp
-              </a>
-            </Button>
-          ) : null}
-          {client.email ? (
-            <Button asChild variant="outline" className="shrink-0">
-              <a href={`mailto:${client.email}`}>
-                <Mail />
-                Email
-              </a>
-            </Button>
-          ) : null}
-          <MarkTouchedButton id={client.id} lastWorked={lastWorked} />
-          <WorkStartedButton
-            id={client.id}
-            startedOn={
-              client.workStartedAt ? formatDate(client.workStartedAt) : null
+      {/* One codepath from phone to laptop: the same groups, in the same
+          order, laid into two columns once there is width for them. The
+          sections never split across a column, so a group is always read as
+          one slab. */}
+      <GroupedList className="lg:block lg:columns-2 lg:[&>section]:mb-app-section lg:[&>section]:break-inside-avoid">
+        {/* Where they stand. No header — this group is the identity's
+            continuation, not a topic of its own. */}
+        <GroupedSection>
+          <LeadStatusRow id={client.id} value={client.status} />
+          <GroupedRow
+            label="Last worked"
+            chevron={false}
+            value={
+              lastWorked === "today" ? (
+                "Today"
+              ) : (
+                <>
+                  <span className="font-mono">{lastWorked}</span> ago
+                </>
+              )
             }
           />
-        </div>
-
-        {/* Status gets its own row: it's the field changed most often and the one
-            worth hitting without aiming. */}
-        <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3 text-card-foreground sm:w-fit sm:gap-6">
-          <span className="text-sm font-medium">Status</span>
-          <ClientStatusSelect
-            id={client.id}
-            value={client.status}
-            className="w-40"
-          />
-        </div>
-
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-          <div className="flex flex-col gap-4 sm:gap-6 lg:col-span-2">
-            {/* Conversion as one act: the four steps that used to be four
-                separate taps, walked in order, each skippable but explicit.
-                Composes the same actions the individual controls below use. */}
-            {showConvert ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    {isCustomer ? "Finish conversion" : "Convert"}
-                  </CardTitle>
-                  <CardDescription>
-                    {isCustomer
-                      ? "A client, but missing pieces — walk the remaining steps."
-                      : "Won the work? Walk status, repo, deal terms and Stripe in one pass."}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ConvertFlow
-                    client={{
-                      id: client.id,
-                      status: client.status,
-                      githubRepo: client.githubRepo,
-                      githubDefaultBranch: client.githubDefaultBranch,
-                      stripeCustomerId: client.stripeCustomerId,
-                      valueMinor: client.valueMinor,
-                      billingType: client.billingType,
-                      dealType: client.dealType,
-                      barterTerms: client.barterTerms,
-                    }}
-                    githubConfigured={isGithubConfigured()}
-                    suggestedRepoName={clientSlug(client.name)}
-                  />
-                </CardContent>
-              </Card>
-            ) : null}
-
-            {/* The record, read as facts. Contact rows are the actions themselves
-                (tap to call, tap to email, copy beside each); the deal is what
-                it's worth and how it settles; notes are the running memory. Each
-                card edits in its own bottom sheet — how they came in stays
-                read-only under Intake. */}
-            <LeadContactCard
+          {showConvert ? (
+            <LeadConvertRow
               client={{
                 id: client.id,
-                name: client.name,
-                company: client.company,
-                email: client.email,
-                phone: client.phone,
-              }}
-            />
-            <LeadDealCard
-              client={{
-                id: client.id,
+                status: client.status,
+                githubRepo: client.githubRepo,
+                githubDefaultBranch: client.githubDefaultBranch,
+                stripeCustomerId: client.stripeCustomerId,
                 valueMinor: client.valueMinor,
                 billingType: client.billingType,
                 dealType: client.dealType,
                 barterTerms: client.barterTerms,
-                commissionBps: client.commissionBps,
-                equityBps: client.equityBps,
               }}
+              githubConfigured={isGithubConfigured()}
+              suggestedRepoName={clientSlug(client.name)}
+              gaps={gaps}
             />
-            <LeadNotesCard id={client.id} notes={client.notes} />
+          ) : null}
+        </GroupedSection>
 
-            {/* Questionnaires. The link is copied here and emailed by hand — per
-                the estate rule, the dashboard never sends anything itself. */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Forms</CardTitle>
-                <CardDescription>
-                  Send {client.name} a questionnaire from{" "}
-                  <code className="rounded-xs bg-muted px-1 py-0.5 text-xs">
-                    .icm/onboarding/
-                  </code>
-                  , then paste the link into an email. Answers come back here.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FormLinks
-                  clientId={client.id}
-                  clientRepo={client.githubRepo}
-                  links={formLinks}
-                  forms={formLibrary.forms}
-                  formErrors={formLibrary.errors}
-                />
-              </CardContent>
-            </Card>
+        <LeadContactCard
+          client={{
+            id: client.id,
+            name: client.name,
+            company: client.company,
+            email: client.email,
+            phone: client.phone,
+          }}
+        />
 
-            {/* Todos hanging off this lead — the same list as the leads screen,
-                filtered to this one, so a "chase them Tuesday" lives with the
-                person it is about. */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Todos</CardTitle>
-                <CardDescription>
-                  Open todos for {client.name}. They also show on the leads screen.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TaskList clientId={client.id} tasks={tasks} />
-              </CardContent>
-            </Card>
+        <LeadDealCard
+          client={{
+            id: client.id,
+            valueMinor: client.valueMinor,
+            billingType: client.billingType,
+            dealType: client.dealType,
+            barterTerms: client.barterTerms,
+            commissionBps: client.commissionBps,
+            equityBps: client.equityBps,
+          }}
+        />
 
-          </div>
+        <LeadNotesCard id={client.id} notes={client.notes} />
 
-          <div className="flex flex-col gap-4 sm:gap-6">
-            {/* Where their work lives and how they get billed — plumbing you set
-                once, so it sits in the reference column, not between the record
-                and the todos. */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Delivery &amp; billing</CardTitle>
-                <CardDescription>
-                  The repo their work lives in, and their Stripe customer.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <div>
-                  <div className="mb-2 text-xs text-muted-foreground">
-                    Delivery repo
-                  </div>
-                  <ClientRepoLink
-                    id={client.id}
-                    githubRepo={client.githubRepo}
-                    githubDefaultBranch={client.githubDefaultBranch}
-                    configured={isGithubConfigured()}
-                    suggestedName={clientSlug(client.name)}
-                  />
-                </div>
-                <div className="border-t pt-4">
-                  <div className="mb-2 text-xs text-muted-foreground">
-                    Stripe customer
-                  </div>
-                  <ClientStripeLink
-                    id={client.id}
-                    stripeCustomerId={client.stripeCustomerId}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+        <FormLinks
+          clientId={client.id}
+          clientName={client.name}
+          clientRepo={client.githubRepo}
+          links={formLinks}
+          forms={formLibrary.forms}
+          formErrors={formLibrary.errors}
+        />
 
-            <FoldCard title="Intake" description="How this lead came in.">
-              <IntakeDetails client={client} />
-            </FoldCard>
+        <LeadDeliveryCard
+          id={client.id}
+          name={client.name}
+          githubRepo={client.githubRepo}
+          githubDefaultBranch={client.githubDefaultBranch}
+          githubConfigured={isGithubConfigured()}
+          suggestedRepoName={clientSlug(client.name)}
+          stripeCustomerId={client.stripeCustomerId}
+        />
 
-            {/* Rare and irreversible — last on the page and folded shut, never
-                beside the title where a thumb reaching for the status could
-                find it. */}
-            <DisclosureCard title="Danger zone" titleClassName="text-destructive">
-              <div className="flex flex-col gap-3">
-                <p className="text-sm text-muted-foreground">
-                  Archiving takes them off the list and keeps the record. Deleting
-                  can&apos;t be undone.
-                </p>
-                <ClientActions
-                  id={client.id}
-                  archived={archived}
-                  redirectOnDelete
-                  className="justify-start"
-                />
-              </div>
-            </DisclosureCard>
-          </div>
-        </div>
-      </div>
-    </AppScreen>
+        <LeadTodos
+          clientId={client.id}
+          clientName={client.name}
+          tasks={tasks}
+        />
+
+        <LeadIntake client={client} />
+
+        {/* Rare and irreversible — last on the page, in red, and nowhere near
+            the thumb reaching for the status at the top. */}
+        <GroupedSection
+          header="Danger zone"
+          footer="Archiving takes them off the list and keeps the record. Deleting can't be undone."
+        >
+          <ClientActions id={client.id} archived={archived} grouped redirectOnDelete />
+        </GroupedSection>
+      </GroupedList>
+    </AppProfileScreen>
   )
 }

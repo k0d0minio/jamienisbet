@@ -48,8 +48,13 @@ and [`packages/ui/BRAND.md`](../../../packages/ui/BRAND.md) § App tier):
    **Mono figures do**: numbers, metadata and table data stay `font-mono` on every tier.
 
 The app tier's structural unit is the inset grouped list — `GroupedList` / `GroupedSection` /
-`GroupedRow`, plus `LargeTitleHeader` for the screen's name. Reach for those before a table
-or a bare `Card`; the desktop tables are being retired, one codepath from phone to laptop.
+`GroupedRow` (`accessory` for a second control on a row), plus `GroupedBlock` for prose in a
+slab and `GroupedDisclosure` for a fold. A screen's masthead is `LargeTitleHeader` (a list's
+name) or `IdentityHeader` (a profile: `Monogram`, name, meta, the figure in mono), with
+`ActionCircleRow` / `ActionCircle` for the actions under an identity — an action the record
+can't support is disabled, never hidden. A phone sheet that holds a form takes native
+detents: `<SheetContent detents={["medium", "large"]}>`. Reach for those before a table or a
+bare `Card`; the desktop tables are being retired, one codepath from phone to laptop.
 
 Everything else holds on both tiers, unchanged: slate is the only tint (`--app-tint` *is*
 `--primary`; no per-domain accents), semantic colour is state-only and muted, sentence case,
