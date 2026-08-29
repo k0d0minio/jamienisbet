@@ -48,7 +48,7 @@ export default async function TechPage({
           className="dst-grid-bg pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent_80%)]"
         />
         <Container className="relative py-20 sm:py-28">
-          <div className="flex max-w-[var(--container-md)] flex-col gap-6">
+          <div className="flex max-w-[var(--layout-md)] flex-col gap-6">
             <Link
               href="/"
               className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground"

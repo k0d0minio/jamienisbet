@@ -126,3 +126,33 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
 - **This repo must stand alone.** Nothing here reads `_system/` any more. Where a contract
   is needed locally it is restated (`.icm/intake/README.md`) rather than linked, so a cloud
   session on this repo is not missing half its rules.
+
+## 2026-08-29 — three unused primitives leave the design system, three stay
+
+- **Deleted: `Avatar`, `Tabs`, `Checkbox`.** All three arrived with the shadcn install
+  (JN-004) and none is imported anywhere in `websites/` or `packages/`. What decided it was
+  not the zero count but that each has a **named successor the estate chose on purpose**,
+  written down in more than one place:
+  `Avatar` → `Monogram`, and BRAND.md has said "initials in mono on a neutral fill, **no
+  photographs**" since the mark was locked, so an image-with-fallback primitive contradicts
+  a standing decision rather than merely idling. `Tabs` → `SegmentedControl` for a closed
+  set and a scrolling rail for an open one; the codebase turns tabs down three separate
+  times in comments (the sellers site's "a single lead form, no tabs", the admin's
+  "rather than tabs: this is a value being chosen, not a view being switched", and the
+  bottom tab bar, which is nav and never was this component).
+  `Checkbox` → a `GroupedRow` carrying `role="checkbox"` on the app tier (the Needs you
+  feed and the lead todos), and on the marketing tier a deliberate yes/no button pair,
+  because an unticked checkbox can't be told apart from an unanswered question.
+  Reason: **a primitive with a successor is not cheap to keep.** It stays in the barrel,
+  gets typechecked and linted on every app that consumes the package as source, and — worse
+  — reads as a sanctioned option to the next person opening the barrel, who then has to
+  rediscover why the estate said no.
+- **Kept: `Stat`, `Delta`, `Sparkline`**, with the reason written into BRAND.md § Data &
+  figures rather than left implicit. They are the executable form of a brand rule that page
+  still states, their fourth member `Meter` **is** in use on the tickets board, and `Stat`
+  composes the other two as slots — so the set is kept or dropped whole. They are the
+  marketing tier's numeric surface, waiting on the first page that has figures to show.
+  `GlanceRow` did not replace them; § App tier already says it is chrome, not a stat tile.
+- **The barrel is the audit surface.** Anything exported is carried by every consuming app,
+  so "unused" is a question worth asking of it periodically — but the answer is a decision
+  per component, not a sweep.

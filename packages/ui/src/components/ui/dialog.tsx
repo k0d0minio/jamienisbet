@@ -67,7 +67,11 @@ function DialogContent({
           // shrinking inside it, taking the right end of every line with it.
           // `min-w-0` on the children hands the width back, so ellipses land
           // where they should and inner scrollers scroll themselves.
-          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 outline-none [&>*]:min-w-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg",
+          //
+          // Width from `--dialog-w`, not `sm:max-w-lg`: the brand once set a
+          // page-width token in Tailwind's own `--container-*` namespace, and
+          // `max-w-lg` quietly became 1080px. A modal states its width.
+          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 outline-none [&>*]:min-w-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-[var(--dialog-w)]",
           className
         )}
         {...props}

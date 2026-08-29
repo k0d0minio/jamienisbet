@@ -2,10 +2,10 @@ import * as React from "react"
 import { cn, Eyebrow } from "@jamie-nisbet/ui"
 
 const widths = {
-  sm: "max-w-[var(--container-sm)]",
-  md: "max-w-[var(--container-md)]",
-  lg: "max-w-[var(--container-lg)]",
-  xl: "max-w-[var(--container-xl)]",
+  sm: "max-w-[var(--layout-sm)]",
+  md: "max-w-[var(--layout-md)]",
+  lg: "max-w-[var(--layout-lg)]",
+  xl: "max-w-[var(--layout-xl)]",
 } as const
 
 export function Container({
@@ -42,7 +42,7 @@ export function SectionHeading({
   className?: string
 }) {
   return (
-    <div className={cn("flex max-w-[var(--container-md)] flex-col gap-4", className)}>
+    <div className={cn("flex max-w-[var(--layout-md)] flex-col gap-4", className)}>
       {eyebrow && (
         <Eyebrow rule index={index}>
           {eyebrow}
