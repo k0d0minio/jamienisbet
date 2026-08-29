@@ -10,31 +10,69 @@ export type ListOptions = { archived?: boolean }
 export type NewClient = typeof clients.$inferInsert
 export type Client = typeof clients.$inferSelect
 
-// The lead lifecycle, in three rungs plus a drop-out. Ordered from first touch
-// to agreed; the admin moves a lead along it from the list or their profile.
-// What each rung *means* — and what you do when a lead is on it — is
+// The lead lifecycle, five rungs running from first touch to the two ways a
+// relationship ends; the admin moves a lead along it from the list or their
+// profile. What each rung *means* — and what you do when a lead is on it — is
 // _system/contracts/CLIENTS.md in the icm-board repo.
 //
-//   new     — they arrived, nobody has replied yet
-//   talking — in conversation: scoping, quoting, waiting on their answer
-//   client  — the deal is agreed; they are working with me
-//   lost    — terminal; the relationship ended without a deal
+//   lead       — they arrived, nobody has replied yet
+//   discussing — in conversation: scoping, quoting, waiting on their answer
+//   active     — the deal is agreed; they are working with me
+//   past       — the engagement ended, the relationship is kept
+//   not_won    — terminal; ended without a deal
+//
+// The stored strings read as words on purpose — no legacy codes — and their
+// labels (Lead · In discussion · Active client · Past client · Not won) live in
+// `clientStatusLabels` below. That lookup is the one place a stored status
+// becomes text: no surface capitalises or mangles the raw string into the UI.
+//
+// `past` is never reached by the ladder's own arithmetic — it is a hand move,
+// made when an engagement ends, because nothing here can know when that is.
 //
 // Deliberately short. The old seven-rung CRM ladder (contacted/qualified/
 // proposed as three separate rungs, won and delivered as two) split states a
 // one-man business never acts on differently, and duplicated signals that
 // already exist orthogonally: whether the doing has begun is `work_started_at`,
 // and whether money has moved is Stripe.
-export const clientStatuses = ["new", "talking", "client", "lost"] as const
+export const clientStatuses = ["lead", "discussing", "active", "past", "not_won"] as const
 export type ClientStatus = (typeof clientStatuses)[number]
 
-// The statuses that mean "still being worked" — the ones the leads list treats
-// as open, and the only ones that can go stale (a client or a lost lead isn't
-// waiting on a reply).
-export const openStatuses: readonly ClientStatus[] = ["new", "talking"]
+/** The readable word for each rung — the one lookup that ever turns a stored
+ *  status into UI text (labels come from here, never from capitalising the raw
+ *  string). */
+export const clientStatusLabels: Record<ClientStatus, string> = {
+  lead: "Lead",
+  discussing: "In discussion",
+  active: "Active client",
+  past: "Past client",
+  not_won: "Not won",
+}
 
-// The statuses that mean "this person pays me" — what makes a lead a customer.
-export const customerStatuses: readonly ClientStatus[] = ["client"]
+/** The single accessor surfaces read from: callers hold a `string`, not a
+ *  `ClientStatus`, and an unknown value falls through to the raw string so a
+ *  stale row on screen still names itself. */
+export function clientStatusLabel(status: string): string {
+  return clientStatusLabels[status as ClientStatus] ?? status
+}
+
+// The statuses that mean "still being worked" — the ones the leads list treats
+// as open, and the only ones that can go stale. A client isn't owed a reply,
+// and neither a lost nor a past one is: the relationship is over for both, only
+// the past one stays on the list.
+export const openStatuses: readonly ClientStatus[] = ["lead", "discussing"]
+
+// The statuses that mean "this person pays me" — what makes a lead a customer
+// and what the Clients filter gathers. Active and past both sit here; the
+// money totals and the staleness nagging look only at `active`, because a past
+// client's engagement — and retainer — is over.
+export const customerStatuses: readonly ClientStatus[] = ["active", "past"]
+
+// The live engagement: the only status the monthly and in-kind totals count.
+export const activeStatuses: readonly ClientStatus[] = ["active"]
+
+// A relationship whose engagement has ended but is kept warm — listed (muted)
+// under Clients, never stale, never in a money figure.
+export const pastStatuses: readonly ClientStatus[] = ["past"]
 
 export function isClientStatus(value: string): value is ClientStatus {
   return (clientStatuses as readonly string[]).includes(value)
@@ -143,11 +181,11 @@ export async function createClientFromReferral(
  * that never went through a form. Source is always "manual" and the row starts
  * as touched *now*, since typing it in is itself the first contact.
  *
- * `status` is what decides whether this reads as a lead or as a customer: it
- * defaults to "new" (a fresh lead) but any point in the lifecycle is valid, so
- * an existing customer can be entered where they actually are rather than being
+ * `status` is what decides whether this reads as a lead or as a client: it
+ * defaults to "lead" (a fresh lead) but any point in the lifecycle is valid, so
+ * an existing client can be entered where they actually are rather than being
  * created as a lead and immediately advanced. `valueMinor`/`billingType`/
- * `dealType` come with them, since a customer entered as "client" without a
+ * `dealType` come with them, since a client entered as "active" without a
  * figure — or with a barter figure counted as cash — would leave the totals
  * wrong from the moment they were added. The rest of the deal terms (commission,
  * equity, what is being swapped) distort nothing, so they are filled in on the
@@ -174,7 +212,7 @@ export async function createClientManually(input: {
       company: input.company ?? null,
       intakeMessage: input.intakeMessage ?? null,
       notes: input.notes ?? null,
-      status: input.status ?? "new",
+      status: input.status ?? "lead",
       valueMinor: input.valueMinor ?? 0,
       billingType: input.billingType ?? "one_off",
       dealType: input.dealType ?? "cash",
@@ -243,7 +281,8 @@ export async function listClientRepos(): Promise<ClientRepo[]> {
 // ---- Updates (called by the admin dashboard) -------------------------------
 
 /**
- * Move a lead along the ladder — new → talking → client, or out to lost.
+ * Move a lead along the ladder — lead → discussing → active, or out to not_won.
+ * `past` is a hand move too: only the owner knows when an engagement ends.
  *
  * The `ClientStatus` type is the only gate: callers that take a status off the
  * wire narrow it with `isClientStatus` first (the dashboard's server action

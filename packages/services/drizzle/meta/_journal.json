@@ -120,6 +120,13 @@
       "when": 1787130000000,
       "tag": "0016_simplify_status_ladder",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788037408839,
+      "tag": "0017_rename_status_ladder",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,8 @@
 import {
+  activeStatuses,
   customerStatuses,
   openStatuses,
+  pastStatuses,
   type Client,
 } from "@jamie-nisbet/services"
 
@@ -29,8 +31,19 @@ export function isCustomer(client: Client): boolean {
   return (customerStatuses as readonly string[]).includes(client.status)
 }
 
-/** Only an open lead can be "waiting" — a client or a lost one isn't owed a
- *  reply. */
+/** The engagement is on: the only status the monthly and in-kind totals count. */
+export function isActiveClient(client: Client): boolean {
+  return (activeStatuses as readonly string[]).includes(client.status)
+}
+
+/** The engagement is over but the relationship is kept — listed under Clients,
+ *  muted, and never part of a money figure or a staleness nudge. */
+export function isPastClient(client: Client): boolean {
+  return (pastStatuses as readonly string[]).includes(client.status)
+}
+
+/** Only an open lead can be "waiting" — a client, a past client or a lost one
+ *  isn't owed a reply. */
 export function isStale(client: Client, now: number): boolean {
   return isOpenLead(client) && daysWaiting(client, now) >= STALE_AFTER_DAYS
 }
@@ -55,9 +68,9 @@ export function valueLabel(client: Client): string | null {
   return client.billingType === "monthly" ? `${amount}/mo` : amount
 }
 
-/** The leading line of a row — what the Leads list is sorted on. A client or a
- *  lost lead isn't waiting on anything, so it just reports when it last
- *  moved. */
+/** The leading line of a row — what the Leads list is sorted on. A client, a
+ *  past client or a lost lead isn't waiting on anything, so it just reports
+ *  when it last moved. */
 export function waitedLabel(days: number, open: boolean): string {
   if (days <= 0) return "Worked today"
   const elapsed = waitingLabel(days)

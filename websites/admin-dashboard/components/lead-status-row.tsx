@@ -18,19 +18,21 @@ import {
 import { updateClientStatus } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 
-// Mirrors clientStatuses in @jamie-nisbet/services (the server action is the
-// authority — it re-validates). Kept local so this client component doesn't
-// pull the services barrel (and its DB client) into the browser bundle.
+// Mirrors clientStatuses (and their labels/hints) in @jamie-nisbet/services —
+// the server action is the authority (it re-validates). Kept local so this
+// client component doesn't pull the services barrel (and its DB client) into
+// the browser bundle.
 const STATUSES = [
-  { value: "new", label: "New", hint: "Came in, not spoken to yet" },
-  { value: "talking", label: "Talking", hint: "A conversation is running" },
-  { value: "client", label: "Client", hint: "The work is agreed" },
-  { value: "lost", label: "Lost", hint: "Not happening" },
+  { value: "lead", label: "Lead", hint: "Came in, not spoken to yet" },
+  { value: "discussing", label: "In discussion", hint: "Conversation or negotiation running" },
+  { value: "active", label: "Active client", hint: "Work agreed or under way" },
+  { value: "past", label: "Past client", hint: "Engagement over, relationship kept" },
+  { value: "not_won", label: "Not won", hint: "Didn't happen" },
 ] as const
 
 // Where the lead sits on the ladder — the field changed most often on this
 // screen, so it is the first row of the first group and it opens a sheet
-// rather than a dropdown: four rungs as full-width rows, hittable one-handed
+// rather than a dropdown: five rungs as full-width rows, hittable one-handed
 // without aiming, instead of a 36px menu at the top of the page.
 export function LeadStatusRow({ id, value }: { id: string; value: string }) {
   const [open, setOpen] = useState(false)

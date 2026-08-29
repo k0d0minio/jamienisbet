@@ -17,6 +17,7 @@ import {
   cn,
 } from "@jamie-nisbet/ui"
 import {
+  clientStatusLabel,
   listClients,
   listOpenComplianceDates,
   listOpenTasks,
@@ -382,9 +383,11 @@ function WaitingOnYou({ leads, now }: { leads: Client[]; now: number }) {
                       </span>
                     </span>
                     {/* Where they sit and who they are — the two things the
-                        figure beside them doesn't already say. */}
+                        figure beside them doesn't already say. The status word
+                        comes from the one label lookup, never from capitalising
+                        the stored string. */}
                     <span className="truncate text-app-footnote text-app-label-3">
-                      <span className="capitalize">{lead.status}</span>
+                      {clientStatusLabel(lead.status)}
                       {who ? ` · ${who}` : ""}
                     </span>
                   </ViewTransitionLink>

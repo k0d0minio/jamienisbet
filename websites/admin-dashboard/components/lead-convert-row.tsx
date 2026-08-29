@@ -33,14 +33,14 @@ export function LeadConvertRow({
   gaps: string[]
 }) {
   const [open, setOpen] = useState(false)
-  const isCustomer = client.status === "client"
+  const isActiveClient = client.status === "active"
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <GroupedRow
           icon={<ArrowUpRight />}
-          label={isCustomer ? "Finish conversion" : "Convert to client"}
+          label={isActiveClient ? "Finish conversion" : "Convert to client"}
           description={
             gaps.length > 0
               ? `Still open: ${gaps.join(", ")}`
@@ -51,10 +51,10 @@ export function LeadConvertRow({
       <SheetContent detents={["large"]}>
         <SheetHeader>
           <SheetTitle>
-            {isCustomer ? "Finish conversion" : "Convert"}
+            {isActiveClient ? "Finish conversion" : "Convert"}
           </SheetTitle>
           <SheetDescription>
-            {isCustomer
+            {isActiveClient
               ? "A client, but missing pieces — walk the remaining steps."
               : "Won the work? Walk status, repo, deal terms and Stripe in one pass."}
           </SheetDescription>

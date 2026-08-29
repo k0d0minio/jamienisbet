@@ -13,6 +13,7 @@ import {
   cn,
 } from "@jamie-nisbet/ui"
 import {
+  clientStatusLabel,
   customerStatuses,
   listClients,
   openStatuses,
@@ -29,7 +30,9 @@ import { LeadRow } from "@/components/lead-row"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
   daysWaiting,
+  isActiveClient,
   isOpenLead,
+  isPastClient,
   isStale,
   valueLabel,
   waitedLabel,
@@ -40,7 +43,7 @@ import { formatMoney } from "@/lib/money"
 export const metadata: Metadata = { title: "Leads" }
 export const dynamic = "force-dynamic"
 
-// Every lead and customer in a single inset grouped list, longest-waiting first
+// Every lead and client in a single inset grouped list, longest-waiting first
 // (the sort is done in the query).
 //
 // One codepath from phone to laptop. The screen's name sets large and hands off
@@ -63,17 +66,18 @@ export const dynamic = "force-dynamic"
 // todos and compliance dates are attention, and attention lives on the feed.
 
 // The filters across the top. Each is a set of statuses; "all" means no filter.
-// With the ladder down to three rungs plus `lost`, the three named chips are a
-// clean partition of it — "Open" is new + talking, "Customers" is client — so
-// their counts add up to All rather than overlapping.
+// With five rungs the named chips are still a clean partition of them — "Open"
+// is lead + discussing, "Clients" is active + past (the past rows are muted in
+// the list rather than given a fifth segment), "Not won" is its own terminal —
+// so their counts add up to All rather than overlapping.
 //
 // Four, and never more: a closed set is what a segmented control is for. If a
-// fifth rung ever arrives this goes back to being a scrolling rail.
+// fifth segment ever arrives this goes back to being a scrolling rail.
 const FILTERS = [
   { key: "all", label: "All", statuses: null },
   { key: "open", label: "Open", statuses: openStatuses },
-  { key: "customers", label: "Customers", statuses: customerStatuses },
-  { key: "lost", label: "Lost", statuses: ["lost"] },
+  { key: "customers", label: "Clients", statuses: customerStatuses },
+  { key: "lost", label: "Not won", statuses: ["not_won"] },
 ] as const
 
 type FilterKey = (typeof FILTERS)[number]["key"]
@@ -87,6 +91,10 @@ function isFilterKey(value: string | undefined): value is FilterKey {
 // own numbers off the profiles — Stripe is the authority on what has actually
 // been invoiced and paid.
 //
+// Only live relationships count: open (lead + discussing) for the pipeline,
+// active for the monthly and in-kind figures. A past client's engagement — and
+// retainer — is over, so they fall out of all three without leaving the list.
+//
 // Barter is kept out of the first two on purpose. A swap can be worth real money
 // and still put nothing in the bank, so folding it into "in play" would quietly
 // overstate the pipeline; it gets its own "in kind" figure instead.
@@ -96,13 +104,13 @@ function totals(rows: Client[]) {
   let inKind = 0
   for (const row of rows) {
     if (row.valueMinor <= 0) continue
-    const open = (openStatuses as readonly string[]).includes(row.status)
-    const customer = (customerStatuses as readonly string[]).includes(row.status)
+    const open = isOpenLead(row)
+    const active = isActiveClient(row)
 
     if (row.dealType === "barter") {
-      if (open || customer) inKind += row.valueMinor
+      if (open || active) inKind += row.valueMinor
     } else if (row.billingType === "monthly") {
-      if (customer) monthly += row.valueMinor
+      if (active) monthly += row.valueMinor
     } else if (open) {
       pipeline += row.valueMinor
     }
@@ -237,6 +245,7 @@ export default async function LeadsPage({
             <ul>
               {visible.map((row, index) => {
                 const stale = isStale(row, now)
+                const past = isPastClient(row)
                 const value = valueLabel(row)
                 const open = isOpenLead(row)
                 const who = whoLabel(row)
@@ -275,13 +284,27 @@ export default async function LeadsPage({
                           className="flex min-w-0 flex-1 flex-col gap-0.5 after:absolute after:inset-0"
                         >
                           <span className="flex items-baseline justify-between gap-3">
-                            <span className="truncate text-app-body font-semibold text-app-label">
+                            <span
+                              className={cn(
+                                "truncate text-app-body font-semibold",
+                                // A past client's engagement is over: the name
+                                // reads muted the way a completed todo does, so
+                                // the distinction shows without a fifth segment.
+                                past ? "text-app-label-2" : "text-app-label"
+                              )}
+                            >
                               {row.name}
                             </span>
                             {/* A figure, so it sets in mono — the brand's
-                                signature, on every tier. */}
+                                signature, on every tier. Muted with the name
+                                on a past client, whose retainer is over. */}
                             {value ? (
-                              <span className="shrink-0 font-mono text-app-subhead font-semibold tabular-nums text-app-label">
+                              <span
+                                className={cn(
+                                  "shrink-0 font-mono text-app-subhead font-semibold tabular-nums",
+                                  past ? "text-app-label-2" : "text-app-label"
+                                )}
+                              >
                                 {value}
                               </span>
                             ) : null}
@@ -301,9 +324,11 @@ export default async function LeadsPage({
                             </span>
                             {/* The status is read here and changed on the
                                 lead's page — or, from `md`, in the menu on the
-                                right of this row. */}
-                            <span className="shrink-0 text-app-label-3 capitalize md:hidden">
-                              {row.status}
+                                right of this row. The word comes from the one
+                                label lookup, never from capitalising the stored
+                                string. */}
+                            <span className="shrink-0 text-app-label-3 md:hidden">
+                              {clientStatusLabel(row.status)}
                             </span>
                           </span>
 
