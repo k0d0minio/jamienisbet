@@ -128,10 +128,9 @@ export async function saveClientNotes(id: string, formData: FormData) {
 }
 
 /**
- * The deal-terms slice of the profile on its own — what the Convert flow's
- * third step and the deal edit sheet save. Touches only the deal, so it can
- * never blank a contact field the way posting a partial profile form through
- * `saveClientProfile` would.
+ * The deal-terms slice of the profile on its own — what the deal edit sheet
+ * saves. Touches only the deal, so it can never blank a contact field the way
+ * posting a partial profile form through `saveClientProfile` would.
  *
  * Every component is read only when the form actually posted it, so any subset
  * saves: a form carrying nothing but a percentage sets that percentage and

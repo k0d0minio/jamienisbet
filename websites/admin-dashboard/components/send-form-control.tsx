@@ -157,7 +157,7 @@ export function SendFormControl({
 // phone (pick one, send), and a grouped list has no room for a picker and a
 // button on a line — so the row opens a sheet and the control above lives in
 // it. The row is the only part of this file the profile screen renders
-// directly; ConvertFlow and anything else can still use the control on its own.
+// directly; anything else can still use the control on its own.
 export function SendFormRow({
   clientId,
   forms,

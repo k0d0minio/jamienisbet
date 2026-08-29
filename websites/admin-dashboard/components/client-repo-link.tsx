@@ -239,12 +239,16 @@ export function ClientRepoLink({
   githubDefaultBranch,
   configured,
   suggestedName,
+  expanded = false,
 }: {
   id: string
   githubRepo: string | null
   githubDefaultBranch: string | null
   configured: boolean
   suggestedName: string
+  /** Drop the fold and show the two forms outright — for a sheet that exists
+   *  to do exactly this, where folding would only cost a tap. */
+  expanded?: boolean
 }) {
   // A failed `.icm/` seeding is held here, not in the create form: the repo is
   // created and connected regardless, so the moment it is reported this
@@ -278,6 +282,30 @@ export function ClientRepoLink({
     )
   }
 
+  const connect = (
+    <>
+      <p className="text-app-footnote text-app-label-3">
+        Point at the repo their delivery work lives in, or create a fresh one.
+      </p>
+      <ConnectExisting id={id} />
+      <div className="flex items-center gap-3 text-app-footnote text-app-label-3">
+        <span className="h-px flex-1 bg-app-separator" />
+        or
+        <span className="h-px flex-1 bg-app-separator" />
+      </div>
+      <CreateNew
+        id={id}
+        suggestedName={suggestedName}
+        onScaffoldError={setScaffoldError}
+      />
+      {scaffoldNotice}
+    </>
+  )
+
+  // Already in a sheet of its own: the fold would be a tap between the person
+  // and the only thing the sheet is for.
+  if (expanded) return <div className="grid gap-4">{connect}</div>
+
   // Two forms' worth of controls for something you do once per customer, if
   // ever. Folded away until asked for, so an unconnected lead costs one line
   // rather than a screen of scroll on a phone.
@@ -290,23 +318,7 @@ export function ClientRepoLink({
         />
         Connect a delivery repo
       </summary>
-      <div className="grid gap-4 pt-2">
-        <p className="text-app-footnote text-app-label-3">
-          Point at the repo their delivery work lives in, or create a fresh one.
-        </p>
-        <ConnectExisting id={id} />
-        <div className="flex items-center gap-3 text-app-footnote text-app-label-3">
-          <span className="h-px flex-1 bg-app-separator" />
-          or
-          <span className="h-px flex-1 bg-app-separator" />
-        </div>
-        <CreateNew
-          id={id}
-          suggestedName={suggestedName}
-          onScaffoldError={setScaffoldError}
-        />
-        {scaffoldNotice}
-      </div>
+      <div className="grid gap-4 pt-2">{connect}</div>
     </details>
   )
 }

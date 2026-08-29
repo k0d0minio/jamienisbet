@@ -6,28 +6,31 @@ import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui
 import {
   clientStatusLabel,
   getClient,
-  hasDeal,
   listFormLinksForClient,
   listOpenTasksForClient,
-  type Client,
 } from "@jamie-nisbet/services"
 
 import { AppProfileScreen } from "@/components/app-screen"
 import { ClientActions } from "@/components/client-actions"
 import { ViewTransitionLink } from "@/components/view-transition-link"
-import { DealBadges, hasDealBadges } from "@/components/deal-badges"
+import { DealBadges } from "@/components/deal-badges"
 import { FormLinks } from "@/components/form-links"
 import { LeadActionRow } from "@/components/lead-action-row"
 import { LeadContactCard } from "@/components/lead-contact-card"
-import { LeadConvertRow } from "@/components/lead-convert-row"
 import { LeadDealCard } from "@/components/lead-deal-card"
-import { LeadDeliveryCard } from "@/components/lead-delivery-card"
 import { LeadIntake } from "@/components/lead-intake"
+import { LeadLinks } from "@/components/lead-links"
 import { LeadNotesCard } from "@/components/lead-notes-card"
+import { LeadSegments } from "@/components/lead-segments"
 import { LeadStatusRow } from "@/components/lead-status-row"
 import { LeadTodos } from "@/components/lead-todos"
 import { daysSince, formatDate, waitingLabel } from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
+import {
+  DEFAULT_LEAD_SEGMENT,
+  isLeadSegmentKey,
+  type LeadSegmentKey,
+} from "@/lib/lead-segments"
 import { dealFigure } from "@/lib/leads"
 import { listOnboardingForms } from "@/lib/onboarding"
 
@@ -35,33 +38,22 @@ export const metadata: Metadata = { title: "Lead" }
 export const dynamic = "force-dynamic"
 
 // One person, in the Contacts idiom: they are the masthead — disc, name, what
-// they are, what they're worth — the five things you'd open this page on a
-// phone to do are discs directly under it, and the record itself is grouped
-// inset sections you scan rather than read. Every section edits in its own
-// bottom sheet, posting the same scoped server actions as before; nothing on
-// this page is a wall of input fields.
+// they are, what they're worth, and two glyphs saying whether their repo and
+// their Stripe customer exist — the five things you'd open this page on a
+// phone to do are discs directly under it, and the record itself is two
+// segments you switch between rather than one page you scroll past.
 //
-// The order down the page is working order: where they stand, how to reach
-// them, what the deal is, what you know, what you've asked them, where the
-// work lives, what's outstanding — then the reference (how they came in,
-// folded) and finally the two red rows nothing else should sit near.
-
-// What a converted lead is still missing. Each gap is a downstream breakage —
-// no repo means invisible on the tickets board, no terms means nobody can say
-// what was agreed, no Stripe means the first invoice stalls on plumbing — so
-// anyone on the `active` rung wears these until the pieces exist. Nothing here
-// is a status: the ladder says the deal is agreed, these say the plumbing is.
+// The two segments are the honest split in what this screen is for:
 //
-// The deal gap asks `hasDeal`, not for a euro figure: an engagement paid in a
-// stake or a cut is a whole deal, and the old `valueMinor > 0` test nagged it
-// forever for a number it will never have.
-function conversionGaps(client: Client): string[] {
-  const gaps: string[] = []
-  if (!client.githubRepo) gaps.push("no delivery repo")
-  if (!hasDeal(client)) gaps.push("no deal terms")
-  if (!client.stripeCustomerId) gaps.push("no Stripe customer")
-  return gaps
-}
+//   Person — the record. Status, contact, the deal, how they came in (folded,
+//            because it is read once), and the two red rows.
+//   Work   — the surface. Notes, todos, the questionnaires they've been sent.
+//
+// Nothing here converts anyone. The four-step walkthrough, the "Finish
+// conversion" row and the warning badges that nagged an active client about
+// missing plumbing are gone: moving the status to Active client *is* the
+// conversion, and an unlit glyph in the header is the whole of the reminder
+// that a repo or a Stripe customer is still missing.
 
 // Read outside the component so the render stays pure: `now` is sampled once
 // here, not during render (which the react-hooks/purity rule forbids).
@@ -103,21 +95,23 @@ async function loadLead(id: string) {
 
 export default async function LeadDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ tab?: string }>
 }) {
-  const { id } = await params
+  const [{ id }, query] = await Promise.all([params, searchParams])
   const loaded = await loadLead(id)
   if (!loaded) notFound()
 
   const { client, tasks, formLinks, formLibrary, lastWorked } = loaded
   const archived = client.archivedAt !== null
 
-  const isActiveClient = client.status === "active"
-  const gaps = isActiveClient ? conversionGaps(client) : []
-  // The Convert row walks the four pieces; it stays up for a client with
-  // gaps (to finish the job) and disappears once conversion is whole.
-  const showConvert = !archived && (!isActiveClient || gaps.length > 0)
+  // Which segment to open on. The client rewrites this in place as you switch,
+  // so a refresh or a shared link comes back where it left off.
+  const tab: LeadSegmentKey = isLeadSegmentKey(query.tab)
+    ? query.tab
+    : DEFAULT_LEAD_SEGMENT
 
   // The masthead reads the status through the one label lookup — the stored
   // strings ("not_won", "discussing") are never capitalised into the UI.
@@ -130,30 +124,33 @@ export default async function LeadDetailPage({
     <AppProfileScreen
       name={client.name}
       // Who they are, in one quiet line: the company they're from and where
-      // they stand. The status is also the first row below, where it can be
-      // changed — here it is only being said.
+      // they stand. The status is also the first row of the Person segment,
+      // where it can be changed — here it is only being said.
       meta={[client.company, statusLabel].filter(Boolean).join(" · ")}
       // The figure that qualifies the whole record, in mono beside the name.
       // Captioned, so it needs no word of its own: "12%" under "Equity".
       figure={figure?.value}
       figureLabel={figure?.label}
       badges={
-        archived || gaps.length > 0 || hasDealBadges(client, figure?.kind) ? (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {archived ? <Badge variant="outline">Archived</Badge> : null}
-            {/* The same badges the leads list carries, so what kind of deal
-                this is is answered before you scroll — minus whichever term
-                the figure above has already said. */}
-            <DealBadges client={client} omit={figure?.kind} />
-            {/* Conversion gaps — a client missing pieces says so where the eye
-                lands first, because each gap breaks something downstream. */}
-            {gaps.map((gap) => (
-              <Badge key={gap} variant="warning">
-                {gap}
-              </Badge>
-            ))}
-          </div>
-        ) : undefined
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          {/* Repo and Stripe as two status lights: lit and tappable through to
+              GitHub or Stripe, or dim and tappable into the control that links
+              one. The whole of what used to be a Delivery & billing section. */}
+          <LeadLinks
+            id={client.id}
+            name={client.name}
+            githubRepo={client.githubRepo}
+            githubDefaultBranch={client.githubDefaultBranch}
+            githubConfigured={isGithubConfigured()}
+            suggestedRepoName={clientSlug(client.name)}
+            stripeCustomerId={client.stripeCustomerId}
+          />
+          {archived ? <Badge variant="outline">Archived</Badge> : null}
+          {/* The same badges the leads list carries, so what kind of deal
+              this is is answered before you scroll — minus whichever term
+              the figure above has already said. */}
+          <DealBadges client={client} omit={figure?.kind} />
+        </div>
       }
       back={
         // A real target, not a 14px arrow, and tinted the way a back control
@@ -178,36 +175,46 @@ export default async function LeadDetailPage({
         />
       }
     >
-      {/* One codepath from phone to laptop: the same groups, in the same
-          order, laid into two columns once there is width for them. The
-          sections never split across a column, so a group is always read as
-          one slab. */}
-      <GroupedList className="lg:block lg:columns-2 lg:[&>section]:mb-app-section lg:[&>section]:break-inside-avoid">
-        {/* Where they stand. No header — this group is the identity's
-            continuation, not a topic of its own. */}
-        <GroupedSection>
-          <LeadStatusRow id={client.id} value={client.status} />
-          <GroupedRow
-            label="Last worked"
-            chevron={false}
-            value={
-              lastWorked === "today" ? (
-                "Today"
-              ) : (
-                <>
-                  <span className="font-mono">{lastWorked}</span> ago
-                </>
-              )
-            }
-          />
-          {showConvert ? (
-            <LeadConvertRow
+      <LeadSegments
+        initial={tab}
+        person={
+          // One column from phone to laptop. The two-column desktop layout the
+          // nine-section page needed went with the sections: half of them are
+          // on the other segment now, and neither side is long enough to want
+          // splitting.
+          <GroupedList>
+            {/* Where they stand. No header — this group is the identity's
+                continuation, not a topic of its own. */}
+            <GroupedSection>
+              <LeadStatusRow id={client.id} value={client.status} />
+              <GroupedRow
+                label="Last worked"
+                chevron={false}
+                value={
+                  lastWorked === "today" ? (
+                    "Today"
+                  ) : (
+                    <>
+                      <span className="font-mono">{lastWorked}</span> ago
+                    </>
+                  )
+                }
+              />
+            </GroupedSection>
+
+            <LeadContactCard
               client={{
                 id: client.id,
-                status: client.status,
-                githubRepo: client.githubRepo,
-                githubDefaultBranch: client.githubDefaultBranch,
-                stripeCustomerId: client.stripeCustomerId,
+                name: client.name,
+                company: client.company,
+                email: client.email,
+                phone: client.phone,
+              }}
+            />
+
+            <LeadDealCard
+              client={{
+                id: client.id,
                 valueMinor: client.valueMinor,
                 billingType: client.billingType,
                 dealType: client.dealType,
@@ -215,73 +222,48 @@ export default async function LeadDetailPage({
                 commissionBps: client.commissionBps,
                 equityBps: client.equityBps,
               }}
-              githubConfigured={isGithubConfigured()}
-              suggestedRepoName={clientSlug(client.name)}
-              gaps={gaps}
             />
-          ) : null}
-        </GroupedSection>
 
-        <LeadContactCard
-          client={{
-            id: client.id,
-            name: client.name,
-            company: client.company,
-            email: client.email,
-            phone: client.phone,
-          }}
-        />
+            {/* Provenance, read once and then never — one folded row at the
+                foot of the record rather than a section of its own. */}
+            <LeadIntake client={client} />
 
-        <LeadDealCard
-          client={{
-            id: client.id,
-            valueMinor: client.valueMinor,
-            billingType: client.billingType,
-            dealType: client.dealType,
-            barterTerms: client.barterTerms,
-            commissionBps: client.commissionBps,
-            equityBps: client.equityBps,
-          }}
-        />
+            {/* Rare and irreversible — last on the segment, in red, and nowhere
+                near the thumb reaching for the status at the top. */}
+            <GroupedSection
+              header="Danger zone"
+              footer="Archiving takes them off the list and keeps the record. Deleting can't be undone."
+            >
+              <ClientActions
+                id={client.id}
+                archived={archived}
+                grouped
+                redirectOnDelete
+              />
+            </GroupedSection>
+          </GroupedList>
+        }
+        work={
+          <GroupedList>
+            <LeadNotesCard id={client.id} notes={client.notes} />
 
-        <LeadNotesCard id={client.id} notes={client.notes} />
+            <LeadTodos
+              clientId={client.id}
+              clientName={client.name}
+              tasks={tasks}
+            />
 
-        <FormLinks
-          clientId={client.id}
-          clientName={client.name}
-          clientRepo={client.githubRepo}
-          links={formLinks}
-          forms={formLibrary.forms}
-          formErrors={formLibrary.errors}
-        />
-
-        <LeadDeliveryCard
-          id={client.id}
-          name={client.name}
-          githubRepo={client.githubRepo}
-          githubDefaultBranch={client.githubDefaultBranch}
-          githubConfigured={isGithubConfigured()}
-          suggestedRepoName={clientSlug(client.name)}
-          stripeCustomerId={client.stripeCustomerId}
-        />
-
-        <LeadTodos
-          clientId={client.id}
-          clientName={client.name}
-          tasks={tasks}
-        />
-
-        <LeadIntake client={client} />
-
-        {/* Rare and irreversible — last on the page, in red, and nowhere near
-            the thumb reaching for the status at the top. */}
-        <GroupedSection
-          header="Danger zone"
-          footer="Archiving takes them off the list and keeps the record. Deleting can't be undone."
-        >
-          <ClientActions id={client.id} archived={archived} grouped redirectOnDelete />
-        </GroupedSection>
-      </GroupedList>
+            <FormLinks
+              clientId={client.id}
+              clientName={client.name}
+              clientRepo={client.githubRepo}
+              links={formLinks}
+              forms={formLibrary.forms}
+              formErrors={formLibrary.errors}
+            />
+          </GroupedList>
+        }
+      />
     </AppProfileScreen>
   )
 }
