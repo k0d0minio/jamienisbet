@@ -24,29 +24,29 @@ import {
   SheetTrigger,
   toast,
 } from "@jamie-nisbet/ui"
-import type { DealType } from "@jamie-nisbet/services"
+import {
+  dealComponents,
+  type DealTerms,
+  type DealType,
+} from "@jamie-nisbet/services"
 
 import { saveDealTerms } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 import { formatMoney } from "@/lib/money"
 import { bpsToPercentInput, formatBps } from "@/lib/percent"
 
-// What the engagement is worth and how it settles — read as rows, edited in a
-// sheet. Only the terms that are actually set take a row, so a plain cash deal
-// reads as one line rather than a group of dashes.
+// What was agreed, read as rows and edited in a sheet.
+//
+// A deal is components — a fee, a swap, a stake, a cut — and any one of them is
+// a whole deal. So the rows are built from `dealComponents` rather than from
+// the columns: only the terms that are actually set take a line, none of them
+// waits on another, and an engagement paid entirely in equity reads as a deal
+// here rather than as an empty card asking for euros it will never have.
 
-// Billing and deal type arrive as the plain strings the Client row carries;
-// this card normalises (anything unrecognised reads as a one-off cash deal,
-// matching the server action's own fallback).
-export type DealDetails = {
-  id: string
-  valueMinor: number
-  billingType: string
-  dealType: string
-  barterTerms: string | null
-  commissionBps: number | null
-  equityBps: number | null
-}
+/** The deal columns this card reads and writes, plus the row it writes them
+ *  back to. Billing and deal type arrive as the plain strings the Client row
+ *  carries; narrowing them is the model's job, not this card's. */
+export type DealDetails = DealTerms & { id: string }
 
 export function LeadDealCard({ client }: { client: DealDetails }) {
   const [open, setOpen] = useState(false)
@@ -58,22 +58,37 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
   )
 
   // Every figure is mono — numbers are the brand's signature on every tier.
+  const components = dealComponents(client)
   const facts: { label: string; value: string }[] = []
-  if (client.valueMinor > 0) {
-    const amount = formatMoney(client.valueMinor, "eur")
-    facts.push({
-      label: client.dealType === "barter" ? "Value (in kind)" : "Value",
-      value: client.billingType === "monthly" ? `${amount}/mo` : amount,
-    })
-  }
-  if (client.dealType === "barter") {
-    facts.push({ label: "Paid in", value: "Exchange of services" })
-  }
-  if ((client.commissionBps ?? 0) > 0) {
-    facts.push({ label: "Commission", value: formatBps(client.commissionBps!) })
-  }
-  if ((client.equityBps ?? 0) > 0) {
-    facts.push({ label: "Equity", value: formatBps(client.equityBps!) })
+  for (const component of components) {
+    switch (component.kind) {
+      case "cash": {
+        const amount = formatMoney(component.valueMinor, "eur")
+        facts.push({
+          label: "Value",
+          value: component.billingType === "monthly" ? `${amount}/mo` : amount,
+        })
+        break
+      }
+      case "barter": {
+        // A swap is a term whether or not anyone has put a figure on it, so the
+        // row is always there and the amount only joins it once it exists.
+        if (component.valueMinor > 0) {
+          facts.push({
+            label: "Value (in kind)",
+            value: formatMoney(component.valueMinor, "eur"),
+          })
+        }
+        facts.push({ label: "Paid in", value: "Exchange of services" })
+        break
+      }
+      case "equity":
+        facts.push({ label: "Equity", value: formatBps(component.bps) })
+        break
+      case "commission":
+        facts.push({ label: "Commission", value: formatBps(component.bps) })
+        break
+    }
   }
 
   const barter = client.dealType === "barter" ? client.barterTerms : null
@@ -81,7 +96,7 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
   return (
     <GroupedSection
       header="Deal"
-      footer="Your own figure for what this is worth — Stripe stays the authority on what was invoiced and paid."
+      footer="Your own record of what was agreed — any combination of a fee, a swap, a stake and a cut. Stripe stays the authority on what was invoiced and paid."
     >
       {facts.map((fact) => (
         <GroupedRow
@@ -101,9 +116,10 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
         </GroupedBlock>
       ) : null}
 
-      {facts.length === 0 && !barter ? (
+      {components.length === 0 ? (
         <GroupedBlock>
-          No deal terms yet — price it below once the shape firms up.
+          Nothing agreed yet. A deal is any of these — a fee, a swap, a stake in
+          the company, a cut of their revenue — and one of them is enough.
         </GroupedBlock>
       ) : null}
 
@@ -123,9 +139,10 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
           <SheetHeader>
             <SheetTitle>Edit deal</SheetTitle>
             <SheetDescription>
-              Your own figure for what this is worth — Stripe stays the
-              authority on what was actually invoiced and paid. An exchange of
-              services counts separately as <em>in kind</em>.
+              Fill in whatever this deal is made of — none of it is required,
+              and any one of them is a deal. Stripe stays the authority on what
+              was actually invoiced and paid, and an exchange of services counts
+              separately as <em>in kind</em>.
             </SheetDescription>
           </SheetHeader>
           <form
@@ -145,7 +162,7 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
             className="grid gap-3"
           >
             <div className="grid grid-cols-2 gap-3">
-              <AppField label="Value (€)">
+              <AppField label="Value (€)" hint="Empty if there's no fee.">
                 <AppInput
                   name="value"
                   inputMode="decimal"
@@ -175,7 +192,7 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
               </AppField>
             </div>
 
-            <AppField label="Paid in">
+            <AppField label="Paid in" hint="How to read the figure above.">
               <AppSelect
                 value={dealType}
                 onValueChange={(next) => setDealType(next as DealType)}

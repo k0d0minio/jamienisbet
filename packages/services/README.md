@@ -21,6 +21,7 @@ build step — consumers transpile the TypeScript via `transpilePackages` (same 
 src/
   client.ts          # lazy Drizzle client from DATABASE_URL — getDb() / db
   schema/index.ts    # Drizzle tables under the `biz` Postgres schema
+  deal.ts            # what a deal is made of — components, and the helpers over them
   forms.ts           # the questionnaire snapshot/answer types both apps share
   queries/clients.ts # typed intake/list/update helpers for the leads table
   queries/tasks.ts       # todos
@@ -60,27 +61,46 @@ The first migration creates the `biz` schema and its tables.
 Today: a single **`clients`** table. Every intake — a portfolio contact enquiry or a sellers-site
 referral — creates one client row (the form only sets the `source` and which intake fields are
 populated); there is no separate table per form. Each client then gets fleshed out as the
-relationship moves up the ladder (`status`: `new` → `talking` → `client`, or the terminal
-`lost` — three rungs and a drop-out; what each one *means* is
+relationship moves up the ladder (`status`: `lead` → `discussing` → `active` → `past`, or the
+terminal `not_won` — five rungs, two of which end it; what each one *means* is
 `_system/contracts/CLIENTS.md` in the `icm-board` repo), with contact details
 and owner notes. A client can also be linked to its
 Stripe customer via `stripe_customer_id` (unique) — set by the admin's billing flow, which owns the
 Stripe side; `setClientStripeCustomerId` persists the link.
 
-**Deal terms.** What a relationship is worth is `value_minor` (EUR cents) read through
-`billing_type` (`one_off` | `monthly`), plus four columns for the arrangements that aren't a
-plain invoice:
+**Deal terms are composable.** A deal is not a price with decorations — it is any combination
+of four independent **components**, and it counts as *set* the moment one of them exists. None
+is required, least of all a euro figure: an engagement paid in a stake or a cut of revenue is a
+whole deal with no money in it anywhere.
 
-| Column | What it holds |
-|---|---|
-| `deal_type` | `cash` (invoiced, the default) or `barter` — work traded for work, so `value_minor` is what the swap is *worth*, not money coming in. The admin totals it separately as *in kind*. |
-| `barter_terms` | Free text: what is actually being exchanged. |
-| `commission_bps` | The cut taken on the client's own revenue, collected through Stripe. Basis points — 850 = 8.5%. Null = not part of this deal. |
-| `equity_bps` | The ownership stake negotiated in their company, same units. |
-| `work_started_at` | When delivery actually began. Orthogonal to `status`: work often starts on a handshake, and a barter or equity-only deal has no first invoice in Stripe to mark the moment. Toggled by `setClientWorkStarted`. |
+| Component | Columns | What it holds |
+|---|---|---|
+| **cash** | `value_minor`, `billing_type` | EUR cents, read as the whole engagement (`one_off`) or as a figure charged every month (`monthly`) — which is what feeds the recurring-revenue total. |
+| **barter** | `deal_type = 'barter'`, `barter_terms` | Work traded for work. `value_minor` is then what the swap is *worth*, not money coming in, so the admin totals it separately as *in kind*. The terms are free text: what is actually being exchanged. Picking the swap is itself a component, valued or not. |
+| **equity** | `equity_bps` | The ownership stake negotiated in their company. Basis points — 850 = 8.5%. Null = not part of this deal. |
+| **commission** | `commission_bps` | The cut taken on the client's own revenue, collected through Stripe. Same units. |
+
+`deal_type` survives only as *how to read the € figure* — `cash` (the default) or in kind — which
+is why cash and barter are the two readings of one number and never both at once. `work_started_at`
+is not a component at all: it records when delivery actually began, orthogonal to `status` and to
+what was agreed, because work often starts on a handshake and an equity-only deal has no first
+invoice in Stripe to mark the moment. Toggled by `setClientWorkStarted`.
 
 Both percentage columns are clamped to 0…`MAX_BPS` (100%) inside `updateClient`, so the ceiling
 is an invariant of the table rather than a rule each form has to remember.
+
+**`deal.ts` is the one place that answers "what is this deal made of."** Every surface reads it
+rather than re-deriving an answer from `value_minor`:
+
+| Helper | Answers |
+|---|---|
+| `dealComponents(terms)` | The components this deal actually has, in the order they deserve to be read — the euro figure, then the stake, then the cut. |
+| `hasDeal(terms)` | Is there a deal at all? True as soon as any one component exists. |
+| `dealTermsOf(terms)` | The same components keyed by name (`.cash`, `.barter`, …), for a caller that wants one term rather than the list — what the admin's money totals are built from. |
+| `dealHeadline(terms)` | Which component gets to be the headline figure: cash when there is any, otherwise the strongest percentage, so an equity-only deal shows `12%` rather than nothing. |
+
+It takes a structural `DealTerms` (the deal columns and nothing else), so a `Client` row, a form's
+draft and a list row's projection can all be asked the same questions.
 
 **Customer questionnaires.** `form_links` is one row per questionnaire sent to one lead. The
 primary key doubles as the link token the customer opens (a v4 uuid — unguessable, so the form

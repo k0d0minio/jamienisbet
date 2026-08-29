@@ -15,6 +15,7 @@ import {
 import {
   clientStatusLabel,
   customerStatuses,
+  dealTermsOf,
   listClients,
   openStatuses,
   type Client,
@@ -30,11 +31,11 @@ import { LeadRow } from "@/components/lead-row"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
   daysWaiting,
+  dealFigure,
   isActiveClient,
   isOpenLead,
   isPastClient,
   isStale,
-  valueLabel,
   waitedLabel,
   whoLabel,
 } from "@/lib/leads"
@@ -98,21 +99,36 @@ function isFilterKey(value: string | undefined): value is FilterKey {
 // Barter is kept out of the first two on purpose. A swap can be worth real money
 // and still put nothing in the bank, so folding it into "in play" would quietly
 // overstate the pipeline; it gets its own "in kind" figure instead.
+//
+// These are cash-only, and stay that way now a deal can be made of components.
+// A stake and a cut are both real terms and neither is a euro: 12% of a company
+// is not €12,000 until someone buys it, and a commission is a share of revenue
+// that hasn't happened yet. Adding a guess for either would put a number in the
+// masthead that nothing could reconcile — so equity and commission are read on
+// the rows, where they say what they are, and never folded into a total.
 function totals(rows: Client[]) {
   let pipeline = 0
   let monthly = 0
   let inKind = 0
   for (const row of rows) {
-    if (row.valueMinor <= 0) continue
     const open = isOpenLead(row)
     const active = isActiveClient(row)
+    if (!open && !active) continue
 
-    if (row.dealType === "barter") {
-      if (open || active) inKind += row.valueMinor
-    } else if (row.billingType === "monthly") {
-      if (active) monthly += row.valueMinor
+    // Cash and barter are the two readings of one figure, so a row is only ever
+    // in one of these — the model decides which, not the column. Equity and
+    // commission come back on the same map and are deliberately ignored here.
+    const { cash, barter } = dealTermsOf(row)
+    if (barter) {
+      inKind += barter.valueMinor
+      continue
+    }
+    if (!cash) continue
+
+    if (cash.billingType === "monthly") {
+      if (active) monthly += cash.valueMinor
     } else if (open) {
-      pipeline += row.valueMinor
+      pipeline += cash.valueMinor
     }
   }
   return { pipeline, monthly, inKind }
@@ -246,7 +262,7 @@ export default async function LeadsPage({
               {visible.map((row, index) => {
                 const stale = isStale(row, now)
                 const past = isPastClient(row)
-                const value = valueLabel(row)
+                const figure = dealFigure(row)
                 const open = isOpenLead(row)
                 const who = whoLabel(row)
                 return (
@@ -297,15 +313,19 @@ export default async function LeadsPage({
                             </span>
                             {/* A figure, so it sets in mono — the brand's
                                 signature, on every tier. Muted with the name
-                                on a past client, whose retainer is over. */}
-                            {value ? (
+                                on a past client, whose retainer is over. Euros
+                                when the deal has any; otherwise the stake or
+                                the cut, which is the whole deal on a row that
+                                used to show nothing here. Nothing captions it,
+                                so it carries its own word. */}
+                            {figure ? (
                               <span
                                 className={cn(
                                   "shrink-0 font-mono text-app-subhead font-semibold tabular-nums",
                                   past ? "text-app-label-2" : "text-app-label"
                                 )}
                               >
-                                {value}
+                                {figure.standalone}
                               </span>
                             ) : null}
                           </span>
@@ -333,8 +353,13 @@ export default async function LeadsPage({
                           </span>
 
                           {/* Barter, commission, equity, started — only the
-                              rows that carry them grow a third line. */}
-                          <DealBadges client={row} className="mt-1" />
+                              rows that carry them grow a third line, and never
+                              the term the figure above already named. */}
+                          <DealBadges
+                            client={row}
+                            omit={figure?.kind}
+                            className="mt-1"
+                          />
                         </ViewTransitionLink>
 
                         {/* The width a pointer has, spent on the two things

@@ -110,21 +110,32 @@ relationship, and what was actually billed lives in Stripe.
 - **One codepath from phone to laptop.** The wide table is gone: the same inset grouped rows
   simply grow — more room, more of the record on the line — rather than a phone list being
   swapped for a desktop table at `md`.
-- **Value** — each lead carries what it is worth (`value_minor`) and whether that is a one-off
-  or charged **every month** (`billing_type`). The header adds them up: open one-offs as
-  *in play*, monthly customers as */ month*. Both are Jamie's own figures — Stripe stays the
-  authority on what was actually invoiced and paid.
+- **The headline figure** — what a lead is worth, in mono beside the name. A deal is
+  [composable](../../packages/services/README.md): cash, a swap,
+  equity and commission are independent components and any one of them is a deal, so the figure
+  is whichever one leads. Cash shows its euros (`€1,500`, or `€1,500/mo` when `billing_type` is
+  monthly); a deal with no cash in it shows its strongest percentage instead — **12% equity**,
+  **8.5% comm** — where a euro-shaped model used to leave the row blank. Which component gets
+  the slot is `dealHeadline` in the services layer, so the list row and the profile masthead
+  can't disagree about it.
 - **Deal terms, on the row** — not every engagement is euros invoiced monthly, and none of that
   is legible from a number in a Value column. So a **Deal** column (badges under the name on a
   phone) carries the four things that change how you treat a relationship:
   **Barter** (`deal_type = 'barter'` — services exchanged, not invoiced),
-  **_n_% comm** (`commission_bps` — the cut of the client's revenue taken through Stripe),
-  **_n_% equity** (`equity_bps` — the stake negotiated in their company), and
+  **_n_% equity** (`equity_bps` — the stake negotiated in their company),
+  **_n_% comm** (`commission_bps` — the cut of the client's revenue taken through Stripe), and
   **Started** (`work_started_at` — the work has begun). A plain cash deal that hasn't started
-  shows nothing, which is most rows most of the time.
-  Barter is deliberately kept **out of** *in play* and */ month* and given its own **in kind**
-  figure in the header: a swap can be worth real money and still put nothing in the bank, so
-  folding it in would quietly overstate the pipeline.
+  shows nothing, which is most rows most of the time. Whatever the headline figure has already
+  said is left out of the badges rather than stacked beside it — an equity-only deal reads
+  "12% equity" once. Barter is the exception and always keeps its badge: it *qualifies* the
+  euros next to it rather than repeating them.
+- **The header totals stay cash-only.** Open one-off cash as *in play*, active monthly clients
+  as */ month*, and barter on its own **in kind** figure — a swap can be worth real money and
+  still put nothing in the bank, so folding it in would quietly overstate the pipeline. Equity
+  and commission never fold into a euro total at all: 12% of a company is not €12,000 until
+  someone buys it, and a commission is a share of revenue that hasn't happened yet. They are
+  read on the rows, where they say what they are. All of it is Jamie's own figures — Stripe
+  stays the authority on what was actually invoiced and paid.
 - **Add lead / add customer** — leads mostly arrive by word of mouth, so adding someone by hand
   is a first-class button, not an afterthought: a floating button in the thumb zone above the tab
   bar on a phone (opening the form as a bottom sheet), an ordinary button beside the heading on
@@ -149,8 +160,9 @@ ordered by what you actually do on a phone: reach them (call / email / mark touc
 started**, as a rail of real buttons), move their status, then read the record. The record is
 **facts, not form fields**: a **Contact** card whose rows are the actions themselves (tap the
 email row and the mail app opens, tap phone to dial, copy beside each), a **Deal** card showing
-only the terms actually set (value, billed, paid in, commission %, equity %, what's being
-exchanged), and a **Notes** card. Each edits in its own bottom sheet
+only the components actually agreed (value, billed, paid in, equity %, commission %, what's
+being exchanged) and saying so plainly when none is — nothing there waits on a euro figure —
+and a **Notes** card. Each edits in its own bottom sheet
 ([`Sheet` in `@jamie-nisbet/ui`](../../packages/ui/src/components/ui/sheet.tsx)) posting a
 server action scoped to exactly its own fields (`saveClientContact` / `saveDealTerms` /
 `saveClientNotes`), so no sheet can blank a field it never showed. **Work started** is a one-tap
@@ -440,7 +452,7 @@ components/             # login form, nav, service-worker register, lead + money
                         #                — the Tickets board, batch-first
                         #   pull-to-refresh.tsx — pull down from the top to re-read everything
                         #   client-create-form.tsx — add a lead or a customer by hand
-                        #   deal-badges.tsx — barter / commission / equity / started, on the row
+                        #   deal-badges.tsx — barter / equity / commission / started, on the row
                         #   work-started-button.tsx — one-tap "the work has begun"
 lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets, app-icon
                         #   leads.ts — the staleness threshold and the row labels the feed and

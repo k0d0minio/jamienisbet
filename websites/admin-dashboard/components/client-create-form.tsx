@@ -270,14 +270,17 @@ export function ClientCreateForm() {
           {/* What they're worth, asked for only when adding a client. A lead's
               figure is usually a guess at this point and belongs on the profile
               once it firms up; a client's is known now, and leaving it out
-              would understate the monthly total the moment they're added.
+              would understate the monthly total the moment they're added — but
+              only if there is one. A client paid in a stake or a cut has no fee
+              to type, so the field stays optional and the profile takes the
+              percentages.
               "Paid in" is here for the same reason and no more: a swap filed as
               cash overstates the pipeline from the moment it's typed. The rest
               of the deal — commission, equity, what's being exchanged — skews no
               total by waiting, so it belongs on the profile. */}
           {isClient ? (
             <div className="grid gap-3 sm:grid-cols-3">
-              <AppField label="Value (€)">
+              <AppField label="Value (€)" hint="Empty if there's no fee.">
                 <AppInput
                   name="value"
                   inputMode="decimal"

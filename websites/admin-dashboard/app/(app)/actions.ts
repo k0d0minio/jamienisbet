@@ -131,9 +131,14 @@ export async function saveClientNotes(id: string, formData: FormData) {
  * The deal-terms slice of the profile on its own — what the Convert flow's
  * third step and the deal edit sheet save. Touches only the deal, so it can
  * never blank a contact field the way posting a partial profile form through
- * `saveClientProfile` would. Commission and equity are read only when the form
- * posted them — the Convert flow's shorter form doesn't carry those fields and
- * must not null them out.
+ * `saveClientProfile` would.
+ *
+ * Every component is read only when the form actually posted it, so any subset
+ * saves: a form carrying nothing but a percentage sets that percentage and
+ * leaves the euros alone, and a form that posts an empty value field clears the
+ * cash from a deal that still has its equity. Nothing here gates anything else
+ * — a deal is whatever components it ends up with, and none of them is
+ * required (see `dealComponents` in the services layer).
  */
 export async function saveDealTerms(id: string, formData: FormData) {
   const value = (name: string): string | null => {
@@ -145,15 +150,27 @@ export async function saveDealTerms(id: string, formData: FormData) {
 
   const patch: ClientProfilePatch = {}
 
-  const rawValue = value("value")
-  patch.valueMinor = rawValue === null ? 0 : (parseAmountToMinor(rawValue) ?? 0)
+  // A cleared value field means "no cash in this deal" — which is a whole,
+  // valid deal when there is equity, a commission or a swap alongside it.
+  if (formData.has("value")) {
+    const raw = value("value")
+    patch.valueMinor = raw === null ? 0 : (parseAmountToMinor(raw) ?? 0)
+  }
 
-  const rawBilling = String(formData.get("billingType") ?? "one_off")
-  patch.billingType = isBillingType(rawBilling) ? rawBilling : "one_off"
+  if (formData.has("billingType")) {
+    const raw = String(formData.get("billingType"))
+    patch.billingType = isBillingType(raw) ? raw : "one_off"
+  }
 
-  const rawDealType = String(formData.get("dealType") ?? "cash")
-  patch.dealType = isDealType(rawDealType) ? rawDealType : "cash"
-  patch.barterTerms = patch.dealType === "barter" ? value("barterTerms") : null
+  // How to read the € figure. Cash is the ordinary case, so an unrecognised
+  // value falls back to it — and picking cash is what retires a swap's terms.
+  if (formData.has("dealType")) {
+    const raw = String(formData.get("dealType"))
+    patch.dealType = isDealType(raw) ? raw : "cash"
+    patch.barterTerms = patch.dealType === "barter" ? value("barterTerms") : null
+  } else if (formData.has("barterTerms")) {
+    patch.barterTerms = value("barterTerms")
+  }
 
   // A cleared percentage means "not part of this deal" (null, not zero — zero
   // would read as a nil cut deliberately agreed).

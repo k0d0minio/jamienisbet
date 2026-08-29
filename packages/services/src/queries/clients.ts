@@ -1,6 +1,7 @@
 import { asc, desc, eq, isNotNull, isNull, sql } from "drizzle-orm"
 
 import { getDb } from "../client"
+import { normalizeBps, type BillingType, type DealType } from "../deal"
 import { clients } from "../schema"
 
 // Lists default to active (non-archived) rows; pass { archived: true } to view
@@ -83,37 +84,12 @@ export function isClientStatus(value: string): value is ClientStatus {
 export const clientSources = ["portfolio", "referral", "manual"] as const
 export type ClientSource = (typeof clientSources)[number]
 
-// How a lead's `valueMinor` should be read: the whole engagement, or a figure
-// charged every month (which is what feeds the recurring-revenue total).
-export const billingTypes = ["one_off", "monthly"] as const
-export type BillingType = (typeof billingTypes)[number]
-
-export function isBillingType(value: string): value is BillingType {
-  return (billingTypes as readonly string[]).includes(value)
-}
-
-// How the engagement is settled. `cash` is invoiced in euros and is what the
-// leads list totals as pipeline and recurring revenue; `barter` is an exchange
-// of services, where `valueMinor` is what the swap is worth rather than money
-// expected in — so it is totalled separately, never as income.
-export const dealTypes = ["cash", "barter"] as const
-export type DealType = (typeof dealTypes)[number]
-
-export function isDealType(value: string): value is DealType {
-  return (dealTypes as readonly string[]).includes(value)
-}
-
-// Percentages — a commission cut or an ownership stake — are stored in basis
-// points, so 8.5% survives the round trip that 8.5 as an integer percent would
-// lose. 100% is the ceiling for both: you cannot take more of a company than
-// there is, and a commission above the whole revenue is a typo.
-export const MAX_BPS = 10_000
-
-/** Clamp a basis-point figure into 0…100%, or null for "not part of this deal". */
-export function normalizeBps(value: number | null | undefined): number | null {
-  if (value === null || value === undefined || !Number.isFinite(value)) return null
-  return Math.min(MAX_BPS, Math.max(0, Math.round(value)))
-}
+// The deal vocabulary — what a deal is made of, how to read its € figure, and
+// the basis-point ceiling — lives in ../deal, which is also where the component
+// helpers (`dealComponents`, `hasDeal`, `dealHeadline`) that every surface
+// reads sit. This file stays about the table: its reads and its writes. Both
+// are re-exported side by side from the package barrel, so consumers see one
+// import surface either way.
 
 // ---- Intake (called by the site forms) -------------------------------------
 // Both public forms funnel into the same clients table. The mapping from each
