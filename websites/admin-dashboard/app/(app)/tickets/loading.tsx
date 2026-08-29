@@ -1,6 +1,7 @@
 import { GlanceFigure, GlanceRow, GroupedSection, Skeleton, cn } from "@jamie-nisbet/ui"
 
 import { AppScreen } from "@/components/app-screen"
+import { BoardRefresh } from "@/components/board-refresh"
 
 // Tickets is a fan-out of GitHub reads — every connected repo's `.icm/intake/`
 // folder, fetched on every visit (`dynamic = "force-dynamic"`). On a phone on
@@ -108,6 +109,10 @@ export default function TicketsLoading() {
     // than as broken.
     <AppScreen
       title="Tickets"
+      // The bar button renders for real, like the title: it busts the cache
+      // this read is already missing, and a grey square where an icon is about
+      // to be would move the bar's contents the moment the board lands.
+      actions={<BoardRefresh />}
       masthead={
         <GlanceRow>
           {/* Two, not three: a board with nothing blocked shows two figures,
@@ -143,6 +148,15 @@ export default function TicketsLoading() {
         <div className="flex flex-col gap-app-section">
           <GroupedSection
             header={<Skeleton className="h-3 w-8 bg-app-press" />}
+            // The now group carries a two-line footer on the real board, and
+            // leaving it out here is two lines the repo groups below would
+            // jump by.
+            footer={
+              <span className="flex flex-col gap-1">
+                <Skeleton className="h-2.5 w-full max-w-xs bg-app-press" />
+                <Skeleton className="h-2.5 w-32 bg-app-press" />
+              </span>
+            }
           >
             {[0, 1, 2].map((i) => (
               <NowRowSkeleton key={i} first={i === 0} />

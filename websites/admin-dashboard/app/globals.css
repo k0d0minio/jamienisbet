@@ -96,14 +96,16 @@
 /* ------------------------------------------------------------------
    Branded markdown — ticket bodies rendered by react-markdown.
 
-   Retuned to the app tier's native scale: a ticket is read inside a
-   sheet or an expanded row, surrounded by 17px rows and 13px
-   footnotes, and it used to set on the marketing tier's 14px steps —
-   so a heading in a ticket came out smaller than the row that opened
-   it. The body now sets at the tier's callout step with a relaxed
-   leading (a ticket is read, not scanned), and the headings step up
-   through title-3 / headline / callout so the hierarchy inside a
-   ticket is legible without competing with the sheet's own title.
+   Retuned to the app tier's native scale. It used to set on the
+   marketing tier's 14px steps, so a heading inside a ticket came out
+   smaller than the row that opened it.
+
+   The whole ladder sits one step below its container: a sheet's title
+   is 18/600, so a ticket's own h1 tops out at the tier's headline
+   (17), h2 at callout (16), h3 at subhead (15) — and the body reads at
+   subhead with a relaxed leading, since a ticket is read rather than
+   scanned. Set any higher and a `# Heading` in a ticket out-shouts the
+   sheet it was opened from.
 
    Figures and code stay mono, as they do on every tier. No tokens are
    defined here, only applied.
@@ -111,7 +113,7 @@
 
 .prose {
   color: var(--app-label-2);
-  font-size: var(--app-text-callout);
+  font-size: var(--app-text-subhead);
   line-height: var(--leading-relaxed);
 }
 .prose > * + * {
@@ -127,15 +129,15 @@
   letter-spacing: var(--app-tracking-headline);
 }
 .prose h1 {
-  font-size: var(--app-text-title-3);
+  font-size: var(--app-text-headline);
 }
 .prose h2 {
-  font-size: var(--app-text-headline);
+  font-size: var(--app-text-callout);
   margin-top: var(--space-5);
 }
 .prose h3,
 .prose h4 {
-  font-size: var(--app-text-callout);
+  font-size: var(--app-text-subhead);
   margin-top: var(--space-4);
 }
 .prose strong {
@@ -184,7 +186,7 @@
 }
 .prose pre {
   font-family: var(--font-mono);
-  font-size: var(--app-text-footnote);
+  font-size: var(--app-text-caption);
   background: var(--surface-sunken);
   border: 1px solid var(--app-separator);
   border-radius: var(--app-radius-control);
@@ -213,7 +215,7 @@
   width: max-content;
   max-width: 100%;
   border-collapse: collapse;
-  font-size: var(--app-text-footnote);
+  font-size: var(--app-text-caption);
 }
 .prose th,
 .prose td {

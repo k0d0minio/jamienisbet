@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Fragment } from "react"
 import Link from "next/link"
 import { Activity, GitBranch, TriangleAlert } from "lucide-react"
 
@@ -148,7 +149,7 @@ function BoardGroup() {
       <GroupedRow
         icon={<Activity />}
         label="Estate check"
-        description="A consistency pass across every repo, as a session you send"
+        description="A consistency pass across every repo"
         href={estateCheckSessionUrl()}
         target="_blank"
         rel="noreferrer"
@@ -200,8 +201,8 @@ export default async function TicketsPage({
               chevron={false}
             />
             <GroupedBlock>
-              Set <span className="font-mono">GITHUB_TOKEN</span> in this
-              environment to read each repo&rsquo;s{" "}
+              Set <span className="font-mono">GITHUB_TOKEN</span>{" "}
+              in this environment to read each repo&rsquo;s{" "}
               <span className="font-mono">.icm/intake/</span>. The variable is
               listed in <span className="font-mono">.env.example</span>.
             </GroupedBlock>
@@ -284,22 +285,26 @@ export default async function TicketsPage({
           <>
             {/* The repo filter rail. An open-ended set that grows with the
                 estate, so it stays a rail rather than becoming a segmented
-                control — one that scrolls has stopped being one. */}
-            <div className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0">
-              <Chip href="/tickets" active={!repoSlug} count={countFor()}>
-                All
-              </Chip>
-              {chipRepos.map((repo) => (
-                <Chip
-                  key={repo.slug}
-                  href={`/tickets?repo=${repo.slug}`}
-                  active={repoSlug === repo.slug}
-                  count={countFor(repo.slug)}
-                >
-                  {repo.slug}
+                control — one that scrolls has stopped being one. With nothing
+                on the board there is nothing to filter, and a lone "All 0"
+                chip is a control that does nothing. */}
+            {chipRepos.length > 0 ? (
+              <div className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0">
+                <Chip href="/tickets" active={!repoSlug} count={countFor()}>
+                  All
                 </Chip>
-              ))}
-            </div>
+                {chipRepos.map((repo) => (
+                  <Chip
+                    key={repo.slug}
+                    href={`/tickets?repo=${repo.slug}`}
+                    active={repoSlug === repo.slug}
+                    count={countFor(repo.slug)}
+                  >
+                    {repo.slug}
+                  </Chip>
+                ))}
+              </div>
+            ) : null}
 
             <div className="flex flex-col gap-app-section">
               {/* A repo the reads couldn't reach is named, with what GitHub
@@ -307,16 +312,20 @@ export default async function TicketsPage({
               {errors.length > 0 ? (
                 <GroupedSection header="Couldn't be read">
                   {errors.map((error) => (
-                    <GroupedRow
-                      key={error.repo.fullName}
-                      icon={<TriangleAlert />}
-                      variant="destructive"
-                      label={
-                        <span className="font-mono">{error.repo.slug}</span>
-                      }
-                      description={error.message}
-                      chevron={false}
-                    />
+                    <Fragment key={error.repo.fullName}>
+                      <GroupedRow
+                        icon={<TriangleAlert />}
+                        variant="destructive"
+                        label={
+                          <span className="font-mono">{error.repo.slug}</span>
+                        }
+                        chevron={false}
+                      />
+                      {/* What GitHub said, in full. As a row's description it
+                          truncated on a phone, and half an error message is
+                          worse than none. */}
+                      <GroupedBlock>{error.message}</GroupedBlock>
+                    </Fragment>
                   ))}
                 </GroupedSection>
               ) : null}

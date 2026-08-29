@@ -50,7 +50,12 @@ export function TicketDetail({
                 </a>
               </Button>
             ) : null}
-            <CopyButton value={ticket.prompt} label="Copy prompt" what="Prompt" />
+            <CopyButton
+              value={ticket.prompt}
+              label="Copy prompt"
+              what="Prompt"
+              className="text-app-footnote"
+            />
             {/* The desk-bound twin of the same tap: a local terminal session
                 in whichever clone this machine last ran `claude` in. Quiet,
                 and last — on a phone (the primary surface here) there is no
