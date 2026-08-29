@@ -11,7 +11,8 @@ import { AppMenu } from "@/components/app-menu"
 // screen declares its name, it sets large in the content the way a native app
 // sets it, and it hands off to a compact material bar when you scroll past it.
 // The only thing the bar carries besides the name is the monogram (phones —
-// the sidebar has it from `md` up) and, on a detail view, the way back.
+// the sidebar has it from `md` up), a screen's own bar buttons, and, on a
+// detail view, the way back.
 //
 // The gutter lives here rather than on <main>, so the bar and the sheet of
 // content it floats over can run edge to edge of the column while everything
@@ -21,7 +22,9 @@ export function AppScreen({
   title,
   compactTitle,
   subtitle,
+  masthead,
   back,
+  actions,
   children,
 }: {
   /** The screen's name, sentence case. Becomes the page's real <h1>. */
@@ -30,8 +33,14 @@ export function AppScreen({
   compactTitle?: React.ReactNode
   /** One quiet line under the title — a count, a total, a state. */
   subtitle?: React.ReactNode
+  /** What sits under the title and scrolls away with it — a `GlanceRow` of
+   *  what the screen adds up to. Already inside the page gutter. */
+  masthead?: React.ReactNode
   /** A detail view's way back, on the bar's leading edge. */
   back?: React.ReactNode
+  /** The screen's own bar buttons, on the trailing edge before the app menu:
+   *  a view switch, an add. Icon-only and 44px, the way a bar button is. */
+  actions?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
@@ -45,8 +54,15 @@ export function AppScreen({
         compactTitle={compactTitle}
         subtitle={subtitle}
         leading={back}
-        trailing={<AppMenu />}
-      />
+        trailing={
+          <>
+            {actions}
+            <AppMenu />
+          </>
+        }
+      >
+        {masthead}
+      </LargeTitleHeader>
       <div className="px-app-gutter">{children}</div>
     </>
   )
