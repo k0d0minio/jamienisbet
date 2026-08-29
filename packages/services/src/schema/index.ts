@@ -40,10 +40,11 @@ export const clients = biz.table("clients", {
   // ---- Provenance & pipeline -----------------------------------------------
   // Which form/route created the lead: 'portfolio' | 'referral' | 'manual'.
   source: varchar("source", { length: 30 }).notNull().default("portfolio"),
-  // Which rung of the ladder they are on: 'new' | 'talking' | 'client', or the
-  // terminal 'lost'. See clientStatuses in queries/clients.ts for the ordered
-  // set, and _system/contracts/CLIENTS.md (icm-board repo) for what each rung means.
-  status: varchar("status", { length: 20 }).notNull().default("new"),
+  // Which rung of the ladder they are on: 'lead' | 'discussing' | 'active' |
+  // 'past', or the terminal 'not_won'. See clientStatuses in
+  // queries/clients.ts for the ordered set, and _system/contracts/CLIENTS.md
+  // (icm-board repo) for what each rung means.
+  status: varchar("status", { length: 20 }).notNull().default("lead"),
 
   // ---- Intake payload ------------------------------------------------------
   // The free-text they sent (a contact message or a referral's described need).
@@ -93,7 +94,7 @@ export const clients = biz.table("clients", {
   equityBps: integer("equity_bps"),
 
   // ---- Delivery --------------------------------------------------------------
-  // When work actually started. Deliberately orthogonal to `status`: 'client'
+  // When work actually started. Deliberately orthogonal to `status`: 'active'
   // says the deal is agreed, this says the doing has begun — which matters most
   // on a barter or equity-only deal, where there is no invoice in Stripe to
   // signal it. Null = not started.

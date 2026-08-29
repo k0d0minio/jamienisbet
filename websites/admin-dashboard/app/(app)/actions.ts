@@ -172,7 +172,7 @@ export async function saveDealTerms(id: string, formData: FormData) {
   revalidateLead(id)
 }
 
-/** Add a lead or a customer by hand — the meetup contact, the word-of-mouth
+/** Add a lead or a client by hand — the meetup contact, the word-of-mouth
  * introduction, the client who was already paying before this dashboard
  * existed. One row per person either way; `status` is the only thing that says
  * which of the two you just typed in. Everything except the name is optional
@@ -188,11 +188,11 @@ export async function addClient(formData: FormData) {
   const name = value("name")
   if (!name) throw new Error("A lead needs a name.")
 
-  // The form offers "Lead" and "Customer", which post "new" and "client" — but
-  // the action is the authority, so anything unrecognised falls back to a new
-  // lead rather than reaching the insert.
-  const rawStatus = value("status") ?? "new"
-  const status = isClientStatus(rawStatus) ? rawStatus : "new"
+  // The form offers "Lead" and "Active client", which post "lead" and "active"
+  // — but the action is the authority, so anything unrecognised falls back to a
+  // new lead rather than reaching the insert.
+  const rawStatus = value("status") ?? "lead"
+  const status = isClientStatus(rawStatus) ? rawStatus : "lead"
 
   const rawBilling = value("billingType") ?? "one_off"
   const billingType = isBillingType(rawBilling) ? rawBilling : "one_off"

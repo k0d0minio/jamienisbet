@@ -29,10 +29,20 @@ import { hapticTick } from "@/lib/haptics"
 // skipped explicitly. Skipping is honest — the profile's gap badges will keep
 // saying what's missing.
 //
-// Step one is the ladder's top rung: `client` (see _system/contracts/CLIENTS.md,
-// in the icm-board repo).
+// Step one is the ladder's active rung (see _system/contracts/CLIENTS.md, in
+// the icm-board repo).
 // The three steps after it are the plumbing that rung implies, which is why they
 // are walked here rather than left to be remembered.
+
+// The statuses read through the same labels everything else uses — the stored
+// strings ("discussing", "not_won") are never shown raw.
+const STATUS_LABELS: Record<string, string> = {
+  lead: "Lead",
+  discussing: "In discussion",
+  active: "Active client",
+  past: "Past client",
+  not_won: "Not won",
+}
 
 const STEPS = ["Status", "Delivery repo", "Deal terms", "Stripe"] as const
 
@@ -86,11 +96,11 @@ function StatusStep({
   onNext: () => void
 }) {
   const [pending, startTransition] = useTransition()
-  if (client.status === "client") {
+  if (client.status === "active") {
     return (
       <div className="grid gap-2">
         <p className="text-app-footnote text-app-label-3">
-          Already a client — nothing to change here.
+          Already an active client — nothing to change here.
         </p>
         <Button type="button" size="sm" className="w-fit" onClick={onNext}>
           Continue
@@ -101,7 +111,8 @@ function StatusStep({
   return (
     <div className="grid gap-2">
       <p className="text-app-footnote text-app-label-3">
-        Move them from {client.status} to client.
+        Move them from{" "}
+        {STATUS_LABELS[client.status] ?? client.status} to active client.
       </p>
       <div className="flex items-center gap-1">
         <Button
@@ -111,12 +122,12 @@ function StatusStep({
           onClick={() =>
             startTransition(async () => {
               hapticTick()
-              await updateClientStatus(client.id, "client")
+              await updateClientStatus(client.id, "active")
               onNext()
             })
           }
         >
-          {pending ? "Saving…" : "Mark as client"}
+          {pending ? "Saving…" : "Mark as active client"}
         </Button>
         <Button type="button" size="sm" variant="ghost" onClick={onNext}>
           Skip
@@ -221,7 +232,7 @@ export function ConvertFlow({
   const [finished, setFinished] = useState(false)
 
   const stepDone = [
-    client.status === "client",
+    client.status === "active",
     client.githubRepo !== null,
     client.valueMinor > 0,
     client.stripeCustomerId !== null,

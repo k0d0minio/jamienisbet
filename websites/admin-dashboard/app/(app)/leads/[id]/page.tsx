@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react"
 
 import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
 import {
+  clientStatusLabel,
   getClient,
   listFormLinksForClient,
   listOpenTasksForClient,
@@ -47,7 +48,7 @@ export const dynamic = "force-dynamic"
 // What a converted lead is still missing. Each gap is a downstream breakage —
 // no repo means invisible on the tickets board, no value means the header money
 // numbers lie, no Stripe means the first invoice stalls on plumbing — so anyone
-// on the `client` rung wears these until the pieces exist. Nothing here is a
+// on the `active` rung wears these until the pieces exist. Nothing here is a
 // status: the ladder says the deal is agreed, these say the plumbing is done.
 function conversionGaps(client: Client): string[] {
   const gaps: string[] = []
@@ -107,13 +108,15 @@ export default async function LeadDetailPage({
   const { client, tasks, formLinks, formLibrary, lastWorked } = loaded
   const archived = client.archivedAt !== null
 
-  const isCustomer = client.status === "client"
-  const gaps = isCustomer ? conversionGaps(client) : []
-  // The Convert row walks the four pieces; it stays up for a customer with
+  const isActiveClient = client.status === "active"
+  const gaps = isActiveClient ? conversionGaps(client) : []
+  // The Convert row walks the four pieces; it stays up for a client with
   // gaps (to finish the job) and disappears once conversion is whole.
-  const showConvert = !archived && (!isCustomer || gaps.length > 0)
+  const showConvert = !archived && (!isActiveClient || gaps.length > 0)
 
-  const statusLabel = client.status.charAt(0).toUpperCase() + client.status.slice(1)
+  // The masthead reads the status through the one label lookup — the stored
+  // strings ("not_won", "discussing") are never capitalised into the UI.
+  const statusLabel = clientStatusLabel(client.status)
   const money = client.valueMinor > 0 ? formatMoney(client.valueMinor, "eur") : null
 
   return (

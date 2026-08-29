@@ -34,9 +34,9 @@ import { hapticTick } from "@/lib/haptics"
 // forms cover everything that arrives on its own; this is for the rest, which is
 // most of them while lead-gen is networking.
 //
-// One row per person, so a lead and a customer are the same record and only
+// One row per person, so a lead and a client are the same record and only
 // `status` tells them apart. That is the one choice this form asks for up front:
-// entering an existing customer as a lead and then advancing them is two extra
+// entering an existing client as a lead and then advancing them is two extra
 // steps for a fact you already knew when you started typing.
 //
 // Adding someone is the one thing you do on this screen that isn't reading, so on
@@ -53,13 +53,13 @@ import { hapticTick } from "@/lib/haptics"
 // makes no difference to where it lands.
 
 // The two ways in. `status` is what actually gets stored — these are the two
-// ends of the ladder, and the rungs between them (`talking`, or out to `lost`)
-// are a dropdown away on the row itself.
+// ends of the ladder, and the rest of it (in discussion, past, not won) is a
+// dropdown away on the row itself.
 const KINDS = [
   {
     key: "lead",
     label: "Lead",
-    status: "new",
+    status: "lead",
     title: "Add lead",
     description:
       "Name is all that's needed — the rest can be filled in on their profile.",
@@ -74,16 +74,16 @@ const KINDS = [
     field: "intakeMessage",
   },
   {
-    key: "customer",
-    label: "Customer",
-    status: "client",
-    title: "Add customer",
+    key: "client",
+    label: "Active client",
+    status: "active",
+    title: "Add client",
     description:
       "Someone already paying. Their value keeps the totals on this page honest from the start.",
-    submit: "Add customer",
+    submit: "Add client",
     note: "Working notes (optional)",
     placeholder: "What you're doing for them, where things stand…",
-    // Nothing was "taken in" from a customer you're already working with, so the
+    // Nothing was "taken in" from a client you're already working with, so the
     // same box writes to working notes instead of the intake column.
     field: "notes",
   },
@@ -98,9 +98,9 @@ export function ClientCreateForm() {
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
-  const isCustomer = kind.key === "customer"
+  const isClient = kind.key === "client"
 
-  // Both triggers say "lead": that's what you're adding nine times out of ten,
+  // Both triggers say "Add lead or client": it's a lead nine times out of ten,
   // and the choice is the first thing inside the sheet anyway.
   return (
     <Sheet
@@ -111,7 +111,7 @@ export function ClientCreateForm() {
         // add — and the Cancel button — set `open` directly, and Radix only
         // calls onOpenChange for closes it initiates itself, so a reset here
         // guarded on `!next` would be skipped on exactly those paths: add a
-        // customer, and the next person you typed in would silently be filed as
+        // client, and the next person you typed in would silently be filed as
         // one too. The fields look after themselves (Radix unmounts the content
         // when it closes); this is for the state living out here.
         if (next) {
@@ -128,8 +128,8 @@ export function ClientCreateForm() {
       <SheetTrigger asChild>
         <button
           type="button"
-          aria-label="Add lead or customer"
-          title="Add lead or customer"
+          aria-label="Add lead or client"
+          title="Add lead or client"
           className={cn(
             "hidden size-app-touch shrink-0 items-center justify-center rounded-app-control md:flex",
             "text-app-tint transition-colors spring-press active:bg-app-press"
@@ -149,7 +149,7 @@ export function ClientCreateForm() {
       <SheetTrigger asChild>
         <button
           type="button"
-          aria-label="Add lead or customer"
+          aria-label="Add lead or client"
           className={cn(
             "fixed right-(--app-gutter) bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
             "rounded-full bg-app-tint text-primary-foreground shadow-app-chrome",
@@ -163,7 +163,7 @@ export function ClientCreateForm() {
 
       {/* A bottom sheet on a phone, a centred dialog from `sm` up — the Sheet
           primitive's whole job. One `large` detent rather than two: this is the
-          tallest form in the app (a customer grows a value, a billing and a
+          tallest form in the app (a client grows a value, a billing and a
           paid-in field), so resting it at half height would open it already
           scrolling. The handle still drags it off the bottom to dismiss. */}
       <SheetContent detents={["large"]}>
@@ -172,7 +172,7 @@ export function ClientCreateForm() {
           <SheetDescription>{kind.description}</SheetDescription>
         </SheetHeader>
 
-        {/* Lead or customer, above the fields — the first decision, and the one
+        {/* Lead or client, above the fields — the first decision, and the one
             that changes what the rest of the form asks for. The app tier's
             segmented control, the same one the leads list filters with, so a
             closed choice looks the same wherever it is made. Radio semantics
@@ -267,15 +267,15 @@ export function ClientCreateForm() {
             </AppField>
           </div>
 
-          {/* What they're worth, asked for only when adding a customer. A lead's
+          {/* What they're worth, asked for only when adding a client. A lead's
               figure is usually a guess at this point and belongs on the profile
-              once it firms up; a customer's is known now, and leaving it out
+              once it firms up; a client's is known now, and leaving it out
               would understate the monthly total the moment they're added.
               "Paid in" is here for the same reason and no more: a swap filed as
               cash overstates the pipeline from the moment it's typed. The rest
               of the deal — commission, equity, what's being exchanged — skews no
               total by waiting, so it belongs on the profile. */}
-          {isCustomer ? (
+          {isClient ? (
             <div className="grid gap-3 sm:grid-cols-3">
               <AppField label="Value (€)">
                 <AppInput
