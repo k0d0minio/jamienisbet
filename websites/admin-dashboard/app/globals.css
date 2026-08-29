@@ -83,6 +83,22 @@
   }
 }
 
+/* ------------------------------------------------------------------
+   Screens outside the shell — login, and "not here". They have no tab bar
+   to clear, but `viewport-fit=cover` still runs the window under the notch
+   and the home indicator, and neither of those is somewhere a sign-in button
+   can sit. The bar-clearing utilities above are for the authenticated area;
+   these two are for the pages that never see it.
+   ------------------------------------------------------------------ */
+
+@utility pt-screen-safe {
+  padding-top: calc(var(--space-6) + env(safe-area-inset-top, 0px));
+}
+
+@utility pb-screen-safe {
+  padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+}
+
 /* Horizontal rails (filter chips, quick actions) scroll by finger, not by
    scrollbar — hide the bar without losing the overflow. */
 @utility no-scrollbar {
@@ -148,6 +164,14 @@
   color: var(--app-tint);
   text-underline-offset: 3px;
   text-decoration: underline;
+}
+/* The tier draws focus *inside* a control, because the grouped list and the
+   tab pill clip anything outside one (packages/ui/app.css § app-tier). An
+   inline link is the one shape that breaks under: its box is a single line of
+   text, so an inset outline is drawn through the words. Put it back outside —
+   nothing clips a link in a ticket body. */
+.prose a:focus-visible {
+  outline-offset: 2px;
 }
 .prose ul,
 .prose ol {
@@ -245,10 +269,17 @@
 
   /* ----------------------------------------------------------------
      Touch targets. The design system is sized for a mouse (h-8 / h-9
-     controls, a 16px checkbox); on a finger those are all under the
-     ~44px anyone can hit reliably. Rather than annotate every call
-     site, lift the floor once for coarse pointers — visual size is
-     unchanged on desktop, and nothing here alters layout on a mouse.
+     controls); on a finger those are all under the ~44px anyone can
+     hit reliably. Rather than annotate every call site, lift the
+     floor once for coarse pointers — visual size is unchanged on
+     desktop, and nothing here alters layout on a mouse.
+
+     The app tier's own controls set their own floor (`min-h-app-touch`
+     on a grouped row, a 3.5rem tab), so this covers what the design
+     system still ships for both tiers: buttons, inputs, selects. The
+     checkbox rule that used to live here went with the todo checkbox
+     the redesign replaced — a grouped row with role="checkbox" is
+     44px on its own.
      ---------------------------------------------------------------- */
   @media (pointer: coarse) {
     [data-slot="button"]:not([data-size="xs"]):not([data-size="icon-xs"]),
@@ -261,17 +292,6 @@
     [data-slot="button"][data-size="icon-sm"],
     [data-slot="button"][data-size="icon-lg"] {
       min-width: 2.75rem;
-    }
-
-    /* The checkbox stays 16px — it grows a transparent hit area instead, so
-       ticking a todo doesn't need aim. */
-    [data-slot="checkbox"] {
-      position: relative;
-    }
-    [data-slot="checkbox"]::after {
-      content: "";
-      position: absolute;
-      inset: -0.75rem;
     }
   }
 }

@@ -23,6 +23,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { sendFormToClient } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 export type FormChoiceView = {
   /** What gets sent back: a house slug, or `<repo-name>/<slug>`. */
@@ -62,6 +63,7 @@ export function SendFormControl({
   function onSend() {
     if (!formId) return
     setError(null)
+    hapticTick()
     startTransition(async () => {
       const result = await sendFormToClient(clientId, formId)
       if (result.ok) onSent?.()

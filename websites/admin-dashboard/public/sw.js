@@ -8,7 +8,7 @@
 
 // Bumped when offline.html changes: the byte difference is what makes an
 // installed worker update, reinstall, and re-fetch the page it caches.
-const CACHE = "cjn-shell-v2"
+const CACHE = "cjn-shell-v3"
 const OFFLINE_URL = "/offline.html"
 
 self.addEventListener("install", (event) => {

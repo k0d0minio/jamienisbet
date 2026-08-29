@@ -19,6 +19,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { saveClientNotes } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // Working notes, read on the page and written in a sheet — on a phone a live
 // five-row textarea is a scroll trap (the page scroll and the box's own scroll
@@ -57,6 +58,7 @@ export function LeadNotesCard({ id, notes }: { id: string; notes: string | null 
           <form
             action={(formData) =>
               startTransition(async () => {
+                hapticTick()
                 try {
                   await saveClientNotes(id, formData)
                   setOpen(false)

@@ -97,14 +97,19 @@ relationship, and what was actually billed lives in Stripe.
 - **Filters** — All / Open / Customers / Lost, each with a count, in a rail that scrolls
   sideways on a phone rather than wrapping onto a second line. The **Archived** view is a switch
   beside the page title, not another chip — it changes what you are looking at rather than
-  filtering it. On desktop, status is a dropdown on every table row, changed in place.
-- **On a phone, a row is two lines and its actions are gestures.** The whole card opens the
-  lead; **swipe left** reveals call / email / archive (restore / delete in the archive view),
+  filtering it. From `md` up, status becomes a pull-down menu on the row itself
+  ([`components/client-status-select.tsx`](components/client-status-select.tsx)), changed in
+  place — the desktop half of "one design that grows".
+- **A row is two lines and its actions are gestures.** The whole row opens the lead;
+  **swipe left** reveals call / email / archive (restore / delete in the archive view),
   **swipe right** marks them touched in one stroke — the mail-app idiom, built on
-  [`components/swipe-row.tsx`](components/swipe-row.tsx). Status reads on the row and changes on
-  the lead's page, one tap away — a dropdown per row was most of what made the old cards tall.
-  The wide table is the desktop view of the same list, not the source the phone shrinks down
-  from.
+  [`components/swipe-row.tsx`](components/swipe-row.tsx). Every gesture has a non-gesture twin
+  one tap away, on the lead's own page: the swipe is the shortcut, never the only way in.
+  Status reads on the row on a phone and changes on that page — a dropdown per row was most of
+  what made the old cards tall.
+- **One codepath from phone to laptop.** The wide table is gone: the same inset grouped rows
+  simply grow — more room, more of the record on the line — rather than a phone list being
+  swapped for a desktop table at `md`.
 - **Value** — each lead carries what it is worth (`value_minor`) and whether that is a one-off
   or charged **every month** (`billing_type`). The header adds them up: open one-offs as
   *in play*, monthly customers as */ month*. Both are Jamie's own figures — Stripe stays the
@@ -152,12 +157,10 @@ server action scoped to exactly its own fields (`saveClientContact` / `saveDealT
 toggle in the rail rather than a field to save, because it is something you record on the day it
 happens; re-tapping undoes it, and marking an already-started engagement keeps the original date.
 
-Reference material and
-irreversible actions sink to the bottom — **Intake** folds into a tap-to-open `<details>` below
-`lg`, connecting a delivery repo folds away until asked for, and archive/delete live in a
-**Danger zone** that is folded shut on every size
-([`components/disclosure-card.tsx`](components/disclosure-card.tsx)) rather than beside the
-title where a thumb could find them.
+Reference material and irreversible actions sink to the bottom — **Intake** is a
+`GroupedDisclosure` that folds open on a tap, connecting a delivery repo folds away until asked
+for, and archive/delete are the last section on the page, under a **Danger zone** header in
+red, rather than beside the title where a thumb reaching for the status could find them.
 
 ### Delivery repos
 
@@ -328,37 +331,71 @@ The app is built mobile-first and installs to a phone home screen as **Consultan
   a leading sidebar from `md` up. Each tab is a full 3.5rem target — a quarter of the pill, which
   is why the labels set at the tier's smallest caption and never wrap; content is padded to clear
   the bar and respects the home-indicator safe area.
-- **Touch targets and safe areas** ([`app/globals.css`](app/globals.css)) — the design system is
-  sized for a mouse (h-8/h-9 controls, a 16px checkbox), so rather than annotate every call site
-  the floor is lifted once under `@media (pointer: coarse)`: every button, input and select
-  trigger gets a 44px minimum, and the checkbox grows a transparent hit area without changing
-  size. Nothing there affects a desktop pointer. The same file defines the `pb-safe`,
-  `bottom-above-tabs` and `no-scrollbar` utilities the fixed chrome and the horizontal rails use.
+- **Touch targets and safe areas** ([`app/globals.css`](app/globals.css)) — the design system's
+  own controls are sized for a mouse (h-8/h-9), so rather than annotate every call site the
+  floor is lifted once under `@media (pointer: coarse)`: every button, input and select trigger
+  gets a 44px minimum. Nothing there affects a desktop pointer, and the app tier's own controls
+  already set their own floor (`min-h-app-touch` on a grouped row, a 3.5rem tab, a 48px action
+  disc). The same file defines the geometry utilities the fixed chrome and the rails use —
+  `bottom-tabs`, `bottom-above-tabs`, `pb-tabs`, `no-scrollbar`, and `pt-screen-safe` /
+  `pb-screen-safe` for the two screens outside the shell (login and "not here"), which have no
+  tab bar to clear but still open under a notch.
+- **Appearance follows the system**, with no in-app toggle — the app tier's rule. An inline,
+  render-blocking script in [`app/layout.tsx`](app/layout.tsx) mirrors `prefers-color-scheme`
+  onto `[data-theme]` before first paint, which is the whole point: a theme resolved in an
+  effect is the white flash every dark-mode app is judged by.
+- **Materials degrade where the device can't afford them.** The floating chrome and the title
+  bar are `backdrop-filter`s over a scrolling list, which is the most expensive thing this tier
+  asks of a GPU. Two things turn the blur off, both landing on the same opaque surfaces (see
+  [`packages/ui/tokens/app.css`](../../packages/ui/tokens/app.css) § Materials without the
+  blur): `prefers-reduced-transparency`, reactively in CSS, and `data-materials="opaque"` —
+  stamped by the same pre-paint script when the device reports 4GB or less. A capability check,
+  never a setting.
 - **Anything hover-only is a bug on a phone.** Row deletes in the todo and compliance lists are
   always visible below `sm` and only fade in on hover from `sm` up.
-- **Gestures** — list rows swipe ([`components/swipe-row.tsx`](components/swipe-row.tsx):
-  pointer-events + `touch-action: pan-y`, so vertical stays native scroll; one row open at a
-  time; a drag never fires the row's link), and the whole authenticated area supports
-  **pull-to-refresh** ([`components/pull-to-refresh.tsx`](components/pull-to-refresh.tsx)) —
-  every screen is a live read (Neon, Stripe, GitHub) and standalone mode has no reload button.
-  The body's `overscroll-behavior-y: contain` hands the pull gesture to the app.
+- **Gestures, and their non-gesture twins** — list rows swipe
+  ([`components/swipe-row.tsx`](components/swipe-row.tsx): pointer-events + `touch-action:
+  pan-y`, so vertical stays native scroll; one row open at a time; a drag never fires the row's
+  link), and the whole authenticated area supports **pull-to-refresh**
+  ([`components/pull-to-refresh.tsx`](components/pull-to-refresh.tsx)) — every screen is a live
+  read (Neon, Stripe, GitHub) and standalone mode has no reload button. The body's
+  `overscroll-behavior-y: contain` hands the pull gesture to the app. **No action is reachable
+  only by swiping**: every tray action has an equivalent inside the sheet or profile the row's
+  tap opens, which is what keeps the lists usable under VoiceOver.
+- **Haptics** ([`lib/haptics.ts`](lib/haptics.ts)) — one light tick, at the commit rather than
+  at the outcome, for a gesture crossing an invisible threshold (a swipe past its commit point,
+  a pull past the refresh point) and for a control that changes the record. Never on a
+  navigation, an opening sheet, a copy to the clipboard, or a re-read. Silent under
+  `prefers-reduced-motion`, and silent on iOS Safari, which has no `navigator.vibrate`.
 - **Sheets, not centred dialogs.** Anything a phone user opens one-handed — add a lead, edit
-  contact / deal / notes — is a bottom sheet (`Sheet` in `@jamie-nisbet/ui`), which falls back
-  to the ordinary centred dialog from `sm` up. On phones the Money tables become card lists,
-  and the two create forms fold shut until asked for.
-- **Manifest** ([`app/manifest.ts`](app/manifest.ts)) — name/short-name `Consultancy JN`,
-  `standalone` display, brand-blue theme (`#3A5A78`), and PNG icons.
+  contact / deal / notes, a ticket batch, an invoice — is a bottom sheet (`Sheet` in
+  `@jamie-nisbet/ui`), taking native detents where it holds a form, and falling back to a
+  centred dialog from `sm` up. The two Money create forms fold shut until asked for.
+- **Four designed states, everywhere.** Content, empty, a layout-true skeleton
+  (`loading.tsx` beside each screen), and error: the four screens share one boundary at
+  `app/(app)/error.tsx` and a lead's profile has its own, so a read that refuses still leaves
+  you in the app. A URL that is nothing — including a bookmark to a deleted lead — gets
+  [`app/not-found.tsx`](app/not-found.tsx) rather than Next's bare 404.
+  Missing configuration degrades its own feature and never takes a screen down with it.
+- **Manifest** ([`app/manifest.ts`](app/manifest.ts)) — `id` and name/short-name
+  `Consultancy JN`, `standalone` display, unlocked orientation (the wide layout is a deliberate
+  iPad-style scale-up), the app's light canvas as `theme_color`/`background_color`, and PNG
+  icons. The mode-reactive theme colour is the `<meta name="theme-color">` pair in
+  [`app/layout.tsx`](app/layout.tsx), since a manifest cannot carry a media query.
 - **Icons** — one favicon SVG ([`public/icon.svg`](public/icon.svg)) plus PNGs rendered on the
   fly from the JN monogram via `next/og` `ImageResponse` ([`lib/app-icon.tsx`](lib/app-icon.tsx)):
-  `/icon-192.png`, `/icon-512.png` (also maskable), and `/apple-icon.png` (180×180 for iOS). No
-  build-time image pipeline or committed binaries.
+  `/icon-192.png`, `/icon-512.png` (also maskable), and `/apple-icon.png` (180×180 for iOS). One
+  full-bleed tile serves all three purposes — the arithmetic that keeps the mark inside the
+  maskable safe zone is in that file. No build-time image pipeline or committed binaries.
 - **Service worker** ([`public/sw.js`](public/sw.js), registered by
   [`components/service-worker-register.tsx`](components/service-worker-register.tsx)) — makes the
   app installable and serves [`public/offline.html`](public/offline.html) for navigations when the
   network is gone. It **does not cache app responses** — this is a live, per-request dashboard, so
-  caching authenticated pages would risk stale or wrong-session data.
-- Theme colour, standalone launch, and the apple-touch-icon are wired in the root
-  [`app/layout.tsx`](app/layout.tsx) (`metadata` + `viewport`).
+  caching authenticated pages would risk stale or wrong-session data. The offline page carries a
+  literal copy of the tier's type, colours and radii, because it is served without a stylesheet;
+  bump `CACHE` in the worker whenever it changes, or installed workers keep the old one.
+- Theme colour, standalone launch, the status-bar style and the apple-touch-icon are wired in the
+  root [`app/layout.tsx`](app/layout.tsx) (`metadata` + `viewport`).
 
 ## Layout
 
@@ -370,28 +407,37 @@ app/
   icon-192.png/         # generated PNG icons (next/og ImageResponse); dotted paths bypass the auth gate
   icon-512.png/
   apple-icon.png/       # 180×180 apple-touch-icon for iOS home screen
+  not-found.tsx         # a URL that is nothing, including a deleted lead's bookmark
   login/                # /login page + login/logout server actions
   (app)/                # authenticated area (route group — no URL segment)
     layout.tsx          # nav chrome (mobile-first spacing + tab-bar clearance)
+    error.tsx           # the four screens' error boundary — a read that refused
     page.tsx            # Needs you — the feed; also redirects the old /?filter= leads bookmarks
     loading.tsx         # the feed's layout-true skeleton (the widest read in the app)
     actions.ts          # lead + todo + compliance server actions (every lead screen uses these)
     leads/              # Leads — the list, staleness-sorted; loading.tsx alongside
     leads/[id]/         # one lead: profile, intake, delivery repo, Stripe link, their todos
+                        #   error.tsx — its own boundary, so it can name the record
     tickets/            # Tickets — every repo's .icm/intake/ backlog, read-only, copy-prompt
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
 components/             # login form, nav, service-worker register, lead + money UI
+                        #   app-screen.tsx — every screen's masthead: the tier's collapsing
+                        #                header, and the profile's identity form of it
+                        #   nav.tsx      — the floating tab bar, and its sidebar form from `md`
+                        #   app-menu.tsx — the monogram on the bar: what belongs to the app
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
-                        #   fold-card.tsx — a card that folds into <details> below `lg`
-                        #   disclosure-card.tsx — a card folded shut on every size (single render)
                         #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
                         #   lead-row.tsx — the leads list's gestures (call/email/archive, touched),
                         #                worn by the feed's "Waiting on you" rows too
+                        #   lead-action-row.tsx — the profile's circular actions, Contacts-style
                         #   overdue-list.tsx — the feed's Overdue section: todos + compliance,
                         #                both acting in place
                         #   add-todo.tsx — the feed's `+`: write a todo down from anywhere
                         #   lead-contact-card.tsx / lead-deal-card.tsx / lead-notes-card.tsx
                         #                — the record as facts, each edited in a bottom sheet
+                        #   lead-intake.tsx — how they came in, folded shut until asked for
+                        #   batch-row.tsx / board-ticket-row.tsx / ticket-detail.tsx
+                        #                — the Tickets board, batch-first
                         #   pull-to-refresh.tsx — pull down from the top to re-read everything
                         #   client-create-form.tsx — add a lead or a customer by hand
                         #   deal-badges.tsx — barter / commission / equity / started, on the row
@@ -399,6 +445,7 @@ components/             # login form, nav, service-worker register, lead + money
 lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets, app-icon
                         #   leads.ts — the staleness threshold and the row labels the feed and
                         #              the Leads list both read a lead by
+                        #   haptics.ts — the one tick, and the rule for when it fires
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 

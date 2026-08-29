@@ -5,6 +5,7 @@ import { useState, useTransition } from "react"
 import { Button } from "@jamie-nisbet/ui"
 
 import { linkClientToStripe } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // Shows a client's Stripe link: the linked customer id (with a jump to the Stripe
 // dashboard) once linked, or a button to create-and-link a customer on demand.
@@ -45,6 +46,7 @@ export function ClientStripeLink({
         className="h-auto w-full py-2 whitespace-normal sm:w-fit"
         onClick={() => {
           setError(null)
+          hapticTick()
           startTransition(async () => {
             try {
               await linkClientToStripe(id)

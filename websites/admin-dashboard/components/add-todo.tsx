@@ -23,6 +23,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { addTaskAction } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // Writing a todo down, from the feed. The working-list strip used to carry an
 // always-open add form above the leads list; when the strip went, the todo it
@@ -89,6 +90,7 @@ export function AddTodo({ leads }: { leads: TodoLead[] }) {
           ref={formRef}
           action={(formData) =>
             startTransition(async () => {
+              hapticTick()
               try {
                 const title = String(formData.get("title") ?? "").trim()
                 await addTaskAction(formData)

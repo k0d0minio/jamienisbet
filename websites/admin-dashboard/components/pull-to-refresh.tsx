@@ -6,6 +6,8 @@ import { RefreshCw } from "lucide-react"
 
 import { Spinner, cn } from "@jamie-nisbet/ui"
 
+import { hapticTick } from "@/lib/haptics"
+
 // Pull down from the top of the page to re-read everything — the gesture every
 // installed app answers, and this one especially: each screen is a live read
 // (Neon, Stripe, the repos' ticket folders) with no reload button in standalone
@@ -26,6 +28,11 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
   const [refreshing, startTransition] = useTransition()
   const [pull, setPull] = useState(0)
   const start = useRef({ x: 0, y: 0, active: false })
+  // Whether the pull is currently far enough to fire. Kept so the haptic can
+  // answer the *edge* — the same thing a swipe row's commit threshold does,
+  // and for the same reason: the threshold is invisible, and a tick is what
+  // makes the gesture releasable without watching it.
+  const armed = useRef(false)
 
   function onTouchStart(e: React.TouchEvent) {
     // Only a pull that starts with the page already at its top is a refresh;
@@ -53,13 +60,23 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       return
     }
     // Damped, so the page follows the finger at half speed and settles.
-    setPull(Math.min((dy - 8) / 2, MAX_PULL_PX))
+    const next = Math.min((dy - 8) / 2, MAX_PULL_PX)
+    setPull(next)
+
+    const past = next >= THRESHOLD_PX
+    if (past !== armed.current) {
+      armed.current = past
+      hapticTick()
+    }
   }
 
   function onTouchEnd() {
     if (!start.current.active) return
     start.current.active = false
+    armed.current = false
     if (pull >= THRESHOLD_PX) {
+      // No tick here: the crossing already answered, and buzzing again on
+      // release would read as two events for one gesture.
       startTransition(() => router.refresh())
     }
     setPull(0)
@@ -81,7 +98,10 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           "pointer-events-none flex items-end justify-center overflow-hidden",
-          pull === 0 && "transition-[height] duration-200"
+          // A released pull settles home on the same spring a released swipe
+          // row does — critically damped, so the gap closes without snapping
+          // shut, and stands still under reduced motion.
+          pull === 0 && "transition-[height] spring-pop"
         )}
         style={{ height: refreshing ? 40 : pull }}
         aria-hidden={!refreshing}
@@ -93,7 +113,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
           // The Spinner labels itself "Loading"; the sr-only line below says the
           // more specific thing, so here it is decorative.
           <Spinner
-            className="mb-2 size-5 text-muted-foreground"
+            className="mb-2 size-5 text-app-label-3"
             role={undefined}
             aria-label={undefined}
             aria-hidden="true"
@@ -101,7 +121,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
         ) : (
           <RefreshCw
             className={cn(
-              "mb-2 size-5 text-muted-foreground",
+              "mb-2 size-5 text-app-label-3",
               !active && "opacity-0"
             )}
             style={{ transform: `rotate(${pull * 2.5}deg)` }}

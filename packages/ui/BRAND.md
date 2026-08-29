@@ -81,6 +81,13 @@ These are amendments with a scope, not drift. A change outside that scope is dri
   with an opaque fallback where `backdrop-filter` is missing. Text on a material takes the
   vibrancy-safe steps (`--material-label`, `--material-label-2`), which run a stop stronger
   than the page's, because a scrolling page underneath eats contrast a flat surface keeps.
+  **Structural, not free**: a material is a backdrop-filter over whatever scrolls under it,
+  which is the most expensive thing this tier asks of a GPU. It degrades to
+  translucency-without-blur on the same opaque twins — under
+  `prefers-reduced-transparency`, and under `[data-materials="opaque"]`, which a shell
+  stamps on the root from a capability check before first paint. One degraded look, three
+  ways in. And a material that has nothing behind it to blur — a panel on a flat canvas —
+  is decoration, which is the one thing this amendment does not license.
 - **Elevation exists.** Floating chrome and sheets sit *visibly* above content:
   `--elevation-chrome`, `--elevation-sheet`, `--elevation-popover`, `--elevation-raised`.
   Resting content is still flat and a hairline still does the structural work — a shadow
@@ -106,6 +113,12 @@ These are amendments with a scope, not drift. A change outside that scope is dri
 - **Appearance follows the system.** No in-app toggle: the shell mirrors
   `prefers-color-scheme` onto `[data-theme]`, so there is one theming mechanism, not two.
   Both modes are designed in full — materials and vibrancy differ per mode, not just fill.
+- **Focus draws inside the control.** The brand's ring is an outset `box-shadow`, and this
+  tier is built out of surfaces that clip — a grouped list and a tab bar pill both own their
+  corners with `overflow-hidden`, so a ring outside a row is a ring the group throws away.
+  Under `app-tier`, `:focus-visible` also takes an outline at a negative offset, which
+  nothing can clip. It is not a call-site decision: whether you can see what has focus is
+  not something a screen gets to opt out of.
 
 **What does not change, on any tier:** slate is the only tint (`--app-tint` *is*
 `--primary`, and there are no per-domain accents); semantic colour is muted and reserved for
@@ -119,7 +132,8 @@ ships its own, and raw values are as banned at an app-tier call site as anywhere
   `--app-*` surface aliases. Light and dark both complete, flipping on `[data-theme="dark"]`.
 - `app.css` — the Tailwind entry: maps those tokens onto utilities (`bg-app-group`,
   `text-app-body`, `rounded-app-group`, `shadow-app-chrome`, `border-app-separator`), plus
-  the `material-*`, `spring-*`, and `app-tier` utilities.
+  the `material-*`, `spring-*`, and `app-tier` utilities. `app-tier` is the switch applied
+  once at the top of a surface's tree; it also carries the tier's focus treatment.
 - `Material` — the translucent surface wrapper (`level` / `elevation` / `edge`).
 - `GroupedList` / `GroupedSection` / `GroupedRow` — the inset grouped list, the tier's main
   structural unit; it replaces the table on an operating screen. A row can carry an

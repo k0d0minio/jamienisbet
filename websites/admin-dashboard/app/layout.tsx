@@ -17,6 +17,15 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
   },
   // iOS standalone: launch fullscreen from the home screen under the app name.
+  //
+  // `default` rather than `black-translucent`, deliberately. Translucent would
+  // run the window under the status bar — the more native reading, and what the
+  // collapsing header's `env(safe-area-inset-top)` padding is already built
+  // for — but it also fixes the status bar's glyphs white on older iOS, which
+  // over this tier's light canvas is white on near-white. `default` keeps the
+  // bar above the window with the page's own background behind it, so it
+  // matches the canvas in whichever appearance the system is in. Revisit it
+  // when the floor is an iOS that reliably reads the colour scheme there.
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -45,16 +54,38 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-content",
 }
 
-// Appearance follows the system, with no in-app toggle — the app tier's rule
-// (BRAND.md § App tier), and what every native app does. The design system
-// flips on [data-theme="dark"], so all this has to do is mirror the media
-// query onto that attribute.
+// Two things the document has to know before it paints, in one script.
+//
+// 1. **Appearance follows the system**, with no in-app toggle — the app tier's
+//    rule (BRAND.md § App tier), and what every native app does. The design
+//    system flips on [data-theme="dark"], so all this has to do is mirror the
+//    media query onto that attribute.
+//
+// 2. **Whether this device can afford the blur.** A material is a
+//    backdrop-filter over whatever is scrolling under it, and that is the most
+//    expensive thing the app tier asks of a GPU. On a weak phone it is paid for
+//    in dropped frames on the leads list — the screen that is scrolled most.
+//    So the chrome degrades to translucency-without-blur where the hardware
+//    says it should: `data-materials="opaque"` on the root, which
+//    packages/ui/tokens/app.css reads. A capability check, not a setting —
+//    nobody should have to find a toggle to make their own phone scroll. The
+//    reader's own "reduce transparency" is handled separately and reactively,
+//    in CSS.
+//
+//    `deviceMemory` is the honest signal and it is Chromium-only, which is the
+//    right shape here: iOS never reports it, and iOS is where blur is cheapest.
+//    A device that admits to 4GB or less is where two blurring surfaces over a
+//    long list start costing frames. `hardwareConcurrency` catches the engines
+//    with no deviceMemory at all, at a threshold no phone worth blurring is
+//    under.
 //
 // Inline and blocking on purpose: a theme resolved in an effect is a theme
 // applied one paint too late, which is the white flash every dark-mode app is
-// judged by. The server renders no data-theme at all — :root is already the
-// light theme — so there is nothing for this to disagree with at hydration.
-const followSystemAppearance = `(function(){try{var m=window.matchMedia("(prefers-color-scheme: dark)");var set=function(){document.documentElement.setAttribute("data-theme",m.matches?"dark":"light")};set();if(m.addEventListener){m.addEventListener("change",set)}else{m.addListener(set)}}catch(e){}})()`
+// judged by, and a material that stops blurring one frame in is worse than one
+// that never started. The server renders neither attribute — :root is already
+// the light theme with materials on — so there is nothing to disagree with at
+// hydration.
+const beforeFirstPaint = `(function(){var d=document.documentElement;try{var m=window.matchMedia("(prefers-color-scheme: dark)");var set=function(){d.setAttribute("data-theme",m.matches?"dark":"light")};set();if(m.addEventListener){m.addEventListener("change",set)}else{m.addListener(set)}}catch(e){}try{var mem=navigator.deviceMemory,cpu=navigator.hardwareConcurrency;if((typeof mem==="number"&&mem<=4)||(typeof cpu==="number"&&cpu<=2)){d.setAttribute("data-materials","opaque")}}catch(e){}})()`
 
 export default function RootLayout({
   children,
@@ -72,7 +103,7 @@ export default function RootLayout({
           // app: it runs before anything paints, which is the whole point.
           // Its source is the constant above — no interpolation, nothing from
           // a request.
-          dangerouslySetInnerHTML={{ __html: followSystemAppearance }}
+          dangerouslySetInnerHTML={{ __html: beforeFirstPaint }}
         />
         {children}
         <ServiceWorkerRegister />

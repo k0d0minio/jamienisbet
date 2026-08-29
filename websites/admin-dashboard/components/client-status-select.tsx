@@ -13,6 +13,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { updateClientStatus } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // Mirrors clientStatuses in @jamie-nisbet/services (the server action is the
 // authority — it re-validates). Kept local so this client component doesn't
@@ -62,6 +63,7 @@ export function ClientStatusSelect({
       onValueChange={(next) =>
         startTransition(async () => {
           setStatus(next)
+          hapticTick()
           try {
             await updateClientStatus(id, next)
           } catch {

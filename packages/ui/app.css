@@ -139,15 +139,17 @@
    the content", the shadow says "how far over".
 
    Every level falls back to an opaque surface where backdrop-filter
-   is missing, so chrome is never unreadably transparent.
+   is missing, so chrome is never unreadably transparent — and the
+   same pair of tokens is what tokens/app.css flips when the reader
+   has asked for less transparency or the device can't afford the
+   blur. The filter is read from a token rather than written out
+   here precisely so there is one place to switch it off.
    ============================================================ */
 
 @utility material-thin {
   background-color: var(--material-thin);
-  -webkit-backdrop-filter: blur(var(--material-blur-thin))
-    saturate(var(--material-saturate));
-  backdrop-filter: blur(var(--material-blur-thin))
-    saturate(var(--material-saturate));
+  -webkit-backdrop-filter: var(--material-filter-thin);
+  backdrop-filter: var(--material-filter-thin);
   @supports not
     ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: var(--material-thin-opaque);
@@ -156,10 +158,8 @@
 
 @utility material-regular {
   background-color: var(--material-regular);
-  -webkit-backdrop-filter: blur(var(--material-blur-regular))
-    saturate(var(--material-saturate));
-  backdrop-filter: blur(var(--material-blur-regular))
-    saturate(var(--material-saturate));
+  -webkit-backdrop-filter: var(--material-filter-regular);
+  backdrop-filter: var(--material-filter-regular);
   @supports not
     ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: var(--material-regular-opaque);
@@ -168,10 +168,8 @@
 
 @utility material-thick {
   background-color: var(--material-thick);
-  -webkit-backdrop-filter: blur(var(--material-blur-thick))
-    saturate(var(--material-saturate));
-  backdrop-filter: blur(var(--material-blur-thick))
-    saturate(var(--material-saturate));
+  -webkit-backdrop-filter: var(--material-filter-thick);
+  backdrop-filter: var(--material-filter-thick);
   @supports not
     ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: var(--material-thick-opaque);
@@ -232,4 +230,28 @@
      screen reads better thin than smeared. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ---- Focus, on a tier that clips ---------------------------
+     The brand's focus ring (tokens/base.css) is an outset
+     box-shadow, and this tier is built out of surfaces that clip:
+     the grouped list owns its corners with `overflow-hidden`, and
+     so does the tab bar's pill. A ring drawn outside a row is a
+     ring the group throws away — which left keyboard focus
+     invisible on the two things most often reached that way.
+
+     An outline at a negative offset is drawn *inside* the control,
+     so nothing can clip it. It rides on top of the brand ring
+     rather than replacing it: where nothing clips, both show and
+     read as one indicator; where something does, this is the one
+     that survives. Sits here rather than at each call site because
+     "can you see what has focus" is not a decision a screen should
+     get to make.
+
+     One exception, in the admin's globals.css: an inline link in
+     rendered markdown gets a positive offset, since an inset
+     outline on a one-line inline box cuts through its own text. */
+  & :focus-visible {
+    outline: 2px solid var(--app-tint);
+    outline-offset: -2px;
+  }
 }
