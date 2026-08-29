@@ -133,13 +133,23 @@ function CollapsingHeader({
         {...props}
       >
         {/* The material is its own layer so it can fade rather than snap on;
-            a backdrop-filter cannot be transitioned, but its opacity can. */}
+            a backdrop-filter cannot be transitioned, but its opacity can.
+
+            `invisible` rather than opacity alone, because a transparent
+            backdrop-filter is not a free one: an element at opacity 0 is
+            still painted, so the blur would run on every frame of every
+            scroll — including the whole time before the bar has taken over.
+            `visibility` interpolates discretely in the direction that keeps
+            the fade: it turns visible the instant the hand-off starts, and
+            waits for the end of the transition on the way back. */}
         <div
           aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute inset-0 border-b border-material-hairline transition-opacity spring-header",
+            "pointer-events-none absolute inset-0 border-b border-material-hairline transition-[opacity,visibility] spring-header",
             materialLevel[material],
-            collapsed ? "opacity-100 shadow-app-chrome" : "opacity-0"
+            collapsed
+              ? "visible opacity-100 shadow-app-chrome"
+              : "invisible opacity-0"
           )}
         />
 

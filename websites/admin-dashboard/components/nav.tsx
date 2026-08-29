@@ -108,7 +108,18 @@ export function Sidebar() {
   return (
     // Named out of the page snapshot for the same reason as the tab bar: it is
     // the same sidebar on both pages and should not slide with the content.
-    <aside className="vt-app-sidebar fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-app-separator bg-app-group md:flex">
+    <aside
+      className="vt-app-sidebar fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-app-separator bg-app-group md:flex"
+      // The bar runs the full height of a window that, on an installed tablet,
+      // reaches the notch at one end and the home indicator at the other.
+      // Insets rather than tokens: this is the device's geometry, not the
+      // app's — the same reading the compact title bar takes.
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingLeft: "env(safe-area-inset-left)",
+      }}
+    >
       <Link
         href="/"
         className="flex min-h-app-touch items-center gap-2 px-4 py-4 text-app-headline font-semibold text-app-label"

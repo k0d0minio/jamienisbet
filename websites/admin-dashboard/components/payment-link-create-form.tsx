@@ -23,6 +23,7 @@ import {
   createPaymentLink,
   type PaymentLinkFormState,
 } from "@/app/(app)/money/actions"
+import { hapticTick } from "@/lib/haptics"
 import { CopyButton } from "@/components/copy-button"
 
 // Mint a reusable link for a fixed amount. Unlike an invoice it is addressed to
@@ -81,7 +82,17 @@ function PaymentLinkForm() {
   }, [state])
 
   return (
-    <form ref={formRef} action={formAction} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      // Minting a link is a state change, so the glass answers the tap. It
+      // rides on the action rather than on the button, so a submit the browser
+      // refuses for a missing field never buzzes.
+      action={(formData) => {
+        hapticTick()
+        formAction(formData)
+      }}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="name">Product / service</Label>
         <Input
@@ -129,7 +140,7 @@ function PaymentLinkForm() {
       {state.success && state.url ? (
         <Alert variant="success">
           <AlertDescription className="flex flex-wrap items-center gap-3">
-            <span className="font-mono text-xs break-all">{state.url}</span>
+            <span className="font-mono text-app-caption break-all">{state.url}</span>
             <CopyButton value={state.url} what="Payment link" />
           </AlertDescription>
         </Alert>

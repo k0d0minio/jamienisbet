@@ -21,6 +21,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { saveClientContact } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 import { whatsappUrl } from "@/lib/format"
 
 // Who they are and how to reach them — as things to *act on*, not a form. Each
@@ -158,6 +159,7 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
           <form
             action={(formData) =>
               startTransition(async () => {
+                hapticTick()
                 try {
                   await saveClientContact(client.id, formData)
                   setOpen(false)

@@ -13,7 +13,15 @@ const MONOGRAM_DATA_URI = `data:image/svg+xml;utf8,${encodeURIComponent(MONOGRAM
 const BRAND_BLUE = "#3A5A78"
 
 // Render a square app icon: the JN monogram centered on the brand-blue tile.
-// Full-bleed background so it also works as a maskable icon (safe-zone rules).
+//
+// Full-bleed background, and the mark small enough to survive a mask. A
+// maskable icon's safe zone is the circle of 80% diameter — anything outside a
+// radius of 40% of the tile can be cropped by whatever shape the OS is cutting
+// today. At 66% the monogram *box* has corners at 47%, but the strokes stop
+// well inside it: the widest ink in the 100-unit artwork runs x 21→78 and
+// y 32→70, which lands the furthest point about 23% from the centre. Half the
+// safe radius, so the same PNG serves `any` and `maskable` and iOS's own
+// squircle alike. Move the artwork and this is the number to re-check.
 export function renderAppIcon(size: number): ImageResponse {
   const inner = Math.round(size * 0.66)
   return new ImageResponse(

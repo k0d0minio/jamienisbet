@@ -6,6 +6,7 @@ import { GitCommitHorizontal } from "lucide-react"
 import { Button, cn } from "@jamie-nisbet/ui"
 
 import { writeFormAnswersToRepo } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // "Write to repo" on an answered form: commit the rendered answers into the
 // client's delivery repo so sessions working there read the client's own words.
@@ -25,6 +26,7 @@ export function WriteFormToRepoButton({
   )
 
   function onWrite() {
+    hapticTick()
     startTransition(async () => {
       setResult(await writeFormAnswersToRepo(linkId, clientId))
     })

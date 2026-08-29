@@ -11,6 +11,7 @@ import {
   disconnectClientRepo,
   listConnectableRepos,
 } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // The delivery-repo surface on a lead's profile. Once work is won, this is
 // where Jamie either points them at an existing repo or spins up a fresh one;
@@ -55,6 +56,7 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
         className="w-fit text-app-label-3"
         onClick={() => {
           setError(null)
+          hapticTick()
           startTransition(async () => {
             try {
               await disconnectClientRepo(id)
@@ -120,6 +122,7 @@ function ConnectExisting({ id }: { id: string }) {
           disabled={pending || value.trim() === ""}
           onClick={() => {
             setError(null)
+            hapticTick()
             startTransition(async () => {
               try {
                 await connectClientRepo(id, value)
@@ -180,7 +183,7 @@ function CreateNew({
           checked={isPrivate}
           onCheckedChange={setIsPrivate}
         />
-        <Label htmlFor="repo-private" className="text-xs font-normal">
+        <Label htmlFor="repo-private" className="text-app-footnote font-normal">
           Private
         </Label>
       </div>
@@ -190,6 +193,7 @@ function CreateNew({
         className="w-full sm:w-fit"
         onClick={() => {
           setError(null)
+          hapticTick()
           startTransition(async () => {
             try {
               const { scaffoldError } = await createClientRepo(id, {

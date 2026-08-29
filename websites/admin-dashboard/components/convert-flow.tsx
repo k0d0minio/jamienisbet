@@ -19,6 +19,7 @@ import {
 import { saveDealTerms, updateClientStatus } from "@/app/(app)/actions"
 import { ClientRepoLink } from "@/components/client-repo-link"
 import { ClientStripeLink } from "@/components/client-stripe-link"
+import { hapticTick } from "@/lib/haptics"
 
 // Converting a lead used to be four separate taps scattered across the
 // profile — status, repo, deal terms, Stripe — and the skipped ones each broke
@@ -109,6 +110,7 @@ function StatusStep({
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
+              hapticTick()
               await updateClientStatus(client.id, "client")
               onNext()
             })
@@ -140,6 +142,7 @@ function DealTermsStep({
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     startTransition(async () => {
+      hapticTick()
       await saveDealTerms(client.id, formData)
       onNext()
     })

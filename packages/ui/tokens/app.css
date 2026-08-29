@@ -61,6 +61,22 @@
   --material-regular-opaque: var(--surface);
   --material-thick-opaque: var(--surface);
 
+  /* The filter itself, as a token rather than a literal in each
+     utility — because it is the one thing that gets switched off.
+     A backdrop-filter is the most expensive thing this tier asks a
+     GPU for, it is asked for on chrome that hovers over a scrolling
+     list, and on a weak phone that is exactly where a dropped frame
+     is felt. Setting these to `none` (below) is what degrades a
+     material to translucency-without-blur: `none` is the only value
+     that actually stops the work — blur(0px) still builds the
+     backdrop root and filters it. */
+  --material-filter-thin: blur(var(--material-blur-thin))
+    saturate(var(--material-saturate));
+  --material-filter-regular: blur(var(--material-blur-regular))
+    saturate(var(--material-saturate));
+  --material-filter-thick: blur(var(--material-blur-thick))
+    saturate(var(--material-saturate));
+
   /* The hairline where a material meets content. Softer than
      --border: the blur is already doing the separating. */
   --material-border: color-mix(in srgb, var(--neutral-900) 8%, transparent);
@@ -269,6 +285,49 @@
   /* A track goes the other way from a press: it must stay under the card
      that lifts out of it, so in dark it deepens rather than lightens. */
   --app-track: color-mix(in srgb, #000000 45%, transparent);
+}
+
+/* ============================================================
+   MATERIALS WITHOUT THE BLUR
+   Two ways a material stops blurring, and both keep the tier's
+   read: the surface goes opaque at the same moment the filter goes
+   away, so chrome is never a translucent smear over sharp content.
+
+   1. The reader asked for it. `prefers-reduced-transparency` is the
+      OS switch (iOS "Reduce Transparency", Windows "Transparency
+      effects") and it is reactive, so it belongs in CSS.
+   2. The device cannot afford it. A backdrop-filter over a
+      scrolling list is the most expensive thing on this tier, and a
+      weak phone pays for it in dropped frames on the one screen
+      that is scrolled most. The app shell decides — see
+      websites/admin-dashboard/app/layout.tsx — and says so by
+      stamping data-materials="opaque" on the root before first
+      paint. A capability check, not a setting: nobody should have to
+      find a toggle to make their own phone scroll.
+
+   Both land on the same tokens, so there is one degraded look to
+   design and one to test. The @supports fallback in app.css is the
+   third path — an engine with no backdrop-filter at all — and lands
+   in the same place.
+   ============================================================ */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --material-thin: var(--material-thin-opaque);
+    --material-regular: var(--material-regular-opaque);
+    --material-thick: var(--material-thick-opaque);
+    --material-filter-thin: none;
+    --material-filter-regular: none;
+    --material-filter-thick: none;
+  }
+}
+
+:root[data-materials='opaque'] {
+  --material-thin: var(--material-thin-opaque);
+  --material-regular: var(--material-regular-opaque);
+  --material-thick: var(--material-thick-opaque);
+  --material-filter-thin: none;
+  --material-filter-regular: none;
+  --material-filter-thick: none;
 }
 
 /* ------------------------------------------------------------

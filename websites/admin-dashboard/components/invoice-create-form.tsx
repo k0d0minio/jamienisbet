@@ -29,6 +29,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { createInvoice, type InvoiceFormState } from "@/app/(app)/money/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // Raise a new invoice against an existing lead. It creates a *draft* and
 // nothing else: finalizing it and emailing it is a separate, deliberate click
@@ -127,7 +128,16 @@ function InvoiceForm({
   }, [state, onCreated])
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      // Raising a draft is a state change, so the glass answers the tap. It
+      // rides on the action rather than on the button, so a submit the browser
+      // refuses for a missing field never buzzes.
+      action={(formData) => {
+        hapticTick()
+        formAction(formData)
+      }}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="clientId">Client</Label>
         <Select name="clientId">

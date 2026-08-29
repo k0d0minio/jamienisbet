@@ -27,6 +27,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { addClient } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 
 // Add someone by hand — the meetup contact, the word-of-mouth introduction, the
 // client who has been paying since before this dashboard existed. The public
@@ -188,6 +189,7 @@ export function ClientCreateForm() {
           ref={formRef}
           action={(formData) =>
             startTransition(async () => {
+              hapticTick()
               setError(null)
               try {
                 const name = String(formData.get("name") ?? "").trim()
@@ -305,7 +307,9 @@ export function ClientCreateForm() {
             placeholder={kind.placeholder}
           />
 
-          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+          {error ? (
+            <p className="text-app-footnote text-destructive">{error}</p>
+          ) : null}
           {/* Primary action full-width and last on a phone — thumb lands on it. */}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button

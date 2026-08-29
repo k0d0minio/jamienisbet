@@ -45,7 +45,13 @@
         align-items: center;
         justify-content: center;
         gap: 1rem;
-        padding: 2rem;
+        /* `viewport-fit=cover` runs the window under the notch and the home
+           indicator, and this page is only ever seen in the installed app —
+           where there is no browser chrome to keep it out of them. */
+        padding: calc(2rem + env(safe-area-inset-top, 0px))
+          calc(1rem + env(safe-area-inset-right, 0px))
+          calc(2rem + env(safe-area-inset-bottom, 0px))
+          calc(1rem + env(safe-area-inset-left, 0px));
         text-align: center;
         background: var(--page);
         color: var(--label);
@@ -78,6 +84,10 @@
       button {
         margin-top: 0.5rem;
         border: 0;
+        /* The tier draws focus inside a control, because the app it stands in
+           for is built out of surfaces that clip. Matched here so the two
+           screens don't disagree about what "focused" looks like. */
+        outline-offset: -2px;
         /* --app-radius-control. */
         border-radius: 12px;
         background: var(--tint);

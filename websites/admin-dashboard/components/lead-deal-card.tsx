@@ -27,6 +27,7 @@ import {
 import type { DealType } from "@jamie-nisbet/services"
 
 import { saveDealTerms } from "@/app/(app)/actions"
+import { hapticTick } from "@/lib/haptics"
 import { formatMoney } from "@/lib/money"
 import { bpsToPercentInput, formatBps } from "@/lib/percent"
 
@@ -130,6 +131,7 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
           <form
             action={(formData) =>
               startTransition(async () => {
+                hapticTick()
                 try {
                   await saveDealTerms(client.id, formData)
                   setOpen(false)
