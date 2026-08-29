@@ -1,5 +1,7 @@
 import { Card, CardHeader, Skeleton } from "@jamie-nisbet/ui"
 
+import { AppScreen } from "@/components/app-screen"
+
 // Money is four Stripe round-trips in parallel (balance, invoices, links,
 // payments) plus the lead list for the invoice picker, on every visit. The
 // balance is the reason you opened the screen, so its shape lands first — three
@@ -30,54 +32,54 @@ function InvoiceCardSkeleton() {
 
 export default function MoneyLoading() {
   return (
-    <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-semibold">Money</h1>
-
-      {/* Phone: the three figures as rows in one card. */}
-      <Card className="divide-y gap-0 py-0 sm:hidden">
-        {["Available", "Pending", "Outstanding"].map((label) => (
-          <div
-            key={label}
-            className="flex items-baseline justify-between gap-3 px-4 py-3"
-          >
-            <span className="text-sm text-muted-foreground">{label}</span>
-            <Skeleton className="h-5 w-24" />
-          </div>
-        ))}
-      </Card>
-
-      {/* Desktop: the same three as stat cards. */}
-      <div className="hidden gap-4 sm:grid sm:grid-cols-3">
-        {[0, 1, 2].map((i) => (
-          <Card key={i}>
-            {/* CardHeader, not a bare div — Card already owns the vertical
-                padding, so anything else would sit taller than the real card. */}
-            <CardHeader>
-              <Skeleton className="h-3.5 w-28" />
-              <Skeleton className="h-8 w-32" />
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-
-      <section className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold">Invoices</h2>
-          <p className="text-sm text-muted-foreground">
-            A new invoice is created as a draft. Emailing it is a separate,
-            deliberate step.
-          </p>
-        </div>
-        <ul className="flex flex-col gap-2">
-          {[0, 1, 2].map((i) => (
-            <InvoiceCardSkeleton key={i} />
+    <AppScreen title="Money">
+      <div className="flex flex-col gap-8">
+        {/* Phone: the three figures as rows in one card. */}
+        <Card className="divide-y gap-0 py-0 sm:hidden">
+          {["Available", "Pending", "Outstanding"].map((label) => (
+            <div
+              key={label}
+              className="flex items-baseline justify-between gap-3 px-4 py-3"
+            >
+              <span className="text-sm text-muted-foreground">{label}</span>
+              <Skeleton className="h-5 w-24" />
+            </div>
           ))}
-        </ul>
-      </section>
+        </Card>
 
-      <span className="sr-only" role="status">
-        Loading money
-      </span>
-    </div>
+        {/* Desktop: the same three as stat cards. */}
+        <div className="hidden gap-4 sm:grid sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <Card key={i}>
+              {/* CardHeader, not a bare div — Card already owns the vertical
+                  padding, so anything else would sit taller than the real card. */}
+              <CardHeader>
+                <Skeleton className="h-3.5 w-28" />
+                <Skeleton className="h-8 w-32" />
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold">Invoices</h2>
+            <p className="text-sm text-muted-foreground">
+              A new invoice is created as a draft. Emailing it is a separate,
+              deliberate step.
+            </p>
+          </div>
+          <ul className="flex flex-col gap-2">
+            {[0, 1, 2].map((i) => (
+              <InvoiceCardSkeleton key={i} />
+            ))}
+          </ul>
+        </section>
+
+        <span className="sr-only" role="status">
+          Loading money
+        </span>
+      </div>
+    </AppScreen>
   )
 }

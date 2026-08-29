@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Ticket, Users, Wallet, type LucideIcon } from "lucide-react"
+import { LogOut, Ticket, Users, Wallet, type LucideIcon } from "lucide-react"
 
-import { Button, LogoMark, cn } from "@jamie-nisbet/ui"
+import { LogoMark, Material, cn } from "@jamie-nisbet/ui"
 
 import { logout } from "@/app/login/actions"
 
@@ -29,81 +29,123 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-// Mobile-first chrome: a sticky top bar (brand + sign out) on every size, inline
-// text links added on desktop, and a fixed icon tab bar pinned to the bottom on
-// phones — the primary way to move around when installed as a PWA.
-export function Nav() {
+// The chrome swaps at `md` rather than `sm`: below it the app is a phone with a
+// floating tab bar, above it an iPad-style scale-up with a leading sidebar. 640
+// is too narrow to give a sidebar 15rem and still leave the grouped column
+// something to sit in; 768 — an iPad in portrait — is where that stops being
+// true. The screens keep their own `sm:` reading of their content, which is a
+// separate question from where the chrome lives.
+
+// ------------------------------------------------------------------
+// Phones: the floating tab bar.
+// ------------------------------------------------------------------
+
+/** The bottom tab bar — a translucent pill hovering over the content, phones
+ *  only. Its geometry (height, the gap under it, what has to clear it) is the
+ *  `--admin-tab-*` set in globals.css. */
+export function TabBar() {
   const pathname = usePathname()
 
   return (
-    <>
-      {/* `vt-app-header` names the bar out of the page snapshot so it holds
-          still while the content under it cross-fades — see globals.css
-          § View transitions. */}
-      <header
-        className="vt-app-header sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+    // `vt-app-tabs` names the bar out of the page snapshot so it holds still
+    // while the content under it cross-fades — see globals.css § View
+    // transitions. The strip itself is inert: only the pill takes taps, so a
+    // thumb landing beside it still reaches the content underneath.
+    <nav
+      className="vt-app-tabs pointer-events-none fixed inset-x-0 bottom-tabs z-30 px-app-gutter md:hidden"
+      aria-label="Primary"
+    >
+      <Material
+        level="thick"
+        elevation="chrome"
+        className="pointer-events-auto mx-auto flex max-w-sm overflow-hidden rounded-app-chrome border border-material-hairline"
       >
-        <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-2 sm:px-6 sm:py-3">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <LogoMark className="size-5" />
-            <span>Consultancy JN</span>
-          </Link>
+        {links.map((link) => {
+          const active = isActive(pathname, link.href)
+          const Icon = link.icon
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={active ? "page" : undefined}
+              // A full-height 3.5rem target, one third of the pill, so it can
+              // be hit one-handed without aiming.
+              className={cn(
+                "flex h-[var(--admin-tab-height)] flex-1 flex-col items-center justify-center gap-1",
+                "text-app-caption-2 font-medium transition-colors spring-press",
+                "active:bg-app-press",
+                active ? "text-app-tint" : "text-material-label-3"
+              )}
+            >
+              <Icon className="size-5" aria-hidden />
+              <span className="leading-none">{link.label}</span>
+            </Link>
+          )
+        })}
+      </Material>
+    </nav>
+  )
+}
 
-          {/* Desktop-only inline links; the phone uses the bottom tab bar. */}
-          <nav className="hidden items-center gap-4 text-sm sm:flex">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                className={cn(
-                  "transition-colors hover:text-foreground active:text-foreground",
-                  isActive(pathname, link.href)
-                    ? "font-medium text-foreground"
-                    : "text-muted-foreground"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+// ------------------------------------------------------------------
+// Wide viewports: the sidebar.
+// ------------------------------------------------------------------
 
-          <form action={logout} className="ml-auto">
-            <Button type="submit" variant="ghost" size="sm">
-              Sign out
-            </Button>
-          </form>
-        </div>
-      </header>
+/** The leading sidebar — the tab bar's desktop form. Same three destinations,
+ *  the monogram at the head and sign out at the foot; from here up the compact
+ *  title bar carries no app-level controls of its own. */
+export function Sidebar() {
+  const pathname = usePathname()
 
-      {/* Fixed bottom tab bar — phones only. Padded for the home-indicator area.
-          Each tab is a full-height 3.5rem target so it can be hit one-handed;
-          `bottom-above-tabs` in globals.css is keyed to that height. */}
-      <nav
-        className="vt-app-tabs fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-safe sm:hidden"
-        aria-label="Primary"
+  return (
+    // Named out of the page snapshot for the same reason as the tab bar: it is
+    // the same sidebar on both pages and should not slide with the content.
+    <aside className="vt-app-sidebar fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-app-separator bg-app-group md:flex">
+      <Link
+        href="/"
+        className="flex min-h-app-touch items-center gap-2 px-4 py-4 text-app-headline font-semibold text-app-label"
       >
-        <div className="mx-auto grid max-w-5xl grid-cols-3">
-          {links.map((link) => {
-            const active = isActive(pathname, link.href)
-            const Icon = link.icon
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors active:bg-muted",
-                  active ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                <Icon className="size-5" aria-hidden />
-                <span className="leading-none">{link.label}</span>
-              </Link>
-            )
-          })}
-        </div>
+        <LogoMark className="size-5 shrink-0" aria-hidden />
+        <span className="truncate">Consultancy JN</span>
+      </Link>
+
+      <nav className="flex flex-1 flex-col gap-1 px-3 py-2" aria-label="Primary">
+        {links.map((link) => {
+          const active = isActive(pathname, link.href)
+          const Icon = link.icon
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "flex min-h-app-touch items-center gap-3 rounded-app-control px-3",
+                "text-app-callout font-medium transition-colors spring-press",
+                active
+                  ? "bg-app-press text-app-tint"
+                  : "text-app-label-2 hover:bg-app-press active:bg-app-press"
+              )}
+            >
+              <Icon className="size-5 shrink-0" aria-hidden />
+              <span className="truncate">{link.label}</span>
+            </Link>
+          )
+        })}
       </nav>
-    </>
+
+      <form action={logout} className="border-t border-app-separator p-3">
+        <button
+          type="submit"
+          className={cn(
+            "flex w-full min-h-app-touch items-center gap-3 rounded-app-control px-3",
+            "text-app-callout font-medium text-app-label-2 transition-colors spring-press",
+            "hover:bg-app-press active:bg-app-press"
+          )}
+        >
+          <LogOut className="size-5 shrink-0" aria-hidden />
+          Sign out
+        </button>
+      </form>
+    </aside>
   )
 }

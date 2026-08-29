@@ -208,7 +208,13 @@ function GroupedRow({
         </span>
       )}
 
-      {children}
+      {/* Under `asChild` the row's own parts — icon, label, value, chevron —
+          have to end up *inside* the caller's element, not beside it. Slottable
+          is what marks this position as the caller's element rather than as
+          another child, so Slot re-parents the rest into it. Without it a row
+          with a label (which is every row) hands Slot more than one child and
+          it throws. Outside `asChild` it is a fragment and does nothing. */}
+      <Slot.Slottable>{children}</Slot.Slottable>
 
       {showChevron && (
         <ChevronRight
