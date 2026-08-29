@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CreditCard, Github, Settings2 } from "lucide-react"
+import { CreditCard, GitBranch, Settings2 } from "lucide-react"
 
 import {
   GroupedRow,
@@ -48,7 +48,7 @@ export function LeadDeliveryCard({
     >
       {githubRepo ? (
         <GroupedRow
-          icon={<Github />}
+          icon={<GitBranch />}
           label="Delivery repo"
           value={<span className="font-mono">{githubRepo}</span>}
           href={`https://github.com/${githubRepo}`}
@@ -57,7 +57,7 @@ export function LeadDeliveryCard({
         />
       ) : (
         <GroupedRow
-          icon={<Github />}
+          icon={<GitBranch />}
           label="Delivery repo"
           chevron={false}
           value="Not connected"

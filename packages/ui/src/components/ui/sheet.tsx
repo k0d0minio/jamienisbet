@@ -93,7 +93,13 @@ const TAP_SLOP = 4
 const PHONE_QUERY = "(max-width: 39.9375rem)"
 
 function usePhone(): boolean {
-  const [phone, setPhone] = React.useState(false)
+  // Read on the first render rather than in an effect: a sheet opening at its
+  // content height and then jumping to its detent one frame later is exactly
+  // the kind of thing this tier exists to stop. Safe to read the DOM here —
+  // a sheet's content only ever mounts on the client, when it opens.
+  const [phone, setPhone] = React.useState(
+    () => typeof window !== "undefined" && window.matchMedia(PHONE_QUERY).matches
+  )
   React.useEffect(() => {
     const query = window.matchMedia(PHONE_QUERY)
     const sync = () => setPhone(query.matches)

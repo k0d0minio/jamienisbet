@@ -13,7 +13,7 @@ import {
 import { AppProfileScreen } from "@/components/app-screen"
 import { ClientActions } from "@/components/client-actions"
 import { ViewTransitionLink } from "@/components/view-transition-link"
-import { DealBadges } from "@/components/deal-badges"
+import { DealBadges, hasDealTerms } from "@/components/deal-badges"
 import { FormLinks } from "@/components/form-links"
 import { LeadActionRow } from "@/components/lead-action-row"
 import { LeadContactCard } from "@/components/lead-contact-card"
@@ -129,7 +129,7 @@ export default async function LeadDetailPage({
         money ? (client.billingType === "monthly" ? "Per month" : "Value") : undefined
       }
       badges={
-        archived || gaps.length > 0 || client.workStartedAt !== null ? (
+        archived || gaps.length > 0 || hasDealTerms(client) ? (
           <div className="flex flex-wrap items-center gap-1.5">
             {archived ? <Badge variant="outline">Archived</Badge> : null}
             {/* The same badges the leads list carries, so what kind of deal
@@ -143,9 +143,7 @@ export default async function LeadDetailPage({
               </Badge>
             ))}
           </div>
-        ) : (
-          <DealBadges client={client} />
-        )
+        ) : undefined
       }
       back={
         // A real target, not a 14px arrow, and tinted the way a back control

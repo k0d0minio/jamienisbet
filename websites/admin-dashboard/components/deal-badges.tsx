@@ -21,8 +21,10 @@ export type DealTerms = Pick<
 >
 
 /** Whether there is anything to show at all — a plain cash deal that hasn't
- * started yet renders nothing, which is most rows most of the time. */
-function hasDealTerms(client: DealTerms): boolean {
+ * started yet renders nothing, which is most rows most of the time. Exported
+ * because a caller laying out around the badges has to know whether there
+ * will be any. */
+export function hasDealTerms(client: DealTerms): boolean {
   return (
     client.dealType !== "cash" ||
     (client.commissionBps ?? 0) > 0 ||
