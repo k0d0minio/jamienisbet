@@ -54,7 +54,11 @@ name) or `IdentityHeader` (a profile: `Monogram`, name, meta, the figure in mono
 `ActionCircleRow` / `ActionCircle` for the actions under an identity — an action the record
 can't support is disabled, never hidden — and `GlanceRow` / `GlanceFigure` for what a list
 screen adds up to, in place of a subtitle sentence. A closed set of filters is a
-`SegmentedControl`; an open-ended one stays a scrolling rail. A phone sheet that holds a form takes native
+`SegmentedControl`; an open-ended one stays a scrolling rail. A form field is an `AppField`
+around an `AppInput` / `AppTextarea` / `AppSelect` — the tier's own controls, never the
+marketing `Input`/`Label`/`Select`, which are 36px on a 5px radius and read as a website
+form inside a sheet. `AppField` carries the label, the hint, the error and the aria wiring,
+so a call site writes no ids. A phone sheet that holds a form takes native
 detents: `<SheetContent detents={["medium", "large"]}>`. Reach for those before a table or a
 bare `Card`; the desktop tables are being retired, one codepath from phone to laptop.
 
@@ -100,8 +104,11 @@ A screen is not done when the happy path renders:
 
 The admin is an installed, one-handed PWA; the marketing sites are read on phones.
 
-- Interactive targets ≥ 44px on coarse pointers (the floor is lifted globally in the
-  admin's `globals.css` — don't undo it, and don't add controls that dodge it).
+- Interactive targets ≥ 44px. On the app tier that is in the control's own class list
+  (`min-h-app-touch`) — a grouped row, a tab, an action circle, every field — so it holds on
+  a laptop too, not only behind a media query. What is still lifted globally in the admin's
+  `globals.css` is the marketing `Button`, the one control with no app-tier sibling: don't
+  undo that, and don't add controls that dodge either floor.
 - Primary actions live in the thumb zone; destructive ones do not.
 - One-handed entry points are bottom sheets (`Sheet`), not centred dialogs.
 - Nothing may be hover-only — every hover affordance needs a visible-on-touch form.
@@ -142,6 +149,7 @@ Run this list against the diff:
 - [ ] Empty, loading, and error states designed, not defaulted
 - [ ] Works one-handed on a phone: targets, thumb zone, sheets, no hover-only
 - [ ] Motion within brand rules and reduced-motion safe
-- [ ] On the app tier: grouped-list primitives reused, materials and elevation from the tier's
-      tokens, springs named by pattern — and nothing app-tier leaked into a marketing site
+- [ ] On the app tier: grouped-list and form primitives reused (`AppField`, not `Label` +
+      `Input`), materials and elevation from the tier's tokens, springs named by pattern —
+      and nothing app-tier leaked into a marketing site
 - [ ] Copy is sentence case, mono where it's a figure, free of emoji and hype

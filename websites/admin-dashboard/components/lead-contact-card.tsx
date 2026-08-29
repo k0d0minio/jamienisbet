@@ -4,12 +4,12 @@ import { useState, useTransition } from "react"
 import { Building2, Check, Copy, Mail, MessageCircle, Pencil } from "lucide-react"
 
 import {
+  AppField,
+  AppInput,
   Button,
   GroupedBlock,
   GroupedRow,
   GroupedSection,
-  Input,
-  Label,
   PendingButton,
   Sheet,
   SheetContent,
@@ -172,10 +172,8 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
             }
             className="grid gap-3"
           >
-            <div className="grid gap-1.5">
-              <Label htmlFor="contact-name">Name</Label>
-              <Input
-                id="contact-name"
+            <AppField label="Name">
+              <AppInput
                 name="name"
                 defaultValue={client.name}
                 required
@@ -183,11 +181,9 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                 autoCapitalize="words"
                 enterKeyHint="next"
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="contact-company">Company</Label>
-              <Input
-                id="contact-company"
+            </AppField>
+            <AppField label="Company">
+              <AppInput
                 name="company"
                 defaultValue={client.company ?? ""}
                 placeholder="—"
@@ -195,11 +191,9 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                 autoCapitalize="words"
                 enterKeyHint="next"
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="contact-email">Email</Label>
-              <Input
-                id="contact-email"
+            </AppField>
+            <AppField label="Email">
+              <AppInput
                 name="email"
                 type="email"
                 inputMode="email"
@@ -211,11 +205,9 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                 defaultValue={client.email ?? ""}
                 placeholder="—"
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="contact-phone">Phone</Label>
-              <Input
-                id="contact-phone"
+            </AppField>
+            <AppField label="Phone">
+              <AppInput
                 name="phone"
                 type="tel"
                 inputMode="tel"
@@ -226,7 +218,7 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                 defaultValue={client.phone ?? ""}
                 placeholder="—"
               />
-            </div>
+            </AppField>
             <PendingButton
               pending={pending}
               pendingText="Saving…"

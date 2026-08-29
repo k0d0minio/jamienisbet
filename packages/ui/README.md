@@ -58,7 +58,7 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
-| App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material` — see [App tier](#app-tier) |
+| App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material`, `AppField` (+ `AppLabel`/`AppInput`/`AppTextarea`), `AppSelect` (+ its parts) — see [App tier](#app-tier) |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
@@ -215,8 +215,25 @@ What it adds, all through utilities so a call site never touches a raw value:
 | **Motion** | `spring-sheet` / `spring-header` / `spring-press` / `spring-pop` | `--spring-*`, `--duration-*` |
 | **Type** | `font-app`, `text-app-large-title` → `text-app-caption-2` | `--app-font`, `--app-text-*`, `--app-leading-*`, `--app-tracking-*` |
 | **Shape** | `rounded-app-row` / `-control` / `-group` / `-card` / `-chrome` / `-sheet` | `--app-radius-*` |
-| **Surfaces** | `bg-app-canvas` / `bg-app-group` / `bg-app-press`, `text-app-label`(`-2`/`-3`), `text-app-tint`, `border-app-separator` | `--app-*` |
+| **Surfaces** | `bg-app-canvas` / `bg-app-group` / `bg-app-press` / `bg-app-field`, `text-app-label`(`-2`/`-3`), `text-app-tint`, `border-app-separator` / `border-app-field-border` | `--app-*` |
 | **Layout** | `px-app-gutter`, `gap-app-section`, `min-h-app-touch`, `min-h-app-bar` | `--app-gutter`, `--app-group-gap`, `--app-touch-min`, `--app-bar-height` |
+
+The tier's **form controls** are siblings to the shadcn primitives, not a variant on them —
+`AppField` wrapping an `AppInput`, `AppTextarea` or `AppSelect`:
+
+```tsx
+<AppField label="Amount" hint="Before VAT." error={state.error}>
+  <AppInput name="amount" inputMode="decimal" placeholder="1500.00" required />
+</AppField>
+```
+
+`AppField` owns the label, the hint, the error and the `id` / `aria-describedby` /
+`aria-invalid` wiring between them, so the control inside needs no id of its own (pass one
+and it wins). Every control is 44px tall on every pointer, at 17px — over the threshold
+where iOS zooms the page on focus. `AppSelect` is the whole set rather than a restyled
+trigger: its menu is a material with 44px rows. Its trigger takes `variant="plain"` for the
+pull-down menu button — a value in the tint with a chevron and no box — used where a choice
+is made from inside a list row.
 
 Springs are **critically damped** — they settle, they never overshoot — so the brand's
 no-bounce rule survives; only the shape of the deceleration changes. Durations collapse to

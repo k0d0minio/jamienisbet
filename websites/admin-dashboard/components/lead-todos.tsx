@@ -4,12 +4,12 @@ import { useOptimistic, useState, useTransition } from "react"
 import { Circle, CircleCheck, Plus, Trash2 } from "lucide-react"
 
 import {
+  AppField,
+  AppInput,
   Button,
   GroupedBlock,
   GroupedRow,
   GroupedSection,
-  Input,
-  Label,
   PendingButton,
   Sheet,
   SheetContent,
@@ -190,10 +190,8 @@ export function LeadTodos({
           >
             {/* On a lead's own page the lead is fixed — no picker, no doubt. */}
             <input type="hidden" name="clientId" value={clientId} />
-            <div className="grid gap-1.5">
-              <Label htmlFor="todo-title">What needs doing</Label>
-              <Input
-                id="todo-title"
+            <AppField label="What needs doing">
+              <AppInput
                 name="title"
                 required
                 autoFocus
@@ -204,11 +202,10 @@ export function LeadTodos({
                 enterKeyHint="done"
                 autoCapitalize="sentences"
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="todo-due">Due (optional)</Label>
-              <Input id="todo-due" name="dueDate" type="date" />
-            </div>
+            </AppField>
+            <AppField label="Due (optional)">
+              <AppInput name="dueDate" type="date" />
+            </AppField>
             <PendingButton
               pending={adding}
               pendingText="Adding…"

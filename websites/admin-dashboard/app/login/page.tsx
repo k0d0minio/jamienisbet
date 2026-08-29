@@ -13,22 +13,22 @@ export const metadata: Metadata = {
 // before any data has loaded. It used to be a shadcn Card on the marketing
 // tier, which is exactly the "website with a login" the redesign was against.
 //
-// Two deliberate departures from the checklist that cut this pass:
+// One deliberate departure from the checklist that cut this pass: **the panel
+// is a lifted surface, not a material.** A material's whole job is blurring
+// what scrolls beneath it, and nothing is behind this one: over a flat canvas,
+// `material-thick` resolves to within a percent of `--app-group` and costs a
+// backdrop-filter to get there. Blur for decoration is the one thing the tier's
+// amendment did not license.
 //
-//   - **The panel is a lifted surface, not a material.** A material's whole job
-//     is blurring what scrolls beneath it, and nothing is behind this one: over
-//     a flat canvas, `material-thick` resolves to within a percent of
-//     `--app-group` and costs a backdrop-filter to get there. Blur for
-//     decoration is the one thing the tier's amendment did not license.
-//   - **The field is the app's ordinary field.** Every form in the admin — add
-//     a lead, the todo sheet, the profile's edit sheets — uses the design
-//     system's `Input`; giving login its own would make it the odd screen out
-//     again, just differently. App-tier form controls are a package-wide
-//     question, filed as its own ticket.
+// The second departure has since closed. The field was left on the design
+// system's marketing `Input` because giving login its own would have made it
+// the odd screen out again, just differently — and it now uses `AppField` and
+// `AppInput` along with every other form in the admin, which is what that
+// ticket was waiting for.
 //
-// What did change is everything the screen owns: the identity above the panel,
-// the native type scale, the tier's radius and elevation, the safe areas a
-// standalone window needs, and the keyboard attributes below.
+// Everything else the screen owns was settled here: the identity above the
+// panel, the native type scale, the tier's radius and elevation, the safe areas
+// a standalone window needs, and the keyboard attributes on the field.
 export default function LoginPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-6 px-app-gutter pt-screen-safe pb-screen-safe">

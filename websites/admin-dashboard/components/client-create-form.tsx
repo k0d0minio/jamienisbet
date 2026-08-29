@@ -4,14 +4,15 @@ import { useRef, useState, useTransition } from "react"
 import { Plus } from "lucide-react"
 
 import {
+  AppField,
+  AppInput,
+  AppSelect,
+  AppSelectContent,
+  AppSelectItem,
+  AppSelectTrigger,
+  AppSelectValue,
+  AppTextarea,
   Button,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   PendingButton,
   SegmentedControl,
   SegmentedItem,
@@ -21,7 +22,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  Textarea,
   cn,
   toast,
 } from "@jamie-nisbet/ui"
@@ -64,7 +64,11 @@ const KINDS = [
     description:
       "Name is all that's needed — the rest can be filled in on their profile.",
     submit: "Add lead",
-    placeholder: "Where they came from, what they need… (optional)",
+    // The box at the foot of the form, which writes to a different column
+    // depending on which of these you are adding — so it needs a different
+    // label too, not just a different placeholder.
+    note: "How they came in (optional)",
+    placeholder: "Where they came from, what they need…",
     // Their own words about why they're here: the intake payload, same column
     // the public contact form writes to.
     field: "intakeMessage",
@@ -77,7 +81,8 @@ const KINDS = [
     description:
       "Someone already paying. Their value keeps the totals on this page honest from the start.",
     submit: "Add customer",
-    placeholder: "What you're doing for them, where things stand… (optional)",
+    note: "Working notes (optional)",
+    placeholder: "What you're doing for them, where things stand…",
     // Nothing was "taken in" from a customer you're already working with, so the
     // same box writes to working notes instead of the intake column.
     field: "notes",
@@ -212,42 +217,54 @@ export function ClientCreateForm() {
         >
           <input type="hidden" name="status" value={kind.status} />
 
+          {/* The four identity fields carry their label rather than leaning on
+              a placeholder: a placeholder is gone the moment you type into it,
+              which on the tallest form in the app means scrolling back up to
+              remember which box the phone number went in. */}
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input
-              name="name"
-              placeholder="Name"
-              required
-              autoFocus
-              autoComplete="name"
-              autoCapitalize="words"
-              enterKeyHint="next"
-            />
-            <Input
-              name="company"
-              placeholder="Company (optional)"
-              autoComplete="organization"
-              autoCapitalize="words"
-              enterKeyHint="next"
-            />
-            <Input
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              enterKeyHint="next"
-              placeholder="Email (optional)"
-            />
-            <Input
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              enterKeyHint="next"
-              placeholder="Phone (optional)"
-            />
+            <AppField label="Name">
+              <AppInput
+                name="name"
+                placeholder="Ana Ferreira"
+                required
+                autoFocus
+                autoComplete="name"
+                autoCapitalize="words"
+                enterKeyHint="next"
+              />
+            </AppField>
+            <AppField label="Company (optional)">
+              <AppInput
+                name="company"
+                placeholder="—"
+                autoComplete="organization"
+                autoCapitalize="words"
+                enterKeyHint="next"
+              />
+            </AppField>
+            <AppField label="Email (optional)">
+              <AppInput
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="next"
+                placeholder="—"
+              />
+            </AppField>
+            <AppField label="Phone (optional)">
+              <AppInput
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                enterKeyHint="next"
+                placeholder="—"
+              />
+            </AppField>
           </div>
 
           {/* What they're worth, asked for only when adding a customer. A lead's
@@ -260,52 +277,49 @@ export function ClientCreateForm() {
               total by waiting, so it belongs on the profile. */}
           {isCustomer ? (
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="value">Value (€)</Label>
-                <Input
-                  id="value"
+              <AppField label="Value (€)">
+                <AppInput
                   name="value"
                   inputMode="decimal"
                   enterKeyHint="next"
                   placeholder="0.00"
                 />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="billingType">Billed</Label>
-                <Select name="billingType" defaultValue="one_off">
-                  <SelectTrigger id="billingType" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="one_off">One-off</SelectItem>
-                    <SelectItem value="monthly">Every month</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="dealType">Paid in</Label>
-                <Select name="dealType" defaultValue="cash">
-                  <SelectTrigger id="dealType" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="barter">Services</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              </AppField>
+              <AppField label="Billed">
+                <AppSelect name="billingType" defaultValue="one_off">
+                  <AppSelectTrigger className="w-full">
+                    <AppSelectValue />
+                  </AppSelectTrigger>
+                  <AppSelectContent>
+                    <AppSelectItem value="one_off">One-off</AppSelectItem>
+                    <AppSelectItem value="monthly">Every month</AppSelectItem>
+                  </AppSelectContent>
+                </AppSelect>
+              </AppField>
+              <AppField label="Paid in">
+                <AppSelect name="dealType" defaultValue="cash">
+                  <AppSelectTrigger className="w-full">
+                    <AppSelectValue />
+                  </AppSelectTrigger>
+                  <AppSelectContent>
+                    <AppSelectItem value="cash">Cash</AppSelectItem>
+                    <AppSelectItem value="barter">Services</AppSelectItem>
+                  </AppSelectContent>
+                </AppSelect>
+              </AppField>
             </div>
           ) : null}
 
           {/* Keyed on the kind so switching gives a genuinely empty box rather
               than carrying text written for the other one into a new column. */}
-          <Textarea
-            key={kind.field}
-            name={kind.field}
-            rows={2}
-            autoCapitalize="sentences"
-            placeholder={kind.placeholder}
-          />
+          <AppField key={kind.field} label={kind.note}>
+            <AppTextarea
+              name={kind.field}
+              rows={2}
+              autoCapitalize="sentences"
+              placeholder={kind.placeholder}
+            />
+          </AppField>
 
           {error ? (
             <p className="text-app-footnote text-destructive">{error}</p>

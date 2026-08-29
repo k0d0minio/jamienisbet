@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { Pencil } from "lucide-react"
 
 import {
+  AppTextarea,
   GroupedBlock,
   GroupedRow,
   GroupedSection,
@@ -14,7 +15,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  Textarea,
   toast,
 } from "@jamie-nisbet/ui"
 
@@ -71,7 +71,7 @@ export function LeadNotesCard({ id, notes }: { id: string; notes: string | null 
             }
             className="grid gap-3"
           >
-            <Textarea
+            <AppTextarea
               name="notes"
               rows={8}
               autoFocus

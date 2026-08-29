@@ -268,23 +268,28 @@
   }
 
   /* ----------------------------------------------------------------
-     Touch targets. The design system is sized for a mouse (h-8 / h-9
-     controls); on a finger those are all under the ~44px anyone can
-     hit reliably. Rather than annotate every call site, lift the
-     floor once for coarse pointers — visual size is unchanged on
-     desktop, and nothing here alters layout on a mouse.
+     Touch targets, for what the design system still sizes for a mouse.
 
-     The app tier's own controls set their own floor (`min-h-app-touch`
-     on a grouped row, a 3.5rem tab), so this covers what the design
-     system still ships for both tiers: buttons, inputs, selects. The
-     checkbox rule that used to live here went with the todo checkbox
-     the redesign replaced — a grouped row with role="checkbox" is
-     44px on its own.
+     This used to cover inputs and select triggers too. It no longer
+     needs to: the app tier ships its own form controls (AppInput,
+     AppTextarea, AppSelectTrigger), and every one of them is
+     `min-h-app-touch` in its own class list — 44px on a laptop as much
+     as on a phone, which is the point. A control that is only
+     finger-sized behind a media query is a control that reads at 36px
+     in every screenshot, every desktop session, and every sheet on an
+     iPad; the query was patching the symptom.
+
+     What is left is the button, which is still the marketing tier's
+     h-9 in 21 files here and has no app-tier sibling. Lifting it once
+     for coarse pointers beats annotating every call site, and nothing
+     here alters layout on a mouse. When a button of this tier's own
+     lands, this block goes with it.
+
+     Everything else already sets its own floor: a grouped row, a tab,
+     an action circle, and now every field.
      ---------------------------------------------------------------- */
   @media (pointer: coarse) {
-    [data-slot="button"]:not([data-size="xs"]):not([data-size="icon-xs"]),
-    [data-slot="select-trigger"],
-    [data-slot="input"] {
+    [data-slot="button"]:not([data-size="xs"]):not([data-size="icon-xs"]) {
       min-height: 2.75rem;
     }
 

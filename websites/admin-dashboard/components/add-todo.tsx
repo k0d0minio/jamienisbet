@@ -4,14 +4,14 @@ import { useRef, useState, useTransition } from "react"
 import { Plus } from "lucide-react"
 
 import {
-  Input,
-  Label,
+  AppField,
+  AppInput,
+  AppSelect,
+  AppSelectContent,
+  AppSelectItem,
+  AppSelectTrigger,
+  AppSelectValue,
   PendingButton,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -111,10 +111,8 @@ export function AddTodo({ leads }: { leads: TodoLead[] }) {
             value={lead === NO_LEAD ? "" : lead}
           />
 
-          <div className="grid gap-1.5">
-            <Label htmlFor="feed-todo-title">What needs doing</Label>
-            <Input
-              id="feed-todo-title"
+          <AppField label="What needs doing">
+            <AppInput
               name="title"
               required
               autoFocus
@@ -124,34 +122,31 @@ export function AddTodo({ leads }: { leads: TodoLead[] }) {
               enterKeyHint="done"
               autoCapitalize="sentences"
             />
-          </div>
+          </AppField>
 
-          <div className="grid gap-1.5">
-            <Label htmlFor="feed-todo-due">Due</Label>
-            <Input id="feed-todo-due" name="dueDate" type="date" />
-            <p className="text-app-footnote text-app-label-3">
-              A todo without a date is filed but never chases you — the feed
-              only shows what has come due.
-            </p>
-          </div>
+          <AppField
+            label="Due"
+            hint="A todo without a date is filed but never chases you — the feed only shows what has come due."
+          >
+            <AppInput name="dueDate" type="date" />
+          </AppField>
 
           {leads.length > 0 ? (
-            <div className="grid gap-1.5">
-              <Label htmlFor="feed-todo-lead">Who it&apos;s about</Label>
-              <Select value={lead} onValueChange={setLead}>
-                <SelectTrigger id="feed-todo-lead" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_LEAD}>No lead</SelectItem>
+            <AppField label="Who it's about">
+              <AppSelect value={lead} onValueChange={setLead}>
+                <AppSelectTrigger className="w-full">
+                  <AppSelectValue />
+                </AppSelectTrigger>
+                <AppSelectContent>
+                  <AppSelectItem value={NO_LEAD}>No lead</AppSelectItem>
                   {leads.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
+                    <AppSelectItem key={option.id} value={option.id}>
                       {option.name}
-                    </SelectItem>
+                    </AppSelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </AppSelectContent>
+              </AppSelect>
+            </AppField>
           ) : null}
 
           <PendingButton

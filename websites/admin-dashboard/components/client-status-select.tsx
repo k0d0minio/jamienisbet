@@ -3,11 +3,11 @@
 import { useOptimistic, useTransition } from "react"
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  AppSelect,
+  AppSelectContent,
+  AppSelectItem,
+  AppSelectTrigger,
+  AppSelectValue,
   cn,
   toast,
 } from "@jamie-nisbet/ui"
@@ -27,8 +27,10 @@ const STATUSES = ["new", "talking", "client", "lost"] as const
 //
 // A menu button in a row, not a form field: no box, no shadow, the value set in
 // the tint with a chevron after it, the way a pull-down menu reads on this
-// tier. The 44px floor still applies on a coarse pointer (globals.css lifts
-// every select trigger), so an iPad at this width can hit it.
+// tier. That is the app tier select's `plain` trigger — it used to be ten lines
+// of overrides stripping the marketing field back down to this. It is 44px by
+// construction now, rather than by the coarse-pointer floor that used to lift
+// every select trigger in the app, so an iPad at this width can still hit it.
 //
 // On a phone the same change is made on the lead's own page, where it is the
 // first row of the first group and opens a sheet of four full-width rungs
@@ -54,7 +56,7 @@ export function ClientStatusSelect({
   const [status, setStatus] = useOptimistic(value)
 
   return (
-    <Select
+    <AppSelect
       // Controlled by the optimistic value rather than `defaultValue`, or the
       // trigger would keep showing whatever it was first mounted with.
       value={status}
@@ -72,33 +74,16 @@ export function ClientStatusSelect({
         })
       }
     >
-      <SelectTrigger
-        size="sm"
-        className={cn(
-          // Strip the field: a row's control is the value plus a chevron.
-          // Left-aligned inside its fixed column, so the chevron stays with
-          // the word instead of drifting to the far edge of the slot.
-          "justify-start gap-1 rounded-app-control border-0 bg-transparent px-2 shadow-none",
-          "min-h-app-touch text-app-subhead font-medium text-app-tint capitalize",
-          "transition-colors spring-press hover:bg-app-press active:bg-app-press",
-          "dark:bg-transparent dark:hover:bg-app-press",
-          "[&_svg:not([class*='text-'])]:text-app-tint",
-          className
-        )}
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent className="rounded-app-control shadow-app-popover">
+      <AppSelectTrigger variant="plain" className={cn("capitalize", className)}>
+        <AppSelectValue />
+      </AppSelectTrigger>
+      <AppSelectContent>
         {STATUSES.map((option) => (
-          <SelectItem
-            key={option}
-            value={option}
-            className="text-app-subhead capitalize"
-          >
+          <AppSelectItem key={option} value={option} className="capitalize">
             {option}
-          </SelectItem>
+          </AppSelectItem>
         ))}
-      </SelectContent>
-    </Select>
+      </AppSelectContent>
+    </AppSelect>
   )
 }

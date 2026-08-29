@@ -113,6 +113,9 @@
   --color-app-separator: var(--app-separator);
   --color-app-track: var(--app-track);
   --color-app-press: var(--app-press);
+  /* The recess a form field is cut into, and the hairline round it. */
+  --color-app-field: var(--app-field);
+  --color-app-field-border: var(--app-field-border);
   --color-app-label: var(--app-label);
   --color-app-label-2: var(--app-label-2);
   --color-app-label-3: var(--app-label-3);

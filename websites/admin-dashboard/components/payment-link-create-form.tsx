@@ -6,9 +6,9 @@ import { Plus } from "lucide-react"
 import {
   Alert,
   AlertDescription,
+  AppField,
+  AppInput,
   GroupedRow,
-  Input,
-  Label,
   PendingButton,
   Sheet,
   SheetContent,
@@ -93,34 +93,28 @@ function PaymentLinkForm() {
       }}
       className="flex flex-col gap-4"
     >
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="name">Product / service</Label>
-        <Input
-          id="name"
+      <AppField label="Product / service">
+        <AppInput
           name="name"
           placeholder="Discovery call"
           required
           enterKeyHint="next"
           autoCapitalize="sentences"
         />
-      </div>
+      </AppField>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="amount">Amount</Label>
-          <Input
-            id="amount"
+        <AppField label="Amount">
+          <AppInput
             name="amount"
             inputMode="decimal"
             enterKeyHint="next"
             placeholder="250.00"
             required
           />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="currency">Currency</Label>
-          <Input
-            id="currency"
+        </AppField>
+        <AppField label="Currency">
+          <AppInput
             name="currency"
             defaultValue="eur"
             maxLength={3}
@@ -129,7 +123,7 @@ function PaymentLinkForm() {
             autoCorrect="off"
             spellCheck={false}
           />
-        </div>
+        </AppField>
       </div>
 
       {state.error ? (
