@@ -35,9 +35,13 @@ export * from "./components/ui/stat"
 // app tier — opt-in, for operated surfaces only (the admin PWA). These
 // need "@jamie-nisbet/ui/app.css" on top of styles.css; the marketing
 // sites import neither the stylesheet nor these components.
+export * from "./components/app/action-circle"
+export * from "./components/app/collapsing-header"
 export * from "./components/app/grouped-list"
+export * from "./components/app/identity-header"
 export * from "./components/app/large-title-header"
 export * from "./components/app/material"
+export * from "./components/app/monogram"
 
 // brand-only primitives
 export * from "./components/brand/eyebrow"

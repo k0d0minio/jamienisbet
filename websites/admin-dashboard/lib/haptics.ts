@@ -1,10 +1,14 @@
 "use client"
 
-// One light tick, for the gestures that commit something without a button being
-// pressed — a swipe past its threshold, where the finger has left the glass and
-// there's nothing to feel. Never on an ordinary tap: the tap already has the
-// press state, and a phone that buzzes at everything is a phone you turn the
-// haptics off on.
+// One light tick, for the moments the screen commits something and the glass
+// should answer: a swipe past its threshold (where the finger has already
+// left and there is nothing to feel), and a control that changes a *state*
+// rather than opening something — a status moved, a lead marked touched, work
+// declared started, a record archived.
+//
+// Never on an ordinary navigation or an opening sheet: those already have a
+// press state and a movement, and a phone that buzzes at everything is a phone
+// you turn the haptics off on.
 //
 // Silent everywhere it isn't supported, which is all of iOS Safari — the
 // gesture still works, it just doesn't answer.

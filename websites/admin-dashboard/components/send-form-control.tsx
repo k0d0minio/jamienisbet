@@ -8,11 +8,18 @@ import {
   AlertDescription,
   AlertTitle,
   Button,
+  GroupedRow,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from "@jamie-nisbet/ui"
 
 import { sendFormToClient } from "@/app/(app)/actions"
@@ -37,10 +44,14 @@ export function SendFormControl({
   // read. Shown here rather than swallowed: a questionnaire missing from the
   // picker with no explanation is the kind of thing you rediscover months later.
   formErrors,
+  // Told when a link has actually been published, so a sheet holding this can
+  // close on the way out. Errors keep it open — the message is in here.
+  onSent,
 }: {
   clientId: string
   forms: FormChoiceView[]
   formErrors: string[]
+  onSent?: () => void
 }) {
   const [pending, startTransition] = useTransition()
   // The lead's own repo sorts first, so a questionnaire written for this client
@@ -53,16 +64,17 @@ export function SendFormControl({
     setError(null)
     startTransition(async () => {
       const result = await sendFormToClient(clientId, formId)
-      if (!result.ok) setError(result.message)
+      if (result.ok) onSent?.()
+      else setError(result.message)
     })
   }
 
   return (
     <div className="flex flex-col gap-3">
       {forms.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-app-subhead text-app-label-3">
           No questionnaires to send. They live in{" "}
-          <code className="rounded-xs bg-muted px-1 py-0.5 text-xs">
+          <code className="rounded-xs bg-app-press px-1 py-0.5 text-app-caption">
             .icm/onboarding/
           </code>{" "}
           — in this repo for general ones, or in this lead&apos;s connected
@@ -79,7 +91,7 @@ export function SendFormControl({
               {forms.map((form) => (
                 <SelectItem key={form.id} value={form.id}>
                   {form.title}
-                  <span className="text-muted-foreground">
+                  <span className="text-app-label-3">
                     {" "}
                     · {form.questionCount}{" "}
                     {form.questionCount === 1 ? "question" : "questions"}
@@ -133,5 +145,54 @@ export function SendFormControl({
         </Alert>
       ) : null}
     </div>
+  )
+}
+
+// The Forms group's own row: sending a questionnaire is a two-tap act on a
+// phone (pick one, send), and a grouped list has no room for a picker and a
+// button on a line — so the row opens a sheet and the control above lives in
+// it. The row is the only part of this file the profile screen renders
+// directly; ConvertFlow and anything else can still use the control on its own.
+export function SendFormRow({
+  clientId,
+  forms,
+  formErrors,
+}: {
+  clientId: string
+  forms: FormChoiceView[]
+  formErrors: string[]
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <GroupedRow
+          icon={<Send />}
+          label="Send a questionnaire"
+          description={
+            forms.length === 0
+              ? "Nothing in the library yet"
+              : `${forms.length} in the library`
+          }
+        />
+      </SheetTrigger>
+      <SheetContent detents={["medium", "large"]}>
+        <SheetHeader>
+          <SheetTitle>Send a questionnaire</SheetTitle>
+          <SheetDescription>
+            Publishing one gives you a link to paste into an email — the
+            dashboard never sends it for you. The answers land back on this
+            page.
+          </SheetDescription>
+        </SheetHeader>
+        <SendFormControl
+          clientId={clientId}
+          forms={forms}
+          formErrors={formErrors}
+          onSent={() => setOpen(false)}
+        />
+      </SheetContent>
+    </Sheet>
   )
 }

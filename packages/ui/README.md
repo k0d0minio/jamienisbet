@@ -54,12 +54,12 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Core | `Button`, `Badge`, `Card` (+ `CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`), `Avatar` (+ `AvatarImage`/`AvatarFallback`) |
 | Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch` |
 | Navigation | `Tabs` (+ `TabsList`/`TabsTrigger`/`TabsContent`) |
-| Overlays | `Dialog` (+ parts), `Sheet` (+ parts) — the phone-first bottom sheet, keyboard-aware |
+| Overlays | `Dialog` (+ parts), `Sheet` (+ parts) — the phone-first bottom sheet, keyboard-aware, optional native detents |
 | Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`) |
 | Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
-| App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`), `LargeTitleHeader`, `Material` — see [App tier](#app-tier) |
+| App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material` — see [App tier](#app-tier) |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
@@ -227,14 +227,25 @@ everything else, so the app follows the OS appearance through one mechanism.
 
 ```tsx
 import {
-  GroupedList, GroupedSection, GroupedRow, LargeTitleHeader, Material,
+  ActionCircle, ActionCircleRow, GroupedList, GroupedSection, GroupedRow,
+  IdentityHeader, Material,
 } from "@jamie-nisbet/ui"
 import { Mail, Phone, Receipt } from "lucide-react"
 
 export function LeadProfile() {
   return (
     <>
-      <LargeTitleHeader title="Ana Ribeiro" subtitle="Keel · first touched 12 Aug" />
+      <IdentityHeader
+        name="Ana Ribeiro"
+        meta="Keel · client"
+        figure="€3,120"
+        figureLabel="Value"
+      >
+        <ActionCircleRow>
+          <ActionCircle icon={<Phone />} label="Call" href="tel:+351910000000" />
+          <ActionCircle icon={<Mail />} label="Email" disabled />
+        </ActionCircleRow>
+      </IdentityHeader>
 
       <GroupedList>
         <GroupedSection header="Contact">
@@ -265,10 +276,18 @@ export function LeadProfile() {
   `<button>` with `onClick`, whatever you hand it with `asChild` (a Next `<Link>`, usually),
   and otherwise a read-only `<div>`. Interactive rows press-deepen, sit on the 44px floor,
   and take the disclosure chevron unless `chevron={false}`.
-- **`LargeTitleHeader` does not listen to scroll.** The large title is in ordinary flow and
-  simply scrolls away; a sentinel and an `IntersectionObserver` fade the material and the
-  compact title in at the moment it clears the bar. `onCollapsedChange` reports the hand-off
-  to anything else that should follow it.
+- **A row can carry an `accessory`** — a copy button beside an address, a delete beside a
+  todo. It renders *outside* the row's own element (a button inside a button is not a
+  thing), and the row gives up its chevron for it.
+- **Neither header listens to scroll.** The masthead is in ordinary flow and simply scrolls
+  away; a sentinel and an `IntersectionObserver` fade the material and the compact title in
+  at the moment it clears the bar. `onCollapsedChange` reports the hand-off to anything else
+  that should follow it. `LargeTitleHeader` and `IdentityHeader` are two mastheads over the
+  one mechanism (`CollapsingHeader`).
+- **Sheets can take detents.** `<SheetContent detents={["medium", "large"]}>` makes the
+  phone sheet rest at native heights: drag the handle between them, drag it off the bottom
+  to dismiss, or tap it to step. It is a phone behaviour — from `sm` up the sheet is the
+  centred dialog it always was.
 - **A figure is still mono.** Pass `<span className="font-mono">€3,120</span>` into a row's
   `value` — the tier changes the UI face, never the brand's signature for numbers.
 

@@ -45,8 +45,8 @@ export function WriteFormToRepoButton({
       {result ? (
         <span
           className={cn(
-            "text-xs break-all",
-            result.ok ? "text-muted-foreground" : "text-destructive"
+            "text-app-footnote break-all",
+            result.ok ? "text-app-label-3" : "text-destructive"
           )}
         >
           {result.message}

@@ -122,9 +122,21 @@ ships its own, and raw values are as banned at an app-tier call site as anywhere
   the `material-*`, `spring-*`, and `app-tier` utilities.
 - `Material` — the translucent surface wrapper (`level` / `elevation` / `edge`).
 - `GroupedList` / `GroupedSection` / `GroupedRow` — the inset grouped list, the tier's main
-  structural unit; it replaces the table on an operating screen.
-- `LargeTitleHeader` — the scroll-linked large title that hands off to a compact material
-  bar.
+  structural unit; it replaces the table on an operating screen. A row can carry an
+  `accessory` (a copy button, a delete) outside its own element.
+- `GroupedBlock` / `GroupedDisclosure` — the two things inside a slab that are not a row:
+  prose and controls, and a native `<details>` fold for reference you read once.
+- `CollapsingHeader` — the scroll-linked hand-off on its own: a masthead in flow, a
+  compact material bar that takes over when it clears. Both headers below are it.
+- `LargeTitleHeader` — a list screen's masthead: the name set large, a quiet line under it.
+- `IdentityHeader` — a profile screen's masthead, the Contacts idiom: disc, name, what they
+  are, and the one figure in mono beside them.
+- `Monogram` — the identity disc: initials in mono on a neutral fill, no photographs.
+- `ActionCircle` / `ActionCircleRow` — the row of tinted discs under an identity. An action
+  the record can't support is **disabled, not hidden**, so the row's shape is learnable.
+- `Sheet` **detents** — `<SheetContent detents={["medium", "large"]}>` gives a phone sheet
+  the native resting heights: drag the handle between them, drag it off the bottom to
+  dismiss, tap it to step. Omit the prop and the sheet is what it always was.
 
 ---
 
@@ -157,7 +169,7 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 
 **Components** (TSX, idiomatic shadcn/ui themed with the brand tokens; import from the `@jamie-nisbet/ui` barrel)
 - `src/components/ui/` — Button, Badge, Card, Avatar, Input, Label, Textarea, Select, Checkbox, Switch, Tabs, Alert, Dialog, Sheet, plus the motion/feedback set: Skeleton, Spinner, Toaster + `toast()`, PendingButton. Compositional where shadcn is (e.g. `Card` + `CardHeader` + `CardTitle`; `Tabs` + `TabsList` + `TabsTrigger`). Also the glanceable data-viz primitives — Stat, Delta, Sparkline, Meter (inline SVG, no chart library; see § Data & figures).
-- `src/components/app/` — the **app-tier** primitives: GroupedList / GroupedSection / GroupedRow, LargeTitleHeader, Material. Exported from the same barrel, but inert unless the surface links `app.css` (see § App tier).
+- `src/components/app/` — the **app-tier** primitives: GroupedList / GroupedSection / GroupedRow / GroupedBlock / GroupedDisclosure, CollapsingHeader, LargeTitleHeader, IdentityHeader, Monogram, ActionCircle / ActionCircleRow, Material. Exported from the same barrel, but inert unless the surface links `app.css` (see § App tier).
 - `src/components/brand/` — Eyebrow, IconButton, LogoMark / LogoMarkSolid (brand-only; no shadcn equivalent).
 - `src/lib/utils.ts` — the `cn()` class-merge helper. Types come from the TSX source.
 

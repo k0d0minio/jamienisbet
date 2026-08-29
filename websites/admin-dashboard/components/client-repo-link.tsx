@@ -34,17 +34,17 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
           href={`https://github.com/${githubRepo}`}
           target="_blank"
           rel="noreferrer"
-          className="font-mono text-sm break-all underline underline-offset-2 hover:text-foreground"
+          className="font-mono text-app-subhead break-all underline underline-offset-2 hover:text-app-label"
         >
           {githubRepo} ↗
         </a>
         {githubDefaultBranch ? (
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className="font-mono text-app-footnote text-app-label-3">
             {githubDefaultBranch}
           </span>
         ) : null}
       </div>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-app-footnote text-app-label-3">
         Connected — this is where the delivery work for them lives.
       </p>
       <Button
@@ -52,7 +52,7 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
         size="sm"
         variant="ghost"
         disabled={pending}
-        className="w-fit text-muted-foreground"
+        className="w-fit text-app-label-3"
         onClick={() => {
           setError(null)
           startTransition(async () => {
@@ -68,7 +68,7 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
       >
         {pending ? "Disconnecting…" : "Disconnect"}
       </Button>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-app-footnote text-destructive">{error}</p> : null}
     </div>
   )
 }
@@ -134,7 +134,7 @@ function ConnectExisting({ id }: { id: string }) {
           {pending ? "Connecting…" : "Connect"}
         </Button>
       </div>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-app-footnote text-destructive">{error}</p> : null}
     </div>
   )
 }
@@ -208,7 +208,7 @@ function CreateNew({
       >
         {pending ? "Creating…" : "Create & connect"}
       </Button>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-app-footnote text-destructive">{error}</p> : null}
     </div>
   )
 }
@@ -233,7 +233,7 @@ export function ClientRepoLink({
   const [scaffoldError, setScaffoldError] = useState<string | null>(null)
 
   const scaffoldNotice = scaffoldError ? (
-    <p className="text-xs text-destructive">{scaffoldError}</p>
+    <p className="text-app-footnote text-destructive">{scaffoldError}</p>
   ) : null
 
   if (githubRepo) {
@@ -251,7 +251,7 @@ export function ClientRepoLink({
 
   if (!configured) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <p className="text-app-footnote text-app-label-3">
         GitHub is not configured — set <code>GITHUB_TOKEN</code> to connect a
         delivery repo.
       </p>
@@ -263,7 +263,7 @@ export function ClientRepoLink({
   // rather than a screen of scroll on a phone.
   return (
     <details className="group">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+      <summary className="flex min-h-app-touch cursor-pointer list-none items-center gap-2 text-app-subhead text-app-label-3 transition-colors hover:text-app-label">
         <ChevronRight
           className="size-4 shrink-0 transition-transform group-open:rotate-90"
           aria-hidden
@@ -271,14 +271,14 @@ export function ClientRepoLink({
         Connect a delivery repo
       </summary>
       <div className="grid gap-4 pt-2">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-app-footnote text-app-label-3">
           Point at the repo their delivery work lives in, or create a fresh one.
         </p>
         <ConnectExisting id={id} />
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" />
+        <div className="flex items-center gap-3 text-app-footnote text-app-label-3">
+          <span className="h-px flex-1 bg-app-separator" />
           or
-          <span className="h-px flex-1 bg-border" />
+          <span className="h-px flex-1 bg-app-separator" />
         </div>
         <CreateNew
           id={id}
