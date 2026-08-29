@@ -51,9 +51,8 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 
 | Group | Components |
 |---|---|
-| Core | `Button`, `Badge`, `Card` (+ `CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`), `Avatar` (+ `AvatarImage`/`AvatarFallback`) |
-| Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Checkbox`, `Switch` |
-| Navigation | `Tabs` (+ `TabsList`/`TabsTrigger`/`TabsContent`) |
+| Core | `Button`, `Badge`, `Card` (+ `CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`) |
+| Forms | `Input`, `Label`, `Textarea`, `Select` (+ parts), `Switch` |
 | Overlays | `Dialog` (+ parts), `Sheet` (+ parts) — the phone-first bottom sheet, keyboard-aware, optional native detents |
 | Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`) |
 | Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
