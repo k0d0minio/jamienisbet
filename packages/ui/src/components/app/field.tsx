@@ -164,11 +164,14 @@ function AppLabel({
 // Input (h-9) and its SelectTrigger (h-9, different padding, different type
 // step).
 //
-// Focus deliberately adds only the border: the tier already draws a 2px inset
-// tint outline on :focus-visible (app.css § app-tier), and a text field always
-// matches :focus-visible — including on a tap — so a focused field is ringed
-// on a phone as well as under a keyboard. A second outset ring on top of that
-// would be the marketing tier's focus drawn twice.
+// Focus adds only the border here, because the indicator itself is already
+// drawn for us twice: the brand's outset ring (tokens/base.css) and, over it,
+// the tier's 2px inset outline (app.css § app-tier) — layered on purpose, so
+// that whichever one a clipping parent throws away, the other survives. A text
+// field matches :focus-visible on a tap as well as under a keyboard, so a
+// focused field is ringed on a phone too. What the border adds is the control's
+// own edge picking up the tint; it is also the edge aria-invalid turns
+// destructive, so the two states share one line rather than competing for it.
 const CONTROL_BASE = [
   "w-full min-w-0 rounded-app-control border border-app-field-border bg-app-field",
   "text-app-body text-app-label",
