@@ -45,8 +45,13 @@ export type InvoiceView = {
   state: InvoiceState
   /** Who it is addressed to, already fallen back to the number or a dash. */
   who: string
-  /** The amount due, pre-formatted — it sets in mono on the row. */
+  /** What the row shows, pre-formatted — it sets in mono. What is still owed
+   *  while anything is owed; what the invoice was for once it is settled, so a
+   *  paid invoice reads as its own value rather than as €0.00. */
   amount: string
+  /** The invoice total, when it differs from the figure on the row — a paid or
+   *  part-paid invoice. Null when the two are the same. */
+  total: string | null
   number: string | null
   created: string
   due: string | null
@@ -98,13 +103,9 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
     })
   }
 
-  // The second line of the row: the state as a tint, then the two facts that
-  // qualify it. Created stands in when there is neither a number nor a due
-  // date, so the line is never empty.
-  const meta =
-    [invoice.number, invoice.due ? `due ${invoice.due}` : null]
-      .filter(Boolean)
-      .join(" · ") || invoice.created
+  // The second line of the row: the state as a tint, then the clock. A draft
+  // has no number and no due date, so it says when it was raised — which is
+  // the only thing about a draft that ages.
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -114,7 +115,19 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
           description={
             <span className="flex items-center gap-1.5">
               <InvoiceStatusBadge state={state} />
-              <span className="truncate">{meta}</span>
+              {/* A machine identifier, so it sets in mono — and it waits for
+                  the width to hold it. On a phone the 250px of second line
+                  goes to the clock, which is what you are scanning for; the
+                  number is one tap away in the sheet, and back on the row as
+                  soon as there is room. */}
+              {invoice.number ? (
+                <span className="hidden shrink-0 font-mono sm:inline">
+                  {invoice.number} ·
+                </span>
+              ) : null}
+              <span className="truncate">
+                {invoice.due ? `due ${invoice.due}` : `raised ${invoice.created}`}
+              </span>
             </span>
           }
           value={
@@ -158,6 +171,16 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
                 )
               }
             />
+            {/* Only when it differs from the figure on the row — an invoice
+                whose total and outstanding are the same number does not need
+                to say it twice. */}
+            {invoice.total ? (
+              <GroupedRow
+                label="Total"
+                chevron={false}
+                value={<span className="font-mono">{invoice.total}</span>}
+              />
+            ) : null}
             <GroupedRow
               label="Created"
               chevron={false}

@@ -69,10 +69,11 @@ export function PaymentLinkActions({ link }: { link: PaymentLinkView }) {
       <SheetTrigger asChild>
         <GroupedRow
           label={product}
+          // A live link says nothing about being live: nearly all of them are,
+          // and a name and an amount is the whole of what a working link is.
+          // Only the exception is marked.
           description={
-            active ? (
-              "Accepting payments"
-            ) : (
+            active ? undefined : (
               <span className="flex items-center gap-1.5">
                 <Badge variant="secondary" className="shrink-0 rounded-full px-2">
                   Inactive

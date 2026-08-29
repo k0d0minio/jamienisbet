@@ -29,7 +29,7 @@ import {
   type PaymentLinkRow,
   type PaymentRow,
 } from "@/lib/finance"
-import { formatEpoch } from "@/lib/format"
+import { formatEpochDay } from "@/lib/format"
 import { invoiceState } from "@/lib/invoice-state"
 import { formatMoney } from "@/lib/money"
 import { isStripeConfigured } from "@/lib/stripe"
@@ -293,10 +293,21 @@ function Invoices({
               isDraft: row.isDraft,
               state: invoiceState(row.status, row.dueDate, now),
               who: row.customerName ?? row.number ?? "Invoice",
-              amount: formatMoney(row.amountDue, row.currency),
+              // What is still owed while anything is owed; what the invoice
+              // was for once it is settled. A paid invoice has an amount due
+              // of nothing, and a row reading €0.00 says nothing about what
+              // landed.
+              amount: formatMoney(
+                row.amountDue > 0 ? row.amountDue : row.total,
+                row.currency
+              ),
+              total:
+                row.amountDue > 0 && row.amountDue !== row.total
+                  ? formatMoney(row.total, row.currency)
+                  : null,
               number: row.number,
-              created: formatEpoch(row.createdDate),
-              due: row.dueDate ? formatEpoch(row.dueDate) : null,
+              created: formatEpochDay(row.createdDate),
+              due: row.dueDate ? formatEpochDay(row.dueDate) : null,
               email: row.customerEmail,
               hostedInvoiceUrl: row.hostedInvoiceUrl,
             }}
@@ -367,8 +378,11 @@ function RecentPayments({ rows }: { rows: PaymentRow[] | null }) {
             key={payment.id}
             label={payment.description ?? "Payment"}
             description={
-              <span className="capitalize">
-                {formatEpoch(payment.createdDate)} · {payment.status}
+              <span>
+                <span className="font-mono">
+                  {formatEpochDay(payment.createdDate)}
+                </span>{" "}
+                · <span className="capitalize">{payment.status}</span>
               </span>
             }
             value={
