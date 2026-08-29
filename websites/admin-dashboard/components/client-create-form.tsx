@@ -105,20 +105,24 @@ export function ClientCreateForm() {
         }
       }}
     >
-      {/* Desktop: an ordinary button beside the page heading. */}
+      {/* Desktop: an ordinary button in the screen's action row. Keyed to `md`,
+          where the chrome swaps the tab bar for the sidebar — the floating
+          button below is positioned against that bar and the two have to hand
+          over on the same breakpoint. */}
       <SheetTrigger asChild>
-        <Button type="button" variant="outline" className="hidden sm:inline-flex">
+        <Button type="button" variant="outline" className="hidden md:inline-flex">
           <Plus />
           Add lead
         </Button>
       </SheetTrigger>
 
-      {/* Phone: a floating button pinned above the tab bar, reachable one-handed. */}
+      {/* Phone: a floating button riding above the tab bar, reachable
+          one-handed. `bottom-above-tabs` reads the bar's own geometry. */}
       <SheetTrigger asChild>
         <Button
           type="button"
           aria-label="Add lead or customer"
-          className="fixed right-4 bottom-above-tabs z-20 size-14 rounded-full shadow-lg sm:hidden"
+          className="fixed right-4 bottom-above-tabs z-20 size-14 rounded-full shadow-app-chrome md:hidden"
         >
           <Plus className="size-6" />
         </Button>

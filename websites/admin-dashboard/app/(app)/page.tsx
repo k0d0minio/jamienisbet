@@ -17,6 +17,7 @@ import {
   type Client,
 } from "@jamie-nisbet/services"
 
+import { AppScreen } from "@/components/app-screen"
 import { ArchiveChip, Chip } from "@/components/chip"
 import { ClientActions } from "@/components/client-actions"
 import { ClientCreateForm } from "@/components/client-create-form"
@@ -129,30 +130,35 @@ function waitedLabel(days: number, open: boolean): string {
   return open ? `Waiting ${elapsed}` : `Last worked ${elapsed} ago`
 }
 
-// The subtitle under the page title: whichever of the three totals are non-zero,
+// The line under the large title: whichever of the three totals are non-zero,
 // separated by dots. Driven by a list rather than nested conditionals — with
 // three figures the "is there one before me?" separator logic is where the bugs
 // would live.
-function TotalsLine({
-  figures,
-}: {
+//
+// A function rather than a component, and inline elements rather than a <p>,
+// because this is handed to the header as its `subtitle` — which already sets
+// the line in the app tier's subhead and owns the paragraph around it. Nothing
+// to show returns nothing, so the header skips the line entirely rather than
+// leaving an empty one under the title.
+function totalsLine(
   figures: { amount: number; label: string }[]
-}) {
+): React.ReactNode {
   const shown = figures.filter((f) => f.amount > 0)
   if (shown.length === 0) return null
 
   return (
-    <p className="text-sm text-muted-foreground">
+    <>
       {shown.map((figure, i) => (
         <span key={figure.label}>
           {i > 0 ? " · " : null}
-          <span className="font-medium text-foreground">
+          {/* Figures in mono — the brand's signature, on every tier. */}
+          <span className="font-mono font-medium text-app-label">
             {formatMoney(figure.amount, "eur")}
           </span>{" "}
           {figure.label}
         </span>
       ))}
-    </p>
+    </>
   )
 }
 
@@ -242,254 +248,250 @@ export default async function LeadsPage({
   const overdueTasks = tasks.filter((t) => t.overdue).length
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6">
-      {/* Title, and what the list adds up to as its subtitle — on a phone that
-          reads as one block instead of a heading with a figure floated beside
-          it that wraps onto its own line anyway. */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-2xl font-semibold">Leads</h1>
-          <TotalsLine
-            figures={[
-              { amount: pipeline, label: "in play" },
-              { amount: monthly, label: "/ month" },
-              { amount: inKind, label: "in kind" },
-            ]}
-          />
-        </div>
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+    // The screen's name sets large and hands off to the compact bar on scroll;
+    // what the list adds up to rides under it as the subtitle.
+    <AppScreen
+      title="Leads"
+      subtitle={totalsLine([
+        { amount: pipeline, label: "in play" },
+        { amount: monthly, label: "/ month" },
+        { amount: inKind, label: "in kind" },
+      ])}
+    >
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex items-center justify-end gap-1 sm:gap-2">
           <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
           {/* Renders the desktop button here and, on a phone, a floating one. */}
           {!archived ? <ClientCreateForm /> : null}
         </div>
-      </div>
 
-      {/* The status filters, as a rail that scrolls sideways rather than
-          wrapping — a second row of chips would push the list down the screen
-          on exactly the width where that hurts most. */}
-      <div className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0">
-        {FILTERS.map((f) => (
-          <Chip
-            key={f.key}
-            href={hrefFor(f.key, archived)}
-            active={f.key === filterKey}
-            count={countFor(f.key)}
-          >
-            {f.label}
-          </Chip>
-        ))}
-      </div>
-
-      {/* The working list — todos and compliance dates. Collapsed by default so
-          the leads stay the page; the summary line carries anything overdue. */}
-      <WorkingList
-        openTasks={tasks.length}
-        overdueTasks={overdueTasks}
-        openCompliance={compliance.length}
-        overdueCompliance={overdueCompliance}
-      >
-        <div className="flex flex-col gap-6 border-t px-4 py-4">
-          <section className="flex flex-col gap-2">
-            <h2 className="text-xs font-medium text-muted-foreground">Todos</h2>
-            <TaskList tasks={tasks} leads={leads} />
-          </section>
-          <section className="flex flex-col gap-2">
-            <h2 className="text-xs font-medium text-muted-foreground">
-              Compliance dates
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Decision-support only — every date needs confirmation by your
-              contabilista.
-            </p>
-            <ComplianceList items={compliance} />
-          </section>
+        {/* The status filters, as a rail that scrolls sideways rather than
+            wrapping — a second row of chips would push the list down the screen
+            on exactly the width where that hurts most. */}
+        <div className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0">
+          {FILTERS.map((f) => (
+            <Chip
+              key={f.key}
+              href={hrefFor(f.key, archived)}
+              active={f.key === filterKey}
+              count={countFor(f.key)}
+            >
+              {f.label}
+            </Chip>
+          ))}
         </div>
-      </WorkingList>
 
-      {error ? (
-        <Alert variant="destructive">
-          <AlertTitle>Database unavailable</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : null}
+        {/* The working list — todos and compliance dates. Collapsed by default so
+            the leads stay the page; the summary line carries anything overdue. */}
+        <WorkingList
+          openTasks={tasks.length}
+          overdueTasks={overdueTasks}
+          openCompliance={compliance.length}
+          overdueCompliance={overdueCompliance}
+        >
+          <div className="flex flex-col gap-6 border-t px-4 py-4">
+            <section className="flex flex-col gap-2">
+              <h2 className="text-xs font-medium text-muted-foreground">Todos</h2>
+              <TaskList tasks={tasks} leads={leads} />
+            </section>
+            <section className="flex flex-col gap-2">
+              <h2 className="text-xs font-medium text-muted-foreground">
+                Compliance dates
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Decision-support only — every date needs confirmation by your
+                contabilista.
+              </p>
+              <ComplianceList items={compliance} />
+            </section>
+          </div>
+        </WorkingList>
 
-      {visible.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            {archived
-              ? "Nothing archived."
-              : rows.length === 0
-                ? "No leads yet — add the first one."
-                : "Nothing under this filter."}
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Phone: one compact row per lead — two lines, no controls in the
-              body. The whole row is the tap target into the profile; the
-              actions ride behind it as gestures. Swipe left: call, email,
-              archive (restore/delete in the archive view). Swipe right: mark
-              touched. Status is read here and changed on the lead's page, one
-              tap away — the dropdown per row was most of the old chunk. */}
-          <ul className="flex flex-col gap-2 md:hidden">
-            {visible.map((row) => {
-              const stale = isStale(row, now)
-              const value = valueLabel(row)
-              return (
-                <li key={row.id}>
-                  <LeadRow
-                    id={row.id}
-                    name={row.name}
-                    phone={row.phone}
-                    email={row.email}
-                    archived={archived}
-                  >
-                    {/* Into the profile and back is the move this screen makes
-                        most; on a browser that supports it the two pages
-                        cross-fade instead of hard-cutting. */}
-                    <ViewTransitionLink
-                      href={`/leads/${row.id}`}
-                      className="flex flex-col gap-0.5 bg-card px-4 py-3 transition-colors active:bg-muted/50"
+        {error ? (
+          <Alert variant="destructive">
+            <AlertTitle>Database unavailable</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {visible.length === 0 ? (
+          <Card>
+            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+              {archived
+                ? "Nothing archived."
+                : rows.length === 0
+                  ? "No leads yet — add the first one."
+                  : "Nothing under this filter."}
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Phone: one compact row per lead — two lines, no controls in the
+                body. The whole row is the tap target into the profile; the
+                actions ride behind it as gestures. Swipe left: call, email,
+                archive (restore/delete in the archive view). Swipe right: mark
+                touched. Status is read here and changed on the lead's page, one
+                tap away — the dropdown per row was most of the old chunk. */}
+            <ul className="flex flex-col gap-2 md:hidden">
+              {visible.map((row) => {
+                const stale = isStale(row, now)
+                const value = valueLabel(row)
+                return (
+                  <li key={row.id}>
+                    <LeadRow
+                      id={row.id}
+                      name={row.name}
+                      phone={row.phone}
+                      email={row.email}
+                      archived={archived}
                     >
-                      <span className="flex items-baseline justify-between gap-3">
-                        <span className="truncate text-[15px] leading-snug font-medium">
-                          {row.name}
-                        </span>
-                        {value ? (
-                          <span className="shrink-0 text-sm font-medium tabular-nums">
-                            {value}
+                      {/* Into the profile and back is the move this screen makes
+                          most; on a browser that supports it the two pages
+                          cross-fade instead of hard-cutting. */}
+                      <ViewTransitionLink
+                        href={`/leads/${row.id}`}
+                        className="flex flex-col gap-0.5 bg-card px-4 py-3 transition-colors active:bg-muted/50"
+                      >
+                        <span className="flex items-baseline justify-between gap-3">
+                          <span className="truncate text-[15px] leading-snug font-medium">
+                            {row.name}
                           </span>
-                        ) : null}
-                      </span>
-                      <span className="flex items-baseline justify-between gap-3 text-xs">
-                        <span
-                          className={cn(
-                            "truncate",
-                            stale
-                              ? "font-medium text-destructive"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          {waitedLabel(daysWaiting(row, now), isOpen(row))}
-                          {row.company ? ` · ${row.company}` : ""}
+                          {value ? (
+                            <span className="shrink-0 text-sm font-medium tabular-nums">
+                              {value}
+                            </span>
+                          ) : null}
                         </span>
-                        <span className="shrink-0 text-muted-foreground capitalize">
-                          {row.status}
-                        </span>
-                      </span>
-                      {/* Barter, commission, equity, started — only the rows
-                          that carry them grow a third line. */}
-                      <DealBadges client={row} className="mt-1" />
-                    </ViewTransitionLink>
-                  </LeadRow>
-                </li>
-              )
-            })}
-          </ul>
-
-          {/* Desktop: table. */}
-          <Card className="hidden md:block">
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b text-left text-muted-foreground">
-                    <tr>
-                      <th className="px-4 py-3 font-medium">Waiting</th>
-                      <th className="px-4 py-3 font-medium">Lead</th>
-                      <th className="px-4 py-3 font-medium">Contact</th>
-                      <th className="px-4 py-3 font-medium text-right">Value</th>
-                      <th className="px-4 py-3 font-medium">Deal</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
-                      <th className="px-4 py-3 font-medium text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visible.map((row) => {
-                      const stale = isStale(row, now)
-                      const value = valueLabel(row)
-                      return (
-                        <tr key={row.id} className="border-b align-top last:border-0">
-                          <td
+                        <span className="flex items-baseline justify-between gap-3 text-xs">
+                          <span
                             className={cn(
-                              "whitespace-nowrap px-4 py-3",
+                              "truncate",
                               stale
                                 ? "font-medium text-destructive"
                                 : "text-muted-foreground"
                             )}
                           >
-                            {waitingLabel(daysWaiting(row, now))}
-                          </td>
-                          <td className="px-4 py-3">
-                            <ViewTransitionLink
-                              href={`/leads/${row.id}`}
-                              className="font-medium underline-offset-2 hover:underline"
+                            {waitedLabel(daysWaiting(row, now), isOpen(row))}
+                            {row.company ? ` · ${row.company}` : ""}
+                          </span>
+                          <span className="shrink-0 text-muted-foreground capitalize">
+                            {row.status}
+                          </span>
+                        </span>
+                        {/* Barter, commission, equity, started — only the rows
+                            that carry them grow a third line. */}
+                        <DealBadges client={row} className="mt-1" />
+                      </ViewTransitionLink>
+                    </LeadRow>
+                  </li>
+                )
+              })}
+            </ul>
+
+            {/* Desktop: table. */}
+            <Card className="hidden md:block">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b text-left text-muted-foreground">
+                      <tr>
+                        <th className="px-4 py-3 font-medium">Waiting</th>
+                        <th className="px-4 py-3 font-medium">Lead</th>
+                        <th className="px-4 py-3 font-medium">Contact</th>
+                        <th className="px-4 py-3 font-medium text-right">Value</th>
+                        <th className="px-4 py-3 font-medium">Deal</th>
+                        <th className="px-4 py-3 font-medium">Status</th>
+                        <th className="px-4 py-3 font-medium text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visible.map((row) => {
+                        const stale = isStale(row, now)
+                        const value = valueLabel(row)
+                        return (
+                          <tr key={row.id} className="border-b align-top last:border-0">
+                            <td
+                              className={cn(
+                                "whitespace-nowrap px-4 py-3",
+                                stale
+                                  ? "font-medium text-destructive"
+                                  : "text-muted-foreground"
+                              )}
                             >
-                              {row.name}
-                            </ViewTransitionLink>
-                            <div className="text-muted-foreground">
-                              {row.company ?? sourceLabel(row.source)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            {row.email ? (
-                              <div>
-                                <a
-                                  className="underline underline-offset-2"
-                                  href={`mailto:${row.email}`}
-                                >
-                                  {row.email}
-                                </a>
-                              </div>
-                            ) : null}
-                            {/* The number reads as itself but opens the
-                                WhatsApp chat — never dials. */}
-                            {row.phone ? (
-                              <a
-                                className="text-muted-foreground underline underline-offset-2"
-                                href={whatsappUrl(row.phone)}
-                                target="_blank"
-                                rel="noreferrer"
+                              {waitingLabel(daysWaiting(row, now))}
+                            </td>
+                            <td className="px-4 py-3">
+                              <ViewTransitionLink
+                                href={`/leads/${row.id}`}
+                                className="font-medium underline-offset-2 hover:underline"
                               >
-                                {row.phone}
-                              </a>
-                            ) : null}
-                            {!row.email && !row.phone ? (
-                              <span className="text-muted-foreground">—</span>
-                            ) : null}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
-                            {value ?? <span className="text-muted-foreground">—</span>}
-                          </td>
-                          {/* How it's settled, beside what it's worth — the two
-                              only mean anything together. Empty for the ordinary
-                              cash deal that hasn't started yet. */}
-                          <td className="px-4 py-3">
-                            <DealBadges client={row} />
-                          </td>
-                          <td className="px-4 py-3">
-                            <ClientStatusSelect id={row.id} value={row.status} />
-                          </td>
-                          {/* Icons only: archive and delete are rare next to
-                              everything else in the row, and spelling them out
-                              gave the least-used column the most width. */}
-                          <td className="px-4 py-3">
-                            <ClientActions
-                              id={row.id}
-                              archived={archived}
-                              compact
-                              className="justify-end"
-                            />
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
-    </div>
+                                {row.name}
+                              </ViewTransitionLink>
+                              <div className="text-muted-foreground">
+                                {row.company ?? sourceLabel(row.source)}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {row.email ? (
+                                <div>
+                                  <a
+                                    className="underline underline-offset-2"
+                                    href={`mailto:${row.email}`}
+                                  >
+                                    {row.email}
+                                  </a>
+                                </div>
+                              ) : null}
+                              {/* The number reads as itself but opens the
+                                  WhatsApp chat — never dials. */}
+                              {row.phone ? (
+                                <a
+                                  className="text-muted-foreground underline underline-offset-2"
+                                  href={whatsappUrl(row.phone)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {row.phone}
+                                </a>
+                              ) : null}
+                              {!row.email && !row.phone ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : null}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+                              {value ?? <span className="text-muted-foreground">—</span>}
+                            </td>
+                            {/* How it's settled, beside what it's worth — the two
+                                only mean anything together. Empty for the ordinary
+                                cash deal that hasn't started yet. */}
+                            <td className="px-4 py-3">
+                              <DealBadges client={row} />
+                            </td>
+                            <td className="px-4 py-3">
+                              <ClientStatusSelect id={row.id} value={row.status} />
+                            </td>
+                            {/* Icons only: archive and delete are rare next to
+                                everything else in the row, and spelling them out
+                                gave the least-used column the most width. */}
+                            <td className="px-4 py-3">
+                              <ClientActions
+                                id={row.id}
+                                archived={archived}
+                                compact
+                                className="justify-end"
+                              />
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
+    </AppScreen>
   )
 }

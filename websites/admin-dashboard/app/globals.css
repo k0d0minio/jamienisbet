@@ -1,36 +1,91 @@
 /* ============================================================
    Admin dashboard — app stylesheet.
 
-   Links the Jamie Nisbet design system once (Tailwind v4 + brand
-   tokens + shadcn theme) and tells Tailwind to scan the package
-   source for class names. No tokens are redefined here — one source
-   of truth lives in @jamie-nisbet/ui.
+   Links the Jamie Nisbet design system twice — the brand tokens and
+   shadcn theme, then the app tier on top (materials, elevation,
+   springs, the native type scale). No brand token is redefined here;
+   one source of truth lives in @jamie-nisbet/ui.
 
-   Everything below the imports is *phone* plumbing: safe-area
-   utilities and touch-target minimums. It belongs here rather than in
-   the design system because it is this app — an installed, one-handed
-   PWA — that needs it; the marketing sites are read, not operated.
+   Everything below the imports is *this app's* plumbing: the floating
+   tab bar's geometry, safe-area utilities, touch-target minimums, and
+   the markdown layer. It belongs here rather than in the design system
+   because it is this app — an installed, one-handed PWA — that needs
+   it; the marketing sites are read, not operated.
    ============================================================ */
 
 @import "@jamie-nisbet/ui/styles.css";
+/* The app tier — materials, elevation, springs, the native type scale. Opt-in
+   by construction and loaded *after* styles.css, which is the only way to
+   reach it; the marketing sites import neither this line nor its tokens.
+   See packages/ui/BRAND.md § App tier. */
+@import "@jamie-nisbet/ui/app.css";
 
 /* Tailwind must scan the design system's TSX source for the utility classes
    its components use. Point at the real package source in the monorepo. */
 @source "../../../packages/ui/src";
 
 /* ------------------------------------------------------------------
-   Safe areas — the notch and the home indicator. Used by the fixed
-   bottom tab bar and anything else pinned to the edge of the screen.
+   The floating tab bar's geometry — one set of numbers, read by every
+   piece that has to clear it.
+
+   The bar stopped being a fixed strip welded to the bottom edge: it is
+   a pill that hovers over the content with a margin, content scrolling
+   visibly under its blur. That turns "how tall is the bar" into three
+   numbers (height, the gap under it, the home-indicator inset), and
+   three call sites needed them — the bar, the floating add button, and
+   the page's bottom padding — so they live here rather than being
+   copied. The toast offset reads the same numbers from the layout.
+
+   Layout geometry for *this* app's chrome, not brand tokens: the
+   design system ships no tab bar, and nothing outside this app has an
+   opinion about where its bottom edge is.
    ------------------------------------------------------------------ */
+
+:root {
+  --admin-tab-height: 3.5rem;
+  /* Between the pill's bottom edge and the home indicator (or, on a
+     phone without one, the screen edge). Small enough that the bar
+     still reads as chrome rather than as a floating card. */
+  --admin-tab-gap: 0.5rem;
+  /* Everything a fixed element must clear to sit above the bar. */
+  --admin-tab-clearance: calc(
+    var(--admin-tab-height) + var(--admin-tab-gap) +
+      env(safe-area-inset-bottom, 0px)
+  );
+}
 
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* A fixed element sitting just above the bottom tab bar (the add-lead
-   button): the bar's 3.5rem plus the home-indicator inset, plus a gap. */
+/* Where the floating bar itself sits. */
+@utility bottom-tabs {
+  bottom: calc(var(--admin-tab-gap) + env(safe-area-inset-bottom, 0px));
+}
+
+/* A fixed element sitting just above the bar (the add-lead button). */
 @utility bottom-above-tabs {
-  bottom: calc(3.5rem + 1rem + env(safe-area-inset-bottom));
+  bottom: calc(var(--admin-tab-clearance) + var(--space-4));
+}
+
+/* The scrolling page's own floor: clear the bar, and leave enough room
+   that the last row can be scrolled out from under it rather than
+   stopping half-covered. */
+@utility pb-tabs {
+  padding-bottom: calc(var(--admin-tab-clearance) + var(--space-6));
+}
+
+/* Toasts. The design system stands them bottom-centre on a phone, lifted
+   by whatever `--toaster-offset` the app declares (app/(app)/layout.tsx
+   sets it to the bar), and moves them to the bottom-right corner at `sm`
+   — dropping the offset with them, which is right for an app whose fixed
+   chrome ends there. This one's floating bar stays until `md`, so for
+   that one band the corner has to keep clearing it.
+   `--admin-tab-clearance` already carries the safe-area inset. */
+@media (min-width: 40rem) and (max-width: 47.99rem) {
+  [data-slot="toaster"] {
+    bottom: calc(var(--space-4) + var(--admin-tab-clearance));
+  }
 }
 
 /* Horizontal rails (filter chips, quick actions) scroll by finger, not by
@@ -216,25 +271,34 @@
 
 /* ------------------------------------------------------------------
    View transitions — the list ↔ lead profile move (components/
-   view-transition-link.tsx). Fades and a ~5px lift, from the motion
-   tokens; the whole block sits behind `no-preference`, so reduced
-   motion gets the browser's plain cut and the link stops asking for a
-   transition at all.
+   view-transition-link.tsx). Retuned to the app tier's motion: the
+   outgoing page leaves on the header spring and the incoming one
+   settles on the pop spring, so a page change decelerates like every
+   other movement in the app rather than stopping dead on a bezier.
+   The whole block sits behind `no-preference`, so reduced motion gets
+   the browser's plain cut and the link stops asking for a transition
+   at all.
 
-   The chrome is named out of the root snapshot: a header and tab bar
-   that are the same on both pages should hold still while the content
-   under them changes, not fade with it.
+   The chrome is named out of the root snapshot: a title bar, a tab
+   bar and a sidebar that are the same on both pages should hold their
+   position while the content under them changes, not slide with it.
+   Naming them also lets the title itself cross-fade in place, which is
+   the whole point of a bar that carries the screen's name.
    ------------------------------------------------------------------ */
 
-/* The two pieces of chrome that must not move. Declared outside the
+/* The three pieces of chrome that must not move. Declared outside the
    reduced-motion guard: naming an element is what *excludes* it from the
-   animation, so it has to hold in every case a transition can run. */
+   root animation, so it has to hold in every case a transition can run. */
 .vt-app-header {
   view-transition-name: app-header;
 }
 
 .vt-app-tabs {
   view-transition-name: app-tabs;
+}
+
+.vt-app-sidebar {
+  view-transition-name: app-sidebar;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -253,10 +317,20 @@
   }
 
   ::view-transition-old(root) {
-    animation: jn-page-out var(--duration-fast) var(--ease-out) both;
+    animation: jn-page-out var(--duration-header) var(--spring-header) both;
   }
 
   ::view-transition-new(root) {
-    animation: jn-page-in var(--duration-base) var(--ease-out) both;
+    animation: jn-page-in var(--duration-pop) var(--spring-pop) both;
+  }
+
+  /* The named chrome holds still, but its *contents* still change — the
+     bar's title is the screen's name. Cross-fade those on the header
+     spring rather than letting the browser's default group animation
+     stretch one snapshot into the other. */
+  ::view-transition-old(app-header),
+  ::view-transition-new(app-header) {
+    animation-duration: var(--duration-header);
+    animation-timing-function: var(--spring-header);
   }
 }

@@ -1,5 +1,7 @@
 import { Skeleton } from "@jamie-nisbet/ui"
 
+import { AppScreen } from "@/components/app-screen"
+
 // Tickets is a fan-out of GitHub reads — every connected repo's `.icm/intake/`
 // folder, fetched on every visit (`dynamic = "force-dynamic"`). On a phone on
 // mobile data that is a second or two of nothing, so the shape of the board
@@ -55,46 +57,53 @@ function SectionSkeleton({ batches }: { batches: number }) {
 
 export default function TicketsLoading() {
   return (
-    <div className="flex flex-col gap-4 sm:gap-6">
-      {/* The heading is static copy — it renders for real, and having it hold
-          still is most of why this reads as loading rather than as broken. */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-2xl font-semibold">Tickets</h1>
-          <p className="text-sm text-muted-foreground">
-            Each repo&apos;s <code>.icm/intake/</code>, read from main — edit in
-            the repo, not here.
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+    // The header is static copy — it renders for real, and having the title
+    // hold still through the load is most of why this reads as loading rather
+    // than as broken. Same words as page.tsx, so nothing about the header
+    // changes when the board arrives under it.
+    <AppScreen
+      title="Tickets"
+      subtitle={
+        <>
+          Each repo&apos;s <code>.icm/intake/</code>, read from main — edit in
+          the repo, not here.
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex items-center justify-end gap-1 sm:gap-2">
           <Skeleton className="size-9 rounded-md" />
           <Skeleton className="h-8 w-28 rounded-md" />
         </div>
-      </div>
 
-      {/* Repo filter rail. */}
-      <div className="-mx-4 flex items-center gap-1 overflow-hidden px-4 sm:mx-0 sm:px-0">
-        {[3.5, 6, 5, 7].map((w, i) => (
-          <Skeleton key={i} className="h-11 shrink-0" style={{ width: `${w}rem` }} />
-        ))}
-      </div>
-
-      {/* The now-strip. */}
-      <section className="flex flex-col gap-2">
-        <Skeleton className="h-3 w-10" />
-        <div className="-mx-4 flex gap-2 overflow-hidden px-4 sm:mx-0 sm:px-0">
-          {Array.from({ length: 4 }, (_, i) => (
-            <PeekSkeleton key={i} />
+        {/* Repo filter rail. */}
+        <div className="-mx-4 flex items-center gap-1 overflow-hidden px-4 sm:mx-0 sm:px-0">
+          {[3.5, 6, 5, 7].map((w, i) => (
+            <Skeleton
+              key={i}
+              className="h-11 shrink-0"
+              style={{ width: `${w}rem` }}
+            />
           ))}
         </div>
-      </section>
 
-      <SectionSkeleton batches={2} />
-      <SectionSkeleton batches={3} />
+        {/* The now-strip. */}
+        <section className="flex flex-col gap-2">
+          <Skeleton className="h-3 w-10" />
+          <div className="-mx-4 flex gap-2 overflow-hidden px-4 sm:mx-0 sm:px-0">
+            {Array.from({ length: 4 }, (_, i) => (
+              <PeekSkeleton key={i} />
+            ))}
+          </div>
+        </section>
 
-      <span className="sr-only" role="status">
-        Loading tickets
-      </span>
-    </div>
+        <SectionSkeleton batches={2} />
+        <SectionSkeleton batches={3} />
+
+        <span className="sr-only" role="status">
+          Loading tickets
+        </span>
+      </div>
+    </AppScreen>
   )
 }
