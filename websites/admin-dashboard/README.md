@@ -215,23 +215,28 @@ The estate's engineering backlog in one place, read **batch-first**. Every activ
 its work items as markdown in `.icm/intake/` — the estate-wide standard (canonical spec:
 `_system/contracts/TICKETS.md` in the `icm-board` repo) — and [`lib/tickets.ts`](lib/tickets.ts)
 reads those folders from `main` via the GitHub API (60-second revalidate, tag-busted by the
-board's refresh button) and folds them into `listBoard()`: a pinned **now-strip** (today's
-picks from icm-board's `today.md`, runs in flight from `.icm/runs/`, blocked stubs), then one
-section per repo — urgency-ordered — whose intake batches are line items. Each epic folder is a
-batch showing its progress (from the stubs' `sequence: N of M` lines) and its next stub; the
-`triage/` one-offs and any unmigrated legacy tickets ride as **Triage** and **Backlog**
-pseudo-batches. Tapping a batch opens a bottom sheet (a dialog on desktop) with the stubs in
-sequence, each expanding to the full rendered ticket. The repo roster comes from the database
-plus every owner repo the token sees; each ticket links back to its client.
+board's refresh button) and folds them into `listBoard()`: a **now** group (today's picks from
+icm-board's `today.md`, runs in flight from `.icm/runs/`, blocked stubs), then one inset
+grouped list per repo — urgency-ordered — whose intake batches are its rows. Each epic folder
+is a batch row showing its progress as a mono `N of M` over the thin `Meter` (from the stubs'
+`sequence: N of M` lines) and its next stub; the `triage/` one-offs and any unmigrated legacy
+tickets ride as **Triage** and **Backlog** pseudo-batches. Tapping a batch opens a detented
+sheet (a dialog on desktop) with the stubs in sequence, each expanding to the full rendered
+ticket. The screen's name sets large and hands off to the compact bar on scroll, where the
+refresh button lives; under it, what the board adds up to is a glance row of mono figures. The
+repo roster comes from the database plus every owner repo the token sees; each ticket links
+back to its client.
 
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
 and nothing is mirrored into the database. Every button is therefore a link or a pre-filled
 Claude Code deep link that a human sends: **Start in Claude Code** / swipe-right on a row or
 batch, **Copy prompt**, and the maintenance launchers — per-repo *triage the backlog* and
-*sweep finished work* (the wrench on each section), per-batch *recut this batch*, and the
-board-level *estate check* (the `/icm-check` pass on icm-board). Rows wear the Leads list's
-gestures: swipe left for a tray (copy, GitHub, client), swipe right to start the work.
+*sweep finished work* (the **Maintenance** row closing each repo's group), per-batch *recut
+this batch* (in the batch sheet), and the board-level *estate check* (the `/icm-check` pass on
+icm-board, in the group that closes the screen). Rows wear the Leads list's gestures: swipe
+left for a tray (copy, GitHub, client), swipe right to start the work — with a haptic tick the
+moment a full swipe crosses its threshold.
 
 Those links come in two shapes, built side by side in [`lib/tickets.ts`](lib/tickets.ts) —
 both documented by Anthropic, each carrying a comment naming its doc:

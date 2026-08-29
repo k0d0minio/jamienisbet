@@ -5,20 +5,21 @@ import { cn } from "@jamie-nisbet/ui"
 
 // Two controls that used to be one rail. `Chip` is the open-ended rail — one
 // per repo on the tickets board, a set that grows with the estate — and stays
-// as it was; the leads list's closed set of four filters became the app tier's
+// a rail, because a segmented control that scrolls has stopped being one; the
+// leads list's closed set of four filters became the app tier's
 // `SegmentedControl` instead. `ArchiveChip` left the rail entirely, for the
 // title bar.
 //
-// The selected chip reads as a raised white card against the grey page, the
-// same way every other surface here does. `bg-secondary` — which this used to
-// use — resolves to the same value as the page background in the brand light
-// theme, so a selected chip was distinguishable only by its font weight.
-const ACTIVE = "border border-border bg-card font-medium text-foreground shadow-xs"
-const IDLE = "text-muted-foreground hover:text-foreground active:bg-muted"
+// Both are app-tier controls now: the board is the last screen either of them
+// serves, and it reads in the same grouped-list idiom as the rest of the app.
 
 // A view/filter chip in a horizontal rail. Sized for a finger rather than a
-// cursor (44px tall) and never wrapping — the rail scrolls sideways instead, so
-// adding a filter can't push the list further down the screen.
+// cursor (the tier's 44px floor) and never wrapping — the rail scrolls sideways
+// instead, so adding a repo can't push the board further down the screen.
+//
+// The selected chip is a slab that has lifted off the canvas — the same recipe
+// the segmented control uses for its chosen segment, and the same reason:
+// weight alone does not carry a selection in the light theme.
 export function Chip({
   href,
   active,
@@ -35,13 +36,24 @@ export function Chip({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-sm px-3.5 text-sm whitespace-nowrap transition-colors",
-        active ? ACTIVE : IDLE
+        "inline-flex min-h-app-touch shrink-0 items-center gap-1.5 rounded-app-control px-3.5",
+        "text-app-footnote whitespace-nowrap transition-colors spring-press",
+        active
+          ? "bg-app-group font-semibold text-app-label shadow-app-raised"
+          : "font-medium text-app-label-2 active:bg-app-press"
       )}
     >
       {children}
       {count !== undefined ? (
-        <span className="text-xs tabular-nums opacity-70">{count}</span>
+        // A figure, so it sets in mono — on every tier.
+        <span
+          className={cn(
+            "font-mono text-app-caption tabular-nums",
+            active ? "text-app-label-2" : "text-app-label-3"
+          )}
+        >
+          {count}
+        </span>
       ) : null}
     </Link>
   )
