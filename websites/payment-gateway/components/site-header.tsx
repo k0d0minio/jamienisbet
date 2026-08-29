@@ -14,7 +14,7 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--container-xl)] items-center justify-between gap-4 px-5 sm:px-8">
+      <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--layout-xl)] items-center justify-between gap-4 px-5 sm:px-8">
         <Link
           href="/"
           className="flex items-center gap-2.5 font-semibold tracking-tight"

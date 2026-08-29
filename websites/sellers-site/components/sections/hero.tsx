@@ -16,7 +16,7 @@ export async function Hero() {
         className="dst-grid-bg pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent_80%)]"
       />
       <Container className="relative py-20 sm:py-28 lg:py-32">
-        <div className="flex max-w-[var(--container-md)] flex-col gap-6">
+        <div className="flex max-w-[var(--layout-md)] flex-col gap-6">
           <Eyebrow rule primary>
             {t("role")}
           </Eyebrow>

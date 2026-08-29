@@ -273,8 +273,11 @@ function SheetContent({
           : "max-h-[calc(85dvh_-_var(--jn-keyboard-inset))]",
         "data-[state=open]:slide-in-from-bottom-8 data-[state=closed]:slide-out-to-bottom-8",
         // Desktop: the ordinary centred dialog — no keyboard to dodge, and no
-        // detent to rest at.
-        "sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:h-auto sm:max-h-[85vh] sm:max-w-lg",
+        // detent to rest at. `--sheet-w` is iPadOS's form-sheet width, stated
+        // as its own token: the class this used to carry, `sm:max-w-lg`,
+        // resolved through the brand's page-width `--container-lg` and opened
+        // every sheet in the admin 1080px wide on a laptop.
+        "sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:h-auto sm:max-h-[85vh] sm:max-w-[var(--sheet-w)]",
         "sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:p-6",
         className
       )}

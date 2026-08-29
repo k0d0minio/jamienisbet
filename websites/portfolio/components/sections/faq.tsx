@@ -13,7 +13,7 @@ export async function Faq() {
     <Section id="faq" className="border-b border-border">
       <Container className="flex flex-col gap-12">
         <SectionHeading eyebrow={t("eyebrow")} index="04" title={t("title")} />
-        <div className="flex max-w-[var(--container-md)] flex-col divide-y divide-border border-y border-border">
+        <div className="flex max-w-[var(--layout-md)] flex-col divide-y divide-border border-y border-border">
           {items.map((item) => (
             <details key={item.q} className="group py-2">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-base font-medium tracking-tight transition-colors marker:hidden hover:text-primary [&::-webkit-details-marker]:hidden">

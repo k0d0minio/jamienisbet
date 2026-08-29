@@ -35,7 +35,9 @@ The brand voice is *quiet, casual confidence* — professional without being cor
 
 **Type.** *(Marketing tier — the app tier sets UI text in the system stack; see § App tier.)* **Hanken Grotesk** (neutral grotesque) for everything structural; **IBM Plex Mono** as the engineer's signature — eyebrows, metadata, figures, code, and table data. Hierarchy comes from **weight + size + tight tracking** (`-0.02` to `-0.03em` on display sizes), not decoration. Body is 16px at 1.5–1.65 leading. Weights 300–800; headings sit at 600.
 
-**Spacing & layout.** 4px base grid, used *generously* — whitespace is the brand. Content max-widths: prose ~640px, marketing ~1080px. Sections breathe (`--section-y` = 96px).
+**Spacing & layout.** 4px base grid, used *generously* — whitespace is the brand. Content max-widths: prose ~640px, marketing ~1080px — the `--layout-sm/md/lg/xl` set, reached as `max-w-[var(--layout-md)]`. Sections breathe (`--section-y` = 96px). Modal surfaces state their own width: `--dialog-w` (512px) and `--sheet-w` (544px, iPadOS's form-sheet width).
+
+> A brand token must never take a name from a Tailwind utility namespace it does not mean. The layout widths were called `--container-*` until 2026-08-29, which is exactly where Tailwind v4 reads its `max-w-* / w-* / min-w-*` scale — so `max-w-lg` silently became 1080px, `max-w-sm` 640px, and every dialog and sheet in the estate opened near-full-width on a laptop. Overriding a scale with the *same* meaning is fine and deliberate (`--radius-*`, `--shadow-*`, `--text-*` all do it); overriding one with a different meaning is a bug you can only see at a width you didn't test.
 
 **Backgrounds & texture.** Mostly flat `--surface` / `--bg`. The single permitted texture is the **blueprint grid** (`.dst-grid-bg`, 32–48px, ~5% opacity) behind heroes, section breaks, and dark covers — structural, never over body text. **No gradients** as decoration (the only gradient is the sticky-header backdrop blur). Faint grain is acceptable; loud imagery is not. Imagery, when present, is cool-toned and restrained — but the brand is comfortable being **type-and-data-led with no photography at all**.
 

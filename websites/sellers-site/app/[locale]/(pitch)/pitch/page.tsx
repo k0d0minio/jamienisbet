@@ -62,7 +62,7 @@ export default async function PitchPage({
     <>
       {/* Hero */}
       <Section className="border-b border-border">
-        <Container className="flex max-w-[var(--container-md)] flex-col gap-6">
+        <Container className="flex max-w-[var(--layout-md)] flex-col gap-6">
           <Eyebrow rule primary>
             {t("eyebrow")}
           </Eyebrow>
@@ -164,7 +164,7 @@ export default async function PitchPage({
 
       {/* Call to action */}
       <Section>
-        <Container className="flex max-w-[var(--container-md)] flex-col items-start gap-5">
+        <Container className="flex max-w-[var(--layout-md)] flex-col items-start gap-5">
           <Eyebrow rule>{t("ctaTitle")}</Eyebrow>
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
             {t("ctaHeading")}

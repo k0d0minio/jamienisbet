@@ -37,7 +37,7 @@ export function SiteFooter({
 }) {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-[var(--container-xl)] flex-col gap-10 px-5 py-12 sm:px-8 md:flex-row md:items-start md:justify-between">
+      <div className="mx-auto flex max-w-[var(--layout-xl)] flex-col gap-10 px-5 py-12 sm:px-8 md:flex-row md:items-start md:justify-between">
         <div className="flex max-w-sm flex-col gap-3">
           <Link
             href="/"
@@ -69,7 +69,7 @@ export function SiteFooter({
       </div>
 
       <div className="border-t border-border">
-        <div className="mx-auto flex max-w-[var(--container-xl)] flex-col gap-2 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <div className="mx-auto flex max-w-[var(--layout-xl)] flex-col gap-2 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div className="flex flex-col gap-2">{bottomLeft}</div>
           {bottomRight}
         </div>
