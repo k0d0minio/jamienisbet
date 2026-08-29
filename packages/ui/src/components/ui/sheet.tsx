@@ -23,8 +23,21 @@ import {
 const Sheet = Dialog
 const SheetTrigger = DialogTrigger
 const SheetClose = DialogClose
-const SheetTitle = DialogTitle
 const SheetDescription = DialogDescription
+
+function SheetTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogTitle>) {
+  // A sheet is opened by a thing — a batch, a lead, a ticket — so its title
+  // carries that thing's name and wraps on a phone where a dialog's one-liner
+  // never did. `leading-none` stacks those lines on top of each other, and the
+  // close button sits over the end of the first one; give it a real line
+  // height and the room the button takes.
+  return (
+    <DialogTitle className={cn("pr-8 leading-snug", className)} {...props} />
+  )
+}
 
 function SheetHeader({
   className,

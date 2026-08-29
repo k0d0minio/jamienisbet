@@ -96,7 +96,7 @@ export function TicketDetail({
           {ticket.meta.map(([key, value]) => (
             <div key={key} className="contents">
               <dt className="text-muted-foreground">{key}</dt>
-              <dd>{value}</dd>
+              <dd className="break-words">{value}</dd>
             </div>
           ))}
         </dl>
