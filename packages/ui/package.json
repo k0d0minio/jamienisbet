@@ -42,7 +42,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "check:css": "tailwindcss -i ./styles.css -o /dev/null",
-    "check:css:app": "tailwindcss -i ./app.css -o /dev/null"
+    "check:css:app": "tailwindcss -i ./app.css -o /dev/null",
+    "lint": "pnpm check:css && pnpm check:css:app"
   },
   "peerDependencies": {
     "react": ">=18",
