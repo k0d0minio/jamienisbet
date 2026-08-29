@@ -26,7 +26,7 @@ export default async function HomePage({
   return (
     <Section>
       <Container size="lg" className="flex flex-col gap-16">
-        <div className="flex max-w-[var(--container-md)] flex-col gap-5">
+        <div className="flex max-w-[var(--layout-md)] flex-col gap-5">
           <Eyebrow rule>{t("eyebrow")}</Eyebrow>
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
             {t("title")}

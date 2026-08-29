@@ -31,7 +31,7 @@ export function SiteHeader({
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--container-xl)] items-center justify-between gap-4 px-5 sm:px-8">
+      <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--layout-xl)] items-center justify-between gap-4 px-5 sm:px-8">
         <Link
           href="/"
           className="flex items-center gap-2.5 font-semibold tracking-tight"
@@ -71,7 +71,7 @@ export function SiteHeader({
 
       {open && (
         <nav className="border-t border-border md:hidden">
-          <div className="mx-auto flex max-w-[var(--container-xl)] flex-col gap-1 px-5 py-3 sm:px-8">
+          <div className="mx-auto flex max-w-[var(--layout-xl)] flex-col gap-1 px-5 py-3 sm:px-8">
             {nav.map((item) => (
               <Button
                 key={item.href}

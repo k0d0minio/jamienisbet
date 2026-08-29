@@ -9,7 +9,7 @@ export async function About() {
 
   return (
     <Section id="about" className="border-b border-border">
-      <Container className="flex max-w-[var(--container-md)] flex-col gap-6">
+      <Container className="flex max-w-[var(--layout-md)] flex-col gap-6">
         <SectionHeading eyebrow={t("eyebrow")} index="05" title={t("title")} />
         <div className="flex flex-col gap-4 text-lg text-muted-foreground">
           <p>{t("p1", { location: site.location })}</p>

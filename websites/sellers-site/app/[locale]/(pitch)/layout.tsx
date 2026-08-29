@@ -15,7 +15,7 @@ export default function PitchLayout({
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border print:hidden">
-        <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--container-xl)] items-center justify-between gap-4 px-5 sm:px-8">
+        <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--layout-xl)] items-center justify-between gap-4 px-5 sm:px-8">
           <span className="flex items-center gap-2.5 font-semibold tracking-tight">
             <LogoMark className="size-6 text-primary" />
             {site.name}
@@ -30,7 +30,7 @@ export default function PitchLayout({
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-border print:hidden">
-        <div className="mx-auto flex max-w-[var(--container-xl)] flex-col gap-2 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <div className="mx-auto flex max-w-[var(--layout-xl)] flex-col gap-2 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="font-mono text-2xs tracking-[0.12em] text-muted-foreground uppercase">
             {site.name} — {site.location}
           </p>
