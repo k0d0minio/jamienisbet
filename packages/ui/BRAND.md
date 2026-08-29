@@ -113,6 +113,13 @@ These are amendments with a scope, not drift. A change outside that scope is dri
 - **Appearance follows the system.** No in-app toggle: the shell mirrors
   `prefers-color-scheme` onto `[data-theme]`, so there is one theming mechanism, not two.
   Both modes are designed in full — materials and vibrancy differ per mode, not just fill.
+- **Fields are 44px by construction, not by media query.** The tier ships its own form
+  controls, and the touch floor is in their class list rather than in a
+  `@media (pointer: coarse)` rescue. That is not only a phone rule: a control that is
+  finger-sized only behind a query still reads at 36px on every laptop, in every
+  screenshot, and in every sheet on an iPad. The tier's body size does a second job here —
+  17px is over the 16px threshold at which iOS zooms the page on focus, so an app-tier
+  field never needs the marketing control's `text-base md:text-sm` dance to avoid it.
 - **Focus draws inside the control.** The brand's ring is an outset `box-shadow`, and this
   tier is built out of surfaces that clip — a grouped list and a tab bar pill both own their
   corners with `overflow-hidden`, so a ring outside a row is a ring the group throws away.
@@ -159,6 +166,19 @@ ships its own, and raw values are as banned at an app-tier call site as anywhere
   only — an open-ended or growing set (one per repo, one per tag) stays a scrolling rail.
   Semantics come from the call site: links take `aria-current`, buttons under a
   `role="radiogroup"` take `aria-checked`.
+- `AppField` / `AppLabel` / `AppInput` / `AppTextarea` — the tier's form controls. A field
+  is a recess (`--app-field`, with `--app-field-border` round it) on the 12px control
+  radius at 17px body, 44px tall on every pointer. `AppField` is the unit rather than the
+  control: it owns the label, the hint, the error, and the `id` / `aria-describedby` /
+  `aria-invalid` wiring between them, so a call site writes the label once and never
+  invents an id. Errors carry a glyph as well as the destructive colour — meaning never
+  rests on colour alone.
+- `AppSelect` and its parts (`AppSelectTrigger` / `Content` / `Item` / `Value` / `Group` /
+  `Label` / `Separator`) — the tier's select, whole rather than trigger-deep: the menu is a
+  material with the popover's elevation and **44px rows**, which is the half of a select a
+  thumb actually lands on. Two triggers: `field` is the same box as an `AppInput`; `plain`
+  is the pull-down menu button — the value in the tint with a chevron, no box — for a
+  choice made from inside a list row.
 - `Sheet` **detents** — `<SheetContent detents={["medium", "large"]}>` gives a phone sheet
   the native resting heights: drag the handle between them, drag it off the bottom to
   dismiss, tap it to step. Omit the prop and the sheet is what it always was.
@@ -194,7 +214,7 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 
 **Components** (TSX, idiomatic shadcn/ui themed with the brand tokens; import from the `@jamie-nisbet/ui` barrel)
 - `src/components/ui/` — Button, Badge, Card, Avatar, Input, Label, Textarea, Select, Checkbox, Switch, Tabs, Alert, Dialog, Sheet, plus the motion/feedback set: Skeleton, Spinner, Toaster + `toast()`, PendingButton. Compositional where shadcn is (e.g. `Card` + `CardHeader` + `CardTitle`; `Tabs` + `TabsList` + `TabsTrigger`). Also the glanceable data-viz primitives — Stat, Delta, Sparkline, Meter (inline SVG, no chart library; see § Data & figures).
-- `src/components/app/` — the **app-tier** primitives: GroupedList / GroupedSection / GroupedRow / GroupedBlock / GroupedDisclosure, CollapsingHeader, LargeTitleHeader, IdentityHeader, Monogram, ActionCircle / ActionCircleRow, GlanceRow / GlanceFigure, SegmentedControl / SegmentedItem, Material. Exported from the same barrel, but inert unless the surface links `app.css` (see § App tier).
+- `src/components/app/` — the **app-tier** primitives: GroupedList / GroupedSection / GroupedRow / GroupedBlock / GroupedDisclosure, CollapsingHeader, LargeTitleHeader, IdentityHeader, Monogram, ActionCircle / ActionCircleRow, GlanceRow / GlanceFigure, SegmentedControl / SegmentedItem, Material, AppField / AppLabel / AppInput / AppTextarea, AppSelect and its parts. Exported from the same barrel, but inert unless the surface links `app.css` (see § App tier).
 - `src/components/brand/` — Eyebrow, IconButton, LogoMark / LogoMarkSolid (brand-only; no shadcn equivalent).
 - `src/lib/utils.ts` — the `cn()` class-merge helper. Types come from the TSX source.
 

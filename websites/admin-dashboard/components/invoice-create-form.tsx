@@ -7,24 +7,24 @@ import { Plus } from "lucide-react"
 import {
   Alert,
   AlertDescription,
+  AppField,
+  AppInput,
+  AppSelect,
+  AppSelectContent,
+  AppSelectItem,
+  AppSelectTrigger,
+  AppSelectValue,
+  AppTextarea,
   GroupedBlock,
   GroupedRow,
   GroupedSection,
-  Input,
-  Label,
   PendingButton,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  Textarea,
   toast,
 } from "@jamie-nisbet/ui"
 
@@ -138,15 +138,14 @@ function InvoiceForm({
       }}
       className="flex flex-col gap-4"
     >
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="clientId">Client</Label>
-        <Select name="clientId">
-          <SelectTrigger id="clientId" className="w-full">
-            <SelectValue placeholder="Choose a client…" />
-          </SelectTrigger>
-          <SelectContent>
+      <AppField label="Client">
+        <AppSelect name="clientId">
+          <AppSelectTrigger className="w-full">
+            <AppSelectValue placeholder="Choose a client…" />
+          </AppSelectTrigger>
+          <AppSelectContent>
             {clients.map((client) => (
-              <SelectItem
+              <AppSelectItem
                 key={client.id}
                 value={client.id}
                 // No email means Stripe has nowhere to send the invoice — the
@@ -156,43 +155,37 @@ function InvoiceForm({
                 {client.name}
                 {client.company ? ` · ${client.company}` : ""}
                 {client.email ? ` — ${client.email}` : " — add email first"}
-              </SelectItem>
+              </AppSelectItem>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
+          </AppSelectContent>
+        </AppSelect>
+      </AppField>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
+      <AppField label="Description">
+        <AppTextarea
           name="description"
           rows={2}
           autoCapitalize="sentences"
           placeholder="e.g. AI infrastructure consulting — June 2026"
           required
         />
-      </div>
+      </AppField>
 
       {/* The amount takes the full width: it is the figure this whole form is
           about, and it should not have to share a line with a currency code. */}
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="amount">Amount</Label>
-        <Input
-          id="amount"
+      <AppField label="Amount">
+        <AppInput
           name="amount"
           inputMode="decimal"
           enterKeyHint="next"
           placeholder="1500.00"
           required
         />
-      </div>
+      </AppField>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="currency">Currency</Label>
-          <Input
-            id="currency"
+        <AppField label="Currency">
+          <AppInput
             name="currency"
             defaultValue="eur"
             maxLength={3}
@@ -201,11 +194,9 @@ function InvoiceForm({
             spellCheck={false}
             enterKeyHint="next"
           />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="daysUntilDue">Due in (days)</Label>
-          <Input
-            id="daysUntilDue"
+        </AppField>
+        <AppField label="Due in (days)">
+          <AppInput
             name="daysUntilDue"
             type="number"
             inputMode="numeric"
@@ -213,7 +204,7 @@ function InvoiceForm({
             min={0}
             defaultValue={14}
           />
-        </div>
+        </AppField>
       </div>
 
       {state.error ? (

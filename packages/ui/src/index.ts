@@ -37,6 +37,7 @@ export * from "./components/ui/stat"
 // sites import neither the stylesheet nor these components.
 export * from "./components/app/action-circle"
 export * from "./components/app/collapsing-header"
+export * from "./components/app/field"
 export * from "./components/app/glance-row"
 export * from "./components/app/grouped-list"
 export * from "./components/app/identity-header"
@@ -44,6 +45,7 @@ export * from "./components/app/large-title-header"
 export * from "./components/app/material"
 export * from "./components/app/monogram"
 export * from "./components/app/segmented-control"
+export * from "./components/app/select"
 
 // brand-only primitives
 export * from "./components/brand/eyebrow"

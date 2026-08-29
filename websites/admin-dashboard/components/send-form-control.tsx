@@ -7,13 +7,13 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  AppSelect,
+  AppSelectContent,
+  AppSelectItem,
+  AppSelectTrigger,
+  AppSelectValue,
   Button,
   GroupedRow,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -85,15 +85,18 @@ export function SendFormControl({
         </p>
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Select value={formId} onValueChange={setFormId} disabled={pending}>
-            <SelectTrigger className="w-full sm:flex-1">
-              <SelectValue placeholder="Choose a questionnaire" />
-            </SelectTrigger>
-            <SelectContent>
+          <AppSelect value={formId} onValueChange={setFormId} disabled={pending}>
+            <AppSelectTrigger
+              className="w-full sm:flex-1"
+              aria-label="Questionnaire to send"
+            >
+              <AppSelectValue placeholder="Choose a questionnaire" />
+            </AppSelectTrigger>
+            <AppSelectContent>
               {forms.map((form) => (
-                <SelectItem key={form.id} value={form.id}>
+                <AppSelectItem key={form.id} value={form.id}>
                   {form.title}
-                  <span className="text-app-label-3">
+                  <span className="text-material-label-3">
                     {" "}
                     · {form.questionCount}{" "}
                     {form.questionCount === 1 ? "question" : "questions"}
@@ -105,10 +108,10 @@ export function SendFormControl({
                       ? null
                       : ` · ${form.sourceRepo.split("/").pop()}`}
                   </span>
-                </SelectItem>
+                </AppSelectItem>
               ))}
-            </SelectContent>
-          </Select>
+            </AppSelectContent>
+          </AppSelect>
           <Button
             type="button"
             disabled={pending || !formId}

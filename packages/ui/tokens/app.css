@@ -232,6 +232,23 @@
   /* Press = colour deepens (never a shrink), so a pressed row picks
      up a wash of the text colour rather than losing size. */
   --app-press: color-mix(in srgb, var(--text-1) 6%, transparent);
+  /* The recess a form field is. A field is not a raised control on a
+     track and not a slab either: it is a slot cut into the surface it
+     sits on, which is why it takes a fill of its own rather than the
+     hairline-on-transparent the marketing tier draws.
+
+     The direction flips with the mode, the way --app-press does and for
+     the same reason: over a white sheet a recess is darker, over a dark
+     one it is lighter. Both sides are washes of the text colour rather
+     than fixed greys, so a field lands correctly on any surface the tier
+     puts it on — a sheet, the login card, a grouped slab.
+
+     The hairline is a shade stronger than --app-separator on purpose. A
+     separator divides two things that are already there; a field's edge
+     has to say "type into this", and at 5% fill it is the edge doing
+     most of that work. */
+  --app-field: color-mix(in srgb, var(--text-1) 5%, transparent);
+  --app-field-border: color-mix(in srgb, var(--text-1) 14%, transparent);
   --app-label: var(--text-1);
   --app-label-2: var(--text-2);
   --app-label-3: var(--text-3);
@@ -282,6 +299,11 @@
   /* A dark page lifts a pressed row rather than darkening it — the
      direction --primary-active already moves in dark. */
   --app-press: color-mix(in srgb, #ffffff 8%, transparent);
+  /* Same flip as the press: in dark a field lifts out of the sheet
+     rather than sinking into it — a darker recess on a near-black
+     surface is a hole, not a slot. */
+  --app-field: color-mix(in srgb, #ffffff 7%, transparent);
+  --app-field-border: color-mix(in srgb, #ffffff 16%, transparent);
   /* A track goes the other way from a press: it must stay under the card
      that lifts out of it, so in dark it deepens rather than lightens. */
   --app-track: color-mix(in srgb, #000000 45%, transparent);

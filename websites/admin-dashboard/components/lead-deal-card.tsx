@@ -4,24 +4,24 @@ import { useState, useTransition } from "react"
 import { Pencil } from "lucide-react"
 
 import {
+  AppField,
+  AppInput,
+  AppSelect,
+  AppSelectContent,
+  AppSelectItem,
+  AppSelectTrigger,
+  AppSelectValue,
+  AppTextarea,
   GroupedBlock,
   GroupedRow,
   GroupedSection,
-  Input,
-  Label,
   PendingButton,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  Textarea,
   toast,
 } from "@jamie-nisbet/ui"
 import type { DealType } from "@jamie-nisbet/services"
@@ -145,10 +145,8 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
             className="grid gap-3"
           >
             <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="deal-value">Value (€)</Label>
-                <Input
-                  id="deal-value"
+              <AppField label="Value (€)">
+                <AppInput
                   name="value"
                   inputMode="decimal"
                   defaultValue={
@@ -158,77 +156,71 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
                   }
                   placeholder="0.00"
                 />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="deal-billing">Billed</Label>
-                <Select
+              </AppField>
+              <AppField label="Billed">
+                <AppSelect
                   name="billingType"
                   defaultValue={
                     client.billingType === "monthly" ? "monthly" : "one_off"
                   }
                 >
-                  <SelectTrigger id="deal-billing" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="one_off">One-off</SelectItem>
-                    <SelectItem value="monthly">Every month</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <AppSelectTrigger className="w-full">
+                    <AppSelectValue />
+                  </AppSelectTrigger>
+                  <AppSelectContent>
+                    <AppSelectItem value="one_off">One-off</AppSelectItem>
+                    <AppSelectItem value="monthly">Every month</AppSelectItem>
+                  </AppSelectContent>
+                </AppSelect>
+              </AppField>
             </div>
 
-            <div className="grid gap-1.5">
-              <Label htmlFor="deal-type">Paid in</Label>
-              <Select
+            <AppField label="Paid in">
+              <AppSelect
                 value={dealType}
                 onValueChange={(next) => setDealType(next as DealType)}
               >
-                <SelectTrigger id="deal-type" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="barter">Exchange of services</SelectItem>
-                </SelectContent>
-              </Select>
+                <AppSelectTrigger className="w-full">
+                  <AppSelectValue />
+                </AppSelectTrigger>
+                <AppSelectContent>
+                  <AppSelectItem value="cash">Cash</AppSelectItem>
+                  <AppSelectItem value="barter">
+                    Exchange of services
+                  </AppSelectItem>
+                </AppSelectContent>
+              </AppSelect>
               <input type="hidden" name="dealType" value={dealType} />
-            </div>
+            </AppField>
 
             {dealType === "barter" ? (
-              <div className="grid gap-1.5">
-                <Label htmlFor="deal-barter">What&apos;s being exchanged</Label>
-                <Textarea
-                  id="deal-barter"
+              <AppField label="What's being exchanged">
+                <AppTextarea
                   name="barterTerms"
                   rows={3}
                   defaultValue={client.barterTerms ?? ""}
                   placeholder="What you're doing for them, and what you're getting back…"
                 />
-              </div>
+              </AppField>
             ) : null}
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="deal-commission">Commission (%)</Label>
-                <Input
-                  id="deal-commission"
+              <AppField label="Commission (%)">
+                <AppInput
                   name="commission"
                   inputMode="decimal"
                   defaultValue={bpsToPercentInput(client.commissionBps)}
                   placeholder="—"
                 />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="deal-equity">Equity (%)</Label>
-                <Input
-                  id="deal-equity"
+              </AppField>
+              <AppField label="Equity (%)">
+                <AppInput
                   name="equity"
                   inputMode="decimal"
                   defaultValue={bpsToPercentInput(client.equityBps)}
                   placeholder="—"
                 />
-              </div>
+              </AppField>
             </div>
 
             <PendingButton

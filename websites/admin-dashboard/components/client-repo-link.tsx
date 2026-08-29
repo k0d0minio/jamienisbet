@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
-import { ChevronRight } from "lucide-react"
+import { type ReactNode, useEffect, useState, useTransition } from "react"
+import { ChevronRight, TriangleAlert } from "lucide-react"
 
-import { Button, Input, Label, Switch } from "@jamie-nisbet/ui"
+import { AppField, AppInput, AppLabel, Button, Switch } from "@jamie-nisbet/ui"
 
 import {
   connectClientRepo,
@@ -70,8 +70,24 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
       >
         {pending ? "Disconnecting…" : "Disconnect"}
       </Button>
-      {error ? <p className="text-app-footnote text-destructive">{error}</p> : null}
+      {error ? <RepoError>{error}</RepoError> : null}
     </div>
+  )
+}
+
+// A failure that belongs to a whole block rather than to one field — the
+// disconnect that was refused, the repo GitHub would not create. Drawn the way
+// AppField draws a field's error, glyph included, so the two never read as
+// different kinds of bad news.
+function RepoError({ children }: { children: ReactNode }) {
+  return (
+    <p
+      role="alert"
+      className="flex items-center gap-1.5 text-app-footnote text-destructive"
+    >
+      <TriangleAlert className="size-4 shrink-0" aria-hidden />
+      {children}
+    </p>
   )
 }
 
@@ -96,11 +112,9 @@ function ConnectExisting({ id }: { id: string }) {
   }, [])
 
   return (
-    <div className="grid gap-2">
-      <Label htmlFor="connect-repo">Connect an existing repo</Label>
+    <AppField label="Connect an existing repo" error={error}>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <Input
-          id="connect-repo"
+        <AppInput
           list="repo-options"
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -108,6 +122,8 @@ function ConnectExisting({ id }: { id: string }) {
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
+          // A repo name is data, not prose — mono, like every other figure and
+          // identifier on this tier.
           className="font-mono sm:min-w-56 sm:flex-1"
         />
         <datalist id="repo-options">
@@ -137,8 +153,7 @@ function ConnectExisting({ id }: { id: string }) {
           {pending ? "Connecting…" : "Connect"}
         </Button>
       </div>
-      {error ? <p className="text-app-footnote text-destructive">{error}</p> : null}
-    </div>
+    </AppField>
   )
 }
 
@@ -161,31 +176,32 @@ function CreateNew({
 
   return (
     <div className="grid gap-2">
-      <Label htmlFor="create-repo">Create a new repo</Label>
-      <Input
-        id="create-repo"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="repo-name"
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck={false}
-        className="font-mono"
-      />
-      <Input
+      <AppField label="Create a new repo">
+        <AppInput
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="repo-name"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          className="font-mono"
+        />
+      </AppField>
+      <AppInput
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description (optional)"
+        aria-label="Repo description"
       />
-      <div className="flex items-center gap-2">
+      <div className="flex min-h-app-touch items-center gap-2">
         <Switch
           id="repo-private"
           checked={isPrivate}
           onCheckedChange={setIsPrivate}
         />
-        <Label htmlFor="repo-private" className="text-app-footnote font-normal">
+        <AppLabel htmlFor="repo-private" className="font-normal">
           Private
-        </Label>
+        </AppLabel>
       </div>
       <Button
         type="button"
@@ -212,7 +228,7 @@ function CreateNew({
       >
         {pending ? "Creating…" : "Create & connect"}
       </Button>
-      {error ? <p className="text-app-footnote text-destructive">{error}</p> : null}
+      {error ? <RepoError>{error}</RepoError> : null}
     </div>
   )
 }

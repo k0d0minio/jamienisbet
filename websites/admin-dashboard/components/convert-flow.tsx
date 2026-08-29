@@ -4,15 +4,15 @@ import { useState, useTransition } from "react"
 import { Check, ChevronRight } from "lucide-react"
 
 import {
+  AppField,
+  AppInput,
+  AppSelect,
+  AppSelectContent,
+  AppSelectItem,
+  AppSelectTrigger,
+  AppSelectValue,
+  AppTextarea,
   Button,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Textarea,
   cn,
 } from "@jamie-nisbet/ui"
 
@@ -151,10 +151,8 @@ function DealTermsStep({
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
       <div className="grid gap-2 sm:grid-cols-2">
-        <div className="grid gap-1.5">
-          <Label htmlFor="convert-value">Value (€)</Label>
-          <Input
-            id="convert-value"
+        <AppField label="Value (€)">
+          <AppInput
             name="value"
             inputMode="decimal"
             defaultValue={
@@ -162,45 +160,41 @@ function DealTermsStep({
             }
             placeholder="1500"
           />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="convert-billing">Billed</Label>
-          <Select name="billingType" defaultValue={client.billingType}>
-            <SelectTrigger id="convert-billing" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="one_off">One-off</SelectItem>
-              <SelectItem value="monthly">Every month</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        </AppField>
+        <AppField label="Billed">
+          <AppSelect name="billingType" defaultValue={client.billingType}>
+            <AppSelectTrigger className="w-full">
+              <AppSelectValue />
+            </AppSelectTrigger>
+            <AppSelectContent>
+              <AppSelectItem value="one_off">One-off</AppSelectItem>
+              <AppSelectItem value="monthly">Every month</AppSelectItem>
+            </AppSelectContent>
+          </AppSelect>
+        </AppField>
       </div>
       {/* Controlled, and posted by the hidden input below — a Radix Select
           driven by `value` doesn't submit itself (the profile-form pattern). */}
-      <div className="grid gap-1.5">
-        <Label htmlFor="convert-deal-type">Paid in</Label>
-        <Select value={dealType} onValueChange={setDealType}>
-          <SelectTrigger id="convert-deal-type" className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="cash">Cash</SelectItem>
-            <SelectItem value="barter">Exchange of services</SelectItem>
-          </SelectContent>
-        </Select>
+      <AppField label="Paid in">
+        <AppSelect value={dealType} onValueChange={setDealType}>
+          <AppSelectTrigger className="w-full">
+            <AppSelectValue />
+          </AppSelectTrigger>
+          <AppSelectContent>
+            <AppSelectItem value="cash">Cash</AppSelectItem>
+            <AppSelectItem value="barter">Exchange of services</AppSelectItem>
+          </AppSelectContent>
+        </AppSelect>
         <input type="hidden" name="dealType" value={dealType} />
-      </div>
+      </AppField>
       {dealType === "barter" ? (
-        <div className="grid gap-1.5">
-          <Label htmlFor="convert-barter">What&apos;s being exchanged</Label>
-          <Textarea
-            id="convert-barter"
+        <AppField label="What's being exchanged">
+          <AppTextarea
             name="barterTerms"
             defaultValue={client.barterTerms ?? ""}
             rows={2}
           />
-        </div>
+        </AppField>
       ) : null}
       <div className="flex items-center gap-1">
         <Button type="submit" size="sm" disabled={pending}>
