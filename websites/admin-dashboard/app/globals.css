@@ -7,8 +7,7 @@
    one source of truth lives in @jamie-nisbet/ui.
 
    Everything below the imports is *this app's* plumbing: the floating
-   tab bar's geometry, safe-area utilities, touch-target minimums, and
-   the markdown layer. It belongs here rather than in the design system
+   tab bar's geometry, touch-target minimums, and the markdown layer. It belongs here rather than in the design system
    because it is this app — an installed, one-handed PWA — that needs
    it; the marketing sites are read, not operated.
    ============================================================ */
@@ -52,10 +51,6 @@
     var(--admin-tab-height) + var(--admin-tab-gap) +
       env(safe-area-inset-bottom, 0px)
   );
-}
-
-@utility pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Where the floating bar itself sits. */

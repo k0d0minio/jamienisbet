@@ -3,11 +3,36 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#3A5A78" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F8F9" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0C0E11" />
     <title>Offline — Consultancy JN</title>
+    <!--
+      The one page in the app that cannot read a token: it is served by the
+      service worker with no stylesheet, so every value here is a literal copy
+      of one. Kept in step with the app it stands in for — the app tier's
+      system font stack and native sizes, and both appearances, since the app
+      follows the system and this page is the only thing the owner sees when
+      the network is gone.
+    -->
     <style>
       :root {
-        color-scheme: light;
+        color-scheme: light dark;
+        /* --bg / --text-1 / --text-2 / --primary / --primary-fg, light. */
+        --page: #f7f8f9;
+        --label: #15181c;
+        --label-2: #4c545d;
+        --tint: #3a5a78;
+        --on-tint: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          /* The same five, dark. */
+          --page: #0c0e11;
+          --label: #eaecef;
+          --label-2: #a8b0ba;
+          --tint: #6e90b2;
+          --on-tint: #0c141c;
+        }
       }
       * {
         box-sizing: border-box;
@@ -22,42 +47,52 @@
         gap: 1rem;
         padding: 2rem;
         text-align: center;
-        background: #f7f8f9;
-        color: #15181c;
+        background: var(--page);
+        color: var(--label);
+        /* The app tier's face: the system stack, not the marketing one. */
         font-family:
-          "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-          Roboto, sans-serif;
+          system-ui, -apple-system, "SF Pro Text", "Segoe UI Variable Text",
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
       .mark {
         width: 56px;
         height: 56px;
       }
       h1 {
+        /* title-3 / 20 on the native scale. */
         font-size: 1.25rem;
-        font-weight: 600;
+        line-height: 1.5625rem;
+        letter-spacing: -0.018em;
+        font-weight: 700;
         margin: 0;
       }
       p {
         margin: 0;
         max-width: 22rem;
-        color: #4c545d;
-        font-size: 0.95rem;
-        line-height: 1.5;
+        color: var(--label-2);
+        /* subhead / 15. */
+        font-size: 0.9375rem;
+        line-height: 1.25rem;
       }
       button {
         margin-top: 0.5rem;
         border: 0;
-        border-radius: 6px;
-        background: #3a5a78;
-        color: #fff;
+        /* --app-radius-control. */
+        border-radius: 12px;
+        background: var(--tint);
+        color: var(--on-tint);
         font: inherit;
         font-weight: 600;
+        /* The 44px touch floor. */
+        min-height: 2.75rem;
         padding: 0.6rem 1.2rem;
         cursor: pointer;
       }
     </style>
   </head>
   <body>
+    <!-- The solid monogram tile: slate and white in both modes, as everywhere. -->
     <svg class="mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect width="100" height="100" rx="22" fill="#3a5a78" />
       <g stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">

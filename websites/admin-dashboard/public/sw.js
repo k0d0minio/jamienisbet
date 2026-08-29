@@ -6,7 +6,9 @@
 // to show a friendly offline page for navigations when the network is gone — it
 // does NOT cache app responses.
 
-const CACHE = "cjn-shell-v1"
+// Bumped when offline.html changes: the byte difference is what makes an
+// installed worker update, reinstall, and re-fetch the page it caches.
+const CACHE = "cjn-shell-v2"
 const OFFLINE_URL = "/offline.html"
 
 self.addEventListener("install", (event) => {
