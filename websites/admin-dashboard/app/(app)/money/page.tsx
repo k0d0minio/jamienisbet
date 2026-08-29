@@ -192,8 +192,11 @@ export default async function MoneyPage() {
           </>
         ) : null}
 
-        {/* Invoices — raise a draft, then finalize & send as a deliberate step. */}
-        <section className="flex flex-col gap-4">
+        {/* Invoices — raise a draft, then finalize & send as a deliberate step.
+            `id` is the Needs you feed's landing point: its Money rows find the
+            invoice that needs deciding on and send you here, where deciding
+            actually happens. */}
+        <section id="invoices" className="scroll-mt-app-bar flex flex-col gap-4">
           <SectionHeading
             title="Invoices"
             description="A new invoice is created as a draft. Emailing it is a separate, deliberate step."

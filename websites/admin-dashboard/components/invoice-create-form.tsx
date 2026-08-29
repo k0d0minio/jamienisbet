@@ -68,7 +68,7 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
     return (
       <p className="text-sm text-muted-foreground">
         No leads yet. Add one under{" "}
-        <Link href="/" className="underline underline-offset-2">
+        <Link href="/leads" className="underline underline-offset-2">
           Leads
         </Link>{" "}
         before raising an invoice.

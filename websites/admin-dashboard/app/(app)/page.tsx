@@ -1,330 +1,270 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronRight, TriangleAlert } from "lucide-react"
+import { redirect } from "next/navigation"
+import {
+  ChevronRight,
+  CircleCheck,
+  FileText,
+  Receipt,
+  Ticket as TicketIcon,
+  TriangleAlert,
+} from "lucide-react"
 
 import {
-  GlanceFigure,
-  GlanceRow,
   GroupedBlock,
   GroupedRow,
   GroupedSection,
-  SegmentedControl,
-  SegmentedItem,
   cn,
 } from "@jamie-nisbet/ui"
 import {
-  customerStatuses,
   listClients,
   listOpenComplianceDates,
   listOpenTasks,
-  openStatuses,
   type Client,
 } from "@jamie-nisbet/services"
 
+import { AddTodo, type TodoLead } from "@/components/add-todo"
 import { AppScreen } from "@/components/app-screen"
-import { ArchiveChip } from "@/components/chip"
-import { ClientActions } from "@/components/client-actions"
-import { ClientCreateForm } from "@/components/client-create-form"
-import { ClientStatusSelect } from "@/components/client-status-select"
-import { ComplianceList, type ComplianceItem } from "@/components/compliance-list"
-import { DealBadges } from "@/components/deal-badges"
 import { LeadRow } from "@/components/lead-row"
+import {
+  OverdueList,
+  type OverdueCompliance,
+  type OverdueTodo,
+} from "@/components/overdue-list"
 import { ViewTransitionLink } from "@/components/view-transition-link"
-import { TaskList, type TaskItem, type TaskLead } from "@/components/task-list"
-import { WorkingList } from "@/components/working-list"
-import { daysSince, waitingLabel } from "@/lib/format"
+import {
+  listInvoicesNeedingAction,
+  type InvoiceNeedingAction,
+} from "@/lib/finance"
+import { daysWaiting, isStale, waitedLabel, whoLabel } from "@/lib/leads"
 import { formatMoney } from "@/lib/money"
+import { isStripeConfigured } from "@/lib/stripe"
+import { listBoard, type Ticket } from "@/lib/tickets"
 
-export const metadata: Metadata = { title: "Leads" }
+export const metadata: Metadata = { title: "Needs you" }
 export const dynamic = "force-dynamic"
 
-// The one screen the dashboard opens on: every lead and customer in a single
-// inset grouped list, longest-waiting first (the sort is done in the query).
+// Home. The dashboard used to open on the roster — everyone, longest-waiting
+// first — which answered "who exists" when the only question you have at 8am is
+// "what needs me". So the roster moved to /leads and this took its place: one
+// prioritised list, four sections, nothing in it that doesn't want something.
 //
-// One codepath from phone to laptop. The screen's name sets large and hands off
-// to the compact bar on scroll; under it, what the list adds up to is a glance
-// row of mono figures rather than a sentence; under that, a segmented control
-// of the four filters. Then the rows: each is a single big tap target into the
-// lead, carrying only what you scan for (how long they've waited, who they are,
-// what it's worth) with the two things worth doing without opening them — mark
-// touched, reach them — riding behind it as gestures.
+// The rule that shapes every row: a row either **acts in place** or
+// **deep-links**. Nothing here edits something that has a proper home
+// elsewhere. Marking a lead touched and ticking a todo happen under the thumb,
+// because there is nowhere better to send you for either. An invoice and a
+// ticket are links — an invoice especially, because finalizing and emailing one
+// is a deliberate click on Money and the estate's "no outbound action without
+// review" rule does not bend for a feed.
 //
-// The desktop table is gone. From `md` the same rows simply grow: more room,
-// and the two controls a pointer has the width for — the status as a menu
-// changed in place, archive and delete as icons — sitting in the row itself.
-// Nothing there is revealed by hover; a control you can only find with a mouse
-// is a control half the surfaces here can't reach.
-//
-// The working-list strip above the list is the last thing here still in the old
-// idiom. It is not restyled on purpose: it dies in `needs-you-inbox`, which
-// moves its content into the new home feed, and dressing it up first would be
-// work thrown away.
+// Sections render only when they have something. The empty feed is the point:
+// a designed all-clear rather than a broken screen, because the app opening on
+// "nothing needs you" is a good day.
 
-// A lead nobody has touched in this long is overdue a nudge.
-const STALE_AFTER_DAYS = 7
+/** How many rows a section shows before it stops and points at its own screen.
+ *  A feed you have to scroll past is a feed you stop reading. */
+const SECTION_LIMIT = 8
 
-// The filters across the top. Each is a set of statuses; "all" means no filter.
-// With the ladder down to three rungs plus `lost`, the three named chips are a
-// clean partition of it — "Open" is new + talking, "Customers" is client — so
-// their counts add up to All rather than overlapping.
-//
-// Four, and never more: a closed set is what a segmented control is for. If a
-// fifth rung ever arrives this goes back to being a scrolling rail.
-const FILTERS = [
-  { key: "all", label: "All", statuses: null },
-  { key: "open", label: "Open", statuses: openStatuses },
-  { key: "customers", label: "Customers", statuses: customerStatuses },
-  { key: "lost", label: "Lost", statuses: ["lost"] },
-] as const
+/** Tickets are the section you are least likely to act on from here, so it
+ *  takes the smallest slice of the fold. */
+const TICKET_LIMIT = 6
 
-type FilterKey = (typeof FILTERS)[number]["key"]
+/** A compliance date this close is worth seeing before it is late — the
+ *  contabilista needs asking *before* the deadline, not after it. */
+const COMPLIANCE_HORIZON_DAYS = 14
 
-function isFilterKey(value: string | undefined): value is FilterKey {
-  return FILTERS.some((f) => f.key === value)
+const DAY_MS = 24 * 60 * 60 * 1000
+
+// ---------------------------------------------------------------------------
+// Reads. Three sources, three failure modes, and none of them may take the
+// others down: Neon is the app's spine, Stripe and GitHub are each optional
+// and each says so in its own words when it is not there.
+
+type DbReads = {
+  /** When the read happened. Sampled here rather than during render — `now`
+   *  is impure, and every "how late is this" on the screen has to be measured
+   *  against one instant anyway. */
+  now: number
+  waiting: Client[]
+  todos: OverdueTodo[]
+  compliance: OverdueCompliance[]
+  /** Open todos that are filed but not yet due — counted, never listed, so
+   *  the Overdue section can say it is a filter rather than the whole list. */
+  filed: number
+  /** Everyone a todo can be pointed at, for the add sheet's picker. */
+  leads: TodoLead[]
+  error: string | null
 }
 
-/** Who they are, in the two or three words the second line has room for: the
- *  company when there is one, and otherwise where they came from — but only
- *  when that says something. "Referral" and "Contact" are provenance worth
- *  reading on every row; "Manual" only means Jamie typed them in, which is the
- *  default and not news, so a hand-added lead with no company simply carries
- *  the waiting line alone. */
-function whoLabel(client: Client): string | null {
-  if (client.company) return client.company
-  if (client.source === "portfolio") return "Contact"
-  if (client.source === "referral") return "Referral"
-  return null
-}
-
-/** Days since the lead was last worked — intake counts as the first touch. */
-function daysWaiting(client: Client, now: number): number {
-  return daysSince(client.lastTouchedAt ?? client.createdAt, now)
-}
-
-function isOpen(client: Client): boolean {
-  return (openStatuses as readonly string[]).includes(client.status)
-}
-
-/** Only an open lead can be "waiting" — a client or a lost one isn't owed a
- *  reply. */
-function isStale(client: Client, now: number): boolean {
-  return isOpen(client) && daysWaiting(client, now) >= STALE_AFTER_DAYS
-}
-
-// The figures worth knowing at a glance: what cash is still in play, what comes
-// in every month, and what is being traded rather than invoiced. All are Jamie's
-// own numbers off the profiles — Stripe is the authority on what has actually
-// been invoiced and paid.
-//
-// Barter is kept out of the first two on purpose. A swap can be worth real money
-// and still put nothing in the bank, so folding it into "in play" would quietly
-// overstate the pipeline; it gets its own "in kind" figure instead.
-function totals(rows: Client[]) {
-  let pipeline = 0
-  let monthly = 0
-  let inKind = 0
-  for (const row of rows) {
-    if (row.valueMinor <= 0) continue
-    const open = (openStatuses as readonly string[]).includes(row.status)
-    const customer = (customerStatuses as readonly string[]).includes(row.status)
-
-    if (row.dealType === "barter") {
-      if (open || customer) inKind += row.valueMinor
-    } else if (row.billingType === "monthly") {
-      if (customer) monthly += row.valueMinor
-    } else if (open) {
-      pipeline += row.valueMinor
-    }
-  }
-  return { pipeline, monthly, inKind }
-}
-
-/** What a lead is worth, rendered so a retainer never reads as a one-off. */
-function valueLabel(client: Client): string | null {
-  if (client.valueMinor <= 0) return null
-  const amount = formatMoney(client.valueMinor, "eur")
-  return client.billingType === "monthly" ? `${amount}/mo` : amount
-}
-
-/** The leading line of a row — what the list is sorted on. A client or a lost
- *  lead isn't waiting on anything, so it just reports when it last moved. */
-function waitedLabel(days: number, open: boolean): string {
-  if (days <= 0) return "Worked today"
-  const elapsed = waitingLabel(days)
-  return open ? `Waiting ${elapsed}` : `Last worked ${elapsed} ago`
-}
-
-// Everything the page reads, gathered outside the component so the render stays
-// pure — `now` is sampled once here rather than during render, and a DB error
-// degrades into a banner instead of an empty page.
-async function loadLeads(archived: boolean) {
+async function loadDb(): Promise<DbReads> {
   const now = Date.now()
-
-  let rows: Client[] = []
-  let leads: TaskLead[] = []
-  let tasks: TaskItem[] = []
-  let compliance: ComplianceItem[] = []
-  let error: string | null = null
-
+  const empty = { now, waiting: [], todos: [], compliance: [], filed: 0, leads: [] }
   try {
-    const [clientRows, openTasks, openCompliance] = await Promise.all([
-      listClients({ archived }),
+    const [clients, tasks, dates] = await Promise.all([
+      listClients({ archived: false }),
       listOpenTasks(),
       listOpenComplianceDates(),
     ])
-    rows = clientRows
-    // Who a todo can be pointed at. The archive view lists archived leads, but
-    // a todo is work still to do — so the picker is always the live ones, read
-    // again only on the view where `rows` isn't already them.
-    leads = (archived ? await listClients({ archived: false }) : clientRows).map(
-      (c) => ({ id: c.id, name: c.name })
-    )
-    tasks = openTasks.map((t) => ({
-      id: t.id,
-      title: t.title,
-      clientId: t.clientId,
-      clientName: t.clientName,
-      dueDate: t.dueDate?.toISOString() ?? null,
-      overdue: t.dueDate !== null && t.dueDate.getTime() < now,
-      completed: false,
-    }))
-    compliance = openCompliance.map((c) => ({
-      id: c.id,
-      title: c.title,
-      notes: c.notes,
-      dueDate: c.dueDate.toISOString(),
-      recurrence: c.recurrence,
-      overdue: c.dueDate.getTime() < now,
-    }))
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Could not reach the database."
-  }
 
-  return { now, rows, leads, tasks, compliance, error }
+    // Open leads past the staleness threshold, longest first. The list is
+    // already sorted by who has waited longest, so the filter preserves it.
+    const waiting = clients.filter((client) => isStale(client, now))
+
+    // Only what has actually come due. A todo with no date is filed, not
+    // owed — it is on its lead's profile and in the count under this section,
+    // and it starts chasing you the day it gets a date.
+    const todos = tasks
+      .flatMap((task) => {
+        const due = task.dueDate
+        if (due === null || due.getTime() > now) return []
+        return [
+          {
+            id: task.id,
+            title: task.title,
+            clientName: task.clientName,
+            dueDate: due.toISOString(),
+            // "Late" is a day past, not a minute past: a todo due today shows
+            // in the section but is not scolded for it until tomorrow.
+            late: due.getTime() < now - DAY_MS,
+          },
+        ]
+      })
+
+    const horizon = now + COMPLIANCE_HORIZON_DAYS * DAY_MS
+    const compliance = dates
+      .filter((date) => date.dueDate.getTime() <= horizon)
+      .map((date) => ({
+        id: date.id,
+        title: date.title,
+        notes: date.notes,
+        dueDate: date.dueDate.toISOString(),
+        recurrence: date.recurrence,
+        late: date.dueDate.getTime() < now,
+      }))
+
+    return {
+      now,
+      waiting,
+      todos,
+      compliance,
+      filed: tasks.length - todos.length,
+      leads: clients.map((c) => ({ id: c.id, name: c.name })),
+      error: null,
+    }
+  } catch (err) {
+    return {
+      ...empty,
+      error:
+        err instanceof Error ? err.message : "Could not reach the database.",
+    }
+  }
 }
 
-export default async function LeadsPage({
+type MoneyReads = {
+  invoices: InvoiceNeedingAction[]
+  /** A sentence for the feed's notes when the section could not be read. */
+  note: string | null
+}
+
+async function loadMoney(): Promise<MoneyReads> {
+  if (!isStripeConfigured()) {
+    return {
+      invoices: [],
+      note: "Stripe isn't configured here, so unpaid invoices aren't part of this list.",
+    }
+  }
+  try {
+    return { invoices: (await listInvoicesNeedingAction()) ?? [], note: null }
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "no answer"
+    return { invoices: [], note: `Stripe didn't answer — ${detail}` }
+  }
+}
+
+type TicketReads = { strip: Ticket[]; note: string | null }
+
+async function loadTickets(): Promise<TicketReads> {
+  try {
+    const board = await listBoard()
+    if (!board.configured) {
+      return {
+        strip: [],
+        note: "GitHub isn't configured here, so today's tickets aren't part of this list.",
+      }
+    }
+    if (board.dbError) return { strip: [], note: null }
+    const unreachable = board.errors.map((e) => e.repo.slug)
+    return {
+      strip: board.strip,
+      note:
+        unreachable.length > 0
+          ? `Couldn't read ${unreachable.join(", ")} — tickets there aren't in this list.`
+          : null,
+    }
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "no answer"
+    return { strip: [], note: `GitHub didn't answer — ${detail}` }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The screen.
+
+export default async function NeedsYouPage({
   searchParams,
 }: {
   searchParams: Promise<{ archived?: string; filter?: string }>
 }) {
   const params = await searchParams
-  const archived = params.archived === "1"
-  const filterKey: FilterKey = isFilterKey(params.filter) ? params.filter : "all"
 
-  const { now, rows, leads, tasks, compliance, error } = await loadLeads(archived)
-
-  const filter = FILTERS.find((f) => f.key === filterKey)!
-  const visible = filter.statuses
-    ? rows.filter((r) => (filter.statuses as readonly string[]).includes(r.status))
-    : rows
-  const { pipeline, monthly, inKind } = totals(rows)
-
-  // Counts sit on the filter segments so the shape of the pipeline is readable
-  // without clicking through each one.
-  const countFor = (key: FilterKey): number => {
-    const f = FILTERS.find((x) => x.key === key)!
-    if (!f.statuses) return rows.length
-    return rows.filter((r) => (f.statuses as readonly string[]).includes(r.status))
-      .length
+  // This route used to be the leads list, and its two view params rode in the
+  // query string — so a bookmark or a home-screen shortcut of "my open leads"
+  // is a `/?filter=open`. Those still mean the list, which now lives at
+  // /leads; a bare `/` means the feed and stays here.
+  if (params.archived != null || params.filter != null) {
+    const query = new URLSearchParams()
+    if (params.archived) query.set("archived", params.archived)
+    if (params.filter) query.set("filter", params.filter)
+    const suffix = query.toString()
+    redirect(suffix ? `/leads?${suffix}` : "/leads")
   }
 
-  const hrefFor = (key: FilterKey, toArchive: boolean): string => {
-    const parts: string[] = []
-    if (toArchive) parts.push("archived=1")
-    if (key !== "all") parts.push(`filter=${key}`)
-    return parts.length > 0 ? `/?${parts.join("&")}` : "/"
-  }
+  const [db, money, tickets] = await Promise.all([
+    loadDb(),
+    loadMoney(),
+    loadTickets(),
+  ])
 
-  const overdueCompliance = compliance.filter((c) => c.overdue).length
-  const overdueTasks = tasks.filter((t) => t.overdue).length
+  const notes = [money.note, tickets.note].filter(
+    (note): note is string => note !== null
+  )
 
-  // Only the totals the list actually has. A figure of nothing is noise, not
-  // news — and the row would rather hold two figures well than three badly.
-  const figures = [
-    { amount: pipeline, label: "In play" },
-    { amount: monthly, label: "Per month" },
-    { amount: inKind, label: "In kind" },
-  ].filter((f) => f.amount > 0)
+  const count =
+    db.waiting.length +
+    db.todos.length +
+    db.compliance.length +
+    money.invoices.length +
+    tickets.strip.length
+
+  const allClear = count === 0 && db.error === null
 
   return (
-    // The archive is a different view of the same screen, so it says so in the
-    // title: the switch that got you here is an icon on the bar, and an icon
-    // alone is a poor answer to "what am I looking at".
     <AppScreen
-      title={archived ? "Archived" : "Leads"}
-      masthead={
-        figures.length > 0 ? (
-          <GlanceRow>
-            {figures.map((figure) => (
-              <GlanceFigure
-                key={figure.label}
-                value={formatMoney(figure.amount, "eur")}
-                label={figure.label}
-              />
-            ))}
-          </GlanceRow>
-        ) : undefined
+      title="Needs you"
+      // One quiet line, and only when there is something to count — the
+      // all-clear state below says its own piece, and a subtitle repeating it
+      // would be the same sentence twice.
+      subtitle={
+        count > 0
+          ? `${count} thing${count === 1 ? "" : "s"} waiting on you`
+          : undefined
       }
-      actions={
-        <>
-          <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
-          {/* Renders the bar `+` here and, on a phone, the floating button. */}
-          {!archived ? <ClientCreateForm /> : null}
-        </>
-      }
+      actions={<AddTodo leads={db.leads} />}
     >
-      <div className="flex flex-col gap-4 pt-1 sm:gap-5">
-        {/* The four filters as one closed control: they partition the list, so
-            they belong in a single track rather than a rail of separate chips
-            you could read as independent toggles. */}
-        <SegmentedControl aria-label="Filter leads">
-          {FILTERS.map((f) => (
-            <SegmentedItem
-              key={f.key}
-              asChild
-              active={f.key === filterKey}
-              label={f.label}
-              count={countFor(f.key)}
-            >
-              {/* A plain <Link>: changing the filter re-renders this same
-                  screen, so there are no two pages to cross-fade between. */}
-              <Link href={hrefFor(f.key, archived)} />
-            </SegmentedItem>
-          ))}
-        </SegmentedControl>
-
-        {/* The working list — todos and compliance dates. Untouched here: it is
-            retired by `needs-you-inbox` (sequence 5), which moves its content
-            into the home feed. Collapsed by default so the leads stay the page;
-            the summary line carries anything overdue. */}
-        <WorkingList
-          openTasks={tasks.length}
-          overdueTasks={overdueTasks}
-          openCompliance={compliance.length}
-          overdueCompliance={overdueCompliance}
-        >
-          <div className="flex flex-col gap-6 border-t px-4 py-4">
-            <section className="flex flex-col gap-2">
-              <h2 className="text-xs font-medium text-muted-foreground">Todos</h2>
-              <TaskList tasks={tasks} leads={leads} />
-            </section>
-            <section className="flex flex-col gap-2">
-              <h2 className="text-xs font-medium text-muted-foreground">
-                Compliance dates
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Decision-support only — every date needs confirmation by your
-                contabilista.
-              </p>
-              <ComplianceList items={compliance} />
-            </section>
-          </div>
-        </WorkingList>
-
-        {/* The read failed. Say so in a group of its own, in plain words, and
-            leave the rest of the screen standing. */}
-        {error ? (
+      <div className="flex flex-col gap-app-section pt-1 pb-2">
+        {/* Neon is the spine: without it two of the four sections simply are
+            not there, so this is a stated failure rather than a footnote. */}
+        {db.error ? (
           <GroupedSection>
             <GroupedRow
               icon={<TriangleAlert />}
@@ -332,163 +272,286 @@ export default async function LeadsPage({
               variant="destructive"
               chevron={false}
             />
-            <GroupedBlock>{error}</GroupedBlock>
+            <GroupedBlock>{db.error}</GroupedBlock>
           </GroupedSection>
         ) : null}
 
-        {visible.length === 0 ? (
-          <EmptyLeads
-            archived={archived}
-            filtered={rows.length > 0}
-            allHref={hrefFor("all", archived)}
+        {db.waiting.length > 0 ? (
+          <WaitingOnYou leads={db.waiting} now={db.now} />
+        ) : null}
+
+        {db.todos.length > 0 || db.compliance.length > 0 ? (
+          <OverdueList
+            todos={db.todos}
+            compliance={db.compliance}
+            filed={db.filed}
           />
-        ) : (
-          <GroupedSection>
-            <ul>
-              {visible.map((row, index) => {
-                const stale = isStale(row, now)
-                const value = valueLabel(row)
-                const open = isOpen(row)
-                const who = whoLabel(row)
-                return (
-                  <li key={row.id}>
-                    <LeadRow
-                      id={row.id}
-                      name={row.name}
-                      phone={row.phone}
-                      email={row.email}
-                      archived={archived}
-                    >
-                      {/* One row, one fill, one hairline. The fill is what
-                          hides the swipe tray behind it; the hairline is inset
-                          to the label column the way a native list insets it,
-                          and rides *inside* the moving content so it travels
-                          with the row rather than cutting across the tray. */}
-                      <div
-                        className={cn(
-                          "relative flex items-center gap-3 bg-app-group px-4 py-2.5",
-                          "transition-colors spring-press has-[a:active]:bg-app-press",
-                          // Wider row from `md`: the same row, more air, the
-                          // way an iPad grows a phone list.
-                          "md:gap-4 md:px-5 md:py-3.5",
-                          index > 0 &&
-                            "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-4 before:h-px before:bg-app-separator md:before:left-5"
-                        )}
-                      >
-                        {/* Into the profile and back is the move this screen
-                            makes most; on a browser that supports it the two
-                            pages cross-fade instead of hard-cutting. The link
-                            stretches over the whole row — everything else in
-                            it is a real control and sits above. */}
-                        <ViewTransitionLink
-                          href={`/leads/${row.id}`}
-                          className="flex min-w-0 flex-1 flex-col gap-0.5 after:absolute after:inset-0"
-                        >
-                          <span className="flex items-baseline justify-between gap-3">
-                            <span className="truncate text-app-body font-semibold text-app-label">
-                              {row.name}
-                            </span>
-                            {/* A figure, so it sets in mono — the brand's
-                                signature, on every tier. */}
-                            {value ? (
-                              <span className="shrink-0 font-mono text-app-subhead font-semibold tabular-nums text-app-label">
-                                {value}
-                              </span>
-                            ) : null}
-                          </span>
+        ) : null}
 
-                          <span className="flex items-baseline justify-between gap-3 text-app-footnote">
-                            <span
-                              className={cn(
-                                "truncate",
-                                stale
-                                  ? "font-medium text-destructive"
-                                  : "text-app-label-3"
-                              )}
-                            >
-                              {waitedLabel(daysWaiting(row, now), open)}
-                              {who ? ` · ${who}` : ""}
-                            </span>
-                            {/* The status is read here and changed on the
-                                lead's page — or, from `md`, in the menu on the
-                                right of this row. */}
-                            <span className="shrink-0 text-app-label-3 capitalize md:hidden">
-                              {row.status}
-                            </span>
-                          </span>
+        {money.invoices.length > 0 ? (
+          <MoneyNeedingAction invoices={money.invoices} />
+        ) : null}
 
-                          {/* Barter, commission, equity, started — only the
-                              rows that carry them grow a third line. */}
-                          <DealBadges client={row} className="mt-1" />
-                        </ViewTransitionLink>
+        {tickets.strip.length > 0 ? (
+          <TodaysTickets strip={tickets.strip} />
+        ) : null}
 
-                        {/* The width a pointer has, spent on the two things
-                            the old table's last two columns did. Always
-                            rendered, never hover-revealed. */}
-                        <div className="relative z-10 hidden shrink-0 items-center gap-1 md:flex">
-                          <ClientStatusSelect id={row.id} value={row.status} />
-                          <ClientActions id={row.id} archived={archived} />
-                        </div>
+        {allClear ? <AllClear partial={notes.length > 0} /> : null}
 
-                        <ChevronRight
-                          aria-hidden
-                          className="size-4 shrink-0 text-app-label-3"
-                        />
-                      </div>
-                    </LeadRow>
-                  </li>
-                )
-              })}
-            </ul>
-          </GroupedSection>
-        )}
+        {notes.length > 0 ? <FeedNotes notes={notes} /> : null}
       </div>
     </AppScreen>
   )
 }
 
-// A quiet day should look calm, not broken: centred words on the canvas rather
-// than an empty slab, which reads as a card that failed to load. Three things
-// can be empty here and they are not the same thing — an archive nobody has put
-// anything in, a filter that happens to match nothing, and a dashboard on its
-// first day — so each says what it is and, where there is one, what to do.
-function EmptyLeads({
-  archived,
-  filtered,
-  allHref,
-}: {
-  archived: boolean
-  /** There are rows behind the current filter — this view is empty, not the list. */
-  filtered: boolean
-  allHref: string
-}) {
+// ---------------------------------------------------------------------------
+// Waiting on you — open leads past the staleness threshold.
+
+/** The one row in the feed that carries the leads list's gestures, because it
+ *  is the leads list's record: swipe right to mark them touched, swipe left
+ *  for the tray, tap to open the profile. Marking someone touched drops them
+ *  out of this section on the next read, which is the point of the stroke. */
+function WaitingOnYou({ leads, now }: { leads: Client[]; now: number }) {
+  const shown = leads.slice(0, SECTION_LIMIT)
+  const more = leads.length - shown.length
+
   return (
-    <div className="flex flex-col items-center gap-1 px-6 py-14 text-center">
-      <p className="text-app-callout font-medium text-app-label-2">
-        {filtered
-          ? "Nothing under this filter"
-          : archived
-            ? "Nothing archived"
-            : "No leads yet"}
-      </p>
-      <p className="max-w-xs text-app-footnote text-app-label-3">
-        {filtered ? (
+    <GroupedSection
+      header="Waiting on you"
+      footer={
+        more > 0 ? (
           <>
-            Every other lead is still there —{" "}
+            {more} more open{" "}
+            {more === 1 ? "lead has" : "leads have"} gone quiet —{" "}
             <Link
-              href={allHref}
+              href="/leads?filter=open"
               className="text-app-tint underline underline-offset-2"
             >
-              show all
+              see them on Leads
             </Link>
             .
           </>
-        ) : archived ? (
-          "A lead you archive is taken off the list and kept here."
         ) : (
-          "Add the first one with the plus button — everything else can be filled in on their profile."
-        )}
+          "Swipe a row right to mark them worked; swipe left to reach them."
+        )
+      }
+    >
+      <ul>
+        {shown.map((lead, index) => {
+          const days = daysWaiting(lead, now)
+          const who = whoLabel(lead)
+          return (
+            <li key={lead.id}>
+              <LeadRow
+                id={lead.id}
+                name={lead.name}
+                phone={lead.phone}
+                email={lead.email}
+                archived={false}
+              >
+                {/* One row, one fill, one hairline — the same construction the
+                    leads list uses, so a lead reads the same on both screens.
+                    The fill is what hides the swipe tray behind it. */}
+                <div
+                  className={cn(
+                    "relative flex items-center gap-3 bg-app-group px-4 py-2.5",
+                    "transition-colors spring-press has-[a:active]:bg-app-press",
+                    "md:gap-4 md:px-5 md:py-3.5",
+                    index > 0 &&
+                      "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-4 before:h-px before:bg-app-separator md:before:left-5"
+                  )}
+                >
+                  <ViewTransitionLink
+                    href={`/leads/${lead.id}`}
+                    className="flex min-w-0 flex-1 flex-col gap-0.5 after:absolute after:inset-0"
+                  >
+                    <span className="flex items-baseline justify-between gap-3">
+                      <span className="truncate text-app-body font-semibold text-app-label">
+                        {lead.name}
+                      </span>
+                      {/* How long they have waited is the figure this section
+                          is sorted on, so it sets in mono and carries the tint
+                          that says it has gone past the threshold. Compact on
+                          screen, spoken in full — "12d" is a glance, not a
+                          sentence. */}
+                      <span className="shrink-0 font-mono text-app-subhead font-semibold tabular-nums text-destructive">
+                        <span aria-hidden>{days}d</span>
+                        <span className="sr-only">
+                          {waitedLabel(days, true)}
+                        </span>
+                      </span>
+                    </span>
+                    {/* Where they sit and who they are — the two things the
+                        figure beside them doesn't already say. */}
+                    <span className="truncate text-app-footnote text-app-label-3">
+                      <span className="capitalize">{lead.status}</span>
+                      {who ? ` · ${who}` : ""}
+                    </span>
+                  </ViewTransitionLink>
+
+                  <ChevronRight
+                    aria-hidden
+                    className="size-4 shrink-0 text-app-label-3"
+                  />
+                </div>
+              </LeadRow>
+            </li>
+          )
+        })}
+      </ul>
+    </GroupedSection>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Money — invoices waiting on a decision. Links only.
+
+function MoneyNeedingAction({
+  invoices,
+}: {
+  invoices: InvoiceNeedingAction[]
+}) {
+  const shown = invoices.slice(0, SECTION_LIMIT)
+  const more = invoices.length - shown.length
+
+  return (
+    <GroupedSection
+      header="Money"
+      // The standing rule, said where it is being obeyed: nothing on this
+      // screen sends anything.
+      footer={
+        more > 0
+          ? `${more} more on Money. Finalizing and sending stays a deliberate click there.`
+          : "Finalizing and sending an invoice stays a deliberate click on Money."
+      }
+    >
+      {shown.map((invoice) => (
+        <GroupedRow
+          key={invoice.id}
+          asChild
+          icon={invoice.reason === "draft" ? <FileText /> : <Receipt />}
+          label={invoice.customerName ?? invoice.number ?? "Invoice"}
+          description={
+            invoice.reason === "draft"
+              ? "Draft — never finalized"
+              : `${invoice.daysLate} ${invoice.daysLate === 1 ? "day" : "days"} past due`
+          }
+          value={
+            <span
+              className={cn(
+                "font-mono tabular-nums",
+                invoice.reason === "overdue" && "font-medium text-destructive"
+              )}
+            >
+              {formatMoney(invoice.amountDue, invoice.currency)}
+            </span>
+          }
+        >
+          {/* Into Money, at its invoices — the row finds the work, that screen
+              is where the work is done. */}
+          <Link href="/money#invoices" />
+        </GroupedRow>
+      ))}
+    </GroupedSection>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Today's tickets — the board's now-strip, deep-linked into Tickets.
+
+const TICKET_GROUP_LABEL: Record<string, string> = {
+  today: "Today",
+  "in-flight": "In flight",
+  blocked: "Blocked",
+}
+
+function TodaysTickets({ strip }: { strip: Ticket[] }) {
+  const shown = strip.slice(0, TICKET_LIMIT)
+  const more = strip.length - shown.length
+
+  return (
+    <GroupedSection
+      header="Today's tickets"
+      footer={
+        more > 0 ? (
+          <>
+            {more} more on the now-strip —{" "}
+            <Link
+              href="/tickets"
+              className="text-app-tint underline underline-offset-2"
+            >
+              open Tickets
+            </Link>
+            .
+          </>
+        ) : (
+          "Today's picks, runs in flight, and anything stuck. A ticket is worked in its own repo."
+        )
+      }
+    >
+      {shown.map((ticket) => (
+        <GroupedRow
+          key={`${ticket.repo.fullName}/${ticket.path}`}
+          asChild
+          icon={<TicketIcon />}
+          label={ticket.title}
+          description={
+            <>
+              <span className="font-mono">{ticket.repo.slug}</span>
+              {` · ${TICKET_GROUP_LABEL[ticket.group] ?? ticket.group}`}
+            </>
+          }
+        >
+          {/* Into the board, filtered to the repo this ticket lives in — the
+              board is where a ticket opens, and every launcher on it is a
+              session link a human sends. */}
+          <Link href={`/tickets?repo=${ticket.repo.slug}`} />
+        </GroupedRow>
+      ))}
+    </GroupedSection>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// The two quiet states.
+
+/** Nothing needs you. This is the screen's best day, so it is designed for:
+ *  centred words on the canvas rather than an empty slab, which reads as a
+ *  card that failed to load. It never claims more than it knows — when a
+ *  source could not be read, it says the list is only as complete as what it
+ *  could see and the notes below name what was missing. */
+function AllClear({ partial }: { partial: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
+      <CircleCheck
+        aria-hidden
+        className="size-8 text-app-tint"
+        strokeWidth={1.5}
+      />
+      <p className="text-app-title-3 font-semibold text-app-label">
+        Nothing needs you
       </p>
+      <p className="max-w-xs text-app-footnote text-app-label-3">
+        {partial
+          ? "Nothing in what this could read. Everyone has been worked recently, and nothing is due."
+          : "No lead has gone quiet, nothing is due, no invoice is waiting, and no ticket is up. Go and do the work."}
+      </p>
+    </div>
+  )
+}
+
+/** What the feed could not read. The house "not configured" note, sized as a
+ *  footnote and set at the foot of the list rather than as a card of its own:
+ *  a missing key is a fact about this deployment, not a thing that needs you,
+ *  and it should not take a section's worth of the fold every single day. */
+function FeedNotes({ notes }: { notes: string[] }) {
+  return (
+    <div className="flex flex-col gap-1 px-4 pb-2">
+      {notes.map((note) => (
+        <p key={note} className="text-app-footnote text-app-label-3">
+          {note}
+        </p>
+      ))}
     </div>
   )
 }

@@ -12,8 +12,9 @@ packages, deployed as four Vercel projects.
 - **[`websites/portfolio/`](websites/portfolio/)** — the public portfolio (i18n, markdown
   case studies, contact form → Neon `biz.clients` + Resend).
 - **[`websites/admin-dashboard/`](websites/admin-dashboard/)** — the owner-only cockpit.
-  Four screens: *Leads*, a *lead's profile*, *Tickets* (every active repo's `.icm/intake/`
-  backlog in one read-only board), and *Money* (Stripe). Business state lives in **one**
+  Four screens: *Needs you* (the triaged attention feed that is home), *Leads* and a *lead's
+  profile*, *Tickets* (every active repo's `.icm/intake/` backlog in one read-only board),
+  and *Money* (Stripe). Business state lives in **one**
   store — the Neon `biz.*` schema — operated through the dashboard, never mirrored into git.
 - **[`websites/payment-gateway/`](websites/payment-gateway/)** — the client-facing pay page
   (`/pay/[invoice]`, Stripe Embedded Checkout + signature-verified webhook).
@@ -53,7 +54,7 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 | CI, DB migrations | [`.github/workflows/`](.github/workflows/) |
 | Plan or track engineering work on **this** repo | tickets in [`.icm/intake/`](.icm/intake/) (`JN-NNN-slug.md`) — contract in [its README](.icm/intake/README.md) |
 | Customer questionnaires / onboarding forms (questions only — answers live in Neon) | [`.icm/onboarding/`](.icm/onboarding/) for house forms; a client's own `.icm/onboarding/` for theirs |
-| Daily business todos / compliance deadlines | the working-list strip on the dashboard's Leads screen (`biz.tasks` + `biz.compliance_dates`) |
+| Daily business todos / compliance deadlines | the dashboard's **Needs you** feed at `/` — its Overdue section (`biz.tasks` + `biz.compliance_dates`) |
 | How repos are structured · the ticket/project/lens contracts · `/project` `/day` `/icm-check` | the **`icm-board`** repo — not here |
 
 ## Standing rules (do not break these)

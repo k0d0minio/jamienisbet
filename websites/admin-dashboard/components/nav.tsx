@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LogOut, Ticket, Users, Wallet, type LucideIcon } from "lucide-react"
+import { Inbox, LogOut, Ticket, Users, Wallet, type LucideIcon } from "lucide-react"
 
 import { LogoMark, Material, cn } from "@jamie-nisbet/ui"
 
@@ -14,18 +14,21 @@ type NavLink = {
   icon: LucideIcon
 }
 
-// Three screens. Leads is home — the dashboard opens on the work, not on a
-// summary of it — Tickets is the estate's engineering backlog read from each
-// repo's .icm/intake/, and Money is everything Stripe.
+// Four screens, in the order you meet them. Needs you is home and is first:
+// the dashboard opens on what is owed today rather than on a roster. Leads is
+// everyone; Tickets is the estate's engineering backlog read from each repo's
+// .icm/intake/; Money is everything Stripe.
 const links: NavLink[] = [
-  { href: "/", label: "Leads", icon: Users },
+  { href: "/", label: "Needs you", icon: Inbox },
+  { href: "/leads", label: "Leads", icon: Users },
   { href: "/tickets", label: "Tickets", icon: Ticket },
   { href: "/money", label: "Money", icon: Wallet },
 ]
 
 function isActive(pathname: string, href: string): boolean {
-  // "/" also covers a lead's own page, which is a detail view of that list.
-  if (href === "/") return pathname === "/" || pathname.startsWith("/leads")
+  // The feed is one route and nothing hangs off it — matching by prefix would
+  // light it up on every screen in the app.
+  if (href === "/") return pathname === "/"
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
@@ -68,17 +71,22 @@ export function TabBar() {
               key={link.href}
               href={link.href}
               aria-current={active ? "page" : undefined}
-              // A full-height 3.5rem target, one third of the pill, so it can
-              // be hit one-handed without aiming.
+              // A full-height 3.5rem target, one quarter of the pill, so it
+              // can be hit one-handed without aiming. Four labels across a
+              // phone is why they set at caption-2 and never wrap: "Needs you"
+              // is the widest, and it fits at 11px semibold in a quarter of
+              // the pill's 24rem ceiling.
               className={cn(
-                "flex h-[var(--admin-tab-height)] flex-1 flex-col items-center justify-center gap-1",
+                "flex h-[var(--admin-tab-height)] min-w-0 flex-1 flex-col items-center justify-center gap-1",
                 "text-app-caption-2 font-medium transition-colors spring-press",
                 "active:bg-app-press",
                 active ? "text-app-tint" : "text-material-label-3"
               )}
             >
-              <Icon className="size-5" aria-hidden />
-              <span className="leading-none">{link.label}</span>
+              <Icon className="size-5 shrink-0" aria-hidden />
+              <span className="max-w-full truncate leading-none">
+                {link.label}
+              </span>
             </Link>
           )
         })}
@@ -91,9 +99,9 @@ export function TabBar() {
 // Wide viewports: the sidebar.
 // ------------------------------------------------------------------
 
-/** The leading sidebar — the tab bar's desktop form. Same three destinations,
- *  the monogram at the head and sign out at the foot; from here up the compact
- *  title bar carries no app-level controls of its own. */
+/** The leading sidebar — the tab bar's desktop form. Same four destinations in
+ *  the same order, the monogram at the head and sign out at the foot; from here
+ *  up the compact title bar carries no app-level controls of its own. */
 export function Sidebar() {
   const pathname = usePathname()
 
