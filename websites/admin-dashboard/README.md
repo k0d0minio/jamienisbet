@@ -154,33 +154,49 @@ The **working-list strip** that used to sit above this list — todos and Portug
 dates folded into a `<details>` — is gone. Todos and compliance dates are attention, and
 attention now lives on [Needs you](#needs-you--the-screen-the-app-opens-on).
 
-A lead's own page adds the read-only intake provenance (how they came in, what they asked for),
-their **delivery repo**, their **Stripe customer**, and the todos filed against them. It is
-ordered by what you actually do on a phone: reach them (call / email / mark touched / **work
-started**, as a rail of real buttons), move their status, then read the record. The record is
-**facts, not form fields**: a **Contact** card whose rows are the actions themselves (tap the
-email row and the mail app opens, tap phone to dial, copy beside each), a **Deal** card showing
-only the components actually agreed (value, billed, paid in, equity %, commission %, what's
-being exchanged) and saying so plainly when none is — nothing there waits on a euro figure —
-and a **Notes** card. Each edits in its own bottom sheet
+A lead's own page opens on *them*: the identity masthead (name, company · status, the deal's
+headline figure in mono) and, under it, the five things you do from a phone as a row of tinted
+discs — call / WhatsApp / email / mark touched / **work started**. Then the record, in **two
+segments**:
+
+- **Person** — the record. Status (and when they were last worked), **Contact**, **Deal**, the
+  folded **Intake** row, and the **Danger zone**.
+- **Work** — the surface you operate. **Notes**, **todos**, **Forms**.
+
+Both segments are rendered and only one is shown, so switching costs no round trip and a
+half-typed note survives a look at the deal; the choice rides in the URL as `?tab=work` through
+`history.replaceState`, so a refresh comes back where you left off.
+
+Riding with the identity are **two status glyphs — the delivery repo and the Stripe customer**.
+Lit and filled when connected (tap jumps to GitHub or Stripe); dim on a dashed outline when not
+(tap opens the control that links one, in a sheet). That is the whole of the delivery/billing
+surface — there is no Delivery & billing section, and no convert walkthrough: **moving the
+status to Active client *is* the conversion**. Nothing warns, walks or blocks; an unlit glyph is
+the only reminder that plumbing is still missing.
+
+The record is **facts, not form fields**: a **Contact** card whose rows are the actions
+themselves (tap the email row and the mail app opens, tap phone to dial, copy beside each), a
+**Deal** card showing only the components actually agreed (value, billed, paid in, equity %,
+commission %, what's being exchanged) and saying so plainly when none is — nothing there waits
+on a euro figure — and a **Notes** card. Each edits in its own bottom sheet
 ([`Sheet` in `@jamie-nisbet/ui`](../../packages/ui/src/components/ui/sheet.tsx)) posting a
 server action scoped to exactly its own fields (`saveClientContact` / `saveDealTerms` /
 `saveClientNotes`), so no sheet can blank a field it never showed. **Work started** is a one-tap
 toggle in the rail rather than a field to save, because it is something you record on the day it
 happens; re-tapping undoes it, and marking an already-started engagement keeps the original date.
 
-Reference material and irreversible actions sink to the bottom — **Intake** is a
-`GroupedDisclosure` that folds open on a tap, connecting a delivery repo folds away until asked
-for, and archive/delete are the last section on the page, under a **Danger zone** header in
-red, rather than beside the title where a thumb reaching for the status could find them.
+Reference material and irreversible actions sink to the bottom of **Person** — **Intake** is a
+`GroupedDisclosure` that folds open on a tap, and archive/delete are the last section, under a
+**Danger zone** header in red, rather than beside the title where a thumb reaching for the
+status could find them.
 
 ### Delivery repos
 
 Each lead can carry a GitHub delivery repository ([`lib/github.ts`](lib/github.ts),
 [`components/client-repo-link.tsx`](components/client-repo-link.tsx)): connect an existing repo
-or create a fresh one from the profile. The pointer is stored on the row
-(`clients.github_repo`) so the dashboard always knows where a customer's work lives. Needs
-`GITHUB_TOKEN` (see [`.env.example`](.env.example)); with it unset the profile shows a "not
+or create a fresh one from the sheet behind the profile's repo glyph. The pointer is stored on
+the row (`clients.github_repo`) so the dashboard always knows where a customer's work lives.
+Needs `GITHUB_TOKEN` (see [`.env.example`](.env.example)); with it unset the sheet shows a "not
 configured" note and the rest of the admin is unaffected.
 
 ### Forms — questionnaires sent to a lead
@@ -428,7 +444,7 @@ app/
     loading.tsx         # the feed's layout-true skeleton (the widest read in the app)
     actions.ts          # lead + todo + compliance server actions (every lead screen uses these)
     leads/              # Leads — the list, staleness-sorted; loading.tsx alongside
-    leads/[id]/         # one lead: profile, intake, delivery repo, Stripe link, their todos
+    leads/[id]/         # one lead: Person / Work segments, repo + Stripe glyphs, their todos
                         #   error.tsx — its own boundary, so it can name the record
     tickets/            # Tickets — every repo's .icm/intake/ backlog, read-only, copy-prompt
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside

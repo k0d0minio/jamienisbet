@@ -54,10 +54,8 @@ function badgeKinds(
 }
 
 /** Whether there is anything to show at all — a plain cash deal that hasn't
- * started yet renders nothing, which is most rows most of the time. Exported
- * because a caller laying out around the badges has to know whether there
- * will be any. */
-export function hasDealBadges(
+ * started yet renders nothing, which is most rows most of the time. */
+function hasDealBadges(
   client: DealBadgeTerms,
   omit?: DealComponentKind | null
 ): boolean {

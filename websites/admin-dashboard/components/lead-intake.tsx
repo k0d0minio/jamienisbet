@@ -5,9 +5,9 @@ import type { Client } from "@jamie-nisbet/services"
 
 import { formatDateTime, formatServiceId } from "@/lib/format"
 
-// How a lead came in: read once, then never again. So the whole group is one
-// folded row at rest — the provenance is on the page, it just isn't between
-// you and the rest of it.
+// How a lead came in: read once, then never again. So it is one folded row at
+// the foot of the Person segment — no header, no section of its own. The
+// provenance is on the page, it just isn't between you and the rest of it.
 
 export function sourceLabel(source: string): string {
   if (source === "portfolio") return "Contact form"
@@ -38,7 +38,7 @@ function Detail({ label, children }: { label: string; children?: React.ReactNode
 
 export function LeadIntake({ client }: { client: Client }) {
   return (
-    <GroupedSection header="Intake">
+    <GroupedSection>
       <GroupedDisclosure
         icon={<Inbox />}
         label="How they came in"
