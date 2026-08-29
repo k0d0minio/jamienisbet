@@ -122,7 +122,11 @@ export function OverdueList({
    *  they are on their leads' profiles until their date comes round. */
   filed: number
 }) {
-  const [pending, startTransition] = useTransition()
+  // One transition for both kinds of row. Nothing reads its pending flag: a
+  // resolved row leaves the list on the tap, which is a better guard against a
+  // double-fire than a disabled control — and a shared flag would have grey
+  // out every "Done" button the moment a todo was ticked.
+  const [, startTransition] = useTransition()
   const [resolved, markResolved] = useOptimistic<Resolved, Partial<Resolved>>(
     { todos: [], compliance: [] },
     resolve
@@ -241,7 +245,6 @@ export function OverdueList({
               type="button"
               variant="outline"
               size="sm"
-              disabled={pending}
               aria-label={`Mark "${item.title}" done`}
               onClick={() =>
                 startTransition(async () => {
