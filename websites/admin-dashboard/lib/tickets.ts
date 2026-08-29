@@ -31,6 +31,18 @@ import "server-only"
 // also tagged, so the board's explicit refresh control can bust the whole
 // minute in one `revalidateTag` when "current right now" is the point.
 //
+// That cache is easier to lose than it looks, and losing it is how this board
+// once 403'd every repo at once — a hundred-plus GitHub calls per view, on two
+// screens, until the token's rate limit was spent. It takes two things to
+// hold. Each read has to opt in explicitly with `cache: "force-cache"`, because
+// a revalidate alone doesn't cache a request carrying an Authorization header
+// and every one of these does. And no route reading the board may export
+// `dynamic = "force-dynamic"`, which sets `fetchCache: "force-no-store"` across
+// its whole segment and overrides the lot. Two pages read the board; neither
+// exports it, and both say why. Requests are also capped at
+// `MAX_CONCURRENT_REQUESTS` in flight, so one cold read can't trip GitHub's
+// concurrency limit on its own.
+//
 // The board reads batch-first: `listBoard()` folds the tickets into repo
 // sections of batches (each epic folder, plus a Triage pseudo-batch for the
 // one-offs and a Backlog pseudo-batch for unmigrated legacy tickets), and a
@@ -42,6 +54,19 @@ import { listAccessibleRepos } from "@/lib/github"
 
 const API = "https://api.github.com"
 const REVALIDATE_SECONDS = 60
+
+/**
+ * How many GitHub requests this module will ever have in flight at once.
+ *
+ * One board read is not one request: it is a tree call per repo in the estate
+ * and then a raw read per open ticket file — comfortably past a hundred on a
+ * cold read. Fired as one `Promise.all` that is exactly GitHub's documented
+ * secondary rate limit ("no more than 100 concurrent requests"), and the whole
+ * board comes back `403` — every repo at once, which is what a permissions
+ * problem looks like and isn't one. Eight at a time costs a few hundred
+ * milliseconds on a cold read and nothing on a warm one.
+ */
+const MAX_CONCURRENT_REQUESTS = 8
 
 /** Cache tag on every GitHub read, so the refresh action can bust them all. */
 export const BOARD_CACHE_TAG = "tickets"
@@ -224,15 +249,94 @@ function isConfigured(): boolean {
   return Boolean(process.env.GITHUB_TOKEN)
 }
 
+// A queue of waiters, drained one permit at a time. Every request in this
+// module goes through it, and nothing holds a permit while waiting for
+// another — the tree call releases before its file reads start — so the fan-out
+// can nest without deadlocking.
+let inFlight = 0
+const waiting: (() => void)[] = []
+
+async function acquire(): Promise<void> {
+  if (inFlight < MAX_CONCURRENT_REQUESTS) {
+    inFlight += 1
+    return
+  }
+  // The permit is handed over by `release`, which never lets `inFlight` drop
+  // while anyone is queued — so a caller arriving in the gap can't take the
+  // slot this waiter was just given.
+  await new Promise<void>((resolve) => waiting.push(resolve))
+}
+
+function release(): void {
+  const next = waiting.shift()
+  if (next) next()
+  else inFlight -= 1
+}
+
 async function gh(path: string, accept: string): Promise<Response> {
-  return fetch(`${API}${path}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-      Accept: accept,
-      "X-GitHub-Api-Version": "2022-11-28",
-    },
-    next: { revalidate: REVALIDATE_SECONDS, tags: [BOARD_CACHE_TAG] },
-  })
+  await acquire()
+  try {
+    return await fetch(`${API}${path}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Accept: accept,
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      // `force-cache` is load-bearing, not decoration. Caching is opt-in, and
+      // a `revalidate` on its own does not opt a request in when it carries an
+      // Authorization header — which every request here does: "Set
+      // `cache: 'force-cache'` to cache any request, including POST and
+      // requests that send `authorization` or `cookie` headers"
+      // (nextjs.org/docs/app/api-reference/functions/fetch). Without it the
+      // revalidate below is a lifetime on a cache entry that is never written,
+      // and the board re-reads the whole estate on every render.
+      //
+      // Even with it, a route exporting `dynamic = "force-dynamic"` sets
+      // `fetchCache: "force-no-store"` across its whole segment and overrides
+      // this. The two pages that read the board say so where they used to
+      // export it. Only 200s are stored, so a rate-limited read is never
+      // cached and the board heals itself once the limit resets.
+      cache: "force-cache",
+      next: { revalidate: REVALIDATE_SECONDS, tags: [BOARD_CACHE_TAG] },
+    })
+  } finally {
+    release()
+  }
+}
+
+/**
+ * What GitHub actually said, for a response the board couldn't use. A `403`
+ * with the rate-limit headers set is not a permissions problem and shouldn't
+ * read like one — it is the same token, a minute later, being told to wait.
+ */
+async function githubFailure(res: Response): Promise<string> {
+  // Both limits come back as 403 or 429 (docs.github.com/rest/using-the-rest-api
+  // /rate-limits-for-the-rest-api), so the status alone can't tell them from a
+  // genuine forbidden. The headers and GitHub's own message can.
+  if (res.status !== 403 && res.status !== 429) {
+    return `GitHub returned HTTP ${res.status}`
+  }
+
+  const retryAfter = Number(res.headers.get("retry-after"))
+  if (retryAfter > 0) {
+    return `GitHub is rate-limiting these reads — it asked for ${retryAfter}s.`
+  }
+
+  const reset = Number(res.headers.get("x-ratelimit-reset"))
+  if (res.headers.get("x-ratelimit-remaining") === "0" && reset > 0) {
+    const mins = Math.max(1, Math.ceil((reset * 1000 - Date.now()) / 60_000))
+    return `GitHub's rate limit is spent — it resets in about ${mins} min.`
+  }
+
+  const body = (await res.json().catch(() => null)) as {
+    message?: string
+  } | null
+  if (body?.message && /rate limit/i.test(body.message)) {
+    return `GitHub is rate-limiting these reads — ${body.message}`
+  }
+  return body?.message
+    ? `GitHub returned HTTP ${res.status} — ${body.message}`
+    : `GitHub returned HTTP ${res.status}`
 }
 
 // ---------------------------------------------------------------------------
@@ -468,7 +572,7 @@ async function fetchRepoTickets(
     if (!res.ok) {
       return {
         tickets: [],
-        error: { repo, message: `GitHub returned HTTP ${res.status}` },
+        error: { repo, message: await githubFailure(res) },
       }
     }
     const { tree } = (await res.json()) as { tree: TreeEntry[] }

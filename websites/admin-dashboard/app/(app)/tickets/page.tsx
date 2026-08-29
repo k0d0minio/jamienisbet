@@ -31,7 +31,13 @@ import {
 } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Tickets" }
-export const dynamic = "force-dynamic"
+
+// No `dynamic = "force-dynamic"` here on purpose. It bought nothing — awaiting
+// searchParams already makes this request-time — and it cost the board its
+// cache: force-dynamic sets `fetchCache: "force-no-store"` across the segment,
+// which overrides the 60-second revalidate on every GitHub read in
+// `lib/tickets.ts` and re-fetches the whole estate on every render. See the
+// header of that file.
 
 // The estate's work backlog, read batch-first: the "now" group (today's picks,
 // runs in flight, what's stuck), then one inset group per repo whose intake has
