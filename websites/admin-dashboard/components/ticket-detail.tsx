@@ -9,8 +9,13 @@ import type { Ticket } from "@/lib/tickets"
 
 // One ticket, opened for reading: the actions that matter, the metadata, then
 // the ticket rendered as it was written in the repo. Server-rendered and
-// passed into the client shells (a batch sheet's expanded row, a strip peek)
-// as children, so react-markdown stays out of the client bundle.
+// passed into the client shells (a batch sheet's expanded row, a now-strip
+// peek) as children, so react-markdown stays out of the client bundle.
+//
+// Deliberately not a grouped list, though it sits in one: it is already inside
+// a group's row or a sheet, and a slab nested in a slab reads as neither. What
+// changed here is the type — every step is on the app tier's native scale now,
+// so a ticket read on a phone sets at the same sizes as the rows around it.
 export function TicketDetail({
   ticket,
   sessionUrl,
@@ -25,7 +30,7 @@ export function TicketDetail({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
         {!ticket.prompt ? (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-app-footnote text-app-label-3">
             {ticket.kind === "run"
               ? "A run in flight — the work lives on its branch and PR."
               : "No prompt section in this ticket."}
@@ -38,21 +43,31 @@ export function TicketDetail({
                 it is the whole fallback when a prompt is too long to ride in
                 a URL. */}
             {sessionUrl ? (
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="text-app-footnote">
                 <a href={sessionUrl} target="_blank" rel="noreferrer">
                   <ExternalLink aria-hidden />
                   Start in Claude Code
                 </a>
               </Button>
             ) : null}
-            <CopyButton value={ticket.prompt} label="Copy prompt" what="Prompt" />
+            <CopyButton
+              value={ticket.prompt}
+              label="Copy prompt"
+              what="Prompt"
+              className="text-app-footnote"
+            />
             {/* The desk-bound twin of the same tap: a local terminal session
                 in whichever clone this machine last ran `claude` in. Quiet,
                 and last — on a phone (the primary surface here) there is no
                 handler to catch it, so it must never sit between the two
                 actions that do work there. */}
             {terminalUrl ? (
-              <Button asChild size="sm" variant="ghost">
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                className="text-app-footnote"
+              >
                 <a href={terminalUrl}>
                   <Terminal aria-hidden />
                   Open in terminal
@@ -60,43 +75,46 @@ export function TicketDetail({
               </Button>
             ) : null}
             {!sessionUrl ? (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-app-footnote text-app-label-3">
                 This prompt is too long for a link — copy it into a new session.
               </span>
             ) : null}
           </>
         )}
-        <span className="ml-auto flex items-center gap-3 text-xs">
+        <span className="ml-auto flex items-center gap-3 text-app-footnote">
           {/* The repo is on the board because a client row points at it — the
               join back to the big picture is one tap. The house repo belongs
               to no client; it just says so. */}
           {ticket.repo.clientId ? (
             <Link
               href={`/leads/${ticket.repo.clientId}`}
-              className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              className="text-app-tint underline underline-offset-2"
             >
               {ticket.repo.clientName}
             </Link>
           ) : (
-            <span className="text-muted-foreground">house</span>
+            <span className="text-app-label-3">house</span>
           )}
           <a
             href={ticket.htmlUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            className="text-app-tint underline underline-offset-2"
           >
             Open on GitHub
           </a>
         </span>
       </div>
 
+      {/* The ticket's own header lines — priority, size, depends-on. They are
+          machine-written key/value pairs, so the values set in mono the way
+          every other figure and identifier in the estate does. */}
       {ticket.meta.length > 0 ? (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-app-footnote">
           {ticket.meta.map(([key, value]) => (
             <div key={key} className="contents">
-              <dt className="text-muted-foreground">{key}</dt>
-              <dd className="break-words">{value}</dd>
+              <dt className="text-app-label-3">{key}</dt>
+              <dd className="font-mono break-words text-app-label-2">{value}</dd>
             </div>
           ))}
         </dl>

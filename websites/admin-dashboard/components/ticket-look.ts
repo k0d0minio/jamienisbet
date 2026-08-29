@@ -19,12 +19,10 @@ export const GROUP_DOT: Record<TicketGroup, string> = {
   today: "bg-primary",
   "in-flight": "bg-success",
   blocked: "bg-warning",
-  next: "bg-muted-foreground/40",
-  queued: "bg-muted-foreground/20",
+  next: "bg-app-label-3/40",
+  queued: "bg-app-label-3/20",
 }
 
 export function priorityClass(priority: string | null): string {
-  return priority === "P0"
-    ? "text-destructive font-medium"
-    : "text-muted-foreground"
+  return priority === "P0" ? "text-destructive font-medium" : "text-app-label-3"
 }

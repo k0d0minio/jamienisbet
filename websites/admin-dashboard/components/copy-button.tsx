@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 
-import { Button } from "@jamie-nisbet/ui"
+import { Button, cn } from "@jamie-nisbet/ui"
 
 import { copyToClipboard } from "@/lib/clipboard"
 
@@ -20,11 +20,14 @@ export function CopyButton({
   // label so a caller only names it when "link" would be wrong.
   what = "Link",
   size = "sm",
+  className,
 }: {
   value: string
   label?: string
   what?: string
   size?: "sm" | "default"
+  /** For a caller that sets its own type — the app tier's scale, say. */
+  className?: string
 }) {
   const [copied, setCopied] = useState(false)
   const [, startTransition] = useTransition()
@@ -38,7 +41,13 @@ export function CopyButton({
   }
 
   return (
-    <Button type="button" variant="secondary" size={size} onClick={onCopy}>
+    <Button
+      type="button"
+      variant="secondary"
+      size={size}
+      className={cn(className)}
+      onClick={onCopy}
+    >
       {copied ? "Copied" : label}
     </Button>
   )

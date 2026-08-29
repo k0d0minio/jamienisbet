@@ -94,15 +94,26 @@
 }
 
 /* ------------------------------------------------------------------
-   Branded markdown — ticket bodies rendered by react-markdown. Same
-   token-driven layer as the portfolio's `.prose`, one step down the
-   type scale: this is an operating screen read on a phone, not an
-   article. No tokens are defined here, only applied.
+   Branded markdown — ticket bodies rendered by react-markdown.
+
+   Retuned to the app tier's native scale. It used to set on the
+   marketing tier's 14px steps, so a heading inside a ticket came out
+   smaller than the row that opened it.
+
+   The whole ladder sits one step below its container: a sheet's title
+   is 18/600, so a ticket's own h1 tops out at the tier's headline
+   (17), h2 at callout (16), h3 at subhead (15) — and the body reads at
+   subhead with a relaxed leading, since a ticket is read rather than
+   scanned. Set any higher and a `# Heading` in a ticket out-shouts the
+   sheet it was opened from.
+
+   Figures and code stay mono, as they do on every tier. No tokens are
+   defined here, only applied.
    ------------------------------------------------------------------ */
 
 .prose {
-  color: var(--text-2);
-  font-size: var(--text-sm);
+  color: var(--app-label-2);
+  font-size: var(--app-text-subhead);
   line-height: var(--leading-relaxed);
 }
 .prose > * + * {
@@ -112,28 +123,29 @@
 .prose h2,
 .prose h3,
 .prose h4 {
-  color: var(--text-1);
-  font-weight: var(--weight-semibold);
+  color: var(--app-label);
+  font-weight: var(--app-weight-headline);
   line-height: var(--leading-snug);
+  letter-spacing: var(--app-tracking-headline);
 }
 .prose h1 {
-  font-size: var(--text-lg);
+  font-size: var(--app-text-headline);
 }
 .prose h2 {
-  font-size: var(--text-md);
+  font-size: var(--app-text-callout);
   margin-top: var(--space-5);
 }
 .prose h3,
 .prose h4 {
-  font-size: var(--text-sm);
+  font-size: var(--app-text-subhead);
   margin-top: var(--space-4);
 }
 .prose strong {
-  color: var(--text-1);
-  font-weight: var(--weight-semibold);
+  color: var(--app-label);
+  font-weight: var(--app-weight-headline);
 }
 .prose a {
-  color: var(--primary);
+  color: var(--app-tint);
   text-underline-offset: 3px;
   text-decoration: underline;
 }
@@ -151,7 +163,7 @@
   list-style: decimal;
 }
 .prose li::marker {
-  color: var(--text-3);
+  color: var(--app-label-3);
 }
 /* GFM task lists — the checkboxes are read-only here (the repo owns the
    ticket), so they lose the marker and sit inline with their line. */
@@ -161,23 +173,23 @@
 }
 .prose li > input[type="checkbox"] {
   margin-right: var(--space-2);
-  accent-color: var(--primary);
+  accent-color: var(--app-tint);
 }
 .prose code {
   font-family: var(--font-mono);
   font-size: 0.875em;
   background: var(--surface-sunken);
-  border: 1px solid var(--border);
+  border: 1px solid var(--app-separator);
   border-radius: var(--radius-xs);
   padding: 0.1em 0.35em;
   overflow-wrap: anywhere;
 }
 .prose pre {
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: var(--app-text-caption);
   background: var(--surface-sunken);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--app-separator);
+  border-radius: var(--app-radius-control);
   padding: var(--space-3);
   overflow-x: auto;
 }
@@ -189,11 +201,11 @@
 .prose blockquote {
   border-left: 2px solid var(--border-strong);
   padding-left: var(--space-3);
-  color: var(--text-3);
+  color: var(--app-label-3);
 }
 .prose hr {
   border: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--app-separator);
   margin: var(--space-5) 0;
 }
 /* A table wider than the phone scrolls itself rather than the page. */
@@ -203,18 +215,18 @@
   width: max-content;
   max-width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-xs);
+  font-size: var(--app-text-caption);
 }
 .prose th,
 .prose td {
-  border: 1px solid var(--border);
+  border: 1px solid var(--app-separator);
   padding: var(--space-1) var(--space-2);
   text-align: left;
   vertical-align: top;
 }
 .prose th {
-  color: var(--text-1);
-  font-weight: var(--weight-semibold);
+  color: var(--app-label);
+  font-weight: var(--app-weight-headline);
   background: var(--surface-sunken);
 }
 
