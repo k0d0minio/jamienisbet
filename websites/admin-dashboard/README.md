@@ -19,12 +19,70 @@ fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 
 | Screen | Route | What it is |
 |---|---|---|
-| **Leads** | `/` | Every lead and customer in one list, longest-waiting first. |
+| **Needs you** | `/` | The triaged feed: what is waiting on you right now, in four sections. Home. |
+| **Leads** | `/leads` | Every lead and customer in one list, longest-waiting first. |
 | **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link, todos. |
 | **Tickets** | `/tickets` | Every repo's `.icm/intake/` backlog in one read-only board. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. |
 
-## Leads — the screen the app opens on
+The tab bar and the desktop sidebar carry those four in that order, Needs you
+first. The leads list used to be home; a `/?filter=…` or `/?archived=1` bookmark
+from then is redirected to the same view on `/leads`, and a bare `/` opens the
+feed.
+
+## Needs you — the screen the app opens on
+
+The only question you have at 8am is *what needs me*, and a roster of everyone
+does not answer it. So home is a feed: one prioritised list, four sections, and
+nothing in it that does not want something. A section renders only when it has
+rows.
+
+- **Waiting on you** — open leads past the staleness threshold (7 days with no
+  touch, the same constant the Leads list flags on, shared in
+  [`lib/leads.ts`](lib/leads.ts)), longest first. These rows wear the Leads
+  list's gestures: **swipe right** marks them worked — which is precisely the
+  stroke that drops them out of the section — **swipe left** reaches them, and a
+  tap opens the profile.
+- **Overdue** — todos that have come due, ticked in place; and compliance dates
+  past or inside a two-week horizon, marked done on a button beside the row
+  rather than by tapping it (completing a recurring obligation re-arms the next
+  occurrence, which is too much to hang off a mis-tap while scrolling).
+  Compliance rows stay **decision-support only** — the section says so under
+  them. A todo with no due date is filed rather than owed: it lives on its
+  lead's profile and is counted, not listed, in the section's footer.
+- **Money** — the two kinds of invoice waiting on a decision: a draft nobody
+  finalized, and an open one past its due date, longest overdue first
+  (`listInvoicesNeedingAction` in [`lib/finance.ts`](lib/finance.ts)). The rows
+  **deep-link into Money** and nothing else: per the standing *no outbound
+  action without review* rule, finalizing and emailing stays a deliberate click
+  there.
+- **Today's tickets** — the board's now-strip (today's picks, runs in flight,
+  blocked stubs), each row deep-linking into Tickets filtered to its repo.
+
+**The rule that shapes every row:** a row either **acts in place** or
+**deep-links**. Nothing in the feed edits something that has a proper home
+elsewhere — marking a lead touched and ticking a todo happen under the thumb
+because there is nowhere better to send you; an invoice or a ticket is a link.
+
+**Writing a todo down** is the one thing here that makes something, so it is a
+`+` on the title bar (`components/add-todo.tsx`): a sheet with the title, an
+optional date and an optional lead. The Overdue section's header would have hidden
+it on exactly the day you have nothing overdue and want to write something down.
+A todo about someone in particular is still added from their profile.
+
+**Empty is the point.** With nothing in any section the screen shows a designed
+**all clear** rather than a blank — the app opening on "nothing needs you" is a
+good day, not a broken screen.
+
+**Degradation is per section.** A missing `STRIPE_SECRET_KEY` or `GITHUB_TOKEN`
+drops its section and leaves one footnote line at the foot of the feed saying
+what is not being read; the same for a source that errors. A key that is missing
+is a fact about the deployment, not a thing that needs you, so it never takes a
+section's worth of the fold. Neon is the exception: it is the app's spine, two of
+the four sections depend on it, and it fails into a stated banner. The all-clear
+state knows when it is only as complete as what it could see, and says so.
+
+## Leads
 
 One row per person. A portfolio contact enquiry, a sellers-site referral, and someone met at a
 meetup are all the same kind of record; `source` is the only thing that tells them apart. There
@@ -75,10 +133,10 @@ relationship, and what was actually billed lives in Stripe.
   status dropdown on the row itself. The customer branch also asks **Paid in** (cash or
   services) — and only that, of the deal terms: the rest skews no total by waiting for the
   profile, but a swap filed as cash overstates the pipeline from the moment it is typed.
-- **The working list** — todos and Portuguese compliance dates live in a strip above the list,
-  collapsed by default (a native `<details>`, so it costs no JavaScript). The summary line says
-  whether anything is overdue; that is all it needs to say on a normal day. Compliance rows are
-  **decision-support only** and need the contabilista's confirmation.
+
+The **working-list strip** that used to sit above this list — todos and Portuguese compliance
+dates folded into a `<details>` — is gone. Todos and compliance dates are attention, and
+attention now lives on [Needs you](#needs-you--the-screen-the-app-opens-on).
 
 A lead's own page adds the read-only intake provenance (how they came in, what they asked for),
 their **delivery repo**, their **Stripe customer**, and the todos filed against them. It is
@@ -212,7 +270,8 @@ is read live from Stripe, and nothing about an amount comes from the browser. On
 sections:
 
 - **Balance** — available, pending, and total outstanding across open invoices.
-- **Invoices** — every Stripe invoice with status/amount/hosted link, and a form to raise a new
+- **Invoices** (`#invoices` — where the Needs you feed's Money rows land) — every Stripe invoice
+  with status/amount/hosted link, and a form to raise a new
   one **against a lead picked from the database** (no free-text customer details). Raising it
   resolves — and, first time, creates + links — that lead's Stripe customer, storing the id on
   the row (`clients.stripe_customer_id`) so the two stay joined. Honoring the repo's *no
@@ -259,10 +318,11 @@ business data.
 
 The app is built mobile-first and installs to a phone home screen as **Consultancy JN**.
 
-- **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — a sticky top bar (brand + sign
-  out) on every size, inline text links on desktop, and a fixed three-tab bar pinned to the bottom
-  on phones (Leads, Tickets, Money). Each tab is a full 3.5rem target; content is padded to clear the bar
-  and respects the home-indicator safe area.
+- **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — four destinations, Needs you
+  first: a floating translucent tab bar hovering over the content on phones, and the same four as
+  a leading sidebar from `md` up. Each tab is a full 3.5rem target — a quarter of the pill, which
+  is why the labels set at the tier's smallest caption and never wrap; content is padded to clear
+  the bar and respects the home-indicator safe area.
 - **Touch targets and safe areas** ([`app/globals.css`](app/globals.css)) — the design system is
   sized for a mouse (h-8/h-9 controls, a 16px checkbox), so rather than annotate every call site
   the floor is lifted once under `@media (pointer: coarse)`: every button, input and select
@@ -308,8 +368,10 @@ app/
   login/                # /login page + login/logout server actions
   (app)/                # authenticated area (route group — no URL segment)
     layout.tsx          # nav chrome (mobile-first spacing + tab-bar clearance)
-    page.tsx            # Leads — the list, staleness-sorted, with the collapsed working list
-    actions.ts          # lead + todo + compliance server actions (both lead screens use these)
+    page.tsx            # Needs you — the feed; also redirects the old /?filter= leads bookmarks
+    loading.tsx         # the feed's layout-true skeleton (the widest read in the app)
+    actions.ts          # lead + todo + compliance server actions (every lead screen uses these)
+    leads/              # Leads — the list, staleness-sorted; loading.tsx alongside
     leads/[id]/         # one lead: profile, intake, delivery repo, Stripe link, their todos
     tickets/            # Tickets — every repo's .icm/intake/ backlog, read-only, copy-prompt
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
@@ -318,7 +380,11 @@ components/             # login form, nav, service-worker register, lead + money
                         #   fold-card.tsx — a card that folds into <details> below `lg`
                         #   disclosure-card.tsx — a card folded shut on every size (single render)
                         #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
-                        #   lead-row.tsx — the leads list's gestures (call/email/archive, touched)
+                        #   lead-row.tsx — the leads list's gestures (call/email/archive, touched),
+                        #                worn by the feed's "Waiting on you" rows too
+                        #   overdue-list.tsx — the feed's Overdue section: todos + compliance,
+                        #                both acting in place
+                        #   add-todo.tsx — the feed's `+`: write a todo down from anywhere
                         #   lead-contact-card.tsx / lead-deal-card.tsx / lead-notes-card.tsx
                         #                — the record as facts, each edited in a bottom sheet
                         #   pull-to-refresh.tsx — pull down from the top to re-read everything
@@ -326,6 +392,8 @@ components/             # login form, nav, service-worker register, lead + money
                         #   deal-badges.tsx — barter / commission / equity / started, on the row
                         #   work-started-button.tsx — one-tap "the work has begun"
 lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets, app-icon
+                        #   leads.ts — the staleness threshold and the row labels the feed and
+                        #              the Leads list both read a lead by
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```
 

@@ -188,6 +188,60 @@ function normalizeInvoice(inv: Stripe.Invoice): InvoiceRow {
   }
 }
 
+/** An invoice the Needs you feed is calling for, and why. */
+export type InvoiceNeedingAction = InvoiceRow & {
+  /** `draft` — raised but never finalized. `overdue` — finalized, past due. */
+  reason: "draft" | "overdue"
+  /** Whole days past the due date; 0 for a draft, which has no clock. */
+  daysLate: number
+}
+
+/**
+ * The two kinds of invoice that are waiting on a decision: a draft nobody has
+ * finalized, and an open one whose due date has passed. Both are read straight
+ * from Stripe with the same pagination as every other figure here, so the feed
+ * never under-reports once volume grows past a page.
+ *
+ * This read *finds* the work; it never does any of it. Finalizing and emailing
+ * an invoice stays a deliberate click on Money, per the estate's standing
+ * "no outbound action without review" rule — the feed's rows are links.
+ */
+export async function listInvoicesNeedingAction(): Promise<
+  InvoiceNeedingAction[] | null
+> {
+  const stripe = getStripe()
+  if (!stripe) return null
+
+  const nowSec = Math.floor(Date.now() / 1000)
+  const [drafts, open] = await Promise.all([
+    listAllInvoices(stripe, { status: "draft" }),
+    listAllInvoices(stripe, { status: "open" }),
+  ])
+
+  // Longest overdue first — the same "who has waited longest" ordering the
+  // leads list opens on, applied to money.
+  const overdue = open
+    .filter((inv) => inv.due_date != null && inv.due_date < nowSec)
+    .map((inv) => ({
+      ...normalizeInvoice(inv),
+      reason: "overdue" as const,
+      daysLate: Math.floor((nowSec - (inv.due_date ?? nowSec)) / 86_400),
+    }))
+    .sort((a, b) => b.daysLate - a.daysLate)
+
+  // Then the drafts, oldest first: a draft raised weeks ago is the one that
+  // has been forgotten.
+  const raised = drafts
+    .map((inv) => ({
+      ...normalizeInvoice(inv),
+      reason: "draft" as const,
+      daysLate: 0,
+    }))
+    .sort((a, b) => (a.createdDate ?? 0) - (b.createdDate ?? 0))
+
+  return [...overdue, ...raised]
+}
+
 export async function listInvoices(limit = 30): Promise<InvoiceRow[] | null> {
   const stripe = getStripe()
   if (!stripe) return null

@@ -1,26 +1,21 @@
-import {
-  GlanceFigure,
-  GlanceRow,
-  GroupedSection,
-  Skeleton,
-  cn,
-} from "@jamie-nisbet/ui"
+import { GroupedSection, Skeleton, cn } from "@jamie-nisbet/ui"
 
 import { AppScreen } from "@/components/app-screen"
 
-// The leads screen is three reads in parallel — every client, every open todo,
-// every open compliance date — so on mobile data there is a beat of nothing
-// between tapping the tab and the list arriving. The shape lands first, built
-// from the same pieces as page.tsx so the real list replaces this without the
-// page jumping under a thumb already on its way to a row.
+// The feed is the widest read in the app — Neon, Stripe and every repo's
+// `.icm/intake/` over the GitHub API, all at once — so it is the screen most
+// likely to be looked at before it has landed. The shape goes first, built from
+// the same pieces as page.tsx so the real sections replace it without the page
+// jumping under a thumb already on its way to a row.
 //
-// Deliberately not "Leads, loading": the title, the glance row's two slots, the
-// filter track and six rows are the screen, and they are all knowable before
-// the data is. What can't be known is left as a bar rather than guessed at.
+// Two sections of three rows, not four of everything: what the feed will
+// actually hold is the one thing that can't be known here, and a skeleton that
+// guesses high leaves the screen shrinking when the answer arrives. A quiet day
+// resolving into fewer rows reads better than a busy one being cut short.
 //
-// This sits at the `(app)` segment root, but the three screens under it —
-// money, tickets, a lead's profile — each ship their own, so in practice it is
-// only ever the leads list that shows it.
+// It sits at the `(app)` segment root, but every screen under it — /leads,
+// /money, /tickets, a lead's profile — ships its own, so in practice this is
+// only ever the feed.
 
 function RowSkeleton({ first }: { first?: boolean }) {
   return (
@@ -33,81 +28,55 @@ function RowSkeleton({ first }: { first?: boolean }) {
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
-          {/* The name line runs at body size, the waiting line at footnote —
+          {/* The label line runs at body size, the detail line at footnote —
               two different bar heights, or the list reads as one grey block. */}
           <Skeleton className="h-4 w-2/5" />
-          <Skeleton className="h-4 w-16 shrink-0" />
+          <Skeleton className="h-4 w-12 shrink-0" />
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <Skeleton className="h-3 w-3/5" />
-          <Skeleton className="h-3 w-12 shrink-0" />
-        </div>
+        <Skeleton className="h-3 w-3/5" />
       </div>
       <Skeleton className="size-4 shrink-0 rounded-full" />
     </li>
   )
 }
 
-export default function LeadsLoading() {
+function SectionSkeleton({ header }: { header: string }) {
+  return (
+    <div className="flex flex-col">
+      {/* The header is knowable — it is the section's name, not its contents —
+          so it is set rather than guessed at. Aligned on the row labels, the
+          way GroupedSection sets its own. */}
+      <div className="px-4 pb-2 text-app-footnote text-app-label-3">
+        {header}
+      </div>
+      <GroupedSection>
+        <ul>
+          {[0, 1, 2].map((i) => (
+            <RowSkeleton key={i} first={i === 0} />
+          ))}
+        </ul>
+      </GroupedSection>
+    </div>
+  )
+}
+
+export default function NeedsYouLoading() {
   return (
     <AppScreen
-      title="Leads"
-      masthead={
-        <GlanceRow>
-          {/* Two, not three: the third figure only exists when something is
-              being traded in kind, and a bar that resolves into nothing is a
-              worse guess than one fewer bar.
-
-              They stand on the page canvas rather than inside a group, and
-              Skeleton's own fill is a near-match for the canvas in dark — the
-              bars simply vanished there. --app-press is the tier's "one stop
-              off whatever is under you" wash: it darkens in light and lifts in
-              dark, which is exactly what a bar on the canvas needs. */}
-          {[0, 1].map((i) => (
-            <GlanceFigure
-              key={i}
-              value={<Skeleton className="h-6 w-20 bg-app-press" />}
-              label={<Skeleton className="mt-1 h-2.5 w-14 bg-app-press" />}
-            />
-          ))}
-        </GlanceRow>
-      }
+      title="Needs you"
+      // The count is the one thing the subtitle carries, and it is exactly what
+      // isn't known yet — so a bar rather than a guess. It stands on the page
+      // canvas, where Skeleton's own fill nearly matches in dark; --app-press
+      // is the tier's "one stop off whatever is under you" wash, which darkens
+      // in light and lifts in dark.
+      subtitle={<Skeleton className="mt-0.5 h-3.5 w-40 bg-app-press" />}
     >
-      <div className="flex flex-col gap-4 pt-1 sm:gap-5">
-        {/* The filter track, at its real geometry — the segments are inert
-            here, so they are drawn rather than rendered as controls. */}
-        <div
-          aria-hidden
-          className="flex items-stretch gap-1 rounded-app-control bg-app-press p-1"
-        >
-          {["2.5rem", "3rem", "4.5rem", "2.5rem"].map((width) => (
-            <div
-              key={width}
-              className="flex min-h-app-touch flex-1 items-center justify-center"
-            >
-              <Skeleton className="h-3.5" style={{ width }} />
-            </div>
-          ))}
-        </div>
-
-        {/* The working-list strip, still in its own idiom until sequence 5
-            retires it — so its skeleton is a card, like the thing it stands
-            in for. */}
-        <div className="flex min-h-14 items-center gap-3 rounded-lg border bg-card px-4">
-          <Skeleton className="size-4 shrink-0" />
-          <Skeleton className="h-3.5 w-40" />
-        </div>
-
-        <GroupedSection>
-          <ul>
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <RowSkeleton key={i} first={i === 0} />
-            ))}
-          </ul>
-        </GroupedSection>
+      <div className="flex flex-col gap-app-section pt-1 pb-2">
+        <SectionSkeleton header="Waiting on you" />
+        <SectionSkeleton header="Overdue" />
 
         <span className="sr-only" role="status">
-          Loading leads
+          Loading what needs you
         </span>
       </div>
     </AppScreen>

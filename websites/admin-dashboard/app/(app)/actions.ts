@@ -46,11 +46,19 @@ import {
   type RepoSummary,
 } from "@/lib/github"
 
-// The leads list lives at "/" and a lead's profile at "/leads/<id>" — an edit in
-// either place has to refresh both.
+// Three screens read a lead: the Needs you feed at "/" (whose first section is
+// the ones that have gone quiet), the list at "/leads", and the profile at
+// "/leads/<id>". An edit anywhere has to refresh all three — marking someone
+// touched is exactly the write that should drop them out of the feed.
 function revalidateLead(id: string) {
-  revalidatePath("/")
+  revalidateLeadLists()
   revalidatePath(`/leads/${id}`)
+}
+
+/** The two screens that list leads, todos and compliance dates. */
+function revalidateLeadLists() {
+  revalidatePath("/")
+  revalidatePath("/leads")
 }
 
 // ---- Status & profile -------------------------------------------------------
@@ -213,7 +221,7 @@ export async function addClient(formData: FormData) {
     billingType,
     dealType,
   })
-  revalidatePath("/")
+  revalidateLeadLists()
 }
 
 // Create (or adopt) and link a Stripe customer for this lead on demand — the
@@ -458,7 +466,7 @@ export async function archiveClient(id: string, archived: boolean) {
 
 export async function removeClient(id: string) {
   await deleteClient(id)
-  revalidatePath("/")
+  revalidateLeadLists()
 }
 
 // ---- Todos ------------------------------------------------------------------
@@ -482,7 +490,7 @@ export async function addTaskAction(formData: FormData) {
   const clientId = String(formData.get("clientId") ?? "").trim() || null
 
   await createTask({ title, dueDate, clientId })
-  revalidatePath("/")
+  revalidateLeadLists()
   if (clientId) revalidatePath(`/leads/${clientId}`)
 }
 
@@ -491,19 +499,19 @@ export async function addTaskAction(formData: FormData) {
  * reading the row back to work out which two moved. */
 export async function setTaskClientAction(id: string, clientId: string | null) {
   await setTaskClient(id, clientId)
-  revalidatePath("/")
+  revalidateLeadLists()
   revalidatePath("/leads/[id]", "page")
 }
 
 export async function setTaskCompletedAction(id: string, completed: boolean) {
   const task = await setTaskCompleted(id, completed)
-  revalidatePath("/")
+  revalidateLeadLists()
   if (task?.clientId) revalidatePath(`/leads/${task.clientId}`)
 }
 
 export async function deleteTaskAction(id: string) {
   await deleteTask(id)
-  revalidatePath("/")
+  revalidateLeadLists()
 }
 
 // ---- Compliance calendar ------------------------------------------------------
@@ -528,17 +536,17 @@ export async function addComplianceDateAction(formData: FormData) {
   const notes = String(formData.get("notes") ?? "").trim() || null
 
   await createComplianceDate({ title, notes, dueDate, recurrence })
-  revalidatePath("/")
+  revalidateLeadLists()
 }
 
 /** Completing a recurring obligation re-arms the next occurrence (handled in
  * the query layer). */
 export async function completeComplianceDateAction(id: string) {
   await completeComplianceDate(id)
-  revalidatePath("/")
+  revalidateLeadLists()
 }
 
 export async function deleteComplianceDateAction(id: string) {
   await deleteComplianceDate(id)
-  revalidatePath("/")
+  revalidateLeadLists()
 }

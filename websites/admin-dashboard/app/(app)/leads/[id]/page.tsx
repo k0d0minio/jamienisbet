@@ -149,7 +149,7 @@ export default async function LeadDetailPage({
         // A real target, not a 14px arrow, and tinted the way a back control
         // is on this tier.
         <ViewTransitionLink
-          href="/"
+          href="/leads"
           className="-ml-2 inline-flex min-h-app-touch items-center gap-0.5 rounded-app-control pr-2 pl-1 text-app-body text-app-tint transition-colors spring-press active:bg-app-press"
         >
           <ChevronLeft className="size-5" aria-hidden />
