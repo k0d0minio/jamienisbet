@@ -43,7 +43,14 @@ import { isStripeConfigured } from "@/lib/stripe"
 import { listBoard, type Ticket } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Needs you" }
-export const dynamic = "force-dynamic"
+
+// No `dynamic = "force-dynamic"` here on purpose. Awaiting searchParams already
+// makes this request-time, and the Neon reads below are plain queries the Data
+// Cache never touches — so it changed nothing about how fresh this feed is. It
+// did set `fetchCache: "force-no-store"` across the segment, which overrode the
+// 60-second revalidate on every GitHub read behind `listBoard()`. Once home
+// started reading the board, that was the estate re-fetched from GitHub on
+// every open of the app. See the header of `lib/tickets.ts`.
 
 // Home. The dashboard used to open on the roster — everyone, longest-waiting
 // first — which answered "who exists" when the only question you have at 8am is
