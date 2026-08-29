@@ -15,11 +15,6 @@ export function ClientActions({
   // When true (the detail page), a delete sends the user back to the list since
   // the record they're viewing no longer exists.
   redirectOnDelete = false,
-  // Icon-only, for a row in either list — the phone one has no width for
-  // labels, and on the desktop table a spelled-out "Archive"/"Delete" gave the
-  // rarest column the widest cell. The buttons keep their accessible names via
-  // aria-label.
-  compact = false,
   // Two red rows for a grouped danger zone — the lead's own profile, where
   // these sit at the very bottom of the page in a group of their own.
   grouped = false,
@@ -28,7 +23,6 @@ export function ClientActions({
   id: string
   archived: boolean
   redirectOnDelete?: boolean
-  compact?: boolean
   grouped?: boolean
   className?: string
 }) {
@@ -77,56 +71,36 @@ export function ClientActions({
     )
   }
 
-  if (compact) {
-    return (
-      <div className={cn("flex items-center gap-1", className)}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={archiveLabel}
-          disabled={pending}
-          onClick={onArchive}
-        >
-          <ArchiveIcon />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Delete lead"
-          disabled={pending}
-          onClick={onDelete}
-          className="text-destructive hover:text-destructive"
-        >
-          <Trash2 />
-        </Button>
-      </div>
-    )
-  }
-
+  // The list row's pair. Icon-only — spelling out "Archive" and "Delete" gave
+  // the rarest thing on a row the widest cell — and *always rendered*, never
+  // revealed on hover: a control you can only find with a mouse is a control
+  // half the surfaces here can't reach. Quiet at rest and full strength on
+  // hover or focus, which is a different thing from hidden.
   return (
-    <div className={cn("flex justify-end gap-1 whitespace-nowrap", className)}>
+    <div className={cn("flex items-center gap-0.5", className)}>
       <Button
         type="button"
         variant="ghost"
-        size="sm"
+        size="icon-sm"
+        aria-label={archiveLabel}
+        title={archiveLabel}
         disabled={pending}
         onClick={onArchive}
+        className="rounded-app-control text-app-label-3 hover:bg-app-press hover:text-app-label focus-visible:text-app-label"
       >
         <ArchiveIcon />
-        {archiveLabel}
       </Button>
       <Button
         type="button"
         variant="ghost"
-        size="sm"
+        size="icon-sm"
+        aria-label="Delete lead"
+        title="Delete lead"
         disabled={pending}
         onClick={onDelete}
-        className="text-destructive hover:text-destructive"
+        className="rounded-app-control text-destructive/70 hover:bg-app-press hover:text-destructive focus-visible:text-destructive"
       >
         <Trash2 />
-        Delete
       </Button>
     </div>
   )

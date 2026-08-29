@@ -17,11 +17,21 @@ import { SwipeAction, SwipeRow } from "@/components/swipe-row"
 import { whatsappUrl } from "@/lib/format"
 import { hapticTick } from "@/lib/haptics"
 
-// One lead in the phone list, wearing the list's gestures: swipe left for the
-// tray (WhatsApp, email, archive — or restore and delete in the archive view),
+// One lead in the list, wearing the list's gestures: swipe left for the tray
+// (WhatsApp, email, archive — or restore and delete in the archive view),
 // swipe right to mark them touched in one stroke. The row content itself is
 // rendered by the server page and passed through as children, so this
 // component carries only what the gestures need.
+//
+// The trays are the iOS idiom: full-height columns of solid colour, one word
+// each, and a tick the moment a full swipe crosses its commit threshold (the
+// engine in swipe-row.tsx fires it). Colour follows the native reading —
+// the tint for the leading full swipe, a muted semantic for the tray actions,
+// grey for archive and red for the one thing that can't be undone.
+//
+// No radius and no border of its own: the row sits inside a grouped section
+// whose slab owns the corners and clips them, so a tray revealed at the top or
+// bottom of the list is clipped by the group rather than sticking out of it.
 export function LeadRow({
   id,
   name,
@@ -75,7 +85,9 @@ export function LeadRow({
 
   if (leaving) return null
 
-  const icon = "size-5" // tray icons read at a glance mid-swipe
+  // Tray icons read at a glance under a moving thumb, so they set a step
+  // larger than a row's own glyphs.
+  const icon = "size-6"
 
   const actions = archived ? (
     <>
@@ -94,7 +106,7 @@ export function LeadRow({
       <SwipeAction
         label="Delete"
         icon={<Trash2 className={icon} aria-hidden />}
-        className="bg-destructive text-white"
+        className="bg-destructive text-destructive-foreground"
         onClick={onDelete}
       />
     </>
@@ -136,18 +148,20 @@ export function LeadRow({
 
   return (
     <SwipeRow
-      className="rounded-lg border bg-card text-card-foreground"
       actions={actions}
       commit={
         archived
           ? undefined
           : {
               label: "Touched",
-              icon: <Check className="size-5" aria-hidden />,
-              className: "bg-success text-success-foreground",
+              icon: <Check className="size-6" aria-hidden />,
+              // The leading full swipe takes the tint, the way the native one
+              // does — it is the app's own affirmative action, not a semantic
+              // state. Green stays with WhatsApp, where it means the app.
+              className: "bg-app-tint text-primary-foreground",
               // The row's own "waiting" line is rendered on the server, so it
-              // can't move until the revalidation lands — the green underlay
-              // under the thumb, the tick SwipeRow fires on commit, and this
+              // can't move until the revalidation lands — the tinted underlay
+              // under the thumb, the tick fired at the threshold, and this
               // toast are what close the loop in the meantime.
               onCommit: () =>
                 startTransition(async () => {

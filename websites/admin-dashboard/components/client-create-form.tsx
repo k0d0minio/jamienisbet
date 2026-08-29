@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
   PendingButton,
+  SegmentedControl,
+  SegmentedItem,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -39,8 +41,15 @@ import { addClient } from "@/app/(app)/actions"
 // Adding someone is the one thing you do on this screen that isn't reading, so on
 // a phone it gets a floating button in the thumb zone above the tab bar and the
 // form opens as a bottom sheet — never a form wedged into the scroll, which is
-// only findable by scrolling past it. Desktop keeps the plain inline button and
-// gets the same content as a centred dialog.
+// only findable by scrolling past it. From `md` up, where there is no tab bar
+// to sit above and no thumb zone to sit in, the same action is a `+` bar button
+// on the trailing edge of the title bar — the way an iPad app adds a row — and
+// the sheet becomes a centred dialog.
+//
+// Both triggers live in this one component because they open one sheet: two
+// components would be two sheets, two pieces of form state, and two chances for
+// them to disagree. The floating one is `fixed`, so where it sits in the tree
+// makes no difference to where it lands.
 
 // The two ways in. `status` is what actually gets stored — these are the two
 // ends of the ladder, and the rungs between them (`talking`, or out to `lost`)
@@ -105,70 +114,75 @@ export function ClientCreateForm() {
         }
       }}
     >
-      {/* Desktop: an ordinary button in the screen's action row. Keyed to `md`,
-          where the chrome swaps the tab bar for the sidebar — the floating
-          button below is positioned against that bar and the two have to hand
-          over on the same breakpoint. */}
+      {/* Desktop: a bar button on the title bar's trailing edge. Keyed to
+          `md`, where the chrome swaps the tab bar for the sidebar — the
+          floating button below is positioned against that bar, so the two have
+          to hand over on the same breakpoint. Tinted, because it is the one
+          thing on this screen that makes something. */}
       <SheetTrigger asChild>
-        <Button type="button" variant="outline" className="hidden md:inline-flex">
-          <Plus />
-          Add lead
-        </Button>
-      </SheetTrigger>
-
-      {/* Phone: a floating button riding above the tab bar, reachable
-          one-handed. `bottom-above-tabs` reads the bar's own geometry. */}
-      <SheetTrigger asChild>
-        <Button
+        <button
           type="button"
           aria-label="Add lead or customer"
-          className="fixed right-4 bottom-above-tabs z-20 size-14 rounded-full shadow-app-chrome md:hidden"
+          title="Add lead or customer"
+          className={cn(
+            "hidden size-app-touch shrink-0 items-center justify-center rounded-app-control md:flex",
+            "text-app-tint transition-colors spring-press active:bg-app-press"
+          )}
         >
-          <Plus className="size-6" />
-        </Button>
+          <Plus className="size-5" aria-hidden />
+        </button>
+      </SheetTrigger>
+
+      {/* Phone: a floating disc riding above the floating tab bar, reachable
+          one-handed. `bottom-above-tabs` reads the bar's own geometry, and
+          the gutter token puts it on the same margin as everything else on
+          the screen — the tab bar's pill is capped at `max-w-sm` and centred,
+          so on any phone this clears it sideways as well as vertically.
+          `shadow-app-chrome` is the tier's "this floats" step, the same one
+          the bar under it takes. */}
+      <SheetTrigger asChild>
+        <button
+          type="button"
+          aria-label="Add lead or customer"
+          className={cn(
+            "fixed right-(--app-gutter) bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
+            "rounded-full bg-app-tint text-primary-foreground shadow-app-chrome",
+            // Press = colour deepens, never a shrink (BRAND.md § Motion).
+            "transition-colors spring-press active:bg-primary-active"
+          )}
+        >
+          <Plus className="size-6" aria-hidden />
+        </button>
       </SheetTrigger>
 
       {/* A bottom sheet on a phone, a centred dialog from `sm` up — the Sheet
-          primitive's whole job. */}
-      <SheetContent>
+          primitive's whole job. One `large` detent rather than two: this is the
+          tallest form in the app (a customer grows a value, a billing and a
+          paid-in field), so resting it at half height would open it already
+          scrolling. The handle still drags it off the bottom to dismiss. */}
+      <SheetContent detents={["large"]}>
         <SheetHeader>
           <SheetTitle>{kind.title}</SheetTitle>
           <SheetDescription>{kind.description}</SheetDescription>
         </SheetHeader>
 
-        {/* Lead or customer, as a segmented control above the fields — the first
-            decision, and the one that changes what the rest of the form asks
-            for. Radio semantics rather than tabs: this is a value being chosen,
-            not a view being switched. */}
-        <div
-          role="radiogroup"
-          aria-label="What you're adding"
-          className="flex gap-1 rounded-sm bg-muted p-1"
-        >
-          {KINDS.map((option) => {
-            const active = option.key === kind.key
-            return (
-              <button
-                key={option.key}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                onClick={() => setKind(option)}
-                // Same recipe as the filter chips (components/chip.tsx): the
-                // selected one is a raised card against the sunken track. Weight
-                // alone doesn't carry it in the light theme.
-                className={cn(
-                  "h-10 flex-1 rounded-sm text-sm transition-colors",
-                  active
-                    ? "border border-border bg-card font-medium text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {option.label}
-              </button>
-            )
-          })}
-        </div>
+        {/* Lead or customer, above the fields — the first decision, and the one
+            that changes what the rest of the form asks for. The app tier's
+            segmented control, the same one the leads list filters with, so a
+            closed choice looks the same wherever it is made. Radio semantics
+            rather than tabs: this is a value being chosen, not a view being
+            switched. */}
+        <SegmentedControl role="radiogroup" aria-label="What you're adding">
+          {KINDS.map((option) => (
+            <SegmentedItem
+              key={option.key}
+              role="radio"
+              label={option.label}
+              active={option.key === kind.key}
+              onClick={() => setKind(option)}
+            />
+          ))}
+        </SegmentedControl>
 
         <form
           ref={formRef}

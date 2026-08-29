@@ -76,6 +76,10 @@ export function SwipeRow({
     claimed: false,
     // Set once a gesture claimed the pointer; the next click is swallowed.
     swallowClick: false,
+    // Whether the row is currently past the commit threshold. It is what the
+    // haptic fires on the *edge* of, so crossing back and forth buzzes once
+    // each way rather than once a frame.
+    armed: false,
   })
 
   // Where the row actually is. State paints it; the ref is what the release
@@ -112,6 +116,7 @@ export function SwipeRow({
       base: offsetRef.current,
       claimed: false,
       swallowClick: false,
+      armed: false,
     }
   }
 
@@ -148,6 +153,18 @@ export function SwipeRow({
     if (next < min) next = min + (next - min) / 3
     if (next > max) next = max + (next - max) / 3
     moveTo(next)
+
+    // The threshold is invisible — the underlay grows smoothly and nothing on
+    // screen says "let go now". A tick the moment it is crossed is what makes
+    // the stroke committable without looking, the way a native full-swipe
+    // does it, and the finger is still down to feel it.
+    if (commit) {
+      const past = next >= COMMIT_PX
+      if (past !== g.armed) {
+        g.armed = past
+        hapticTick()
+      }
+    }
   }
 
   function settle(e: React.PointerEvent) {
@@ -165,10 +182,8 @@ export function SwipeRow({
 
     const at = offsetRef.current
     if (commit && at >= COMMIT_PX) {
-      // Snap home and fire. The finger has already left the glass, so there is
-      // no press state left to feel — one light tick is the confirmation that
-      // the stroke counted, and it's the only place in the app that buzzes.
-      hapticTick()
+      // Snap home and fire. No tick here: the crossing already answered, and
+      // buzzing again on release would read as two events for one stroke.
       moveTo(0)
       commit.onCommit()
       return
@@ -200,7 +215,8 @@ export function SwipeRow({
       {commit ? (
         <div
           className={cn(
-            "absolute inset-y-0 left-0 flex items-center gap-2 pl-4 pr-2 text-sm font-medium transition-opacity",
+            "absolute inset-y-0 left-0 flex items-center gap-2 pl-4 pr-2",
+            "text-app-footnote font-semibold transition-opacity spring-press",
             commit.className,
             offset > 8 ? "opacity-100" : "opacity-0"
           )}
@@ -233,8 +249,9 @@ export function SwipeRow({
           // A swipe is a drag, and a drag across text selects it — on a mouse
           // that leaves the row highlighted behind the gesture.
           "relative touch-pan-y select-none",
-          // Snap-back rides the brand clock (tokens/motion.css).
-          !dragging && "transition-transform duration-(--duration-base) ease-(--ease-out)"
+          // A released row settles rather than stopping dead: the app tier's
+          // pop spring, critically damped, so it never passes home.
+          !dragging && "transition-transform spring-pop"
         )}
         style={{ transform: offset !== 0 ? `translateX(${offset}px)` : undefined }}
         onPointerDown={onPointerDown}
@@ -249,8 +266,10 @@ export function SwipeRow({
   )
 }
 
-/** A button in the swipe tray: a full-height coloured column, icon over label,
- * wide enough to hit mid-swipe. */
+/** One action in the swipe tray, in the iOS idiom: a full-height column of
+ * solid colour running edge to edge of the row's height, icon over a single
+ * word, wide enough to hit mid-swipe without aiming. No radius of its own —
+ * the group the row sits in owns the corners and clips them. */
 export function SwipeAction({
   label,
   icon,
@@ -269,11 +288,14 @@ export function SwipeAction({
   external?: boolean
 }) {
   const classes = cn(
-    "relative isolate flex w-[4.5rem] flex-col items-center justify-center gap-1 text-[11px] font-medium",
+    "relative isolate flex w-20 flex-col items-center justify-center gap-1",
+    // The tray's own type: the app tier's smallest caption, set heavy, because
+    // it is read at a glance under a moving thumb.
+    "text-app-caption-2 font-semibold",
     // Press = colour deepens (BRAND.md), not a ghost fade: a foreground-tinted
     // scrim behind the icon/label over the caller's solid colour — darkens in
     // light, lifts in dark, the direction --primary-active moves.
-    "after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-foreground/0 after:transition-colors active:after:bg-foreground/10",
+    "after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-foreground/0 after:transition-colors spring-press active:after:bg-foreground/10",
     className
   )
   if (href) {

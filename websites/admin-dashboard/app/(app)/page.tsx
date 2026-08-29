@@ -1,11 +1,15 @@
 import type { Metadata } from "next"
+import Link from "next/link"
+import { ChevronRight, TriangleAlert } from "lucide-react"
 
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Card,
-  CardContent,
+  GlanceFigure,
+  GlanceRow,
+  GroupedBlock,
+  GroupedRow,
+  GroupedSection,
+  SegmentedControl,
+  SegmentedItem,
   cn,
 } from "@jamie-nisbet/ui"
 import {
@@ -18,7 +22,7 @@ import {
 } from "@jamie-nisbet/services"
 
 import { AppScreen } from "@/components/app-screen"
-import { ArchiveChip, Chip } from "@/components/chip"
+import { ArchiveChip } from "@/components/chip"
 import { ClientActions } from "@/components/client-actions"
 import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
@@ -28,22 +32,33 @@ import { LeadRow } from "@/components/lead-row"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import { TaskList, type TaskItem, type TaskLead } from "@/components/task-list"
 import { WorkingList } from "@/components/working-list"
-import { daysSince, waitingLabel, whatsappUrl } from "@/lib/format"
+import { daysSince, waitingLabel } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 
 export const metadata: Metadata = { title: "Leads" }
 export const dynamic = "force-dynamic"
 
 // The one screen the dashboard opens on: every lead and customer in a single
-// list, longest-waiting first (the sort is done in the query). Everything else
-// here is a small strip above it — the working list of todos and compliance
-// dates — kept collapsed so the leads stay the page.
+// inset grouped list, longest-waiting first (the sort is done in the query).
 //
-// On a phone the list is the whole screen: one rail of view chips, then rows
-// that are each a single big tap target into the lead, carrying only what you
-// scan for (how long they've waited, who they are, what it's worth) plus the
-// two things worth doing without opening them — change status, call or email.
-// The wide table is the desktop affordance, not the other way round.
+// One codepath from phone to laptop. The screen's name sets large and hands off
+// to the compact bar on scroll; under it, what the list adds up to is a glance
+// row of mono figures rather than a sentence; under that, a segmented control
+// of the four filters. Then the rows: each is a single big tap target into the
+// lead, carrying only what you scan for (how long they've waited, who they are,
+// what it's worth) with the two things worth doing without opening them — mark
+// touched, reach them — riding behind it as gestures.
+//
+// The desktop table is gone. From `md` the same rows simply grow: more room,
+// and the two controls a pointer has the width for — the status as a menu
+// changed in place, archive and delete as icons — sitting in the row itself.
+// Nothing there is revealed by hover; a control you can only find with a mouse
+// is a control half the surfaces here can't reach.
+//
+// The working-list strip above the list is the last thing here still in the old
+// idiom. It is not restyled on purpose: it dies in `needs-you-inbox`, which
+// moves its content into the new home feed, and dressing it up first would be
+// work thrown away.
 
 // A lead nobody has touched in this long is overdue a nudge.
 const STALE_AFTER_DAYS = 7
@@ -52,6 +67,9 @@ const STALE_AFTER_DAYS = 7
 // With the ladder down to three rungs plus `lost`, the three named chips are a
 // clean partition of it — "Open" is new + talking, "Customers" is client — so
 // their counts add up to All rather than overlapping.
+//
+// Four, and never more: a closed set is what a segmented control is for. If a
+// fifth rung ever arrives this goes back to being a scrolling rail.
 const FILTERS = [
   { key: "all", label: "All", statuses: null },
   { key: "open", label: "Open", statuses: openStatuses },
@@ -65,10 +83,17 @@ function isFilterKey(value: string | undefined): value is FilterKey {
   return FILTERS.some((f) => f.key === value)
 }
 
-function sourceLabel(source: string): string {
-  if (source === "portfolio") return "Contact"
-  if (source === "referral") return "Referral"
-  return "Manual"
+/** Who they are, in the two or three words the second line has room for: the
+ *  company when there is one, and otherwise where they came from — but only
+ *  when that says something. "Referral" and "Contact" are provenance worth
+ *  reading on every row; "Manual" only means Jamie typed them in, which is the
+ *  default and not news, so a hand-added lead with no company simply carries
+ *  the waiting line alone. */
+function whoLabel(client: Client): string | null {
+  if (client.company) return client.company
+  if (client.source === "portfolio") return "Contact"
+  if (client.source === "referral") return "Referral"
+  return null
 }
 
 /** Days since the lead was last worked — intake counts as the first touch. */
@@ -121,45 +146,12 @@ function valueLabel(client: Client): string | null {
   return client.billingType === "monthly" ? `${amount}/mo` : amount
 }
 
-/** The leading line of a phone row — what the list is sorted on. A client or a
- *  lost lead isn't waiting on anything, so it just reports when it last
- *  moved. */
+/** The leading line of a row — what the list is sorted on. A client or a lost
+ *  lead isn't waiting on anything, so it just reports when it last moved. */
 function waitedLabel(days: number, open: boolean): string {
   if (days <= 0) return "Worked today"
   const elapsed = waitingLabel(days)
   return open ? `Waiting ${elapsed}` : `Last worked ${elapsed} ago`
-}
-
-// The line under the large title: whichever of the three totals are non-zero,
-// separated by dots. Driven by a list rather than nested conditionals — with
-// three figures the "is there one before me?" separator logic is where the bugs
-// would live.
-//
-// A function rather than a component, and inline elements rather than a <p>,
-// because this is handed to the header as its `subtitle` — which already sets
-// the line in the app tier's subhead and owns the paragraph around it. Nothing
-// to show returns nothing, so the header skips the line entirely rather than
-// leaving an empty one under the title.
-function totalsLine(
-  figures: { amount: number; label: string }[]
-): React.ReactNode {
-  const shown = figures.filter((f) => f.amount > 0)
-  if (shown.length === 0) return null
-
-  return (
-    <>
-      {shown.map((figure, i) => (
-        <span key={figure.label}>
-          {i > 0 ? " · " : null}
-          {/* Figures in mono — the brand's signature, on every tier. */}
-          <span className="font-mono font-medium text-app-label">
-            {formatMoney(figure.amount, "eur")}
-          </span>{" "}
-          {figure.label}
-        </span>
-      ))}
-    </>
-  )
 }
 
 // Everything the page reads, gathered outside the component so the render stays
@@ -228,7 +220,7 @@ export default async function LeadsPage({
     : rows
   const { pipeline, monthly, inKind } = totals(rows)
 
-  // Counts sit on the filter chips so the shape of the pipeline is readable
+  // Counts sit on the filter segments so the shape of the pipeline is readable
   // without clicking through each one.
   const countFor = (key: FilterKey): number => {
     const f = FILTERS.find((x) => x.key === key)!
@@ -247,42 +239,65 @@ export default async function LeadsPage({
   const overdueCompliance = compliance.filter((c) => c.overdue).length
   const overdueTasks = tasks.filter((t) => t.overdue).length
 
-  return (
-    // The screen's name sets large and hands off to the compact bar on scroll;
-    // what the list adds up to rides under it as the subtitle.
-    <AppScreen
-      title="Leads"
-      subtitle={totalsLine([
-        { amount: pipeline, label: "in play" },
-        { amount: monthly, label: "/ month" },
-        { amount: inKind, label: "in kind" },
-      ])}
-    >
-      <div className="flex flex-col gap-4 sm:gap-6">
-        <div className="flex items-center justify-end gap-1 sm:gap-2">
-          <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
-          {/* Renders the desktop button here and, on a phone, a floating one. */}
-          {!archived ? <ClientCreateForm /> : null}
-        </div>
+  // Only the totals the list actually has. A figure of nothing is noise, not
+  // news — and the row would rather hold two figures well than three badly.
+  const figures = [
+    { amount: pipeline, label: "In play" },
+    { amount: monthly, label: "Per month" },
+    { amount: inKind, label: "In kind" },
+  ].filter((f) => f.amount > 0)
 
-        {/* The status filters, as a rail that scrolls sideways rather than
-            wrapping — a second row of chips would push the list down the screen
-            on exactly the width where that hurts most. */}
-        <div className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0">
+  return (
+    // The archive is a different view of the same screen, so it says so in the
+    // title: the switch that got you here is an icon on the bar, and an icon
+    // alone is a poor answer to "what am I looking at".
+    <AppScreen
+      title={archived ? "Archived" : "Leads"}
+      masthead={
+        figures.length > 0 ? (
+          <GlanceRow>
+            {figures.map((figure) => (
+              <GlanceFigure
+                key={figure.label}
+                value={formatMoney(figure.amount, "eur")}
+                label={figure.label}
+              />
+            ))}
+          </GlanceRow>
+        ) : undefined
+      }
+      actions={
+        <>
+          <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
+          {/* Renders the bar `+` here and, on a phone, the floating button. */}
+          {!archived ? <ClientCreateForm /> : null}
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4 pt-1 sm:gap-5">
+        {/* The four filters as one closed control: they partition the list, so
+            they belong in a single track rather than a rail of separate chips
+            you could read as independent toggles. */}
+        <SegmentedControl aria-label="Filter leads">
           {FILTERS.map((f) => (
-            <Chip
+            <SegmentedItem
               key={f.key}
-              href={hrefFor(f.key, archived)}
+              asChild
               active={f.key === filterKey}
+              label={f.label}
               count={countFor(f.key)}
             >
-              {f.label}
-            </Chip>
+              {/* A plain <Link>: changing the filter re-renders this same
+                  screen, so there are no two pages to cross-fade between. */}
+              <Link href={hrefFor(f.key, archived)} />
+            </SegmentedItem>
           ))}
-        </div>
+        </SegmentedControl>
 
-        {/* The working list — todos and compliance dates. Collapsed by default so
-            the leads stay the page; the summary line carries anything overdue. */}
+        {/* The working list — todos and compliance dates. Untouched here: it is
+            retired by `needs-you-inbox` (sequence 5), which moves its content
+            into the home feed. Collapsed by default so the leads stay the page;
+            the summary line carries anything overdue. */}
         <WorkingList
           openTasks={tasks.length}
           overdueTasks={overdueTasks}
@@ -307,35 +322,34 @@ export default async function LeadsPage({
           </div>
         </WorkingList>
 
+        {/* The read failed. Say so in a group of its own, in plain words, and
+            leave the rest of the screen standing. */}
         {error ? (
-          <Alert variant="destructive">
-            <AlertTitle>Database unavailable</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <GroupedSection>
+            <GroupedRow
+              icon={<TriangleAlert />}
+              label="Database unavailable"
+              variant="destructive"
+              chevron={false}
+            />
+            <GroupedBlock>{error}</GroupedBlock>
+          </GroupedSection>
         ) : null}
 
         {visible.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center text-sm text-muted-foreground">
-              {archived
-                ? "Nothing archived."
-                : rows.length === 0
-                  ? "No leads yet — add the first one."
-                  : "Nothing under this filter."}
-            </CardContent>
-          </Card>
+          <EmptyLeads
+            archived={archived}
+            filtered={rows.length > 0}
+            allHref={hrefFor("all", archived)}
+          />
         ) : (
-          <>
-            {/* Phone: one compact row per lead — two lines, no controls in the
-                body. The whole row is the tap target into the profile; the
-                actions ride behind it as gestures. Swipe left: call, email,
-                archive (restore/delete in the archive view). Swipe right: mark
-                touched. Status is read here and changed on the lead's page, one
-                tap away — the dropdown per row was most of the old chunk. */}
-            <ul className="flex flex-col gap-2 md:hidden">
-              {visible.map((row) => {
+          <GroupedSection>
+            <ul>
+              {visible.map((row, index) => {
                 const stale = isStale(row, now)
                 const value = valueLabel(row)
+                const open = isOpen(row)
+                const who = whoLabel(row)
                 return (
                   <li key={row.id}>
                     <LeadRow
@@ -345,153 +359,136 @@ export default async function LeadsPage({
                       email={row.email}
                       archived={archived}
                     >
-                      {/* Into the profile and back is the move this screen makes
-                          most; on a browser that supports it the two pages
-                          cross-fade instead of hard-cutting. */}
-                      <ViewTransitionLink
-                        href={`/leads/${row.id}`}
-                        className="flex flex-col gap-0.5 bg-card px-4 py-3 transition-colors active:bg-muted/50"
+                      {/* One row, one fill, one hairline. The fill is what
+                          hides the swipe tray behind it; the hairline is inset
+                          to the label column the way a native list insets it,
+                          and rides *inside* the moving content so it travels
+                          with the row rather than cutting across the tray. */}
+                      <div
+                        className={cn(
+                          "relative flex items-center gap-3 bg-app-group px-4 py-2.5",
+                          "transition-colors spring-press has-[a:active]:bg-app-press",
+                          // Wider row from `md`: the same row, more air, the
+                          // way an iPad grows a phone list.
+                          "md:gap-4 md:px-5 md:py-3.5",
+                          index > 0 &&
+                            "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-4 before:h-px before:bg-app-separator md:before:left-5"
+                        )}
                       >
-                        <span className="flex items-baseline justify-between gap-3">
-                          <span className="truncate text-[15px] leading-snug font-medium">
-                            {row.name}
-                          </span>
-                          {value ? (
-                            <span className="shrink-0 text-sm font-medium tabular-nums">
-                              {value}
+                        {/* Into the profile and back is the move this screen
+                            makes most; on a browser that supports it the two
+                            pages cross-fade instead of hard-cutting. The link
+                            stretches over the whole row — everything else in
+                            it is a real control and sits above. */}
+                        <ViewTransitionLink
+                          href={`/leads/${row.id}`}
+                          className="flex min-w-0 flex-1 flex-col gap-0.5 after:absolute after:inset-0"
+                        >
+                          <span className="flex items-baseline justify-between gap-3">
+                            <span className="truncate text-app-body font-semibold text-app-label">
+                              {row.name}
                             </span>
-                          ) : null}
-                        </span>
-                        <span className="flex items-baseline justify-between gap-3 text-xs">
-                          <span
-                            className={cn(
-                              "truncate",
-                              stale
-                                ? "font-medium text-destructive"
-                                : "text-muted-foreground"
-                            )}
-                          >
-                            {waitedLabel(daysWaiting(row, now), isOpen(row))}
-                            {row.company ? ` · ${row.company}` : ""}
+                            {/* A figure, so it sets in mono — the brand's
+                                signature, on every tier. */}
+                            {value ? (
+                              <span className="shrink-0 font-mono text-app-subhead font-semibold tabular-nums text-app-label">
+                                {value}
+                              </span>
+                            ) : null}
                           </span>
-                          <span className="shrink-0 text-muted-foreground capitalize">
-                            {row.status}
+
+                          <span className="flex items-baseline justify-between gap-3 text-app-footnote">
+                            <span
+                              className={cn(
+                                "truncate",
+                                stale
+                                  ? "font-medium text-destructive"
+                                  : "text-app-label-3"
+                              )}
+                            >
+                              {waitedLabel(daysWaiting(row, now), open)}
+                              {who ? ` · ${who}` : ""}
+                            </span>
+                            {/* The status is read here and changed on the
+                                lead's page — or, from `md`, in the menu on the
+                                right of this row. */}
+                            <span className="shrink-0 text-app-label-3 capitalize md:hidden">
+                              {row.status}
+                            </span>
                           </span>
-                        </span>
-                        {/* Barter, commission, equity, started — only the rows
-                            that carry them grow a third line. */}
-                        <DealBadges client={row} className="mt-1" />
-                      </ViewTransitionLink>
+
+                          {/* Barter, commission, equity, started — only the
+                              rows that carry them grow a third line. */}
+                          <DealBadges client={row} className="mt-1" />
+                        </ViewTransitionLink>
+
+                        {/* The width a pointer has, spent on the two things
+                            the old table's last two columns did. Always
+                            rendered, never hover-revealed. */}
+                        <div className="relative z-10 hidden shrink-0 items-center gap-1 md:flex">
+                          <ClientStatusSelect id={row.id} value={row.status} />
+                          <ClientActions id={row.id} archived={archived} />
+                        </div>
+
+                        <ChevronRight
+                          aria-hidden
+                          className="size-4 shrink-0 text-app-label-3"
+                        />
+                      </div>
                     </LeadRow>
                   </li>
                 )
               })}
             </ul>
-
-            {/* Desktop: table. */}
-            <Card className="hidden md:block">
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="border-b text-left text-muted-foreground">
-                      <tr>
-                        <th className="px-4 py-3 font-medium">Waiting</th>
-                        <th className="px-4 py-3 font-medium">Lead</th>
-                        <th className="px-4 py-3 font-medium">Contact</th>
-                        <th className="px-4 py-3 font-medium text-right">Value</th>
-                        <th className="px-4 py-3 font-medium">Deal</th>
-                        <th className="px-4 py-3 font-medium">Status</th>
-                        <th className="px-4 py-3 font-medium text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visible.map((row) => {
-                        const stale = isStale(row, now)
-                        const value = valueLabel(row)
-                        return (
-                          <tr key={row.id} className="border-b align-top last:border-0">
-                            <td
-                              className={cn(
-                                "whitespace-nowrap px-4 py-3",
-                                stale
-                                  ? "font-medium text-destructive"
-                                  : "text-muted-foreground"
-                              )}
-                            >
-                              {waitingLabel(daysWaiting(row, now))}
-                            </td>
-                            <td className="px-4 py-3">
-                              <ViewTransitionLink
-                                href={`/leads/${row.id}`}
-                                className="font-medium underline-offset-2 hover:underline"
-                              >
-                                {row.name}
-                              </ViewTransitionLink>
-                              <div className="text-muted-foreground">
-                                {row.company ?? sourceLabel(row.source)}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3">
-                              {row.email ? (
-                                <div>
-                                  <a
-                                    className="underline underline-offset-2"
-                                    href={`mailto:${row.email}`}
-                                  >
-                                    {row.email}
-                                  </a>
-                                </div>
-                              ) : null}
-                              {/* The number reads as itself but opens the
-                                  WhatsApp chat — never dials. */}
-                              {row.phone ? (
-                                <a
-                                  className="text-muted-foreground underline underline-offset-2"
-                                  href={whatsappUrl(row.phone)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  {row.phone}
-                                </a>
-                              ) : null}
-                              {!row.email && !row.phone ? (
-                                <span className="text-muted-foreground">—</span>
-                              ) : null}
-                            </td>
-                            <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
-                              {value ?? <span className="text-muted-foreground">—</span>}
-                            </td>
-                            {/* How it's settled, beside what it's worth — the two
-                                only mean anything together. Empty for the ordinary
-                                cash deal that hasn't started yet. */}
-                            <td className="px-4 py-3">
-                              <DealBadges client={row} />
-                            </td>
-                            <td className="px-4 py-3">
-                              <ClientStatusSelect id={row.id} value={row.status} />
-                            </td>
-                            {/* Icons only: archive and delete are rare next to
-                                everything else in the row, and spelling them out
-                                gave the least-used column the most width. */}
-                            <td className="px-4 py-3">
-                              <ClientActions
-                                id={row.id}
-                                archived={archived}
-                                compact
-                                className="justify-end"
-                              />
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </>
+          </GroupedSection>
         )}
       </div>
     </AppScreen>
+  )
+}
+
+// A quiet day should look calm, not broken: centred words on the canvas rather
+// than an empty slab, which reads as a card that failed to load. Three things
+// can be empty here and they are not the same thing — an archive nobody has put
+// anything in, a filter that happens to match nothing, and a dashboard on its
+// first day — so each says what it is and, where there is one, what to do.
+function EmptyLeads({
+  archived,
+  filtered,
+  allHref,
+}: {
+  archived: boolean
+  /** There are rows behind the current filter — this view is empty, not the list. */
+  filtered: boolean
+  allHref: string
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1 px-6 py-14 text-center">
+      <p className="text-app-callout font-medium text-app-label-2">
+        {filtered
+          ? "Nothing under this filter"
+          : archived
+            ? "Nothing archived"
+            : "No leads yet"}
+      </p>
+      <p className="max-w-xs text-app-footnote text-app-label-3">
+        {filtered ? (
+          <>
+            Every other lead is still there —{" "}
+            <Link
+              href={allHref}
+              className="text-app-tint underline underline-offset-2"
+            >
+              show all
+            </Link>
+            .
+          </>
+        ) : archived ? (
+          "A lead you archive is taken off the list and kept here."
+        ) : (
+          "Add the first one with the plus button — everything else can be filled in on their profile."
+        )}
+      </p>
+    </div>
   )
 }

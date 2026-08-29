@@ -52,7 +52,9 @@ The app tier's structural unit is the inset grouped list — `GroupedList` / `Gr
 slab and `GroupedDisclosure` for a fold. A screen's masthead is `LargeTitleHeader` (a list's
 name) or `IdentityHeader` (a profile: `Monogram`, name, meta, the figure in mono), with
 `ActionCircleRow` / `ActionCircle` for the actions under an identity — an action the record
-can't support is disabled, never hidden. A phone sheet that holds a form takes native
+can't support is disabled, never hidden — and `GlanceRow` / `GlanceFigure` for what a list
+screen adds up to, in place of a subtitle sentence. A closed set of filters is a
+`SegmentedControl`; an open-ended one stays a scrolling rail. A phone sheet that holds a form takes native
 detents: `<SheetContent detents={["medium", "large"]}>`. Reach for those before a table or a
 bare `Card`; the desktop tables are being retired, one codepath from phone to laptop.
 
