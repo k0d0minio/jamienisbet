@@ -14,6 +14,7 @@
       "default": "./src/index.ts"
     },
     "./styles.css": "./styles.css",
+    "./app.css": "./app.css",
     "./tokens.css": "./tokens.css",
     "./tokens/*": "./tokens/*",
     "./assets/*": "./assets/*",
@@ -28,6 +29,7 @@
   "files": [
     "src",
     "styles.css",
+    "app.css",
     "tokens.css",
     "tokens",
     "assets",
@@ -39,7 +41,9 @@
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "check:css": "tailwindcss -i ./styles.css -o /dev/null"
+    "check:css": "tailwindcss -i ./styles.css -o /dev/null",
+    "check:css:app": "tailwindcss -i ./app.css -o /dev/null",
+    "lint": "pnpm check:css && pnpm check:css:app"
   },
   "peerDependencies": {
     "react": ">=18",

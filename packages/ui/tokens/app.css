@@ -1,0 +1,312 @@
+/* ============================================================
+   APP TIER — Jamie Nisbet Design System
+
+   The sanctioned app-surface layer. Everything here exists for
+   *operated* surfaces — today the admin dashboard, an installed
+   one-handed PWA that should feel like an iOS-class app rather than
+   a website. The marketing sites never load this file: it is reached
+   only through "@jamie-nisbet/ui/app.css" (Tailwind surfaces) or a
+   direct import of this file (variables-only surfaces), never through
+   styles.css or tokens.css.
+
+   What the app tier changes, and why it is not drift — recorded in
+   .icm/intake/admin-native-redesign/breakdown.md and BRAND.md § App
+   tier: translucent materials become structural, elevation is real,
+   springs are sanctioned, and UI text sets in the system font stack.
+
+   What it does NOT change: slate is still the only tint (--app-tint
+   is --primary), semantics stay muted and state-only, figures stay in
+   IBM Plex Mono, copy stays sentence case, and every call site still
+   reads a semantic token — the raw ramps in colors.css are as banned
+   here as anywhere else.
+
+   Dark flips on [data-theme="dark"], exactly like the rest of the
+   system. The app follows the OS appearance by mirroring
+   prefers-color-scheme onto that attribute (wired by the app shell),
+   so there is one mechanism, not two.
+
+   NAMING: every app-tier token is prefixed --app-*, --material-*,
+   --elevation-*, --spring-* or --duration-*. The --app-* prefix on
+   type and shape is deliberate — Tailwind owns --text-*, --leading-*,
+   --tracking-*, --radius-* and --font-* as theme namespaces, and
+   app.css maps these tokens into those namespaces. Naming them
+   --text-app-* here would make that mapping self-referential.
+   ============================================================ */
+
+:root {
+  /* ============================================================
+     MATERIALS
+     A material is a translucent surface that blurs what scrolls
+     beneath it. It is what floating chrome, headers, sheets, and
+     popovers are made of — the reason content reads as *under* the
+     chrome rather than beside it.
+
+     Three levels, thin → thick, by how much of the content below
+     survives. Each has an opaque twin for the engine without
+     backdrop-filter: same read, no blur.
+     ============================================================ */
+
+  --material-blur-thin: 20px;
+  --material-blur-regular: 30px;
+  --material-blur-thick: 40px;
+  /* Colour under a blur goes grey without it; a light saturation
+     boost is what keeps a tinted page recognisable through chrome. */
+  --material-saturate: 180%;
+
+  --material-thin: color-mix(in srgb, var(--surface) 60%, transparent);
+  --material-regular: color-mix(in srgb, var(--surface) 78%, transparent);
+  --material-thick: color-mix(in srgb, var(--surface) 92%, transparent);
+
+  --material-thin-opaque: var(--surface-2);
+  --material-regular-opaque: var(--surface);
+  --material-thick-opaque: var(--surface);
+
+  /* The hairline where a material meets content. Softer than
+     --border: the blur is already doing the separating. */
+  --material-border: color-mix(in srgb, var(--neutral-900) 8%, transparent);
+
+  /* Vibrancy-safe text for anything sitting ON a material. The
+     secondary and tertiary steps run one stop stronger than the
+     page's --text-2 / --text-3, because a scrolling page underneath
+     eats contrast that a flat surface never would. */
+  --material-label: var(--text-1);
+  --material-label-2: var(--neutral-700);
+  --material-label-3: var(--neutral-600);
+
+  /* ============================================================
+     ELEVATION
+     Resting content stays flat — a hairline still does the
+     structural work. A shadow here means one thing only: this
+     floats above the page. Named per role, so nobody has to guess
+     which step a tab bar takes.
+     ============================================================ */
+
+  --elevation-flat: none;
+  /* A card that has genuinely lifted (a dragged row, an open group). */
+  --elevation-raised: 0 1px 2px rgba(20, 31, 42, 0.04),
+    0 4px 12px rgba(20, 31, 42, 0.07);
+  /* Floating chrome — tab bar, collapsed header. Cast upward as well
+     as down, because the bar hovers over the content edge. */
+  --elevation-chrome: 0 -1px 2px rgba(20, 31, 42, 0.03),
+    0 8px 24px rgba(20, 31, 42, 0.1);
+  /* A sheet rising from the bottom edge: the cast is upward. */
+  --elevation-sheet: 0 -8px 16px rgba(20, 31, 42, 0.06),
+    0 -24px 64px rgba(20, 31, 42, 0.18);
+  /* A popover anchored to a control on desktop. */
+  --elevation-popover: 0 4px 8px rgba(20, 31, 42, 0.06),
+    0 16px 40px rgba(20, 31, 42, 0.14);
+
+  /* ============================================================
+     MOTION — springs
+     Critically damped: quick in, settling, no overshoot. The brand's
+     "no bounce" survives; only the *shape* of the deceleration
+     changes, from a bezier's abrupt stop to a spring's settle.
+
+     Two curves do the work — a settle (slower, for large travel) and
+     a snap (faster, for chrome and controls) — but call sites name
+     the *pattern*, never the curve, so a pattern can be retuned in
+     one place.
+
+     The cubic-bezier declared here is the fallback; the accurate
+     linear() form is swapped in below where the engine has it.
+     ============================================================ */
+
+  --spring-settle: cubic-bezier(0.22, 0.68, 0.24, 1);
+  --spring-snap: cubic-bezier(0.16, 0.84, 0.28, 1);
+
+  --duration-sheet: 420ms;
+  --duration-header: 260ms;
+  --duration-press: 120ms;
+  --duration-pop: 300ms;
+
+  /* Pattern names — the app tier's public motion API. */
+  --spring-sheet: var(--spring-settle);
+  --spring-header: var(--spring-snap);
+  --spring-press: var(--spring-snap);
+  --spring-pop: var(--spring-snap);
+
+  /* ============================================================
+     TYPE — the native scale
+     UI chrome and text set in the system font stack (SF on Apple
+     devices, Segoe on Windows, Roboto on Android), so the app reads
+     as part of the OS. Hanken Grotesk stays the marketing face and
+     does not come here.
+
+     Figures are the exception and stay --font-mono (IBM Plex Mono):
+     the brand's signature is non-negotiable, on any tier.
+     ============================================================ */
+
+  --app-font: system-ui, -apple-system, 'SF Pro Text', 'Segoe UI Variable Text',
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --app-text-large-title: 2.125rem; /* 34 */
+  --app-text-title-1: 1.75rem; /* 28 */
+  --app-text-title-2: 1.375rem; /* 22 */
+  --app-text-title-3: 1.25rem; /* 20 */
+  --app-text-headline: 1.0625rem; /* 17, set semibold */
+  --app-text-body: 1.0625rem; /* 17 — the app's body size */
+  --app-text-callout: 1rem; /* 16 */
+  --app-text-subhead: 0.9375rem; /* 15 */
+  --app-text-footnote: 0.8125rem; /* 13 */
+  --app-text-caption: 0.75rem; /* 12 */
+  --app-text-caption-2: 0.6875rem; /* 11 */
+
+  --app-leading-large-title: 2.5625rem; /* 41 */
+  --app-leading-title-1: 2.125rem; /* 34 */
+  --app-leading-title-2: 1.75rem; /* 28 */
+  --app-leading-title-3: 1.5625rem; /* 25 */
+  --app-leading-headline: 1.375rem; /* 22 */
+  --app-leading-body: 1.375rem; /* 22 */
+  --app-leading-callout: 1.3125rem; /* 21 */
+  --app-leading-subhead: 1.25rem; /* 20 */
+  --app-leading-footnote: 1.125rem; /* 18 */
+  --app-leading-caption: 1rem; /* 16 */
+  --app-leading-caption-2: 0.8125rem; /* 13 */
+
+  /* Weight contrast runs heavier here than on the marketing tier: a
+     title bar has no whitespace to spend, so weight carries it.
+     (These are the standard 700/600/400 steps — Tailwind's
+     font-bold / font-semibold / font-normal say the same thing in
+     a React call site.) */
+  --app-weight-large-title: 700;
+  --app-weight-title: 700;
+  --app-weight-headline: 600;
+  --app-weight-body: 400;
+
+  /* Optical tracking — tight on display sizes, released at the small
+     end where the system faces set too close on a dense screen. */
+  --app-tracking-large-title: -0.022em;
+  --app-tracking-title: -0.018em;
+  --app-tracking-headline: -0.012em;
+  --app-tracking-body: -0.008em;
+  --app-tracking-small: 0;
+
+  /* ============================================================
+     SHAPE
+     Larger, continuous-feeling corners than the marketing tier's
+     precise 5/12px. A grouped card is a rounded slab, not a boxed
+     table; sheets and floating chrome round harder still.
+     ============================================================ */
+
+  --app-radius-row: 10px; /* the press highlight inside a group */
+  --app-radius-control: 12px; /* app-tier buttons and fields */
+  --app-radius-group: 16px; /* the inset grouped list card */
+  --app-radius-card: 20px; /* a standalone content card */
+  --app-radius-chrome: 22px; /* the floating tab bar pill */
+  --app-radius-sheet: 24px; /* a sheet's leading corners */
+
+  /* ============================================================
+     SURFACE + LAYOUT ALIASES
+     What a call site actually reaches for. Design against these,
+     never the ramps.
+     ============================================================ */
+
+  /* The scroll background behind grouped content, and the card that
+     sits on it. Light: a sunken page with white cards; dark: a black
+     page with cards that lift out of it. */
+  --app-canvas: var(--bg);
+  --app-group: var(--surface);
+  --app-separator: var(--border);
+  /* Press = colour deepens (never a shrink), so a pressed row picks
+     up a wash of the text colour rather than losing size. */
+  --app-press: color-mix(in srgb, var(--text-1) 6%, transparent);
+  --app-label: var(--text-1);
+  --app-label-2: var(--text-2);
+  --app-label-3: var(--text-3);
+  /* The one interactive tint. Slate, as everywhere else. */
+  --app-tint: var(--primary);
+
+  --app-gutter: var(--space-4); /* 16px page margin */
+  --app-group-gap: var(--space-6); /* 32px between grouped sections */
+  --app-touch-min: 2.75rem; /* 44px — the touch floor */
+  --app-bar-height: 2.75rem; /* the compact title bar */
+}
+
+/* ============================================================
+   DARK
+   Materials go darker and a shade thicker (a translucent light
+   surface over a dark page reads as fog); shadows go black and
+   deeper; vibrancy runs brighter rather than darker.
+   ============================================================ */
+[data-theme='dark'] {
+  --material-thin: color-mix(in srgb, var(--surface) 62%, transparent);
+  --material-regular: color-mix(in srgb, var(--surface) 82%, transparent);
+  --material-thick: color-mix(in srgb, var(--surface-2) 94%, transparent);
+
+  --material-thin-opaque: var(--surface);
+  --material-regular-opaque: var(--surface);
+  --material-thick-opaque: var(--surface-2);
+
+  --material-border: color-mix(in srgb, #ffffff 10%, transparent);
+
+  --material-label: var(--text-1);
+  --material-label-2: #b8c0ca;
+  --material-label-3: #8b939e;
+
+  --elevation-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.45);
+  --elevation-chrome: 0 -1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.55);
+  --elevation-sheet: 0 -8px 16px rgba(0, 0, 0, 0.45),
+    0 -24px 64px rgba(0, 0, 0, 0.65);
+  --elevation-popover: 0 4px 8px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.6);
+
+  /* A dark page lifts a pressed row rather than darkening it — the
+     direction --primary-active already moves in dark. */
+  --app-press: color-mix(in srgb, #ffffff 8%, transparent);
+}
+
+/* ------------------------------------------------------------
+   The accurate spring curves, where linear() exists. Both are
+   critically damped — x(t) = 1 − (1 + ωt)·e^(−ωt), sampled every
+   10% — so they settle without ever passing 1. No overshoot, by
+   construction.
+   ------------------------------------------------------------ */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    /* ω ≈ 6.6 — large travel: sheets, page transitions. */
+    --spring-settle: linear(
+      0,
+      0.142,
+      0.38,
+      0.589,
+      0.74,
+      0.841,
+      0.905,
+      0.945,
+      0.968,
+      0.982,
+      1
+    );
+    /* ω ≈ 9 — chrome and controls: header collapse, row press. */
+    --spring-snap: linear(
+      0,
+      0.227,
+      0.537,
+      0.751,
+      0.874,
+      0.939,
+      0.971,
+      0.987,
+      0.994,
+      0.998,
+      1
+    );
+  }
+}
+
+/* ------------------------------------------------------------
+   Reduced motion. tokens/base.css already flattens transitions and
+   animations outright; collapsing the durations here as well means
+   anything that *reads* a duration token — a JS-timed sheet detent,
+   a haptic paired with a transition — stops asking for time too.
+   Last in the file, so it wins over the @supports block above.
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-sheet: 0.01ms;
+    --duration-header: 0.01ms;
+    --duration-press: 0.01ms;
+    --duration-pop: 0.01ms;
+    --spring-settle: linear;
+    --spring-snap: linear;
+  }
+}
