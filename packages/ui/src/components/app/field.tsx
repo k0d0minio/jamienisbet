@@ -203,8 +203,52 @@ function AppInput({ className, ...props }: React.ComponentProps<"input">) {
   )
 }
 
-function AppTextarea({ className, ...props }: React.ComponentProps<"textarea">) {
+function AppTextarea({
+  className,
+  autoResize = false,
+  onInput,
+  ref,
+  ...props
+}: React.ComponentProps<"textarea"> & {
+  /** Grow the box to its content on every keystroke, so it never scrolls
+   *  inside itself. `field-sizing-content` already does this where the engine
+   *  has it — which is not iOS Safari, i.e. not the phone this tier is for,
+   *  and a box that scrolls inside a page that scrolls is the reason notes
+   *  used to be edited a sheet away. Opt in for an editor that sits in the
+   *  page; leave it off for a field inside a sheet, which has its own height
+   *  to spend. */
+  autoResize?: boolean
+}) {
   const wired = useFieldWiring(props)
+  const inner = React.useRef<HTMLTextAreaElement | null>(null)
+
+  // Height off the content, measured from a collapsed box: `auto` first, or
+  // scrollHeight only ever reports the height it already has.
+  const fit = React.useCallback(() => {
+    const el = inner.current
+    if (!el) return
+    el.style.height = "auto"
+    el.style.height = `${el.scrollHeight}px`
+  }, [])
+
+  // A callback ref rather than an effect for the first measure: it runs during
+  // commit, before paint, so the box is never briefly the wrong height.
+  const attach = React.useCallback(
+    (node: HTMLTextAreaElement | null) => {
+      inner.current = node
+      if (autoResize && node) fit()
+      if (typeof ref === "function") ref(node)
+      else if (ref) ref.current = node
+    },
+    [autoResize, fit, ref]
+  )
+
+  // And again when the value is driven from outside — a controlled editor
+  // reset to what the record says, most often.
+  React.useEffect(() => {
+    if (autoResize) fit()
+  }, [autoResize, fit, props.value])
+
   return (
     <textarea
       data-slot="app-textarea"
@@ -213,9 +257,18 @@ function AppTextarea({ className, ...props }: React.ComponentProps<"textarea">) 
         // Grows with what is typed where the engine has it, and never starts
         // shorter than two lines plus the padding.
         "field-sizing-content min-h-20 px-3.5 py-2.5",
+        // Measuring the content means owning the height: no scrollbar to
+        // fight the page's, and no drag handle to leave it somewhere the
+        // next keystroke would overwrite.
+        autoResize && "resize-none overflow-hidden",
         className
       )}
+      onInput={(event) => {
+        if (autoResize) fit()
+        onInput?.(event)
+      }}
       {...props}
+      ref={attach}
       {...wired}
     />
   )
