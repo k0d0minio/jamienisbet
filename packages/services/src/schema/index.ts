@@ -180,6 +180,31 @@ export const clients = biz.table("clients", {
   // the top. Null = never touched since intake.
   lastTouchedAt: timestamp("last_touched_at", { withTimezone: true }),
 
+  // ---- What happens next ---------------------------------------------------
+  // The spine of the whole lead engine: every open lead and every prospect
+  // being worked carries *what happens next, and when*. `last_touched_at`
+  // above records that something happened; these two record that something
+  // is going to. Activity-based selling in two columns.
+  //
+  // Nullable, and nothing enforces them — the invariant is gentle on purpose
+  // (Jamie's decision 7): a save is never refused for a missing next action.
+  // What surfaces the gap is a read, not a constraint — the crack-finder
+  // queries in queries/crack-finder.ts.
+  //
+  // `next_action` is a short imperative in Jamie's own words ("Call back after
+  // lunch service"), 200 characters because it is a line on a row, not a note;
+  // the notes column is where prose goes. `next_action_due` is when it is owed
+  // — the due-today queue's sort key.
+  nextAction: varchar("next_action", { length: 200 }),
+  nextActionDue: timestamp("next_action_due", { withTimezone: true }),
+
+  // Nurture only: when a parked relationship comes back. A prospect whose
+  // cadence ran out — or anyone who said "not now" — is parked rather than
+  // killed, and this is the date it wakes on (+90 days, by the cadence's
+  // suggestion). It means nothing on any other rung, which is why
+  // `setClientStatus` clears it when a row leaves `nurture`.
+  wakeAt: timestamp("wake_at", { withTimezone: true }),
+
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   // Soft archive: null = active, a timestamp = archived (hidden by default).
   archivedAt: timestamp("archived_at", { withTimezone: true }),
@@ -194,7 +219,71 @@ export const clients = biz.table("clients", {
 (t) => [
   index("clients_status_idx").on(t.status),
   index("clients_last_touched_at_idx").on(t.lastTouchedAt),
+  // The third thing every read of this table now does: "what is owed today".
+  // The crack-finder's due-outreach query orders on this column directly, and
+  // most rows are null (a client is not on a cadence), so the index is small
+  // and the scan it replaces is the whole table.
+  index("clients_next_action_due_idx").on(t.nextActionDue),
 ])
+
+// ---------------------------------------------------------------------------
+// The memory of contact. One row per touch — a call made, an email sent, a
+// walk-in, a WhatsApp, a DM — against the person it was with.
+//
+// This table existed once and migration 0013 dropped it, along with the AI deal
+// pipeline it was part of (it held draft outreach emails and their document
+// ceremony). It comes back leaner than it left: no versions, no provenance
+// rows, no pipeline — a channel, a direction, an outcome, and the two optional
+// bits of prose a touch can carry. What died was the ceremony; what was missing
+// afterwards was the memory, and one overwritten `last_touched_at` on the lead
+// is not one. Without this table there is no cadence, no follow-up discipline
+// and no answer to "what happened with this one".
+//
+// Append-only in practice: a touch is a thing that happened, so nothing here
+// edits or deletes one. It cascades with the client, because the history is
+// part of that record rather than free-standing data.
+export const touches = biz.table("touches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  clientId: uuid("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+
+  // How it happened: 'email' | 'phone' | 'walkin' | 'whatsapp' | 'instagram' |
+  // 'other'. Five first-class channels because Mafra has five — a local SMB is
+  // reached by walking in as often as by email, and WhatsApp is a front door
+  // here rather than a fallback. See touchChannels in queries/touches.ts.
+  channel: varchar("channel", { length: 20 }).notNull(),
+  // 'out' (I reached them) or 'in' (they reached me). See touchDirections.
+  direction: varchar("direction", { length: 3 }).notNull().default("out"),
+  // What came of it: 'sent' | 'answered' | 'no_answer' | 'callback' |
+  // 'replied' | 'met' | 'not_interested'. The vocabulary the cadence reads to
+  // decide what to suggest next — see touchOutcomes and ../cadence.
+  outcome: varchar("outcome", { length: 20 }).notNull(),
+
+  // What was actually said, in Jamie's words. Optional: the whole point of the
+  // logging flow is that channel + outcome is two taps and enough, and a touch
+  // nobody had ten seconds to annotate is still worth having.
+  note: text("note"),
+  // The draft that was used, if one was. Sequence 5 of the lead-engine epic
+  // fills this from the AI Gateway; until then it is written by nothing and
+  // read by the history's fold. Disposable by design — a copy of what went out,
+  // not a versioned document.
+  draftMd: text("draft_md"),
+  // Which model drafted it. A courtesy field so a message that reads oddly can
+  // be traced to the model that wrote it — deliberately not spend tracking,
+  // which is the Gateway's budget's job.
+  model: varchar("model", { length: 60 }),
+
+  // When it happened, which is not always when it was logged: a call on the
+  // road gets typed in that evening. Defaults to now, overridable by the
+  // caller.
+  loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
+},
+// One index, for the only read this table has: this client's history, newest
+// first. Postgres scans a composite index backwards as happily as forwards, so
+// the ascending form serves the descending order without a second index.
+(t) => [index("touches_client_id_logged_at_idx").on(t.clientId, t.loggedAt)])
 
 // ---------------------------------------------------------------------------
 // The two working lists. Everything else on the dashboard is derived live from

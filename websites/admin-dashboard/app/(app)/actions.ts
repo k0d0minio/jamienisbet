@@ -20,15 +20,24 @@ import {
   isComplianceRecurrence,
   isDealType,
   isFitTier,
+  isTouchChannel,
+  isTouchDirection,
+  isTouchOutcome,
   isWebsiteGrade,
+  listTouchesForClient,
+  logTouch,
+  parkClient,
   setClientArchived,
+  setClientNextAction,
   setClientRepo,
   setClientStatus,
   setClientWorkStarted,
   setTaskClient,
   setTaskCompleted,
+  suggestNextTouch,
   touchClient,
   updateClient,
+  type CadenceSuggestion,
   type ClientProfilePatch,
 } from "@jamie-nisbet/services"
 
@@ -311,6 +320,166 @@ export async function linkClientToStripe(id: string) {
   if (!client) throw new Error("That lead no longer exists.")
   await ensureStripeCustomer(stripe, client)
   revalidateLead(id)
+}
+
+// ---- The touch log and the next step ----------------------------------------
+// The two writes the lead engine runs on. Logging a touch is the ten-second
+// gesture the whole flow is built around — two taps, a note if there is time —
+// and what comes back from it is the cadence's suggestion for what happens
+// next, which the sheet prefills.
+//
+// Nothing here refuses a save for a missing next action. That is the gentle
+// invariant (Jamie's decision 7): dismissing the suggestion is a real answer,
+// and what notices the gap afterwards is a read — the crack-finder queries in
+// the services layer — not a required field.
+
+/** What the log sheet gets back so it can prefill the next step. The dates
+ *  cross as ISO strings, because a server action's return value is serialized
+ *  and the sheet's date field wants the `YYYY-MM-DD` slice anyway. */
+export type NextStepSuggestion = {
+  kind: CadenceSuggestion["kind"]
+  step: number | null
+  steps: number
+  channel: string | null
+  action: string
+  dueAt: string
+  /** Set only when the cadence is spent: park them, waking on this date. */
+  wakeAt: string | null
+}
+
+/** Returned rather than thrown for the reason the form actions are: Next
+ *  redacts server-action exceptions in production, and this call's whole point
+ *  is the value it carries back. */
+export type LogTouchResult =
+  | { ok: true; suggestion: NextStepSuggestion | null }
+  | { ok: false; message: string }
+
+/**
+ * Record a touch and work out what happens next.
+ *
+ * The suggestion is computed here rather than in the browser because it reads
+ * the history — including the row this call just wrote — and because the
+ * cadence is a model rule, not a rendering one. It is only ever a suggestion:
+ * this action never writes `next_action` itself, which is what makes
+ * dismissing it free.
+ */
+export async function logTouchAction(
+  clientId: string,
+  formData: FormData
+): Promise<LogTouchResult> {
+  const value = (name: string): string | null => {
+    const raw = formData.get(name)
+    if (typeof raw !== "string") return null
+    const trimmed = raw.trim()
+    return trimmed === "" ? null : trimmed
+  }
+
+  const channel = value("channel")
+  const outcome = value("outcome")
+  // Both are closed vocabularies stored as plain varchars, so this is the only
+  // thing standing between a mistyped form and a word no surface can label.
+  if (!channel || !isTouchChannel(channel)) {
+    return { ok: false, message: "Pick a channel for that touch." }
+  }
+  if (!outcome || !isTouchOutcome(outcome)) {
+    return { ok: false, message: "Pick what came of it." }
+  }
+  const rawDirection = value("direction") ?? "out"
+  const direction = isTouchDirection(rawDirection) ? rawDirection : "out"
+
+  try {
+    const client = await getClient(clientId)
+    if (!client) return { ok: false, message: "That lead no longer exists." }
+
+    await logTouch({
+      clientId,
+      channel,
+      direction,
+      outcome,
+      note: value("note"),
+    })
+    revalidateLead(clientId)
+
+    // Read the history back rather than appending to what the browser sent:
+    // the suggestion depends on how many times this lead has been reached out
+    // to in total, which only the table knows.
+    const history = await listTouchesForClient(clientId)
+    const suggestion = suggestNextTouch(client, history)
+    return { ok: true, suggestion: suggestion ? serialize(suggestion) : null }
+  } catch (err) {
+    console.error("[touches] log failed:", err)
+    return { ok: false, message: "Couldn't log that touch." }
+  }
+}
+
+function serialize(suggestion: CadenceSuggestion): NextStepSuggestion {
+  return {
+    kind: suggestion.kind,
+    step: suggestion.step,
+    steps: suggestion.steps,
+    channel: suggestion.channel,
+    action: suggestion.action,
+    dueAt: suggestion.dueAt.toISOString(),
+    wakeAt: suggestion.park?.wakeAt.toISOString() ?? null,
+  }
+}
+
+/**
+ * Set what happens next — the suggestion accepted, edited, or decided from
+ * scratch on the masthead.
+ *
+ * A `park` flag turns the same submission into the other decision the cadence
+ * can reach: nurture them, waking on the date in the field. It is one action
+ * because it is one gesture — the sheet that offers "set this next step" is
+ * the sheet that offers "park them" when the cadence is spent, and they are
+ * mutually exclusive answers to the same question.
+ *
+ * An empty action clears the next step, which is how dismissing works.
+ */
+export async function saveNextAction(clientId: string, formData: FormData) {
+  const value = (name: string): string | null => {
+    const raw = formData.get(name)
+    if (typeof raw !== "string") return null
+    const trimmed = raw.trim()
+    return trimmed === "" ? null : trimmed
+  }
+
+  const dueRaw = value("dueDate")
+  let dueAt: Date | null = null
+  if (dueRaw !== null) {
+    const parsed = new Date(dueRaw)
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error("Enter a valid date, or leave it empty.")
+    }
+    dueAt = parsed
+  }
+
+  if (formData.get("park") === "1") {
+    // Parking needs a date to wake on — without one the row would sleep
+    // forever, which is the thing `nurture` was invented not to be. Ninety days
+    // is the cadence's own answer, so an empty field falls back to it rather
+    // than refusing the gesture.
+    await parkClient(clientId, dueAt ?? addDays(new Date(), 90))
+    revalidateLead(clientId)
+    return
+  }
+
+  const action = value("action")
+  await setClientNextAction(clientId, action ? { action, dueAt } : null)
+  revalidateLead(clientId)
+}
+
+/** Dismiss the next step. Its own call so the masthead's "Clear" is one tap
+ *  rather than a form posted empty. */
+export async function clearNextAction(clientId: string) {
+  await setClientNextAction(clientId, null)
+  revalidateLead(clientId)
+}
+
+function addDays(from: Date, days: number): Date {
+  const at = new Date(from.getTime())
+  at.setDate(at.getDate() + days)
+  return at
 }
 
 // ---- Delivery repo ---------------------------------------------------------

@@ -8,6 +8,8 @@ import {
   getClient,
   listFormLinksForClient,
   listOpenTasksForClient,
+  listTouchesForClient,
+  nextActionStatuses,
 } from "@jamie-nisbet/services"
 
 import { AppProfileScreen } from "@/components/app-screen"
@@ -21,11 +23,19 @@ import { LeadDealCard } from "@/components/lead-deal-card"
 import { LeadFactsCard } from "@/components/lead-facts-card"
 import { LeadIntake } from "@/components/lead-intake"
 import { LeadLinks } from "@/components/lead-links"
+import { LeadNextAction } from "@/components/lead-next-action"
 import { LeadNotesCard } from "@/components/lead-notes-card"
 import { LeadSegments } from "@/components/lead-segments"
 import { LeadStatusRow } from "@/components/lead-status-row"
 import { LeadTodos } from "@/components/lead-todos"
-import { daysSince, formatDate, waitingLabel } from "@/lib/format"
+import { LeadTouches } from "@/components/lead-touches"
+import { TouchRow } from "@/components/touch-row"
+import {
+  daysSince,
+  formatDate,
+  formatShortDay,
+  waitingLabel,
+} from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
 import {
   DEFAULT_LEAD_SEGMENT,
@@ -37,6 +47,12 @@ import { listOnboardingForms } from "@/lib/onboarding"
 
 export const metadata: Metadata = { title: "Lead" }
 export const dynamic = "force-dynamic"
+
+// How much history the profile reads. A prospect that ran a full cadence has
+// five or six touches; a client three years in could have hundreds, and none
+// of the old ones is what you came to the page for. The section says when the
+// list is the cap rather than the whole story.
+const TOUCH_HISTORY_LIMIT = 25
 
 // One person, in the Contacts idiom: they are the masthead — disc, name, what
 // they are, what they're worth, and two glyphs saying whether their repo and
@@ -67,8 +83,9 @@ async function loadLead(id: string) {
   // in Neon) are independent reads — one is what *can* be sent, the other what
   // already was — so they go together rather than in series. The library is
   // scoped to this lead: the house forms, plus any in their own delivery repo.
-  const [rawTasks, formLinks, formLibrary] = await Promise.all([
+  const [rawTasks, rawTouches, formLinks, formLibrary] = await Promise.all([
     listOpenTasksForClient(client.id),
+    listTouchesForClient(client.id, TOUCH_HISTORY_LIMIT),
     listFormLinksForClient(client.id),
     listOnboardingForms(client.githubRepo),
   ])
@@ -83,14 +100,47 @@ async function loadLead(id: string) {
     completed: false,
   }))
 
+  // Dates are formatted here, on the server, for the same reason `lastWorked`
+  // is: the history is handed to a client section as children, and nothing
+  // downstream should be reading a clock during a render.
+  const touches = rawTouches.map((t) => ({
+    id: t.id,
+    channel: t.channel,
+    direction: t.direction,
+    outcome: t.outcome,
+    note: t.note,
+    draftMd: t.draftMd,
+    model: t.model,
+    loggedOn: formatShortDay(t.loggedAt),
+  }))
+
+  // What happens next, as the masthead reads it. A parked lead's line is its
+  // wake date instead — the one rung where nothing is planned on purpose.
+  const parked = client.status === "nurture"
+  const nextDate = parked ? client.wakeAt : client.nextActionDue
+
   return {
     client,
     tasks,
+    touches,
     formLinks,
     formLibrary,
     lastWorked: waitingLabel(
       daysSince(client.lastTouchedAt ?? client.createdAt, now)
     ),
+    next: {
+      parked,
+      action: client.nextAction,
+      dueLabel: nextDate ? formatShortDay(nextDate) : null,
+      dueValue: nextDate ? nextDate.toISOString().slice(0, 10) : null,
+      overdue: nextDate !== null && nextDate.getTime() < now,
+      // A next step is only worth prompting for on the rungs something is
+      // supposed to happen next on — plus `nurture`, whose wake date is the
+      // same question asked the other way round.
+      expected:
+        parked ||
+        (nextActionStatuses as readonly string[]).includes(client.status),
+    },
   }
 }
 
@@ -105,7 +155,8 @@ export default async function LeadDetailPage({
   const loaded = await loadLead(id)
   if (!loaded) notFound()
 
-  const { client, tasks, formLinks, formLibrary, lastWorked } = loaded
+  const { client, tasks, touches, formLinks, formLibrary, lastWorked, next } =
+    loaded
   const archived = client.archivedAt !== null
 
   // Which segment to open on. The client rewrites this in place as you switch,
@@ -134,6 +185,19 @@ export default async function LeadDetailPage({
       figureLabel={figure?.label}
       badges={
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          {/* What happens next, on its own line above the terms — the one
+              thing on this page that is about *doing* rather than about who
+              they are, and the reason the profile is worth opening. Silent on
+              a rung where nothing is planned by design. */}
+          <LeadNextAction
+            id={client.id}
+            action={next.action}
+            dueLabel={next.dueLabel}
+            dueValue={next.dueValue}
+            overdue={next.overdue}
+            parked={next.parked}
+            expected={next.expected}
+          />
           {/* Repo and Stripe as two status lights: lit and tappable through to
               GitHub or Stripe, or dim and tappable into the control that links
               one. The whole of what used to be a Delivery & billing section. */}
@@ -267,6 +331,22 @@ export default async function LeadDetailPage({
         }
         work={
           <GroupedList>
+            {/* The memory of contact, first on the segment: what has already
+                been tried is what decides what to try next, so it reads above
+                the notes rather than under the forms. The rows are rendered
+                here, on the server — a draft is markdown, and the section
+                itself is a client component. */}
+            <LeadTouches
+              clientId={client.id}
+              clientName={client.name}
+              count={touches.length}
+              capped={touches.length === TOUCH_HISTORY_LIMIT}
+            >
+              {touches.map((touch) => (
+                <TouchRow key={touch.id} touch={touch} />
+              ))}
+            </LeadTouches>
+
             <LeadNotesCard id={client.id} notes={client.notes} />
 
             <LeadTodos

@@ -40,8 +40,10 @@ import {
   isPastClient,
   isProspect,
   isStale,
+  nextActionLine,
   prospectLabel,
   waitedLabel,
+  wakeLine,
   whoLabel,
 } from "@/lib/leads"
 import { formatMoney } from "@/lib/money"
@@ -367,6 +369,17 @@ export default async function LeadsPage({
                 const figure = cold ? null : dealFigure(row)
                 const open = isOpenLead(row)
                 const who = whoLabel(row)
+                // What happens next takes the row's leading line whenever
+                // there is one — the epic's whole doctrine in one substitution:
+                // a row should say what to *do*, and only fall back to what it
+                // *is* when nobody has decided. A parked row's plan is its
+                // wake date.
+                const next = nextActionLine(row, now)
+                const wake = wakeLine(row)
+                // Which line raises its voice. A slipped date is a fact about
+                // the plan; staleness is only the fallback line's own alarm,
+                // so the two never fight over the same row.
+                const alarm = next ? next.overdue : stale
                 return (
                   <li key={row.id}>
                     <LeadRow
@@ -459,21 +472,28 @@ export default async function LeadsPage({
                           </span>
 
                           <span className="flex items-baseline justify-between gap-3 text-app-footnote">
-                            {/* Nobody is waiting on a prospect, so the line
-                                that says how long they have waited would be a
-                                lie about them: they carry what they *are*
-                                instead — sector and town, the two facts the
-                                import brought and the two you scan a cold list
-                                by. */}
+                            {/* The line, in the order the row can answer it:
+                                what happens next if anything does, then the
+                                date a parked row wakes on, then — for a
+                                prospect nobody has planned — what they *are*,
+                                since sector and town are the two facts you
+                                scan a cold list by and "waiting 12 days" was
+                                never true about an imported business. Everyone
+                                else falls back to how long they have waited,
+                                which is what this list has always sorted on. */}
                             <span
                               className={cn(
                                 "truncate",
-                                stale
+                                alarm
                                   ? "font-medium text-destructive"
                                   : "text-app-label-3"
                               )}
                             >
-                              {cold ? (
+                              {next ? (
+                                next.text
+                              ) : wake ? (
+                                wake
+                              ) : cold ? (
                                 (prospectLabel(row) ?? "")
                               ) : (
                                 <>
