@@ -33,6 +33,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { saveClientFacts } from "@/app/(app)/actions"
+import { LeadEnrich } from "@/components/lead-enrich"
 import { websiteHost, websiteHref } from "@/lib/format"
 import { hapticTick } from "@/lib/haptics"
 import {
@@ -63,6 +64,11 @@ import {
 // Editing lives behind the last row, in a sheet, so the page carries the facts
 // without carrying the input fields — the same shape as the contact card next
 // door, and the same reason its own action posts nothing but its own slice.
+//
+// Two rows at the foot, because there are two ways a fact gets here: type it,
+// or read it off their website. The second is `LeadEnrich`, which proposes and
+// never writes until a switch is on — it sits inside this group rather than in
+// a section of its own precisely because it is filling *these* rows in.
 
 export type LeadFacts = {
   id: string
@@ -81,7 +87,30 @@ export type LeadFacts = {
  *  recognise, and this is deliberately one of those. */
 const UNSET = "unset"
 
-export function LeadFactsCard({ client }: { client: LeadFacts }) {
+export function LeadFactsCard({
+  client,
+  /**
+   * What the four facts on this record *derive* as, computed on the server by
+   * the one function that owns the weights. Null when there is nothing to
+   * grade from.
+   *
+   * Passed in rather than computed here for the usual reason — a client
+   * component importing the services barrel would pull the Drizzle client and
+   * the Neon driver into the browser bundle — and it earns its place by
+   * answering one question the stored letter cannot: whether the facts have
+   * moved on since somebody graded them.
+   */
+  derivedTier,
+  /** False when there is no AI Gateway key. */
+  enrichConfigured,
+  /** When the site was last read, already formatted — or null if never. */
+  enrichedOn,
+}: {
+  client: LeadFacts
+  derivedTier: string | null
+  enrichConfigured: boolean
+  enrichedOn: string | null
+}) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -146,7 +175,16 @@ export function LeadFactsCard({ client }: { client: LeadFacts }) {
         <GroupedRow
           icon={<Signal />}
           label="Fit tier"
-          description={fitTierHint(client.fitTier) ?? undefined}
+          // What the letter means — unless the facts have since moved past it,
+          // which is the more useful sentence and the only one that asks for
+          // anything. Noticed, never enforced: a re-tier is a gesture (the row
+          // below, or `leads-enrich --retier`), not something that happens to
+          // a record while nobody is looking.
+          description={
+            derivedTier && derivedTier !== client.fitTier
+              ? `The facts now say ${derivedTier}`
+              : (fitTierHint(client.fitTier) ?? undefined)
+          }
           value={<span className="font-mono">{client.fitTier}</span>}
           chevron={false}
         />
@@ -191,6 +229,13 @@ export function LeadFactsCard({ client }: { client: LeadFacts }) {
           message would lead with all land here.
         </GroupedBlock>
       )}
+
+      <LeadEnrich
+        clientId={client.id}
+        websiteUrl={client.websiteUrl}
+        configured={enrichConfigured}
+        enrichedOn={enrichedOn}
+      />
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>

@@ -206,6 +206,18 @@ export const clients = biz.table("clients", {
   // `setClientStatus` clears it when a row leaves `nurture`.
   wakeAt: timestamp("wake_at", { withTimezone: true }),
 
+  // When their website was last read and the facts above proposed from it.
+  //
+  // Deliberately about the *pass*, not about the record: it is stamped by an
+  // enrichment whether or not a single field was accepted, because "I looked
+  // and there was nothing new" is exactly the answer the batch script needs in
+  // order to skip a row next week. Null means nobody has looked.
+  //
+  // It is not `last_touched_at` and must never be confused with it. Reading a
+  // stranger's home page is not contact, and stamping it as such would move a
+  // lead down the staleness sort for having been researched.
+  enrichedAt: timestamp("enriched_at", { withTimezone: true }),
+
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   // Soft archive: null = active, a timestamp = archived (hidden by default).
   archivedAt: timestamp("archived_at", { withTimezone: true }),
