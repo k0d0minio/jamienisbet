@@ -24,6 +24,7 @@ src/
   cadence.ts         # what to do next and when — the outreach template, as a pure function
   deal.ts            # what a deal is made of — components, and the helpers over them
   forms.ts           # the questionnaire snapshot/answer types both apps share
+  import.ts          # a compiled list row → the columns; the dedupe key. Pure
   queries/clients.ts # typed intake/list/update helpers for the leads table
   queries/touches.ts     # the touch log: the three vocabularies, the history, logging one
   queries/suppressions.ts # the permanent opt-out list, keyed to the contact not the lead
@@ -31,7 +32,10 @@ src/
   queries/tasks.ts       # todos
   queries/compliance.ts  # the PT compliance calendar (recurrence re-arms on complete)
   queries/form-links.ts  # customer questionnaires: publish, read, submit once
+  queries/prospects.ts   # the import's read and its write — dedupe keys, the batch
+  queries/retention.ts   # the 12-month rule: what has aged out, and forgetting it
   index.ts           # barrel
+scripts/             # the operator toolbox — five commands over everything above
 drizzle/             # generated SQL migrations
 drizzle.config.ts    # drizzle-kit config (scoped to the `biz` schema)
 ```
@@ -47,6 +51,131 @@ Add `"@jamie-nisbet/services": "workspace:*"` to a site's `package.json`, add it
 ```ts
 import { createClientFromContact, listClients } from "@jamie-nisbet/services"
 ```
+
+## The operator scripts
+
+Jamie's decision 8: Claude Code and opencode operate the leads system through repo
+scripts against the database — **no new HTTP surface on the admin app.** `scripts/` is
+that toolbox. Five commands, each a thin printer over the functions above; between them
+they are enough to work the whole pool from a terminal without opening the dashboard.
+
+```bash
+DATABASE_URL=… pnpm --filter @jamie-nisbet/services leads-queue -- --detail
+```
+
+The `--` matters: everything after it goes to the script rather than to pnpm.
+
+| Command | What it does |
+|---|---|
+| `leads-import` | A compiled CSV or JSON list in, `prospect` rows out. Normalizes, dedupes, skips opt-outs, stamps provenance. |
+| `leads-queue` | Today's outreach — `listDueOutreach`, with the number, the address and the hook beside each row. |
+| `leads-log` | One touch, and what happens next: logs it, then accepts (or overrides) what the cadence suggests. |
+| `leads-crack` | The weekly reconcile — `findCracks`, all four questions, printed. |
+| `leads-purge` | The retention rule (LIA § 5), run by hand. |
+
+**Every one takes `--dry-run`, and every one takes `--help`.** The two that only read
+(`leads-queue`, `leads-crack`) accept the flag and ignore it, so it means the same thing
+on all five. Unknown flags are an **error**, not a shrug — `--dry-runn` on a script that
+writes to production is a typo nobody recovers from, so the parser refuses it and
+suggests what was meant. Each script prints the database host it is pointed at before it
+does anything, for the same reason.
+
+**They own no SQL.** Every read and write is a function from the barrel — which is the
+point of them living here rather than in a `scripts/` folder at the repo root: the
+terminal and the Needs you feed answer "what is owed today" with the same query, so they
+can never drift apart. What the scripts do own is argument parsing, file reading and
+printing (`scripts/lib/`).
+
+### `leads-import`
+
+```bash
+pnpm --filter @jamie-nisbet/services leads-import -- --file pool.csv --dry-run
+pnpm --filter @jamie-nisbet/services leads-import -- --file pool.csv \
+  --source-detail "2026-07-23 Mafra/Lisbon prospect list"
+```
+
+Headers are matched case-, accent- and punctuation-insensitively against a table of
+aliases (`scripts/lib/columns.ts`), so "Telemóvel" is the phone, "Pain point" is the
+hook and "Priority" is the tier; `--template` prints the canonical spelling of each, and
+any column nothing mapped from is reported once per file rather than silently dropped.
+CSV or JSON, the delimiter sniffed between `,` and `;` because a spreadsheet saved in a
+Portuguese locale writes the second one.
+
+Four gates stand between a list row and a written record:
+
+1. **It has to be a lead.** A row with neither a name nor a company is reported and
+   skipped. Everything else warns rather than fails — a batch that dies on row 40 of 85
+   is worse than one that lands with four blank tiers.
+2. **It has to be new.** The dedupe key is the business name plus the town, flattened
+   until spelling stops mattering (accents off, punctuation gone, `Lda`/`SA`/`Unipessoal`
+   dropped) — see `dedupeKey` in `src/import.ts`. A match against **any** existing row,
+   archived ones included, is **reported, never merged**: the row already there has been
+   worked, and a second list's guess at a phone number is not better evidence than the
+   call that was already made.
+3. **They must not have opted out.** Every contact point on the batch is checked against
+   `suppressions` in one round trip, and a hit skips **the whole business, not just that
+   channel** — somebody who asked to be left alone did not mean "try the other number".
+4. **The provenance is stamped, not chosen.** `insertProspects` sets `status`,
+   `source: 'import'` and `source_detail` itself, so nothing can file the cold pool as
+   open leads. `last_touched_at` stays null: nothing has happened with these
+   relationships yet, and stamping the import as a touch is a lie the whole engine then
+   reads.
+
+Converting the source list (a PDF, a page, a screenshot) into that CSV is the AI
+interface's job, not this repo's — the script's contract starts at a file with headers.
+
+### `leads-log`
+
+```bash
+pnpm --filter @jamie-nisbet/services leads-log -- \
+  --client "Padaria Sol" --channel whatsapp --outcome sent
+```
+
+`--client` takes a lead id, the first characters of one, a name, a fragment of a name, an
+email or a phone number (`searchClients`); an ambiguous match prints the candidates and
+stops rather than picking one, because a call logged against the wrong lead is a mistake
+nothing later notices.
+
+The touch and the plan are one command because they are one gesture: a call that was made
+with no decision about what follows it is exactly the row `leads-crack` finds next Monday.
+So by default it **accepts what the cadence suggests** — the next rung, the reply owed to
+somebody who actually spoke, or the park onto `nurture` when the cadence is spent — and
+`--next` / `--due` override it while `--no-next` dismisses it. The suggestion is computed
+from the history *with the new touch in it*, which is why `--dry-run` can show it
+truthfully before anything is written.
+
+`--suppress` is the separate gesture: they asked to be left alone. It calls
+`suppressClient`, which closes every channel permanently, moves the lead to *not won*,
+clears whatever was planned and logs the reason — all four, because a script that got
+three of them right would leave somebody who opted out in tomorrow's queue. It is not the
+same as an outcome of `not_interested`, which is a no to *this pitch*.
+
+### `leads-purge`
+
+The retention rule from [`.icm/docs/lia-cold-outreach.md`](../../.icm/docs/lia-cold-outreach.md)
+§ 5, run by hand rather than on a timer. Rows on `prospect` or `not_won` with no activity
+for `RETENTION_MONTHS` (12) are **anonymised, not deleted**: the name, company, email,
+phone, WhatsApp, Instagram and hook are cleared; the sector, the town, the tier and the
+dates stay, so the fact that a business of that shape was once approached survives and
+stops the same list being compiled again next spring.
+
+Three things about it are deliberate:
+
+- **`--yes` is required.** `--dry-run` reports and stops, and so does a run without
+  `--yes`. Every other script's worst case is a row you can edit; this one's is a phone
+  number that no longer exists anywhere.
+- **Archived rows are included.** Archiving hides a row; it does not stop it holding
+  somebody's number.
+- **Suppressions are untouched.** An opt-out outlives the record it was asked through —
+  which is exactly why the table has no foreign key back to `clients` — so a purge can
+  never un-stop anything.
+
+`company` is cleared alongside `name` even though § 5 names only the name: on an imported
+business row the two hold the same string, so clearing one and leaving the other would
+anonymise nothing. `notes`, `intake_message` and `website_url` are **not** cleared — the
+first two are prose the rule does not reach, the third is a live business address whose
+status as personal data is Jamie's call rather than a script's. The run reports how many
+rows carry them.
 
 ## Migrations
 
@@ -145,7 +274,7 @@ and a cadence you stop logging is worth less than a gap you can see. So the inva
 | What conversation went cold? | `listIdleEngaged` — `discussing`, untouched for `IDLE_AFTER_DAYS` (14) |
 
 `findCracks` runs all four in parallel. Sequence 6 of the lead-engine epic renders them on the
-Needs you feed; sequence 4's operator scripts read the same functions, which is why they live
+Needs you feed; the operator scripts in `scripts/` read the same functions, which is why they live
 here rather than in a page. All four exclude archived rows and return whole `Client` rows.
 
 **`touches` is the memory of contact** — one row per call, message, DM or walk-in, cascading

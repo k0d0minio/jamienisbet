@@ -20,7 +20,7 @@ import { nextActionStatuses, nurtureStatuses, type Client } from "./clients"
 //   4. What conversation went cold? listIdleEngaged
 //
 // Sequence 6 of the lead-engine epic renders them on the Needs you feed;
-// sequence 4's operator scripts read the same four functions, which is the
+// the operator scripts in ../../scripts/ read the same four functions, which is the
 // point of them being here rather than in a page.
 //
 // All four exclude archived rows and all four return whole `Client` rows: the
