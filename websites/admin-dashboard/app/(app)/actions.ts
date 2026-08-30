@@ -43,6 +43,7 @@ import {
   getRepo,
   isGithubConfigured,
   listAccessibleRepos,
+  type RepoListing,
   type RepoSummary,
 } from "@/lib/github"
 
@@ -257,9 +258,12 @@ export async function linkClientToStripe(id: string) {
 // existing one or spin up a fresh one from the profile; the pointer is stored
 // on the lead so the dashboard always knows where the delivery work lives.
 
-// The candidate list for the "connect existing" picker. Returns [] when GitHub
-// is unconfigured, which the UI reads as "creation only".
-export async function listConnectableRepos(): Promise<RepoSummary[]> {
+// The candidate list for the "connect existing" picker, and what GitHub said
+// if it couldn't be read. An empty list when GitHub is unconfigured is a
+// stated absence the UI reads as "creation only"; an empty list because the
+// call *failed* is a different thing, and the picker says which rather than
+// presenting a rate-limited account as one with no repos.
+export async function listConnectableRepos(): Promise<RepoListing> {
   return listAccessibleRepos()
 }
 

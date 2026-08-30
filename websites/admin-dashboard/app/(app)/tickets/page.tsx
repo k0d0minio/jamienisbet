@@ -191,8 +191,16 @@ export default async function TicketsPage({
 }) {
   const params = await searchParams
 
-  const { configured, repos, tickets, sections, strip, errors, dbError } =
-    await listBoard()
+  const {
+    configured,
+    repos,
+    tickets,
+    sections,
+    strip,
+    errors,
+    rosterError,
+    dbError,
+  } = await listBoard()
 
   // No token, no board — but a stated absence rather than a broken screen, the
   // way every missing-configuration case in this app degrades.
@@ -313,10 +321,30 @@ export default async function TicketsPage({
             ) : null}
 
             <div className="flex flex-col gap-app-section">
-              {/* A repo the reads couldn't reach is named, with what GitHub
-                  said, and the rest of the board stands. */}
-              {errors.length > 0 ? (
+              {/* One group for everything the reads couldn't get. The roster
+                  call leads it when it was the thing that failed: a board
+                  standing on its pinned repos alone looks like an estate with
+                  no work, which is how a spent rate limit once passed for
+                  broken repos. Under it, each repo that couldn't be reached is
+                  named with what GitHub said, and the rest of the board
+                  stands. */}
+              {rosterError || errors.length > 0 ? (
                 <GroupedSection header="Couldn't be read">
+                  {rosterError ? (
+                    <>
+                      <GroupedRow
+                        icon={<TriangleAlert />}
+                        variant="destructive"
+                        label="The estate's repo list"
+                        chevron={false}
+                      />
+                      {/* Our sentence first: what GitHub said arrives with
+                          its own punctuation, or none. */}
+                      <GroupedBlock>
+                        Only the repos this board pins are below. {rosterError}
+                      </GroupedBlock>
+                    </>
+                  ) : null}
                   {errors.map((error) => (
                     <Fragment key={error.repo.fullName}>
                       <GroupedRow

@@ -88,23 +88,46 @@ function toSummary(r: {
   }
 }
 
+/** A repo listing, and what GitHub said when it couldn't be read.
+ *
+ * The failure is part of the answer rather than an empty list, because the two
+ * are not the same fact and callers act on them differently. A rate-limited
+ * token and an account that owns nothing return the same `[]`, and reading the
+ * first as the second is how the tickets board's 403 outage presented itself:
+ * the roster had quietly collapsed before a single read of a repo ran, so a
+ * spent limit looked like an estate whose repos were broken. */
+export type RepoListing = { repos: RepoSummary[]; error: string | null }
+
 /**
  * Repos the token can administer, most-recently-pushed first — the candidate
  * list for "connect an existing repo". `affiliation=owner` keeps it to repos
- * Jamie owns (not every org repo he can merely read). Best-effort: returns []
- * when GitHub is unconfigured or the call fails, so the picker just shows empty.
+ * Jamie owns (not every org repo he can merely read). Unconfigured is a stated
+ * absence rather than a failure: no token, no listing, no error to report.
  */
-export async function listAccessibleRepos(): Promise<RepoSummary[]> {
-  if (!isGithubConfigured()) return []
+export async function listAccessibleRepos(): Promise<RepoListing> {
+  if (!isGithubConfigured()) return { repos: [], error: null }
   try {
     const res = await gh(
       "/user/repos?per_page=100&sort=pushed&affiliation=owner"
     )
-    if (!res.ok) return []
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as {
+        message?: string
+      } | null
+      return {
+        repos: [],
+        error: body?.message
+          ? `GitHub returned HTTP ${res.status} — ${body.message}`
+          : `GitHub returned HTTP ${res.status}`,
+      }
+    }
     const rows = (await res.json()) as Parameters<typeof toSummary>[0][]
-    return rows.map(toSummary)
-  } catch {
-    return []
+    return { repos: rows.map(toSummary), error: null }
+  } catch (err) {
+    return {
+      repos: [],
+      error: err instanceof Error ? err.message : "network error",
+    }
   }
 }
 

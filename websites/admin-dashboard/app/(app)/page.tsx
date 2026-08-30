@@ -40,7 +40,7 @@ import {
 import { daysWaiting, isStale, waitedLabel, whoLabel } from "@/lib/leads"
 import { formatMoney } from "@/lib/money"
 import { isStripeConfigured } from "@/lib/stripe"
-import { listBoard, type Ticket } from "@/lib/tickets"
+import { listStrip, type Ticket } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Needs you" }
 
@@ -48,9 +48,9 @@ export const metadata: Metadata = { title: "Needs you" }
 // makes this request-time, and the Neon reads below are plain queries the Data
 // Cache never touches — so it changed nothing about how fresh this feed is. It
 // did set `fetchCache: "force-no-store"` across the segment, which overrode the
-// 60-second revalidate on every GitHub read behind `listBoard()`. Once home
-// started reading the board, that was the estate re-fetched from GitHub on
-// every open of the app. See the header of `lib/tickets.ts`.
+// revalidate on every GitHub read behind the strip. Once home started reading
+// the board, that was the estate re-fetched from GitHub on every open of the
+// app. See the header of `lib/tickets.ts`.
 
 // Home. The dashboard used to open on the roster — everyone, longest-waiting
 // first — which answered "who exists" when the only question you have at 8am is
@@ -191,9 +191,13 @@ async function loadMoney(): Promise<MoneyReads> {
 
 type TicketReads = { strip: Ticket[]; note: string | null }
 
+// The strip, not the board: this section shows a handful of rows and has no
+// use for the repo sections /tickets folds. `listStrip()` shares its GitHub
+// reads with that screen through the Data Cache, so home costs the estate's
+// trees at worst and usually nothing at all.
 async function loadTickets(): Promise<TicketReads> {
   try {
-    const board = await listBoard()
+    const board = await listStrip()
     if (!board.configured) {
       return {
         strip: [],
@@ -202,13 +206,19 @@ async function loadTickets(): Promise<TicketReads> {
     }
     if (board.dbError) return { strip: [], note: null }
     const unreachable = board.errors.map((e) => e.repo.slug)
-    return {
-      strip: board.strip,
-      note:
-        unreachable.length > 0
-          ? `Couldn't read ${unreachable.join(", ")} — tickets there aren't in this list.`
-          : null,
-    }
+    // Two different absences, and the feed says which. A named repo that
+    // couldn't be read is a gap in a known list; a failed roster call means
+    // the list itself is short, and reading that as "no tickets" is what the
+    // outage did.
+    const notes = [
+      board.rosterError
+        ? `Couldn't list the estate's repos — ${board.rosterError}`
+        : null,
+      unreachable.length > 0
+        ? `Couldn't read ${unreachable.join(", ")} — tickets there aren't in this list.`
+        : null,
+    ].filter((n): n is string => n !== null)
+    return { strip: board.strip, note: notes.join(" ") || null }
   } catch (err) {
     const detail = err instanceof Error ? err.message : "no answer"
     return { strip: [], note: `GitHub didn't answer — ${detail}` }
