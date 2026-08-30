@@ -27,7 +27,8 @@ jamienisbet/
 │   └── services/        @jamie-nisbet/services — Neon biz.* schema (Drizzle) + queries
 │
 └── .icm/
-    ├── intake/          this repo's ticket backlog (JN-NNN-slug.md, estate-wide standard)
+    ├── intake/          this repo's work backlog — epics + triage stubs, identity is
+    │                    the path (estate-wide standard; see intake/README.md)
     └── docs/            preserved history: founder-brief.md, decisions.md
 ```
 
