@@ -105,10 +105,11 @@ export function LeadTodos({
 
   const [title, setTitle] = useState("")
   const [due, setDue] = useState("")
-  // The due date and the button unfold once you are writing, and stay while
-  // there are unsaved words on the line.
-  const [engaged, setEngaged] = useState(false)
   const titleBox = useRef<HTMLInputElement>(null)
+
+  // The due date and the button unfold once there are words on the line —
+  // on focus alone, tapping the field by accident would push the group open
+  // and put a dead, disabled button under your thumb.
 
   function add() {
     const trimmed = title.trim()
@@ -241,15 +242,6 @@ export function LeadTodos({
             event.preventDefault()
             add()
           }}
-          onFocus={() => setEngaged(true)}
-          onBlur={(event) => {
-            // Only when focus has genuinely left the line — moving from the
-            // title to the date is still writing a todo. Unsaved words keep
-            // the button within reach.
-            if (!event.currentTarget.contains(event.relatedTarget)) {
-              setEngaged(title.trim() !== "")
-            }
-          }}
         >
           <AppInput
             ref={titleBox}
@@ -266,7 +258,7 @@ export function LeadTodos({
             autoComplete="off"
           />
 
-          {engaged ? (
+          {title.trim() !== "" ? (
             <div className="flex items-center gap-2">
               <AppInput
                 name="dueDate"
@@ -276,11 +268,7 @@ export function LeadTodos({
                 aria-label="Due date (optional)"
                 className="min-w-0 flex-1"
               />
-              <PendingButton
-                pending={adding}
-                pendingText="Adding…"
-                disabled={title.trim() === ""}
-              >
+              <PendingButton pending={adding} pendingText="Adding…">
                 Add
               </PendingButton>
             </div>

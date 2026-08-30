@@ -556,6 +556,14 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
 
       {editing === null && picking ? (
         <>
+          {/* Said out loud, because these rows sit in the same slab as the
+              terms the deal already has and a tinted label alone still reads
+              as a fact when it is stacked under one. */}
+          <GroupedBlock className="py-2">
+            <span className="text-app-footnote text-app-label-3">
+              Add a term
+            </span>
+          </GroupedBlock>
           {available.map((term) => (
             <GroupedRow
               key={term.label}
@@ -563,6 +571,8 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
               label={term.label}
               description={term.hint}
               chevron={false}
+              // Tinted: an action you can take, not a term you have.
+              variant="tint"
               onClick={() => openEditor(term.key, term.intent)}
             />
           ))}
