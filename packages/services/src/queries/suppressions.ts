@@ -174,7 +174,7 @@ export function contactPointsOf(client: SuppressibleContact): ContactPoint[] {
 /**
  * Has this one contact point opted out?
  *
- * The check the import script runs at the door (sequence 4) and the one any
+ * The check `leads-import` runs at the door (../../scripts/) and the one any
  * single-channel handoff asks before it offers a send gesture. Takes a raw
  * value and normalizes it here, so no caller has to remember to.
  */

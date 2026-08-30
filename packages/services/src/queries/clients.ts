@@ -1,4 +1,4 @@
-import { asc, desc, eq, isNotNull, isNull, sql } from "drizzle-orm"
+import { and, asc, desc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm"
 
 import { getDb } from "../client"
 import { normalizeBps, type BillingType, type DealType } from "../deal"
@@ -364,6 +364,51 @@ export async function listClients(opts: ListOptions = {}): Promise<Client[]> {
 export async function getClient(id: string): Promise<Client | undefined> {
   const [row] = await getDb().select().from(clients).where(eq(clients.id, id))
   return row
+}
+
+/**
+ * Find a lead by whatever the operator has in their hand.
+ *
+ * The one read written for a terminal rather than for a screen: the scripts in
+ * `packages/services/scripts/` are handed a name, a fragment of one, an email,
+ * a phone number or the first few characters of an id, and have to turn it
+ * into a row without making the operator paste a uuid. Every column here is
+ * something a person can actually be holding — the id included, matched as a
+ * prefix so the eight characters a previous script printed are enough.
+ *
+ * Deliberately a `like` over five columns rather than full-text search: at a
+ * few hundred rows that is a sequential scan of a small table, and a
+ * dictionary-backed index would need a migration to answer a question only a
+ * script asks.
+ *
+ * Returns every match, longest-waiting first, capped — a caller with more than
+ * one row has an ambiguity to report, not a winner to pick.
+ */
+export async function searchClients(
+  term: string,
+  opts: ListOptions & { limit?: number } = {}
+): Promise<Client[]> {
+  const needle = term.trim()
+  if (needle === "") return []
+  const contains = `%${needle}%`
+
+  return getDb()
+    .select()
+    .from(clients)
+    .where(
+      and(
+        opts.archived ? isNotNull(clients.archivedAt) : isNull(clients.archivedAt),
+        or(
+          sql`${clients.id}::text like ${`${needle.toLowerCase()}%`}`,
+          ilike(clients.name, contains),
+          ilike(clients.company, contains),
+          ilike(clients.email, contains),
+          ilike(clients.phone, contains)
+        )
+      )
+    )
+    .orderBy(asc(sql`coalesce(${clients.lastTouchedAt}, ${clients.createdAt})`))
+    .limit(opts.limit ?? 25)
 }
 
 export type ClientRepo = {

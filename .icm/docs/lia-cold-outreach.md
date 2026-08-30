@@ -130,9 +130,10 @@ not about the lead row:
   scripts call too so nothing can do three of the four.
 - **The app honours it everywhere a message could start.** Live today: a closed channel is a
   dead end on the lead's profile — the address still readable and copyable, the send gesture
-  gone — and the action discs for it are disabled. Contracted, and the reason this sequence
-  landed before them: the import skips a suppressed contact at the door (sequence 4), and
-  neither the outreach queue nor the draft handoff offers a closed channel (sequences 5–6).
+  gone — and the action discs for it are disabled; `leads-import` checks every contact point
+  on a batch before it writes anything and skips the whole business, not just that channel;
+  and `leads-queue` marks a closed door rather than offering it. Contracted: the draft
+  handoff refuses a closed channel too (sequence 5).
 - **An erasure request does not erase the suppression.** Keeping the minimum needed to
   *stay* stopped is what honouring the objection requires; deleting it would be the one way
   to guarantee contacting them again. ✅ Only the contact point and the reason are kept.
@@ -147,9 +148,10 @@ Prospect data earns its keep by being worked. When it is not:
   kept. Any suppression entry **stays**, per §4.
 - Rows that engaged (`discussing` and up) leave this assessment entirely: they are a
   business relationship with its own basis and its own accounting retention.
-- The purge runs as an operator script, not on a timer, and it is recorded in sequence 4 of
-  the lead-engine epic. ⚠️ *Twelve months is my own line, drawn to be defensible rather than
-  derived from a rule that names a number.*
+- The purge runs as an operator script, not on a timer — `leads-purge` in
+  [`packages/services/scripts/`](../../packages/services/scripts/), which reports what it
+  would clear and refuses to write without `--yes`. ⚠️ *Twelve months is my own line, drawn
+  to be defensible rather than derived from a rule that names a number.*
 
 ## 6. When this has to be redone
 

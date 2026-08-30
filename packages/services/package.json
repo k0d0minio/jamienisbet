@@ -25,6 +25,7 @@
   },
   "files": [
     "src",
+    "scripts",
     "drizzle",
     "drizzle.config.ts",
     "README.md"
@@ -33,7 +34,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "leads-import": "tsx scripts/leads-import.ts",
+    "leads-queue": "tsx scripts/leads-queue.ts",
+    "leads-log": "tsx scripts/leads-log.ts",
+    "leads-crack": "tsx scripts/leads-crack.ts",
+    "leads-purge": "tsx scripts/leads-purge.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -42,6 +48,7 @@
   "devDependencies": {
     "@types/node": "^25.9.3",
     "drizzle-kit": "^0.31.10",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }
