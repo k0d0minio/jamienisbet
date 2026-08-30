@@ -52,7 +52,7 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 | Data model / queries (`biz.*`) | [`packages/services/`](packages/services/) |
 | Deployment, Vercel Root Directories, build skipping | [`websites/README.md`](websites/README.md) § Deployment |
 | CI, DB migrations | [`.github/workflows/`](.github/workflows/) |
-| Plan or track engineering work on **this** repo | tickets in [`.icm/intake/`](.icm/intake/) (`JN-NNN-slug.md`) — contract in [its README](.icm/intake/README.md) |
+| Plan or track engineering work on **this** repo | stubs in [`.icm/intake/`](.icm/intake/) — epics + triage, identity is the path — contract in [its README](.icm/intake/README.md) |
 | Customer questionnaires / onboarding forms (questions only — answers live in Neon) | [`.icm/onboarding/`](.icm/onboarding/) for house forms; a client's own `.icm/onboarding/` for theirs |
 | Daily business todos / compliance deadlines | the dashboard's **Needs you** feed at `/` — its Overdue section (`biz.tasks` + `biz.compliance_dates`) |
 | How repos are structured · the ticket/project/lens contracts · `/project` `/day` `/icm-check` | the **`icm-board`** repo — not here |
@@ -61,10 +61,12 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 
 - **Brand is one source of truth** — [`packages/ui`](packages/ui/). Websites consume the
   package; never fork tokens per site.
-- **Planning is tickets.** Any plan, backlog, or task list becomes markdown tickets in
-  `.icm/intake/` — never a loose `TODO.md`/`BACKLOG.md`. Tickets ARE the plan: day =
-  `Status: today` (≤10 estate-wide), week = Priority rows. Ticket-only commits go straight
-  to `main`; everything else through a PR on a `claude/` branch.
+- **Planning is stubs.** Any plan, backlog, or task list becomes markdown stubs in
+  `.icm/intake/` — never a loose `TODO.md`/`BACKLOG.md`. Identity is the path
+  (`<epic>/<slug>`) and status is positional: done is a `git mv` to `_done/`, never a
+  field. Today lives estate-wide in icm-board's `.icm/today.md` (≤10 entries), not in
+  ticket files. Ticket-only commits go straight to `main`; everything else through a PR
+  on a `claude/` branch.
 - **No outbound action without review.** Invoices are raised as drafts; finalizing and
   emailing is a separate, deliberate click. Outreach email is composed and sent by a human.
 - **CI is the source of truth.** Never run `build`/`lint`/`typecheck` locally; push and
