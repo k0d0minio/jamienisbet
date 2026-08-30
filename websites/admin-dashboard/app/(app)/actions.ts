@@ -6,6 +6,10 @@ import { generateText } from "ai"
 import {
   buildDraftPrompt,
   buildEnrichmentPrompt,
+  buildTriagePrompt,
+  canTriageStage,
+  clientStatusHints,
+  clientStatusLabel,
   completeComplianceDate,
   createClientManually,
   createComplianceDate,
@@ -30,16 +34,20 @@ import {
   isDraftKind,
   isEnrichmentField,
   isFitTier,
+  isInboundOutcome,
   isSuppressed,
   isTouchChannel,
   isTouchDirection,
   isTouchOutcome,
+  isTriageStage,
   isWebsiteGrade,
   listTouchesForClient,
   logTouch,
   NURTURE_WAKE_DAYS,
-  parseEnrichment,
   parkClient,
+  parseEnrichment,
+  parseTriage,
+  replyOutcomeFor,
   saveEnrichment as saveEnrichmentToLead,
   setClientArchived,
   setClientNextAction,
@@ -49,10 +57,13 @@ import {
   setClientWorkStarted,
   setTaskClient,
   setTaskCompleted,
+  setTouchOutcome,
   suggestNextTouch,
   suppressClient,
   suppressionKindLabel,
   touchClient,
+  touchOutcomeLabel,
+  TRIAGE_INPUT_LIMIT,
   updateClient,
   type CadenceSuggestion,
   type ClientProfilePatch,
@@ -66,6 +77,7 @@ import {
   DRAFT_MAX_OUTPUT_TOKENS,
   ENRICH_MAX_OUTPUT_TOKENS,
   ENRICH_MODEL,
+  TRIAGE_MAX_OUTPUT_TOKENS,
   draftModelFor,
   isGatewayConfigured,
 } from "@/lib/ai"
@@ -935,6 +947,411 @@ function enrichedValue(field: EnrichmentField, raw: FormDataEntryValue | null): 
       return value.slice(0, 40)
     case "hook":
       return value.slice(0, 2000)
+  }
+}
+
+// ---- Reply triage -----------------------------------------------------------
+// They answered. The third AI feature on this page, and the one that closes the
+// loop the other two open: sequence 5 hands a message over, sequence 8 takes
+// what came back.
+//
+// There is no inbound plumbing behind it and there is not going to be. Replies
+// land in Jamie's own mailbox, WhatsApp and Instagram because that is where the
+// handoff put them (decision 2 — the app composes, a human sends), so the paste
+// *is* the integration: no IMAP, no Resend webhook, no forwarding address, and
+// nothing to maintain. If pasting ever turns out to be the bottleneck, that is
+// a ticket cut from evidence rather than a pipe built on a hunch.
+//
+// The shape of it is one decision, and everything else follows:
+//
+//   **The log does not depend on the model.** `triageReply` writes the inbound
+//   touch *before* the Gateway is asked anything, under an outcome derived from
+//   the channel alone. So a deployment with no key, a Gateway that is down and a
+//   model that returns nonsense all cost the same thing: a triage, not a
+//   record. What comes back afterwards is an opinion about a row that already
+//   exists — which is also why the accepted outcome is an update rather than an
+//   insert.
+//
+//   **Every element waits for a tap.** Nothing this returns is applied. The
+//   stage move, the next action, the answer and the opt-out are four separate
+//   gestures on the profile, each its own action below, and the one that cannot
+//   be taken back is the one that reuses `suppressClientContacts` — the same
+//   call, the same permanence, the same words as the opt-out section.
+//
+//   **A no ends the flow.** `parseTriage` refuses to return a reply draft or a
+//   next action alongside an opt-out, so composing a message to somebody who
+//   has just asked to be left alone is not something a mis-tap can reach.
+
+/** What the model read, resolved for the sheet: labels already looked up, since
+ *  nothing on the client side holds the status ladder or the outcome
+ *  vocabulary. */
+export type TriageRead = {
+  /** One line on what they said — what you check before believing the rest. */
+  summary: string
+  /** Which model read it, for the line under the pane. */
+  model: string
+  /** Offered only when it differs from what the touch was logged as: there is
+   *  nothing to accept about an outcome that is already right. */
+  outcome: { value: string; label: string } | null
+  /** The rung they would move to, and the one they are on. Null when the reply
+   *  says nothing about where they stand, or when the move isn't one a reply is
+   *  allowed to make. */
+  stage: {
+    value: string
+    label: string
+    hint: string
+    from: string
+    /** Set only on `nurture`: when they would wake. The proposal's own due date
+     *  where it had one — a model reading "ask me in September" has already
+     *  worked out when — and the cadence's ninety days otherwise. */
+    wakeAt: string | null
+  } | null
+  /** True when they asked, in this message, never to be contacted again. */
+  optOut: boolean
+  /** The answer to send them, and the door it would go out of. */
+  reply: { draft: string; channel: DraftChannel } | null
+}
+
+export type ReplyTriage = {
+  /** The row that was written. The outcome override needs it. */
+  touchId: string
+  /** What it was logged as with no model involved. */
+  loggedOutcome: { value: string; label: string }
+  /** Null when there is no Gateway, or nothing usable came back. */
+  read: TriageRead | null
+  /**
+   * What to do next: the model's proposal, or the cadence's own answer when it
+   * had none. Both are suggestions and neither is written until it is set.
+   */
+  next: { action: string; dueAt: string; source: "model" | "cadence" } | null
+  /** Why there is no read, said out loud rather than left blank. */
+  message: string | null
+}
+
+export type TriageReplyResult =
+  | { ok: true; triage: ReplyTriage }
+  | { ok: false; message: string }
+
+/**
+ * Log what they said, then read it.
+ *
+ * In that order, and the order is the feature. The touch is the part that must
+ * not be lost — it is the memory of contact the whole engine runs on — so it is
+ * written first, from facts nobody had to infer: this channel, inbound, and the
+ * outcome `replyOutcomeFor` derives from the channel. Everything after that
+ * point can fail without costing anything.
+ *
+ * Returned rather than thrown, like the other two Gateway actions: Next redacts
+ * server-action exceptions in production, and the value is the whole call.
+ */
+export async function triageReply(
+  clientId: string,
+  formData: FormData
+): Promise<TriageReplyResult> {
+  const value = (name: string): string | null => {
+    const raw = formData.get(name)
+    if (typeof raw !== "string") return null
+    const trimmed = raw.trim()
+    return trimmed === "" ? null : trimmed
+  }
+
+  const channel = value("channel")
+  if (!channel || !isTouchChannel(channel)) {
+    return { ok: false, message: "Pick where the reply came in." }
+  }
+  const said = value("said")?.slice(0, TRIAGE_INPUT_LIMIT)
+  if (!said) {
+    return { ok: false, message: "Paste what they said first." }
+  }
+
+  const client = await getClient(clientId)
+  if (!client) return { ok: false, message: "That lead no longer exists." }
+
+  // The record, before anything else can go wrong.
+  const loggedOutcome = replyOutcomeFor(channel)
+  let touchId: string
+  try {
+    const touch = await logTouch({
+      clientId,
+      channel,
+      direction: "in",
+      outcome: loggedOutcome,
+      note: said,
+    })
+    touchId = touch.id
+  } catch (err) {
+    console.error("[triage] logging the reply failed:", err)
+    return { ok: false, message: "Couldn't log that reply." }
+  }
+  revalidateLead(clientId)
+
+  const logged = { value: loggedOutcome, label: touchOutcomeLabel(loggedOutcome) }
+
+  // The thread as the prompt should see it: everything except the row that was
+  // just written, which is quoted into the prompt in full and would otherwise
+  // read as two separate contacts on the same afternoon.
+  const history = await listTouchesForClient(clientId)
+  const before = history.filter((touch) => touch.id !== touchId)
+
+  // The cadence's own answer, kept as the fallback next step. Pure and free —
+  // it reads the history it was handed — and it is what keeps the "what next"
+  // half of this sheet useful on a deployment with no Gateway at all.
+  const cadence = suggestNextTouch(client, history)
+  const fallback =
+    cadence && cadence.kind !== "park"
+      ? {
+          action: cadence.action,
+          dueAt: cadence.dueAt.toISOString(),
+          source: "cadence" as const,
+        }
+      : null
+
+  const settled = (read: TriageRead | null, message: string | null) => ({
+    ok: true as const,
+    triage: {
+      touchId,
+      loggedOutcome: logged,
+      read,
+      next: fallback,
+      message,
+    },
+  })
+
+  if (!isGatewayConfigured()) {
+    return settled(
+      null,
+      "Triage isn't set up — there's no Gateway key on this deployment. The reply is logged."
+    )
+  }
+
+  try {
+    const replyChannel = await openReplyChannel(client, channel)
+    const { system, prompt } = buildTriagePrompt({
+      lead: client,
+      history: before,
+      said,
+      channel,
+      replyChannel,
+    })
+
+    // The same model that writes the drafts, because the expensive half of a
+    // triage is the answer rather than the classification — see the note on
+    // TRIAGE_MAX_OUTPUT_TOKENS in the services layer.
+    const model = draftModelFor(client.language)
+    const { text } = await generateText({
+      // A bare "provider/model" string is a Vercel AI Gateway model — see
+      // lib/ai.ts, and the services module behind it.
+      model,
+      system,
+      prompt,
+      maxOutputTokens: TRIAGE_MAX_OUTPUT_TOKENS,
+      // One retry, not three. This is a phone waiting on a sheet, and the
+      // reply is already logged either way.
+      maxRetries: 1,
+    })
+
+    const proposal = parseTriage(text, { channel })
+    if (!proposal) {
+      return settled(
+        null,
+        "The model didn't come back with a read. The reply is logged."
+      )
+    }
+
+    // A request to be left alone has no next step, and the cadence's own
+    // answer must not creep in as one: the history this reply just joined
+    // still reads as somebody who engaged, so `suggestNextTouch` would
+    // cheerfully propose replying to the person who asked not to be written to
+    // again.
+    const next = proposal.optOut
+      ? null
+      : proposal.nextAction
+        ? {
+            action: proposal.nextAction.action,
+            dueAt: addDays(
+              new Date(),
+              proposal.nextAction.dueInDays
+            ).toISOString(),
+            source: "model" as const,
+          }
+        : fallback
+
+    // A stage move is only offered when it is one a reply may make from where
+    // they actually stand — the guard runs here as well as in the parser,
+    // because the rung is a fact about the row rather than about the message.
+    const stage =
+      proposal.stage && canTriageStage(client.status, proposal.stage)
+        ? {
+            value: proposal.stage,
+            label: clientStatusLabel(proposal.stage),
+            hint: clientStatusHints[proposal.stage],
+            from: clientStatusLabel(client.status),
+            wakeAt:
+              proposal.stage !== "nurture"
+                ? null
+                : (next?.dueAt ??
+                  addDays(new Date(), NURTURE_WAKE_DAYS).toISOString()),
+          }
+        : null
+
+    return {
+      ok: true,
+      triage: {
+        touchId,
+        loggedOutcome: logged,
+        read: {
+          summary: proposal.summary,
+          model,
+          outcome:
+            proposal.outcome === loggedOutcome
+              ? null
+              : {
+                  value: proposal.outcome,
+                  label: touchOutcomeLabel(proposal.outcome),
+                },
+          stage,
+          optOut: proposal.optOut,
+          reply:
+            proposal.reply && replyChannel
+              ? { draft: proposal.reply, channel: replyChannel }
+              : null,
+        },
+        next,
+        message: null,
+      },
+    }
+  } catch (err) {
+    console.error("[triage] read failed:", err)
+    return settled(null, "Couldn't read that one. The reply is logged either way.")
+  }
+}
+
+/**
+ * Which door an answer would actually go out of, or null when none is open.
+ *
+ * The channel they wrote on comes first, because answering somewhere else is a
+ * small rudeness and because it is the one they have already shown works. A
+ * phone call or a walk-in is not a door a message goes through at all, so those
+ * fall through to the same order the draft panel uses.
+ *
+ * An opted-out channel is not a door. That check is why this is async and why
+ * it lives here rather than in the pure prompt builder: a suppression is a row
+ * in a table, and a model must not be handed a channel it would then compose
+ * for.
+ */
+async function openReplyChannel(
+  client: {
+    email: string | null
+    phone: string | null
+    whatsapp: string | null
+    instagram: string | null
+  },
+  inbound: string
+): Promise<DraftChannel | null> {
+  const order: DraftChannel[] = [
+    ...(isDraftChannel(inbound) ? [inbound] : []),
+    "whatsapp",
+    "email",
+    "instagram",
+  ]
+
+  for (const channel of new Set(order)) {
+    const door =
+      channel === "email"
+        ? client.email
+        : channel === "whatsapp"
+          ? (client.whatsapp ?? client.phone)
+          : client.instagram
+    if (!door) continue
+    if (await isChannelClosed(client, channel)) continue
+    return channel
+  }
+  return null
+}
+
+/** The shape every one-tap accept in the triage returns. Returned rather than
+ *  thrown for the reason the rest of this file's results are: the sheet stays
+ *  open and has to say what happened. */
+export type ApplyTriageResult = { ok: true } | { ok: false; message: string }
+
+/**
+ * Take the proposed outcome — the one element that edits the row already
+ * written rather than adding something beside it.
+ *
+ * Narrowed to the inbound five: a touch somebody else started cannot have come
+ * to `sent` or `no_answer`, and a word the cadence then reads as an outbound
+ * attempt would quietly restart a cadence that should have stopped.
+ */
+export async function acceptReplyOutcome(
+  clientId: string,
+  touchId: string,
+  outcome: string
+): Promise<ApplyTriageResult> {
+  if (!isInboundOutcome(outcome)) {
+    return { ok: false, message: "That isn't something a reply can come to." }
+  }
+  try {
+    await setTouchOutcome(touchId, outcome)
+    revalidateLead(clientId)
+    return { ok: true }
+  } catch (err) {
+    console.error("[triage] outcome failed:", err)
+    return { ok: false, message: "Couldn't change what came of it." }
+  }
+}
+
+/**
+ * Take the proposed stage move.
+ *
+ * `nurture` parks rather than sets, because parking is what nurture means: a
+ * wake date, and the next action cleared so a sleeping row cannot turn up in
+ * tomorrow's queue. The date comes from the proposal's own due date where there
+ * is one — a model reading "ask me in September" has already worked out when —
+ * and falls back to the cadence's ninety days.
+ *
+ * Re-validated against the row rather than trusted: the browser has held this
+ * proposal for as long as a sheet was open, and the rung underneath it may have
+ * moved.
+ */
+export async function acceptReplyStage(
+  clientId: string,
+  status: string,
+  wakeDate: string | null
+): Promise<ApplyTriageResult> {
+  if (!isTriageStage(status)) {
+    return { ok: false, message: "That isn't a rung a reply can move them to." }
+  }
+  try {
+    const client = await getClient(clientId)
+    if (!client) return { ok: false, message: "That lead no longer exists." }
+
+    if (client.status === status) {
+      return { ok: false, message: `They're already ${clientStatusLabel(status)}.` }
+    }
+    if (!canTriageStage(client.status, status)) {
+      return {
+        ok: false,
+        message: `A reply doesn't move somebody off ${clientStatusLabel(client.status)} — change it by hand if it's right.`,
+      }
+    }
+
+    if (status === "nurture") {
+      const parsed = wakeDate ? new Date(wakeDate) : null
+      await parkClient(
+        clientId,
+        parsed && !Number.isNaN(parsed.getTime())
+          ? parsed
+          : addDays(new Date(), NURTURE_WAKE_DAYS)
+      )
+    } else {
+      await setClientStatus(clientId, status)
+    }
+
+    revalidateLead(clientId)
+    return { ok: true }
+  } catch (err) {
+    console.error("[triage] stage move failed:", err)
+    return { ok: false, message: "Couldn't move them." }
   }
 }
 

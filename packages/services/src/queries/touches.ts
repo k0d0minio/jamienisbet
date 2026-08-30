@@ -124,6 +124,27 @@ export function isEngagedOutcome(value: string): boolean {
   return (engagedOutcomes as readonly string[]).includes(value)
 }
 
+/**
+ * The outcomes an *inbound* contact can come to — what the reply triage of
+ * sequence 8 is allowed to propose, and what its override offers.
+ *
+ * Five of the seven. `sent` and `no_answer` are facts about an outbound
+ * attempt — a message left, a phone that rang out — and neither can be the
+ * result of somebody getting in touch. Offering them on a pasted reply would
+ * be offering two words that cannot be true.
+ */
+export const inboundOutcomes: readonly TouchOutcome[] = [
+  "replied",
+  "answered",
+  "met",
+  "callback",
+  "not_interested",
+]
+
+export function isInboundOutcome(value: string): value is TouchOutcome {
+  return (inboundOutcomes as readonly string[]).includes(value)
+}
+
 // ---- Reads ------------------------------------------------------------------
 
 /**
@@ -228,6 +249,32 @@ export async function logTouch(input: TouchInput): Promise<Touch> {
     })
     .where(eq(clients.id, input.clientId))
 
+  return row
+}
+
+/**
+ * Correct one touch's outcome, and nothing else about it.
+ *
+ * The narrowest possible write, and it exists for one caller: the reply triage
+ * logs the pasted message the moment it is pasted — before any model has read
+ * it — so that the record survives a Gateway that is down, unconfigured or
+ * simply wrong. The outcome it is logged under is a guess from the channel, and
+ * this is how the accepted proposal replaces it.
+ *
+ * `last_touched_at` is deliberately not moved. The touch already stamped the
+ * relationship when it was written; re-stamping it because a word changed would
+ * date the contact to the moment somebody read it rather than the moment it
+ * happened.
+ */
+export async function setTouchOutcome(
+  id: string,
+  outcome: TouchOutcome
+): Promise<Touch | undefined> {
+  const [row] = await getDb()
+    .update(touches)
+    .set({ outcome })
+    .where(eq(touches.id, id))
+    .returning()
   return row
 }
 

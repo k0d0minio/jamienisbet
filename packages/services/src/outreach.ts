@@ -151,14 +151,19 @@ export type DraftPrompt = { system: string; prompt: string }
  *
  * It is `packages/ui/BRAND.md` § Content fundamentals turned into instructions
  * — first person singular, plain and unhurried, sentence case, no emoji, no
- * hype — plus the handful of rules that are specific to a cold message to a
- * small business in Mafra rather than to the portfolio's prose.
+ * hype — plus the handful of rules that are specific to a message to a small
+ * business in Mafra rather than to the portfolio's prose.
  *
  * The "never" list is the important half. Every phrase in it is one a model
  * reaches for by default and a person never writes, and one of them ("I love
  * your website") is named in the ticket for exactly that reason.
+ *
+ * It says nothing about *how* the message comes back, and that is deliberate:
+ * `OUTREACH_OUTPUT_RULE` below carries that, because sequence 8's reply triage
+ * wants this voice inside a JSON field rather than on its own. Every caller
+ * that wants a bare message joins the two.
  */
-export const OUTREACH_VOICE = `You are drafting one short outreach message for Jamie Nisbet to send himself.
+export const OUTREACH_VOICE = `You are writing one short message for Jamie Nisbet to send himself.
 
 Jamie is a solo software engineer and AI consultant based in Mafra, Portugal. He writes to local businesses one at a time, in his own words. You are not writing marketing copy, and you are not writing on behalf of a company — you are writing the message he would type.
 
@@ -175,8 +180,12 @@ Rules:
 - Never invent a fact. Everything concrete must come from the grounding below. Where the grounding is thin, say less rather than filling it in.
 - Do not promise a result, a price or a timeline. Nothing has been agreed.
 - Close with one small, specific next step phrased as a question they can answer in a line.
-- Sign off with just "Jamie" on the last line. No title, no company, no links.
-- Return the message and nothing else: no preamble, no commentary, no quotation marks around it, no markdown fences.`
+- Sign off with just "Jamie" on the last line. No title, no company, no links.`
+
+/** How a bare draft comes back. Split out of the voice so a caller that wants
+ *  the message *inside* something — the reply triage returns it as one field of
+ *  a JSON object — can take the register without the shape. */
+export const OUTREACH_OUTPUT_RULE = `Return the message and nothing else: no preamble, no commentary, no quotation marks around it, no markdown fences.`
 
 // ---- Building the prompt ----------------------------------------------------
 
@@ -201,17 +210,18 @@ export function buildDraftPrompt(args: {
   return {
     system: [
       OUTREACH_VOICE,
+      OUTREACH_OUTPUT_RULE,
       "",
-      languageRule(portuguese),
+      draftLanguageRule(portuguese),
       "",
-      channelRule(channel),
+      draftChannelRule(channel),
       "",
       kindRule(kind, channel, lead),
     ].join("\n"),
     prompt: [
-      groundingBlock(lead),
+      draftGroundingBlock(lead),
       "",
-      historyBlock(args.history),
+      draftHistoryBlock(args.history),
       "",
       `Write the ${kind.replace("_", " ")} message, for ${touchChannelLabel(channel)}, in ${portuguese ? "European Portuguese" : "English"}.`,
     ].join("\n"),
@@ -227,7 +237,7 @@ export function buildDraftPrompt(args: {
  * mode is not a wrong language — it is a Brazilian one, which reads to a
  * business in Mafra like a message from a call centre.
  */
-function languageRule(portuguese: boolean): string {
+export function draftLanguageRule(portuguese: boolean): string {
   if (!portuguese) {
     return "Language: write in English. Plain British-flavoured English, not American marketing English."
   }
@@ -251,7 +261,7 @@ function languageRule(portuguese: boolean): string {
  * is stored as one string on the touch, and `splitDraft` in the dashboard is
  * what pulls the subject back out for the `mailto:`.
  */
-function channelRule(channel: DraftChannel): string {
+export function draftChannelRule(channel: DraftChannel): string {
   switch (channel) {
     case "email":
       return [
@@ -351,7 +361,7 @@ function sourceLine(lead: DraftLead): string {
 /** Everything true about this business that a message may lean on, one fact per
  *  line. Absent facts are absent rather than "unknown": a line that says
  *  nothing is a line a model will try to fill. */
-function groundingBlock(lead: DraftLead): string {
+export function draftGroundingBlock(lead: DraftLead): string {
   const facts: (string | null)[] = [
     `Business: ${lead.company?.trim() || lead.name}`,
     lead.company?.trim() && lead.company.trim() !== lead.name
@@ -378,7 +388,7 @@ function groundingBlock(lead: DraftLead): string {
 /** What has already been tried, oldest first — the shape of the history rather
  *  than its prose, plus whatever note was left, which is the only part that
  *  ever says what was actually discussed. */
-function historyBlock(history: readonly DraftTouch[]): string {
+export function draftHistoryBlock(history: readonly DraftTouch[]): string {
   if (history.length === 0) {
     return "History: nothing has been sent to them yet."
   }

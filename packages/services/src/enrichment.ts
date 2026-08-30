@@ -1,3 +1,4 @@
+import { firstJsonObject, jsonText } from "./model-json"
 import {
   clientLanguageLabel,
   isClientLanguage,
@@ -548,57 +549,31 @@ const HOOK_LIMIT = 240
  * the point of them living in `queries/clients.ts`.
  */
 export function parseEnrichment(raw: string): EnrichmentProposal | null {
-  const json = jsonObject(raw)
+  const json = firstJsonObject(raw)
   if (!json) return null
 
-  const grade = text(json.website_grade)
-  const language = text(json.language)
+  const grade = jsonText(json.website_grade)
+  const language = jsonText(json.language)
 
   return {
     websiteGrade: grade && isWebsiteGrade(grade) ? grade : null,
-    sector: text(json.sector, 60),
-    town: text(json.town, 80),
+    sector: jsonText(json.sector, 60),
+    town: jsonText(json.town, 80),
     language: language && isClientLanguage(language) ? language : null,
-    hook: text(json.hook, HOOK_LIMIT),
+    hook: jsonText(json.hook, HOOK_LIMIT),
     email: email(json.email),
     phone: digits(json.phone),
     whatsapp: digits(json.whatsapp),
     // The '@' is punctuation, not data — the same rule the contact sheet
     // follows when a handle is typed in by hand.
-    instagram: text(json.instagram, 100)?.replace(/^@+/, "").replace(/\/+$/, "") || null,
+    instagram:
+      jsonText(json.instagram, 100)?.replace(/^@+/, "").replace(/\/+$/, "") || null,
     findings: findings(json.findings),
   }
 }
 
-/** The first JSON object in the text. Tolerant on the way in — a model told
- *  "no fences" still sometimes sends fences, and refusing the whole pass over
- *  three backticks would be a worse answer than reading past them. */
-function jsonObject(raw: string): Record<string, unknown> | null {
-  const trimmed = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "")
-  const start = trimmed.indexOf("{")
-  const end = trimmed.lastIndexOf("}")
-  if (start === -1 || end <= start) return null
-  try {
-    const parsed: unknown = JSON.parse(trimmed.slice(start, end + 1))
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : null
-  } catch {
-    return null
-  }
-}
-
-function text(value: unknown, limit = 200): string | null {
-  if (typeof value !== "string") return null
-  const trimmed = value.trim()
-  // A model saying "null", "n/a" or "unknown" means null and should not become
-  // the string "unknown" in a column somebody then reads as a sector.
-  if (trimmed === "" || /^(null|n\/?a|unknown|none|-)$/i.test(trimmed)) return null
-  return trimmed.slice(0, limit)
-}
-
 function email(value: unknown): string | null {
-  const found = text(value, 200)?.toLowerCase() ?? null
+  const found = jsonText(value, 200)?.toLowerCase() ?? null
   return found && /^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(found) ? found : null
 }
 
@@ -606,7 +581,7 @@ function email(value: unknown): string | null {
  *  Normalizing to E.164 is `queries/suppressions.ts`'s job and happens on the
  *  way to a suppression check, not here. */
 function digits(value: unknown): string | null {
-  const found = text(value, 40)
+  const found = jsonText(value, 40)
   if (!found) return null
   const cleaned = found.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "")
   return /\d{6,}/.test(cleaned) ? cleaned : null
@@ -615,7 +590,7 @@ function digits(value: unknown): string | null {
 function findings(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return value
-    .map((entry) => text(entry, 200))
+    .map((entry) => jsonText(entry, 200))
     .filter((entry): entry is string => entry !== null)
     .slice(0, 6)
 }

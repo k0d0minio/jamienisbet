@@ -25,15 +25,10 @@ import {
   saveNextAction,
   type NextStepSuggestion,
 } from "@/app/(app)/actions"
-import { ChannelGlyph } from "@/components/channel-glyph"
+import { ChannelPicker } from "@/components/channel-picker"
 import { NextStepPane } from "@/components/next-step-pane"
 import { hapticTick } from "@/lib/haptics"
-import {
-  CHANNELS,
-  channelLabel,
-  outcomesFor,
-  type ChannelValue,
-} from "@/lib/touches"
+import { channelLabel, outcomesFor, type ChannelValue } from "@/lib/touches"
 
 // The touch log — the memory of contact, and the gesture that keeps it.
 //
@@ -67,12 +62,24 @@ export function LeadTouches({
   count,
   /** True when the list above is the cap rather than the whole history. */
   capped,
+  /**
+   * The other door into this section: the reply triage, which logs an inbound
+   * touch from pasted text and proposes what follows from it.
+   *
+   * A slot rather than an import, because it is a client component with a
+   * sheet of its own and it belongs *in* this section — logging a reply is the
+   * memory of contact, same as logging a touch, and a section of its own would
+   * split one question across two headers. The profile builds it and hands it
+   * through.
+   */
+  reply,
   children,
 }: {
   clientId: string
   clientName: string
   count: number
   capped: boolean
+  reply?: React.ReactNode
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
@@ -232,37 +239,13 @@ export function LeadTouches({
                   label="Channel"
                   hint="Five doors and a catch-all — the ones this pool actually uses."
                 >
-                  {/* The group carries its own name: a `<label>` above a set of
-                      buttons has no single control to point at, so what a
-                      screen reader reads it from is the role, not the label. */}
-                  <div
-                    role="radiogroup"
-                    aria-label="Channel"
-                    className="grid grid-cols-3 gap-2"
-                  >
-                    {CHANNELS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={channel === option.value}
-                        onClick={() => {
-                          hapticTick()
-                          setChannel(option.value)
-                        }}
-                        className={cn(
-                          "flex min-h-app-touch flex-col items-center justify-center gap-1 px-2 py-2",
-                          "rounded-app-control text-app-caption transition-colors spring-press",
-                          channel === option.value
-                            ? "bg-app-group font-semibold text-app-label shadow-app-raised"
-                            : "bg-app-track font-medium text-app-label-2 active:bg-app-press"
-                        )}
-                      >
-                        <ChannelGlyph channel={option.value} />
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
+                  <ChannelPicker
+                    value={channel}
+                    onChange={(next) => {
+                      hapticTick()
+                      setChannel(next)
+                    }}
+                  />
                 </AppField>
 
                 {/* Nothing else is asked until a channel is chosen: the
@@ -321,6 +304,8 @@ export function LeadTouches({
           )}
         </SheetContent>
       </Sheet>
+
+      {reply}
 
       <span className="sr-only">{`Touch history for ${clientName}`}</span>
     </GroupedSection>
