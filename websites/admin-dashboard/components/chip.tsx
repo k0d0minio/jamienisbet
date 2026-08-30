@@ -1,14 +1,14 @@
 import Link from "next/link"
-import { Archive, ArchiveRestore } from "lucide-react"
+import { Archive, ArchiveRestore, Snowflake } from "lucide-react"
 
 import { cn } from "@jamie-nisbet/ui"
 
-// Two controls that used to be one rail. `Chip` is the open-ended rail — one
+// Three controls that used to be one rail. `Chip` is the open-ended rail — one
 // per repo on the tickets board, a set that grows with the estate — and stays
 // a rail, because a segmented control that scrolls has stopped being one; the
 // leads list's closed set of four filters became the app tier's
-// `SegmentedControl` instead. `ArchiveChip` left the rail entirely, for the
-// title bar.
+// `SegmentedControl` instead. `ArchiveChip` and `ProspectsChip` left the rail
+// entirely, for the title bar.
 //
 // Both are app-tier controls now: the board is the last screen either of them
 // serves, and it reads in the same grouped-list idiom as the rest of the app.
@@ -93,6 +93,48 @@ export function ArchiveChip({
       ) : (
         <Archive className="size-5" aria-hidden />
       )}
+    </Link>
+  )
+}
+
+// The cold pool, on the same bar and for the same reason as the archive: it is
+// a change of what the list *is*, not of which part of it you are looking at.
+//
+// It could have been a fifth segment. It isn't, because prospects are a
+// different population rather than a slice of this one — they are sorted on
+// their fit tier instead of on who has waited longest, they carry none of the
+// money the segments' glance row adds up, and nobody is waiting on any of them.
+// Filing them under "All" would make the roster mostly strangers and the word
+// "All" a promise the screen can't keep. So the four filters stay a clean
+// partition of the relationships, the prospects get the same four-filter screen
+// over their own population, and this is the switch between the two.
+export function ProspectsChip({
+  href,
+  prospects,
+}: {
+  href: string
+  /** The cold pool is what you are looking at. */
+  prospects: boolean
+}) {
+  const label = prospects ? "Show leads and clients" : "Show prospects"
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      aria-current={prospects ? "page" : undefined}
+      title={label}
+      className={cn(
+        // A 44px target on the bar, matching the archive switch beside it.
+        "flex size-app-touch shrink-0 items-center justify-center rounded-app-control",
+        "transition-colors spring-press active:bg-app-press",
+        // One icon either way — cold is cold, and swapping the glyph would
+        // suggest two different destinations. The tint is what says you are
+        // in it. It rides the bar's material, so at rest it takes the
+        // vibrancy-safe label colour rather than the page's.
+        prospects ? "text-app-tint" : "text-material-label"
+      )}
+    >
+      <Snowflake className="size-5" aria-hidden />
     </Link>
   )
 }

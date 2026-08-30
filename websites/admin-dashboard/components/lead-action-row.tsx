@@ -20,18 +20,27 @@ import { whatsappUrl } from "@/lib/format"
 export function LeadActionRow({
   id,
   phone,
+  whatsapp,
   email,
   lastWorked,
   workStartedOn,
 }: {
   id: string
   phone: string | null
+  /** Their own click-to-chat number, when WhatsApp isn't the phone number. */
+  whatsapp: string | null
   email: string | null
   /** Pre-formatted on the server: "today", "12 days". */
   lastWorked: string
   /** Pre-formatted on the server, or null when work hasn't started. */
   workStartedOn: string | null
 }) {
+  // WhatsApp is its own line for some of the businesses in the cold pool, and
+  // the phone number for everyone else — so the disc follows the number rather
+  // than the column, the same rule the contact rows and the list's swipe tray
+  // follow.
+  const chat = whatsapp ?? phone
+
   return (
     <ActionCircleRow>
       <ActionCircle
@@ -44,11 +53,11 @@ export function LeadActionRow({
       <ActionCircle
         icon={<MessageCircle />}
         label="WhatsApp"
-        href={phone ? whatsappUrl(phone) : undefined}
+        href={chat ? whatsappUrl(chat) : undefined}
         target="_blank"
         rel="noreferrer"
-        disabled={!phone}
-        title={phone ? "Open the WhatsApp conversation" : "No phone number on file"}
+        disabled={!chat}
+        title={chat ? "Open the WhatsApp conversation" : "No number on file"}
       />
       <ActionCircle
         icon={<Mail />}

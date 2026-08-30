@@ -12,6 +12,10 @@ import { formatDateTime, formatServiceId } from "@/lib/format"
 export function sourceLabel(source: string): string {
   if (source === "portfolio") return "Contact form"
   if (source === "referral") return "Referral"
+  // Not "added by hand": nobody typed this one in. Which batch it came from is
+  // the row below, and it is the sentence a first message has to be able to
+  // quote when it says where the data came from.
+  if (source === "import") return "Imported"
   return "Added by hand"
 }
 
@@ -48,6 +52,9 @@ export function LeadIntake({ client }: { client: Client }) {
           <Detail label="Received">
             <Mono value={formatDateTime(client.createdAt)} />
           </Detail>
+          {client.source === "import" ? (
+            <Detail label="Batch">{client.sourceDetail}</Detail>
+          ) : null}
           {client.source === "portfolio" ? (
             <Detail label="Service">{formatServiceId(client.service)}</Detail>
           ) : null}

@@ -70,6 +70,32 @@ export function whatsappUrl(phone: string): string {
   return `https://wa.me/${digits}`
 }
 
+/** An Instagram handle as its profile link. The handle is stored bare (the '@'
+ * is punctuation, not data), and a stray one is tolerated here rather than
+ * breaking the URL. */
+export function instagramUrl(handle: string): string {
+  return `https://instagram.com/${handle.replace(/^@+/, "")}`
+}
+
+/** A prospect's website as something a browser will actually open. The pool's
+ * URLs arrive as people write them down — "example.pt" as often as
+ * "https://example.pt" — and an href with no scheme is read as a relative path,
+ * which would navigate inside the dashboard. */
+export function websiteHref(url: string): string {
+  return /^https?:\/\//i.test(url.trim()) ? url.trim() : `https://${url.trim()}`
+}
+
+/** The same URL as the one line worth showing: the host, without the scheme or
+ * a leading www. Falls back to the raw string if it won't parse — a value
+ * somebody typed is still worth showing them. */
+export function websiteHost(url: string): string {
+  try {
+    return new URL(websiteHref(url)).host.replace(/^www\./, "")
+  } catch {
+    return url
+  }
+}
+
 // Turns a locale-invariant service id (e.g. "aiInfrastructure") into a readable
 // label ("AI Infrastructure"). Purely cosmetic — the id stays the source of truth.
 export function formatServiceId(value: string | null): string {

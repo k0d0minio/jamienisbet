@@ -15,9 +15,12 @@ import {
   getClient,
   getFormLink,
   isBillingType,
+  isClientLanguage,
   isClientStatus,
   isComplianceRecurrence,
   isDealType,
+  isFitTier,
+  isWebsiteGrade,
   setClientArchived,
   setClientRepo,
   setClientStatus,
@@ -95,7 +98,8 @@ export async function setWorkStarted(id: string, started: boolean) {
 
 /**
  * The contact slice of the profile on its own — who they are and how to reach
- * them. Touches nothing about the deal, so the contact edit sheet on a lead's
+ * them, across all four channels the outreach actually uses. Touches nothing
+ * about the deal or the cold-pool facts, so the contact edit sheet on a lead's
  * page can never zero a value it didn't show.
  */
 export async function saveClientContact(id: string, formData: FormData) {
@@ -110,6 +114,11 @@ export async function saveClientContact(id: string, formData: FormData) {
     email: value("email"),
     phone: value("phone"),
     company: value("company"),
+    // Null means "the phone number is the WhatsApp number", which is true of
+    // almost every business in the pool — the column is for the ones where it
+    // isn't. The handle is stored bare; the '@' is punctuation, not data.
+    whatsapp: value("whatsapp"),
+    instagram: value("instagram")?.replace(/^@+/, "") || null,
   }
   // `name` is NOT NULL — an emptied field leaves the existing name untouched.
   const name = value("name")
@@ -118,6 +127,56 @@ export async function saveClientContact(id: string, formData: FormData) {
   const updated = await updateClient(id, patch)
   const stripe = getStripe()
   if (stripe && updated) await pushClientToStripe(stripe, updated)
+  revalidateLead(id)
+}
+
+/**
+ * The facts slice — what a business is, where it is, and why it would care.
+ * Its own action for the same reason the deal has one: the facts sheet posts
+ * only the facts, so saving them can never blank a contact detail it never
+ * showed, and vice versa.
+ *
+ * Every field is validated here rather than trusted from the form, because
+ * three of them are closed vocabularies (`language`, `fit_tier`,
+ * `website_grade`) stored as plain varchars — nothing at the database level
+ * would catch a value the app doesn't name. An unrecognised one clears the
+ * column instead of storing a word no surface can label; that is also how the
+ * sheet's "Not set" option arrives, since a Radix select can't carry an empty
+ * value.
+ *
+ * `source_detail` is not here on purpose: which batch a row was imported in is
+ * provenance, like `source`, and is not something you fix by typing over it.
+ */
+export async function saveClientFacts(id: string, formData: FormData) {
+  const value = (name: string): string | null => {
+    const raw = formData.get(name)
+    if (typeof raw !== "string") return null
+    const trimmed = raw.trim()
+    return trimmed === "" ? null : trimmed
+  }
+
+  const language = value("language")
+  const fitTier = value("fitTier")
+  const websiteGrade = value("websiteGrade")
+
+  // A count, so it is read as one: anything that isn't a non-negative whole
+  // number is "nobody has looked", not a zero somebody meant.
+  const rawReviews = value("reviewCount")
+  const reviews = rawReviews === null ? null : Number.parseInt(rawReviews, 10)
+  const reviewCount =
+    reviews === null || Number.isNaN(reviews) || reviews < 0 ? null : reviews
+
+  await updateClient(id, {
+    sector: value("sector"),
+    town: value("town"),
+    language: language && isClientLanguage(language) ? language : null,
+    hook: value("hook"),
+    fitTier: fitTier && isFitTier(fitTier) ? fitTier : null,
+    websiteUrl: value("websiteUrl"),
+    websiteGrade:
+      websiteGrade && isWebsiteGrade(websiteGrade) ? websiteGrade : null,
+    reviewCount,
+  })
   revalidateLead(id)
 }
 

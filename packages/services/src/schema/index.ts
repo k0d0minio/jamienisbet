@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   jsonb,
   pgSchema,
@@ -38,12 +39,19 @@ export const clients = biz.table("clients", {
   company: varchar("company", { length: 120 }),
 
   // ---- Provenance & pipeline -----------------------------------------------
-  // Which form/route created the lead: 'portfolio' | 'referral' | 'manual'.
+  // Which form/route created the lead: 'portfolio' | 'referral' | 'manual' |
+  // 'import' (a seeded batch — the cold-outreach pool).
   source: varchar("source", { length: 30 }).notNull().default("portfolio"),
-  // Which rung of the ladder they are on: 'lead' | 'discussing' | 'active' |
-  // 'past', or the terminal 'not_won'. See clientStatuses in
-  // queries/clients.ts for the ordered set, and _system/contracts/CLIENTS.md
-  // (icm-board repo) for what each rung means.
+  // Which batch, in words: "2026-07-23 Mafra/Lisbon prospect list". Provenance
+  // for an imported row and read-only like `source` — the first message out
+  // has to be able to say where the data came from. Null on anything that
+  // arrived through a form or by hand, where `source` says it all.
+  sourceDetail: varchar("source_detail", { length: 200 }),
+  // Which rung of the ladder they are on: the cold pool's 'prospect' and
+  // 'nurture', then 'lead' | 'discussing' | 'active' | 'past', and the
+  // terminal 'not_won'. See clientStatuses in queries/clients.ts for the
+  // ordered set, and _system/contracts/CLIENTS.md (icm-board repo) for what
+  // each rung means.
   status: varchar("status", { length: 20 }).notNull().default("lead"),
 
   // ---- Intake payload ------------------------------------------------------
@@ -58,6 +66,49 @@ export const clients = biz.table("clients", {
   budget: varchar("budget", { length: 40 }),
   // Preferred call slot, stored verbatim as the "YYYY-MM-DDTHH:mm" value.
   preferredCallTime: varchar("preferred_call_time", { length: 20 }),
+
+  // ---- The cold pool's profile ---------------------------------------------
+  // What a prospect is, before there is any relationship to describe. An
+  // imported row arrives with no message, no budget and no history — what it
+  // has instead is a profile: what they do, where they are, which language to
+  // open in, and the one line that says why they'd care. Nullable to a row,
+  // because an inbound lead has none of it and is not lying by omission.
+  //
+  // Free text on purpose: the pool's sectors ("restaurant", "clínica dentária")
+  // are the words the list itself used, and a lookup table for eleven of them
+  // would be a join to read a label.
+  sector: varchar("sector", { length: 60 }),
+  town: varchar("town", { length: 80 }),
+  // Which language to open in: 'en' | 'pt' | 'en-pt' (either does). See
+  // clientLanguages in queries/clients.ts.
+  language: varchar("language", { length: 8 }),
+  // The pitch angle — the specific thing about *this* business that a first
+  // message leads with ("menu is a PDF nobody can read on a phone"). The most
+  // valuable field the pool carries, and the reason a drafted message can be
+  // grounded rather than generic. Prose, not a tag.
+  hook: text("hook"),
+  // A/B/C, derived by rule from the facts below rather than scored — null
+  // until someone (or the tiering pass) grades them. See fitTiers.
+  fitTier: varchar("fit_tier", { length: 1 }),
+
+  // ---- What their web presence looks like ------------------------------------
+  // The evidence a tier is graded from, and what a first message can point at.
+  // 'none' | 'social_only' | 'dated' | 'decent' — see websiteGrades.
+  websiteUrl: varchar("website_url", { length: 300 }),
+  websiteGrade: varchar("website_grade", { length: 20 }),
+  // How many Google reviews they carry: a proxy for whether anyone is looking
+  // after this, and the one number in the profile. Null = not looked up.
+  reviewCount: integer("review_count"),
+
+  // ---- The other two channels ------------------------------------------------
+  // WhatsApp is a main entry point for a local SMB here, not a fallback: an
+  // E.164 number the click-to-chat link is built from. Null means use `phone`
+  // — most of the pool's numbers are the same one either way, and this column
+  // exists for the businesses whose WhatsApp is a different line.
+  whatsapp: varchar("whatsapp", { length: 40 }),
+  // The handle without the '@' — for the ones whose whole web presence is an
+  // Instagram page, which is a large slice of the pool.
+  instagram: varchar("instagram", { length: 100 }),
 
   // ---- What this relationship is worth --------------------------------------
   // The agreed (or expected) value in EUR minor units — cents, the same
@@ -132,7 +183,18 @@ export const clients = biz.table("clients", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   // Soft archive: null = active, a timestamp = archived (hidden by default).
   archivedAt: timestamp("archived_at", { withTimezone: true }),
-})
+},
+// Two indexes, for the two things every read of this table does. `status` is
+// what every screen partitions on — and it stopped being cheap the moment an
+// imported pool made the cold rows the majority of the table. `last_touched_at`
+// is half of the list's sort key, `coalesce(last_touched_at, created_at)`;
+// Postgres can't use a plain column index for that expression, but it can for
+// the queries that ask about the column itself, and it is the half that
+// actually varies.
+(t) => [
+  index("clients_status_idx").on(t.status),
+  index("clients_last_touched_at_idx").on(t.lastTouchedAt),
+])
 
 // ---------------------------------------------------------------------------
 // The two working lists. Everything else on the dashboard is derived live from

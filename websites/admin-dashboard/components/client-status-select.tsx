@@ -14,11 +14,16 @@ import {
 import { updateClientStatus } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 
-// Mirrors clientStatuses (and their labels) in @jamie-nisbet/services — the
-// server action is the authority (it re-validates). Kept local so this client
-// component doesn't pull the services barrel (and its DB client) into the
-// browser bundle.
+// Mirrors clientStatuses (and `clientStatusLabels`) in @jamie-nisbet/services —
+// the server action is the authority (it re-validates). Kept local so this
+// client component doesn't pull the services barrel (and its DB client) into
+// the browser bundle. One of three copies of this vocabulary in the dashboard,
+// in the ladder's own order: the cold pool first, then the rungs a relationship
+// climbs. No hints here — a pull-down menu row is one line, and the sheet on
+// the lead's own page is where a rung explains itself.
 const STATUSES = [
+  { value: "prospect", label: "Prospect" },
+  { value: "nurture", label: "Nurture" },
   { value: "lead", label: "Lead" },
   { value: "discussing", label: "In discussion" },
   { value: "active", label: "Active client" },
@@ -39,7 +44,7 @@ const STATUSES = [
 // every select trigger in the app, so an iPad at this width can still hit it.
 //
 // On a phone the same change is made on the lead's own page, where it is the
-// first row of the first group and opens a sheet of five full-width rungs
+// first row of the first group and opens a sheet of seven full-width rungs
 // (components/lead-status-row.tsx) — one tap away, and hittable without aiming.
 export function ClientStatusSelect({
   id,
