@@ -18,6 +18,7 @@ import { FormLinks } from "@/components/form-links"
 import { LeadActionRow } from "@/components/lead-action-row"
 import { LeadContactCard } from "@/components/lead-contact-card"
 import { LeadDealCard } from "@/components/lead-deal-card"
+import { LeadFactsCard } from "@/components/lead-facts-card"
 import { LeadIntake } from "@/components/lead-intake"
 import { LeadLinks } from "@/components/lead-links"
 import { LeadNotesCard } from "@/components/lead-notes-card"
@@ -45,8 +46,8 @@ export const dynamic = "force-dynamic"
 //
 // The two segments are the honest split in what this screen is for:
 //
-//   Person — the record. Status, contact, the deal, how they came in (folded,
-//            because it is read once), and the two red rows.
+//   Person — the record. Status, contact, what they *are*, the deal, how they
+//            came in (folded, because it is read once), and the two red rows.
 //   Work   — the surface. Notes, todos, the questionnaires they've been sent.
 //
 // Nothing here converts anyone. The four-step walkthrough, the "Finish
@@ -167,6 +168,7 @@ export default async function LeadDetailPage({
         <LeadActionRow
           id={client.id}
           phone={client.phone}
+          whatsapp={client.whatsapp}
           email={client.email}
           lastWorked={lastWorked}
           workStartedOn={
@@ -209,6 +211,26 @@ export default async function LeadDetailPage({
                 company: client.company,
                 email: client.email,
                 phone: client.phone,
+                whatsapp: client.whatsapp,
+                instagram: client.instagram,
+              }}
+            />
+
+            {/* What they *are*, as opposed to how you reach them — the block
+                the cold pool needed. Rendered for everyone: an inbound lead
+                starts with none of it and says so, and a sector and a town are
+                worth knowing about a client too. */}
+            <LeadFactsCard
+              client={{
+                id: client.id,
+                sector: client.sector,
+                town: client.town,
+                language: client.language,
+                hook: client.hook,
+                fitTier: client.fitTier,
+                websiteUrl: client.websiteUrl,
+                websiteGrade: client.websiteGrade,
+                reviewCount: client.reviewCount,
               }}
             />
 

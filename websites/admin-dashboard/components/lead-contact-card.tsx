@@ -1,7 +1,16 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Building2, Check, Copy, Mail, MessageCircle, Pencil } from "lucide-react"
+import {
+  Building2,
+  Check,
+  Copy,
+  Instagram,
+  Mail,
+  MessageCircle,
+  Pencil,
+  Phone,
+} from "lucide-react"
 
 import {
   AppField,
@@ -22,13 +31,19 @@ import {
 
 import { saveClientContact } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
-import { whatsappUrl } from "@/lib/format"
+import { instagramUrl, whatsappUrl } from "@/lib/format"
 
 // Who they are and how to reach them — as things to *act on*, not a form. Each
 // row is the action itself (tap the email row and the mail app opens), with a
 // copy button riding beside it as the row's accessory for the times the
 // address is going somewhere else. It sits directly under the action discs
 // because that is where the Contacts idiom puts a person's facts.
+//
+// Four channels now, not two. Cold outreach to a local business here runs on
+// WhatsApp and Instagram at least as much as on email, so both are rows rather
+// than facts buried on a profile — and WhatsApp gets its own number, because
+// the businesses whose WhatsApp is a different line are exactly the ones a
+// click-to-chat link would otherwise send to the wrong place.
 //
 // Editing lives behind the last row, in a sheet, so the page carries the
 // details without carrying the input fields — the old profile form put four
@@ -40,6 +55,10 @@ export type ContactDetails = {
   company: string | null
   email: string | null
   phone: string | null
+  /** The click-to-chat number when it isn't the phone number. */
+  whatsapp: string | null
+  /** The handle, stored without its '@'. */
+  instagram: string | null
 }
 
 function CopyValueButton({
@@ -82,7 +101,13 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
-  const hasAny = Boolean(client.email || client.phone || client.company)
+  // What a wa.me link is built from: their own WhatsApp number if they have
+  // one, otherwise the phone number, which is the same for most businesses.
+  const chat = client.whatsapp ?? client.phone
+
+  const hasAny = Boolean(
+    client.email || client.phone || client.company || client.instagram
+  )
 
   return (
     <GroupedSection header="Contact">
@@ -102,22 +127,63 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
         />
       ) : null}
 
-      {client.phone ? (
+      {chat ? (
         // The number reads as itself but opens the WhatsApp conversation —
         // tapping it should never surprise-dial the lead. Dialling has its own
-        // disc in the action row.
+        // disc in the action row. It is the dedicated WhatsApp number when
+        // there is one and the phone number otherwise, which is the same rule
+        // the wa.me links everywhere else in the app follow.
         <GroupedRow
           icon={<MessageCircle />}
           label="WhatsApp"
-          value={<span className="font-mono">{client.phone}</span>}
-          href={whatsappUrl(client.phone)}
+          value={<span className="font-mono">{chat}</span>}
+          href={whatsappUrl(chat)}
           target="_blank"
           rel="noreferrer"
+          accessory={
+            <CopyValueButton
+              value={chat}
+              label="Copy WhatsApp number"
+              what="WhatsApp number"
+            />
+          }
+        />
+      ) : null}
+
+      {/* Only when the two numbers actually differ. Where WhatsApp *is* the
+          phone number the row above has already shown it, and a second row
+          saying the same digits is noise. */}
+      {client.phone && client.phone !== chat ? (
+        <GroupedRow
+          icon={<Phone />}
+          label="Phone"
+          value={<span className="font-mono">{client.phone}</span>}
+          chevron={false}
           accessory={
             <CopyValueButton
               value={client.phone}
               label="Copy phone number"
               what="Phone"
+            />
+          }
+        />
+      ) : null}
+
+      {client.instagram ? (
+        // Stored bare; the '@' is punctuation, so it is put back here rather
+        // than kept in the column.
+        <GroupedRow
+          icon={<Instagram />}
+          label="Instagram"
+          value={`@${client.instagram}`}
+          href={instagramUrl(client.instagram)}
+          target="_blank"
+          rel="noreferrer"
+          accessory={
+            <CopyValueButton
+              value={`@${client.instagram}`}
+              label="Copy Instagram handle"
+              what="Handle"
             />
           }
         />
@@ -212,10 +278,35 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
+                enterKeyHint="next"
+                defaultValue={client.phone ?? ""}
+                placeholder="—"
+              />
+            </AppField>
+            <AppField
+              label="WhatsApp"
+              hint="Only if it isn't the phone number above."
+            >
+              <AppInput
+                name="whatsapp"
+                type="tel"
+                inputMode="tel"
+                autoComplete="off"
+                enterKeyHint="next"
+                defaultValue={client.whatsapp ?? ""}
+                placeholder="—"
+              />
+            </AppField>
+            <AppField label="Instagram" hint="The handle, with or without the @.">
+              <AppInput
+                name="instagram"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 // Last field in the sheet — the return key saves rather than
                 // asking for another one.
                 enterKeyHint="done"
-                defaultValue={client.phone ?? ""}
+                defaultValue={client.instagram ? `@${client.instagram}` : ""}
                 placeholder="—"
               />
             </AppField>

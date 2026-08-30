@@ -31,6 +31,7 @@ import {
 } from "@/lib/finance"
 import { formatEpochDay } from "@/lib/format"
 import { invoiceState } from "@/lib/invoice-state"
+import { isProspect } from "@/lib/leads"
 import { formatMoney } from "@/lib/money"
 import { isStripeConfigured } from "@/lib/stripe"
 
@@ -174,15 +175,23 @@ export default async function MoneyPage() {
 
   // Leads populate the invoice picker. A DB hiccup here shouldn't take down the
   // whole screen — fall back to an empty list, and the sheet says why.
+  //
+  // The cold pool is not in it. A prospect is an imported business that has
+  // never replied: there is nothing to invoice, no agreed figure, and no Stripe
+  // customer — and eighty-odd of them would bury the handful of people you can
+  // actually bill. One that gets as far as owing money has been moved up the
+  // ladder by then, which is exactly when it appears here.
   let clientOptions: InvoiceClientOption[] = []
   try {
     const clients = await listClients()
-    clientOptions = clients.map((c) => ({
-      id: c.id,
-      name: c.name,
-      email: c.email,
-      company: c.company,
-    }))
+    clientOptions = clients
+      .filter((c) => !isProspect(c))
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        company: c.company,
+      }))
   } catch {
     clientOptions = []
   }

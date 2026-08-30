@@ -2,8 +2,11 @@ import {
   activeStatuses,
   customerStatuses,
   dealHeadline,
+  fitTiers,
+  nurtureStatuses,
   openStatuses,
   pastStatuses,
+  prospectStatuses,
   type Client,
   type DealComponentKind,
   type DealTerms,
@@ -46,10 +49,51 @@ export function isPastClient(client: Client): boolean {
   return (pastStatuses as readonly string[]).includes(client.status)
 }
 
-/** Only an open lead can be "waiting" — a client, a past client or a lost one
- *  isn't owed a reply. */
+/** Imported and not yet engaged — the cold pool. Never open, never a customer,
+ *  never stale, and never in a money figure: it is a different population from
+ *  the roster, which is why the leads list gives it a view of its own rather
+ *  than a fifth filter. */
+export function isProspect(client: Client): boolean {
+  return (prospectStatuses as readonly string[]).includes(client.status)
+}
+
+/** Parked inside that pool — the cadence is spent, or they said "not now".
+ *  Muted and last among the prospects, the way a past client is muted among
+ *  the clients. */
+export function isNurtured(client: Client): boolean {
+  return (nurtureStatuses as readonly string[]).includes(client.status)
+}
+
+/** Only an open lead can be "waiting" — a client, a past client, a lost one or
+ *  a prospect isn't owed a reply. A prospect in particular owes nothing yet:
+ *  what drives it is its own next action, not how long it has sat, so it can
+ *  never reach the staleness threshold. */
 export function isStale(client: Client, now: number): boolean {
   return isOpenLead(client) && daysWaiting(client, now) >= STALE_AFTER_DAYS
+}
+
+/** Where a prospect sits in the queue: tier first (A before B before C, and an
+ *  untiered row after all three — it hasn't been graded, not graded badly),
+ *  parked rows after every working one. Ties fall back to the order the query
+ *  handed over, which is longest-waiting first. */
+export function compareProspects(a: Client, b: Client): number {
+  const parked = Number(isNurtured(a)) - Number(isNurtured(b))
+  if (parked !== 0) return parked
+  return tierRank(a.fitTier) - tierRank(b.fitTier)
+}
+
+function tierRank(tier: string | null): number {
+  const index = (fitTiers as readonly string[]).indexOf(tier ?? "")
+  return index === -1 ? fitTiers.length : index
+}
+
+/** What a prospect *is*, in the line a row has for it: what they do and where
+ *  they are. It replaces the waiting line, which says nothing true about a row
+ *  nobody is waiting on. Falls back to `whoLabel` for a prospect the import
+ *  couldn't profile. */
+export function prospectLabel(client: Client): string | null {
+  const facts = [client.sector, client.town].filter(Boolean).join(" · ")
+  return facts || whoLabel(client)
 }
 
 /** Who they are, in the two or three words the second line has room for: the

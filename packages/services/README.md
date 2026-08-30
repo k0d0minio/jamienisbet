@@ -62,11 +62,28 @@ Today: a single **`clients`** table. Every intake — a portfolio contact enquir
 referral — creates one client row (the form only sets the `source` and which intake fields are
 populated); there is no separate table per form. Each client then gets fleshed out as the
 relationship moves up the ladder (`status`: `lead` → `discussing` → `active` → `past`, or the
-terminal `not_won` — five rungs, two of which end it; what each one *means* is
-`_system/contracts/CLIENTS.md` in the `icm-board` repo), with contact details
-and owner notes. A client can also be linked to its
+terminal `not_won`; what each rung *means* is `_system/contracts/CLIENTS.md` in the `icm-board`
+repo), with contact details and owner notes. A client can also be linked to its
 Stripe customer via `stripe_customer_id` (unique) — set by the admin's billing flow, which owns the
 Stripe side; `setClientStripeCustomerId` persists the link.
+
+**Two rungs sit before that ladder, for the cold pool.** An imported business enters as
+`prospect` (the cadence is running, they have not engaged) and is parked on `nurture` when the
+cadence is spent — both are one row per relationship in this same table, because a prospect that
+replies is the same record that later pays. Neither is in `openStatuses`, `customerStatuses` or
+`activeStatuses`, which is what keeps the pool out of the admin's open-lead views, its staleness
+nagging and its money totals; engagement moves a prospect straight to `discussing`, and `lead`
+stays what it has always been — somebody who arrived on their own. Seven rungs in all, three of
+which end or park the relationship.
+
+A prospect carries a **profile** rather than an intake: `sector`, `town`, `language`
+(`en`/`pt`/`en-pt`), `hook` (the pitch angle a first message leads with), `fit_tier` (A/B/C by
+rule, null = untiered), `website_url` / `website_grade` (`none`/`social_only`/`dated`/`decent`) /
+`review_count`, plus `whatsapp` and `instagram` as first-class channels — WhatsApp falls back to
+`phone` when the column is null. `source` gains `import` for a seeded batch, and `source_detail`
+names which one; both are provenance and stay off `ClientProfilePatch`. Every one of those
+vocabularies is defined in `queries/clients.ts` with a label lookup beside it, the same shape the
+status ladder uses.
 
 **Deal terms are composable.** A deal is not a price with decorations — it is any combination
 of four independent **components**, and it counts as *set* the moment one of them exists. None

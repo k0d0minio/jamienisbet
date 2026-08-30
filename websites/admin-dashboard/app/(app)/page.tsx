@@ -37,7 +37,7 @@ import {
   listInvoicesNeedingAction,
   type InvoiceNeedingAction,
 } from "@/lib/finance"
-import { daysWaiting, isStale, waitedLabel, whoLabel } from "@/lib/leads"
+import { daysWaiting, isProspect, isStale, waitedLabel, whoLabel } from "@/lib/leads"
 import { formatMoney } from "@/lib/money"
 import { isStripeConfigured } from "@/lib/stripe"
 import { listStrip, type Ticket } from "@/lib/tickets"
@@ -116,6 +116,9 @@ async function loadDb(): Promise<DbReads> {
 
     // Open leads past the staleness threshold, longest first. The list is
     // already sorted by who has waited longest, so the filter preserves it.
+    // Prospects can never appear here: an imported business is not an open
+    // lead, so `isStale` is false for the whole cold pool by construction —
+    // which is what keeps this section eight rows rather than ninety.
     const waiting = clients.filter((client) => isStale(client, now))
 
     // Only what has actually come due. A todo with no date is filed, not
@@ -156,7 +159,15 @@ async function loadDb(): Promise<DbReads> {
       todos,
       compliance,
       filed: tasks.length - todos.length,
-      leads: clients.map((c) => ({ id: c.id, name: c.name })),
+      // Everyone a todo can point at, the cold pool included — the picker
+      // groups them apart rather than dropping them, since a todo about a
+      // prospect is legitimate and the roster still has to stay scannable
+      // under eighty-odd imported businesses.
+      leads: clients.map((c) => ({
+        id: c.id,
+        name: c.name,
+        prospect: isProspect(c),
+      })),
       error: null,
     }
   } catch (err) {

@@ -8,7 +8,9 @@ import {
   AppInput,
   AppSelect,
   AppSelectContent,
+  AppSelectGroup,
   AppSelectItem,
+  AppSelectLabel,
   AppSelectTrigger,
   AppSelectValue,
   PendingButton,
@@ -42,7 +44,14 @@ import { hapticTick } from "@/lib/haptics"
 // should not carry a permanent button hovering over "nothing needs you".
 
 /** The leads a todo can be pointed at, as the picker needs them. */
-export type TodoLead = { id: string; name: string }
+export type TodoLead = {
+  id: string
+  name: string
+  /** An imported business that hasn't engaged. Grouped apart in the picker
+   *  rather than dropped: a todo about one is legitimate, but the cold pool
+   *  outnumbers the roster several times over and would bury it. */
+  prospect: boolean
+}
 
 // Radix won't take an empty string as an item value, so "no lead" needs a
 // sentinel of its own; it never leaves this file.
@@ -137,13 +146,29 @@ export function AddTodo({ leads }: { leads: TodoLead[] }) {
                 <AppSelectTrigger className="w-full">
                   <AppSelectValue />
                 </AppSelectTrigger>
+                {/* Two groups, because the list is two populations. The roster
+                    is what a todo is nearly always about and stays at the top
+                    where it is scannable; the cold pool follows under its own
+                    heading rather than interleaved with it. */}
                 <AppSelectContent>
                   <AppSelectItem value={NO_LEAD}>No lead</AppSelectItem>
-                  {leads.map((option) => (
-                    <AppSelectItem key={option.id} value={option.id}>
-                      {option.name}
-                    </AppSelectItem>
-                  ))}
+                  {[
+                    { label: "Leads and clients", cold: false },
+                    { label: "Prospects", cold: true },
+                  ].map((group) => {
+                    const options = leads.filter((l) => l.prospect === group.cold)
+                    if (options.length === 0) return null
+                    return (
+                      <AppSelectGroup key={group.label}>
+                        <AppSelectLabel>{group.label}</AppSelectLabel>
+                        {options.map((option) => (
+                          <AppSelectItem key={option.id} value={option.id}>
+                            {option.name}
+                          </AppSelectItem>
+                        ))}
+                      </AppSelectGroup>
+                    )
+                  })}
                 </AppSelectContent>
               </AppSelect>
             </AppField>

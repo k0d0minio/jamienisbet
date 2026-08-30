@@ -20,7 +20,7 @@ fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 | Screen | Route | What it is |
 |---|---|---|
 | **Needs you** | `/` | The triaged feed: what is waiting on you right now, in four sections. Home. |
-| **Leads** | `/leads` | Every lead and customer in one list, longest-waiting first. |
+| **Leads** | `/leads` | Every lead and customer in one list, longest-waiting first; the cold pool is a view of it (`?view=prospects`). |
 | **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link, todos. |
 | **Tickets** | `/tickets` | Every repo's `.icm/intake/` backlog in one read-only board. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. |
@@ -94,12 +94,19 @@ relationship, and what was actually billed lives in Stripe.
   on the newest arrival. Anything open and untouched for 7+ days is flagged in red. Changing a
   status, editing a profile, or hitting **Mark touched** all stamp the row and drop it back down
   the list.
-- **Filters** — All / Open / Customers / Lost, each with a count, in a rail that scrolls
-  sideways on a phone rather than wrapping onto a second line. The **Archived** view is a switch
-  beside the page title, not another chip — it changes what you are looking at rather than
-  filtering it. From `md` up, status becomes a pull-down menu on the row itself
-  ([`components/client-status-select.tsx`](components/client-status-select.tsx)), changed in
-  place — the desktop half of "one design that grows".
+- **Filters** — All / Open / Clients / Not won, each with a count, in one segmented control:
+  they partition the list, so they belong in a single track rather than a rail of chips you
+  could read as independent toggles. From `md` up, status becomes a pull-down menu on the row
+  itself ([`components/client-status-select.tsx`](components/client-status-select.tsx)),
+  changed in place — the desktop half of "one design that grows".
+- **Two views, switched from the title bar.** **Archived** and **Prospects** are both switches
+  beside the page title rather than more chips, because each changes what you are looking at
+  rather than filtering it. The prospects view holds the cold pool — imported businesses on the
+  `prospect` and `nurture` rungs — sorted on their **fit tier** (A/B/C, in mono where a deal's
+  figure sits, untiered rows last) with the parked ones muted and last, its rows carrying
+  *sector · town* in place of a waiting line nobody is waiting on, and its own three segments
+  (All / Working / Nurture). Nothing in it is open, stale, or in a money total, and the `+` is
+  not offered there: the pool arrives by import, in a batch, not one business at a time.
 - **A row is two lines and its actions are gestures.** The whole row opens the lead;
   **swipe left** reveals call / email / archive (restore / delete in the archive view),
   **swipe right** marks them touched in one stroke — the mail-app idiom, built on
@@ -159,8 +166,8 @@ headline figure in mono) and, under it, the five things you do from a phone as a
 discs — call / WhatsApp / email / mark touched / **work started**. Then the record, in **two
 segments**:
 
-- **Person** — the record. Status (and when they were last worked), **Contact**, **Deal**, the
-  folded **Intake** row, and the **Danger zone**.
+- **Person** — the record. Status (and when they were last worked), **Contact**, **Facts**,
+  **Deal**, the folded **Intake** row, and the **Danger zone**.
 - **Work** — the surface you operate. **Notes**, **todos**, **Forms**.
 
 Both segments are rendered and only one is shown, so switching costs no round trip and a
@@ -175,13 +182,17 @@ status to Active client *is* the conversion**. Nothing warns, walks or blocks; a
 the only reminder that plumbing is still missing.
 
 The record is **facts, not form fields**: a **Contact** card whose rows are the actions
-themselves (tap the email row and the mail app opens, tap phone to dial, copy beside each), a
-**Deal** card showing only the components actually agreed (value, billed, paid in, equity %,
-commission %, what's being exchanged) and saying so plainly when none is — nothing there waits
-on a euro figure — and a **Notes** card. Each edits in its own bottom sheet
+themselves (tap the email row and the mail app opens, tap WhatsApp and the conversation opens,
+tap Instagram and their page does, copy beside each), a **Facts** card — what they *are* rather
+than how you reach them: sector, town, language, fit tier, web presence, and the **hook** as
+prose in a block at its foot, because the one line that says why they would care is a sentence
+you read before writing one — a **Deal** card showing only the components actually agreed
+(value, billed, paid in, equity %, commission %, what's being exchanged) and saying so plainly
+when none is — nothing there waits on a euro figure — and a **Notes** card. Each edits in its
+own bottom sheet
 ([`Sheet` in `@jamie-nisbet/ui`](../../packages/ui/src/components/ui/sheet.tsx)) posting a
-server action scoped to exactly its own fields (`saveClientContact` / `saveDealTerms` /
-`saveClientNotes`), so no sheet can blank a field it never showed. **Work started** is a one-tap
+server action scoped to exactly its own fields (`saveClientContact` / `saveClientFacts` /
+`saveDealTerms` / `saveClientNotes`), so no sheet can blank a field it never showed. **Work started** is a one-tap
 toggle in the rail rather than a field to save, because it is something you record on the day it
 happens; re-tapping undoes it, and marking an already-started engagement keeps the original date.
 
@@ -443,7 +454,8 @@ app/
     page.tsx            # Needs you — the feed; also redirects the old /?filter= leads bookmarks
     loading.tsx         # the feed's layout-true skeleton (the widest read in the app)
     actions.ts          # lead + todo + compliance server actions (every lead screen uses these)
-    leads/              # Leads — the list, staleness-sorted; loading.tsx alongside
+    leads/              # Leads — the list, staleness-sorted; ?view=prospects is the cold
+                        #   pool, tier-sorted; loading.tsx alongside
     leads/[id]/         # one lead: Person / Work segments, repo + Stripe glyphs, their todos
                         #   error.tsx — its own boundary, so it can name the record
     tickets/            # Tickets — every repo's .icm/intake/ backlog, read-only, copy-prompt
@@ -461,7 +473,8 @@ components/             # login form, nav, service-worker register, lead + money
                         #   overdue-list.tsx — the feed's Overdue section: todos + compliance,
                         #                both acting in place
                         #   add-todo.tsx — the feed's `+`: write a todo down from anywhere
-                        #   lead-contact-card.tsx / lead-deal-card.tsx / lead-notes-card.tsx
+                        #   lead-contact-card.tsx / lead-facts-card.tsx / lead-deal-card.tsx /
+                        #   lead-notes-card.tsx
                         #                — the record as facts, each edited in a bottom sheet
                         #   lead-intake.tsx — how they came in, folded shut until asked for
                         #   batch-row.tsx / board-ticket-row.tsx / ticket-detail.tsx

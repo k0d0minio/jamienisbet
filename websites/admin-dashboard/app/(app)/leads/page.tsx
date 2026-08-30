@@ -17,12 +17,13 @@ import {
   customerStatuses,
   dealTermsOf,
   listClients,
+  nurtureStatuses,
   openStatuses,
   type Client,
 } from "@jamie-nisbet/services"
 
 import { AppScreen } from "@/components/app-screen"
-import { ArchiveChip } from "@/components/chip"
+import { ArchiveChip, ProspectsChip } from "@/components/chip"
 import { ClientActions } from "@/components/client-actions"
 import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
@@ -30,12 +31,16 @@ import { DealBadges } from "@/components/deal-badges"
 import { LeadRow } from "@/components/lead-row"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
+  compareProspects,
   daysWaiting,
   dealFigure,
   isActiveClient,
+  isNurtured,
   isOpenLead,
   isPastClient,
+  isProspect,
   isStale,
+  prospectLabel,
   waitedLabel,
   whoLabel,
 } from "@/lib/leads"
@@ -66,25 +71,67 @@ export const dynamic = "force-dynamic"
 // The working-list strip that used to sit above the list went with that move —
 // todos and compliance dates are attention, and attention lives on the feed.
 
-// The filters across the top. Each is a set of statuses; "all" means no filter.
-// With five rungs the named chips are still a clean partition of them — "Open"
-// is lead + discussing, "Clients" is active + past (the past rows are muted in
-// the list rather than given a fifth segment), "Not won" is its own terminal —
-// so their counts add up to All rather than overlapping.
+// Two views of one screen, and the cold pool is the reason there are two.
 //
-// Four, and never more: a closed set is what a segmented control is for. If a
-// fifth segment ever arrives this goes back to being a scrolling rail.
-const FILTERS = [
+// The ladder grew a `prospect` rung and a parked `nurture` rung for imported
+// businesses that have never engaged, and eighty-five of them arrive in one
+// batch. They are not a slice of the roster — they are a different population:
+// sorted on their fit tier rather than on who has waited longest, carrying none
+// of the money the glance row adds up, and owed a reply by nobody. Filing them
+// under "All" would leave the roster mostly strangers and make the word "All"
+// a promise the screen can't keep.
+//
+// So they get their own view of the same screen, switched from the title bar
+// beside the archive — where a control that changes what a list *is* belongs —
+// and both views keep the same shape: a closed set of filter segments that
+// partitions whatever population is on screen.
+type ViewKey = "leads" | "prospects"
+
+// The filters across the top of the roster. Each is a set of statuses; "all"
+// means no filter. With seven rungs the named chips are still a clean partition
+// of the five this view holds — "Open" is lead + discussing, "Clients" is
+// active + past (the past rows are muted in the list rather than given a fifth
+// segment), "Not won" is its own terminal — so their counts add up to All
+// rather than overlapping.
+//
+// Four, and never more: a closed set is what a segmented control is for. The
+// cold pool did not become the fifth segment for exactly that reason; it became
+// the other view instead, with its own three.
+const LEAD_FILTERS = [
   { key: "all", label: "All", statuses: null },
   { key: "open", label: "Open", statuses: openStatuses },
   { key: "customers", label: "Clients", statuses: customerStatuses },
   { key: "lost", label: "Not won", statuses: ["not_won"] },
 ] as const
 
-type FilterKey = (typeof FILTERS)[number]["key"]
+// The same control over the pool: everything, the ones the cadence is running
+// on, and the ones parked waiting for a date. Two rungs, so three segments, and
+// the arithmetic adds up the same way.
+const PROSPECT_FILTERS = [
+  { key: "all", label: "All", statuses: null },
+  { key: "working", label: "Working", statuses: ["prospect"] },
+  { key: "parked", label: "Nurture", statuses: nurtureStatuses },
+] as const
 
-function isFilterKey(value: string | undefined): value is FilterKey {
-  return FILTERS.some((f) => f.key === value)
+type Filter = {
+  key: string
+  label: string
+  statuses: readonly string[] | null
+}
+
+type FilterKey =
+  | (typeof LEAD_FILTERS)[number]["key"]
+  | (typeof PROSPECT_FILTERS)[number]["key"]
+
+function filtersFor(view: ViewKey): readonly Filter[] {
+  return view === "prospects" ? PROSPECT_FILTERS : LEAD_FILTERS
+}
+
+function isFilterKey(
+  value: string | undefined,
+  filters: readonly Filter[]
+): value is FilterKey {
+  return filters.some((f) => f.key === value)
 }
 
 // The figures worth knowing at a glance: what cash is still in play, what comes
@@ -95,6 +142,10 @@ function isFilterKey(value: string | undefined): value is FilterKey {
 // Only live relationships count: open (lead + discussing) for the pipeline,
 // active for the monthly and in-kind figures. A past client's engagement — and
 // retainer — is over, so they fall out of all three without leaving the list.
+// A prospect is in neither set, so the cold pool contributes nothing here by
+// construction rather than by being filtered out first — which is the point of
+// keeping it out of `openStatuses`: an imported business is not pipeline, and
+// eighty-five of them would put a six-figure fiction in the masthead.
 //
 // Barter is kept out of the first two on purpose. A swap can be worth real money
 // and still put nothing in the bank, so folding it into "in play" would quietly
@@ -151,50 +202,80 @@ async function loadLeads(archived: boolean) {
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ archived?: string; filter?: string }>
+  searchParams: Promise<{ archived?: string; filter?: string; view?: string }>
 }) {
   const params = await searchParams
   const archived = params.archived === "1"
-  const filterKey: FilterKey = isFilterKey(params.filter) ? params.filter : "all"
+  const view: ViewKey = params.view === "prospects" ? "prospects" : "leads"
+  const cold = view === "prospects"
+  const filters = filtersFor(view)
+  const filterKey: FilterKey = isFilterKey(params.filter, filters)
+    ? params.filter
+    : "all"
 
   const { now, rows, error } = await loadLeads(archived)
 
-  const filter = FILTERS.find((f) => f.key === filterKey)!
+  // One read, split in two: the cold pool on one side, everything that is an
+  // actual relationship on the other. Only the side this view is about is ever
+  // counted, filtered or rendered — which is what keeps "All" honest on both.
+  const population = rows.filter((row) => isProspect(row) === cold)
+  // The query hands rows over longest-waiting first, which says nothing about a
+  // prospect. Re-sorted on the thing that does: tier, then the parked ones
+  // last. `sort` is stable, so ties keep the query's order underneath.
+  if (cold) population.sort(compareProspects)
+
+  const filter = filters.find((f) => f.key === filterKey)!
   const visible = filter.statuses
-    ? rows.filter((r) => (filter.statuses as readonly string[]).includes(r.status))
-    : rows
+    ? population.filter((r) => filter.statuses!.includes(r.status))
+    : population
   const { pipeline, monthly, inKind } = totals(rows)
 
-  // Counts sit on the filter segments so the shape of the pipeline is readable
+  // Counts sit on the filter segments so the shape of the list is readable
   // without clicking through each one.
-  const countFor = (key: FilterKey): number => {
-    const f = FILTERS.find((x) => x.key === key)!
-    if (!f.statuses) return rows.length
-    return rows.filter((r) => (f.statuses as readonly string[]).includes(r.status))
-      .length
+  const countFor = (key: string): number => {
+    const f = filters.find((x) => x.key === key)!
+    if (!f.statuses) return population.length
+    return population.filter((r) => f.statuses!.includes(r.status)).length
   }
 
-  const hrefFor = (key: FilterKey, toArchive: boolean): string => {
+  const hrefFor = (
+    key: string,
+    to: { archived: boolean; view: ViewKey }
+  ): string => {
     const parts: string[] = []
-    if (toArchive) parts.push("archived=1")
+    if (to.view === "prospects") parts.push("view=prospects")
+    if (to.archived) parts.push("archived=1")
     if (key !== "all") parts.push(`filter=${key}`)
     return parts.length > 0 ? `/leads?${parts.join("&")}` : "/leads"
   }
 
   // Only the totals the list actually has. A figure of nothing is noise, not
   // news — and the row would rather hold two figures well than three badly.
-  const figures = [
-    { amount: pipeline, label: "In play" },
-    { amount: monthly, label: "Per month" },
-    { amount: inKind, label: "In kind" },
-  ].filter((f) => f.amount > 0)
+  // The pool has no figures at all: nothing in it is worth anything yet, and a
+  // row of three zeros would say the opposite of that.
+  const figures = cold
+    ? []
+    : [
+        { amount: pipeline, label: "In play" },
+        { amount: monthly, label: "Per month" },
+        { amount: inKind, label: "In kind" },
+      ].filter((f) => f.amount > 0)
 
   return (
-    // The archive is a different view of the same screen, so it says so in the
-    // title: the switch that got you here is an icon on the bar, and an icon
-    // alone is a poor answer to "what am I looking at".
+    // The archive and the cold pool are both different views of the same
+    // screen, so they say so in the title: the switches that got you here are
+    // icons on the bar, and an icon alone is a poor answer to "what am I
+    // looking at".
     <AppScreen
-      title={archived ? "Archived" : "Leads"}
+      title={
+        archived
+          ? cold
+            ? "Archived prospects"
+            : "Archived"
+          : cold
+            ? "Prospects"
+            : "Leads"
+      }
       masthead={
         figures.length > 0 ? (
           <GlanceRow>
@@ -210,18 +291,35 @@ export default async function LeadsPage({
       }
       actions={
         <>
-          <ArchiveChip href={hrefFor(filterKey, !archived)} archived={archived} />
-          {/* Renders the bar `+` here and, on a phone, the floating button. */}
-          {!archived ? <ClientCreateForm /> : null}
+          {/* Switching population resets the filter to All: the two views name
+              their segments differently, and carrying "lost" into the pool
+              would land on a filter that doesn't exist there. */}
+          <ProspectsChip
+            href={hrefFor("all", {
+              archived,
+              view: cold ? "leads" : "prospects",
+            })}
+            prospects={cold}
+          />
+          <ArchiveChip
+            href={hrefFor(filterKey, { archived: !archived, view })}
+            archived={archived}
+          />
+          {/* Renders the bar `+` here and, on a phone, the floating button.
+              Not in the pool: a prospect is imported in a batch, never typed
+              in one at a time, so the form has nothing to offer that view. */}
+          {!archived && !cold ? <ClientCreateForm /> : null}
         </>
       }
     >
       <div className="flex flex-col gap-4 pt-1 sm:gap-5">
-        {/* The four filters as one closed control: they partition the list, so
-            they belong in a single track rather than a rail of separate chips
-            you could read as independent toggles. */}
-        <SegmentedControl aria-label="Filter leads">
-          {FILTERS.map((f) => (
+        {/* The filters as one closed control: they partition the list, so they
+            belong in a single track rather than a rail of separate chips you
+            could read as independent toggles. */}
+        <SegmentedControl
+          aria-label={cold ? "Filter prospects" : "Filter leads"}
+        >
+          {filters.map((f) => (
             <SegmentedItem
               key={f.key}
               asChild
@@ -231,7 +329,7 @@ export default async function LeadsPage({
             >
               {/* A plain <Link>: changing the filter re-renders this same
                   screen, so there are no two pages to cross-fade between. */}
-              <Link href={hrefFor(f.key, archived)} />
+              <Link href={hrefFor(f.key, { archived, view })} />
             </SegmentedItem>
           ))}
         </SegmentedControl>
@@ -253,16 +351,20 @@ export default async function LeadsPage({
         {visible.length === 0 ? (
           <EmptyLeads
             archived={archived}
-            filtered={rows.length > 0}
-            allHref={hrefFor("all", archived)}
+            cold={cold}
+            filtered={population.length > 0}
+            allHref={hrefFor("all", { archived, view })}
           />
         ) : (
           <GroupedSection>
             <ul>
               {visible.map((row, index) => {
                 const stale = isStale(row, now)
-                const past = isPastClient(row)
-                const figure = dealFigure(row)
+                // The two rows that read muted, one per view: a client whose
+                // engagement is over, and a prospect parked on a wake date.
+                // Same idiom, same reason — still on the list, no longer live.
+                const quiet = cold ? isNurtured(row) : isPastClient(row)
+                const figure = cold ? null : dealFigure(row)
                 const open = isOpenLead(row)
                 const who = whoLabel(row)
                 return (
@@ -270,7 +372,10 @@ export default async function LeadsPage({
                     <LeadRow
                       id={row.id}
                       name={row.name}
-                      phone={row.phone}
+                      // The swipe tray's WhatsApp action. A prospect can carry
+                      // its own click-to-chat number; everyone else falls back
+                      // to the one phone number they have.
+                      phone={row.whatsapp ?? row.phone}
                       email={row.email}
                       archived={archived}
                     >
@@ -303,10 +408,12 @@ export default async function LeadsPage({
                             <span
                               className={cn(
                                 "truncate text-app-body font-semibold",
-                                // A past client's engagement is over: the name
-                                // reads muted the way a completed todo does, so
-                                // the distinction shows without a fifth segment.
-                                past ? "text-app-label-2" : "text-app-label"
+                                // A past client's engagement is over, and a
+                                // nurtured prospect is parked: the name reads
+                                // muted the way a completed todo does, so the
+                                // distinction shows without a segment of its
+                                // own.
+                                quiet ? "text-app-label-2" : "text-app-label"
                               )}
                             >
                               {row.name}
@@ -322,15 +429,42 @@ export default async function LeadsPage({
                               <span
                                 className={cn(
                                   "shrink-0 font-mono text-app-subhead font-semibold tabular-nums",
-                                  past ? "text-app-label-2" : "text-app-label"
+                                  quiet ? "text-app-label-2" : "text-app-label"
                                 )}
                               >
                                 {figure.standalone}
                               </span>
                             ) : null}
+                            {/* The pool has no money to show, so the same slot
+                                carries the thing it *is* sorted on: the fit
+                                tier, a single letter in mono. Untiered rows
+                                leave it empty rather than inventing a grade —
+                                they sit at the end of the list, which is the
+                                whole of what "nobody has graded this" means.
+                                The letter alone reads as a code on screen and
+                                is spoken in full. */}
+                            {cold && row.fitTier ? (
+                              <span
+                                className={cn(
+                                  "shrink-0 font-mono text-app-subhead font-semibold tabular-nums",
+                                  quiet ? "text-app-label-2" : "text-app-label"
+                                )}
+                              >
+                                <span aria-hidden>{row.fitTier}</span>
+                                <span className="sr-only">
+                                  Tier {row.fitTier}
+                                </span>
+                              </span>
+                            ) : null}
                           </span>
 
                           <span className="flex items-baseline justify-between gap-3 text-app-footnote">
+                            {/* Nobody is waiting on a prospect, so the line
+                                that says how long they have waited would be a
+                                lie about them: they carry what they *are*
+                                instead — sector and town, the two facts the
+                                import brought and the two you scan a cold list
+                                by. */}
                             <span
                               className={cn(
                                 "truncate",
@@ -339,8 +473,14 @@ export default async function LeadsPage({
                                   : "text-app-label-3"
                               )}
                             >
-                              {waitedLabel(daysWaiting(row, now), open)}
-                              {who ? ` · ${who}` : ""}
+                              {cold ? (
+                                (prospectLabel(row) ?? "")
+                              ) : (
+                                <>
+                                  {waitedLabel(daysWaiting(row, now), open)}
+                                  {who ? ` · ${who}` : ""}
+                                </>
+                              )}
                             </span>
                             {/* The status is read here and changed on the
                                 lead's page — or, from `md`, in the menu on the
@@ -354,12 +494,15 @@ export default async function LeadsPage({
 
                           {/* Barter, commission, equity, started — only the
                               rows that carry them grow a third line, and never
-                              the term the figure above already named. */}
-                          <DealBadges
-                            client={row}
-                            omit={figure?.kind}
-                            className="mt-1"
-                          />
+                              the term the figure above already named. A
+                              prospect has no deal to badge. */}
+                          {cold ? null : (
+                            <DealBadges
+                              client={row}
+                              omit={figure?.kind}
+                              className="mt-1"
+                            />
+                          )}
                         </ViewTransitionLink>
 
                         {/* The width a pointer has, spent on the two things
@@ -388,20 +531,25 @@ export default async function LeadsPage({
 }
 
 // A quiet day should look calm, not broken: centred words on the canvas rather
-// than an empty slab, which reads as a card that failed to load. Three things
+// than an empty slab, which reads as a card that failed to load. Four things
 // can be empty here and they are not the same thing — an archive nobody has put
-// anything in, a filter that happens to match nothing, and a dashboard on its
-// first day — so each says what it is and, where there is one, what to do.
+// anything in, a filter that happens to match nothing, a dashboard on its first
+// day, and a cold pool nothing has been imported into yet — so each says what
+// it is and, where there is one, what to do.
 function EmptyLeads({
   archived,
+  cold,
   filtered,
   allHref,
 }: {
   archived: boolean
+  /** The cold pool, not the roster — a different absence and a different fix. */
+  cold: boolean
   /** There are rows behind the current filter — this view is empty, not the list. */
   filtered: boolean
   allHref: string
 }) {
+  const noun = cold ? "prospect" : "lead"
   return (
     <div className="flex flex-col items-center gap-1 px-6 py-14 text-center">
       <p className="text-app-callout font-medium text-app-label-2">
@@ -409,12 +557,14 @@ function EmptyLeads({
           ? "Nothing under this filter"
           : archived
             ? "Nothing archived"
-            : "No leads yet"}
+            : cold
+              ? "No prospects yet"
+              : "No leads yet"}
       </p>
       <p className="max-w-xs text-app-footnote text-app-label-3">
         {filtered ? (
           <>
-            Every other lead is still there —{" "}
+            Every other {noun} is still there —{" "}
             <Link
               href={allHref}
               className="text-app-tint underline underline-offset-2"
@@ -424,7 +574,9 @@ function EmptyLeads({
             .
           </>
         ) : archived ? (
-          "A lead you archive is taken off the list and kept here."
+          `A ${noun} you archive is taken off the list and kept here.`
+        ) : cold ? (
+          "The cold pool arrives by import, in a batch, rather than one business at a time."
         ) : (
           "Add the first one with the plus button — everything else can be filled in on their profile."
         )}

@@ -55,6 +55,13 @@ import { hapticTick } from "@/lib/haptics"
 // The two ways in. `status` is what actually gets stored — these are the two
 // ends of the ladder, and the rest of it (in discussion, past, not won) is a
 // dropdown away on the row itself.
+//
+// The third copy of the status vocabulary in the dashboard, and the one the
+// cold pool deliberately did **not** grow. `prospect` and `nurture` are rungs a
+// row is *imported* onto, in a batch of eighty-five, by the seeding script —
+// never typed in one business at a time. Offering "Prospect" here would be a
+// third button that nobody has a reason to press, and the leads list hides this
+// form in the prospects view for the same reason.
 const KINDS = [
   {
     key: "lead",

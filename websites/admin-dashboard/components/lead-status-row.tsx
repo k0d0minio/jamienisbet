@@ -18,11 +18,19 @@ import {
 import { updateClientStatus } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 
-// Mirrors clientStatuses (and their labels/hints) in @jamie-nisbet/services —
-// the server action is the authority (it re-validates). Kept local so this
-// client component doesn't pull the services barrel (and its DB client) into
-// the browser bundle.
+// Mirrors clientStatuses (and their labels/hints, `clientStatusLabels` and
+// `clientStatusHints`) in @jamie-nisbet/services — the server action is the
+// authority (it re-validates). Kept local so this client component doesn't pull
+// the services barrel (and its DB client) into the browser bundle. One of three
+// copies of this vocabulary in the dashboard, and they are kept in the ladder's
+// own order: the cold pool first, then the rungs a relationship climbs.
 const STATUSES = [
+  {
+    value: "prospect",
+    label: "Prospect",
+    hint: "Imported, working the cadence, hasn't engaged",
+  },
+  { value: "nurture", label: "Nurture", hint: "Parked; wakes on a date" },
   { value: "lead", label: "Lead", hint: "Came in, not spoken to yet" },
   { value: "discussing", label: "In discussion", hint: "Conversation or negotiation running" },
   { value: "active", label: "Active client", hint: "Work agreed or under way" },
@@ -32,8 +40,10 @@ const STATUSES = [
 
 // Where the lead sits on the ladder — the field changed most often on this
 // screen, so it is the first row of the first group and it opens a sheet
-// rather than a dropdown: five rungs as full-width rows, hittable one-handed
-// without aiming, instead of a 36px menu at the top of the page.
+// rather than a dropdown: seven rungs as full-width rows, hittable one-handed
+// without aiming, instead of a 36px menu at the top of the page. The sheet
+// sizes to its content and scrolls if the last rung falls past the fold, which
+// is the price of the two the cold pool added and cheaper than nesting them.
 export function LeadStatusRow({ id, value }: { id: string; value: string }) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
