@@ -168,11 +168,22 @@ segments**:
 
 - **Person** — the record. Status (and when they were last worked), **Contact**, **Facts**,
   **Deal**, the folded **Intake** row, and the **Danger zone**.
-- **Work** — the surface you operate. **Notes**, **todos**, **Forms**.
+- **Work** — the surface you operate. **Touches**, **Notes**, **todos**, **Forms**.
 
 Both segments are rendered and only one is shown, so switching costs no round trip and a
 half-typed note survives a look at the deal; the choice rides in the URL as `?tab=work` through
 `history.replaceState`, so a refresh comes back where you left off.
+
+Directly under the identity, on its own line, is **what happens next**
+([`components/lead-next-action.tsx`](components/lead-next-action.tsx)): the lead's `next_action`
+and its due date, tinted, in mono, and tinted red once the date has passed. It is a button —
+tap it to write one, edit one, or clear it — and on a parked (**Nurture**) lead it says when
+they wake instead, because a parked relationship's plan *is* its date. A lead with nothing
+planned reads a quiet "No next step" on the rungs where one is expected, and renders nothing at
+all on the ones where it isn't (a client, a past client, a lost lead). **Nothing ever blocks a
+save for a missing next action** — that is Jamie's decision, and what notices the gap instead is
+a read: the crack-finder queries in the services layer, which sequence 6 of the lead-engine epic
+puts on the Needs you feed.
 
 Riding with the identity are **two status glyphs — the delivery repo and the Stripe customer**.
 Lit and filled when connected (tap jumps to GitHub or Stripe); dim on a dashed outline when not
@@ -195,6 +206,37 @@ server action scoped to exactly its own fields (`saveClientContact` / `saveClien
 `saveDealTerms` / `saveClientNotes`), so no sheet can blank a field it never showed. **Work started** is a one-tap
 toggle in the rail rather than a field to save, because it is something you record on the day it
 happens; re-tapping undoes it, and marking an already-started engagement keeps the original date.
+
+### The touch log
+
+**Work** opens on **Touches** ([`components/lead-touches.tsx`](components/lead-touches.tsx),
+rows in [`components/touch-row.tsx`](components/touch-row.tsx)) — every call, message, DM and
+walk-in with this person, newest first, because what has already been tried is what decides what
+to try next. A bare touch is a row ("WhatsApp · Sent · 2 Sep"); one carrying a note or an AI
+draft is a fold, with the note's first line as the preview. An inbound touch — one *they*
+started — carries a small tinted arrow; outbound is the default and says nothing.
+
+Logging one is **two taps**: the channel, then what came of it. That is the whole design
+constraint — if logging a call takes longer than the call was short it will not happen, and a
+history with holes in it is worse than none because you stop trusting it. So the second tap is
+the submit, the note is a box that is simply there while you decide rather than a step, and
+there is no Save button to find. The outcomes offered depend on the channel (a phone call rings
+out or it doesn't; an email goes and either comes back or doesn't), and the direction control
+defaults to outbound, which is almost every row.
+
+**The sheet does not close on a log.** It turns into the cadence's suggestion for the next
+touch, already filled in — *step 3 of 5 · WhatsApp*, due on a date — one tap from being real.
+Editing it is a field; **Not now** closes the sheet with nothing planned, which is allowed. When
+the lead has actually answered, the cadence stops pushing and suggests a reply instead; when the
+five-touch cadence is spent it suggests **parking them on nurture** with a wake date ninety days
+out, which is one button rather than three edits. A "not interested" gets no suggestion at all —
+there is nothing to suggest after a no.
+
+The cadence itself is plain data in the services layer
+([`packages/services/src/cadence.ts`](../../packages/services/src/cadence.ts)), not a table and
+not a scheduler: ~5 touches over ~3 weeks, first on whichever door is open, a second channel on
+day 3, a follow-up in the first week, a walk-in on day 12 for A-tier leads with a town on file,
+and a last message on day 19.
 
 Reference material and irreversible actions sink to the bottom of **Person** — **Intake** is a
 `GroupedDisclosure` that folds open on a tap, and archive/delete are the last section, under a
@@ -453,7 +495,9 @@ app/
     error.tsx           # the four screens' error boundary — a read that refused
     page.tsx            # Needs you — the feed; also redirects the old /?filter= leads bookmarks
     loading.tsx         # the feed's layout-true skeleton (the widest read in the app)
-    actions.ts          # lead + todo + compliance server actions (every lead screen uses these)
+    actions.ts          # lead + touch + todo + compliance server actions (every lead screen
+                        #   uses these); logTouchAction is the one that answers with what to
+                        #   do next
     leads/              # Leads — the list, staleness-sorted; ?view=prospects is the cold
                         #   pool, tier-sorted; loading.tsx alongside
     leads/[id]/         # one lead: Person / Work segments, repo + Stripe glyphs, their todos
@@ -476,6 +520,11 @@ components/             # login form, nav, service-worker register, lead + money
                         #   lead-contact-card.tsx / lead-facts-card.tsx / lead-deal-card.tsx /
                         #   lead-notes-card.tsx
                         #                — the record as facts, each edited in a bottom sheet
+                        #   lead-next-action.tsx — what happens next, on the masthead; the one
+                        #                place the gentle invariant is ever said out loud
+                        #   lead-touches.tsx / touch-row.tsx — the touch log: history rendered
+                        #                on the server, two-tap logging and the cadence's
+                        #                prefilled next step in a client sheet over it
                         #   lead-intake.tsx — how they came in, folded shut until asked for
                         #   batch-row.tsx / board-ticket-row.tsx / ticket-detail.tsx
                         #                — the Tickets board, batch-first
@@ -486,6 +535,9 @@ components/             # login form, nav, service-worker register, lead + money
 lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets, app-icon
                         #   leads.ts — the staleness threshold and the row labels the feed and
                         #              the Leads list both read a lead by
+                        #   touches.ts / lead-facts.ts — the model's closed vocabularies,
+                        #              mirrored for the browser so a sheet needn't ship the
+                        #              Neon driver to read a label
                         #   haptics.ts — the one tick, and the rule for when it fires
 public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
 ```

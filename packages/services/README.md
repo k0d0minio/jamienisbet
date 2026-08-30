@@ -21,9 +21,12 @@ build step — consumers transpile the TypeScript via `transpilePackages` (same 
 src/
   client.ts          # lazy Drizzle client from DATABASE_URL — getDb() / db
   schema/index.ts    # Drizzle tables under the `biz` Postgres schema
+  cadence.ts         # what to do next and when — the outreach template, as a pure function
   deal.ts            # what a deal is made of — components, and the helpers over them
   forms.ts           # the questionnaire snapshot/answer types both apps share
   queries/clients.ts # typed intake/list/update helpers for the leads table
+  queries/touches.ts     # the touch log: the three vocabularies, the history, logging one
+  queries/crack-finder.ts # the four reads that notice what the writes never refuse
   queries/tasks.ts       # todos
   queries/compliance.ts  # the PT compliance calendar (recurrence re-arms on complete)
   queries/form-links.ts  # customer questionnaires: publish, read, submit once
@@ -58,7 +61,7 @@ The first migration creates the `biz` schema and its tables.
 
 ## Scope
 
-Today: a single **`clients`** table. Every intake — a portfolio contact enquiry or a sellers-site
+Today: **`clients`** and its history in **`touches`**, plus the three working lists. Every intake — a portfolio contact enquiry or a sellers-site
 referral — creates one client row (the form only sets the `source` and which intake fields are
 populated); there is no separate table per form. Each client then gets fleshed out as the
 relationship moves up the ladder (`status`: `lead` → `discussing` → `active` → `past`, or the
@@ -118,6 +121,53 @@ rather than re-deriving an answer from `value_minor`:
 
 It takes a structural `DealTerms` (the deal columns and nothing else), so a `Client` row, a form's
 draft and a list row's projection can all be asked the same questions.
+
+**Every lead carries what happens next.** `next_action` (200 characters, an imperative in
+Jamie's own words) and `next_action_due` are the spine of the lead engine: `last_touched_at`
+records that something happened, these record that something is going to. `wake_at` is the
+third, and means something only on `nurture` — when a parked relationship comes back
+(`setClientStatus` clears it the moment a row leaves that rung, because a date that is no longer
+about anything is worse than no date).
+
+**The invariant is gentle, and that is a decision.** Nothing refuses to save without a next
+action — `setClientNextAction` takes null happily, and `parkClient` clears one on its way past.
+A form that will not close until you have decided what happens next is a form you stop opening,
+and a cadence you stop logging is worth less than a gap you can see. So the invariant lives in
+`queries/crack-finder.ts` as four reads instead of four constraints:
+
+| Question | Query |
+|---|---|
+| What is owed today? | `listDueOutreach` — cadence rungs due or overdue, ordered overdue first, then fit tier (untiered last), then due date |
+| What has nothing planned? | `listWithoutNextAction` — being worked, with no action or no date on it; a decision with no date never reaches the queue, so it counts as lost |
+| Who has woken up? | `listWokenNurture` — parked, and `wake_at` has passed |
+| What conversation went cold? | `listIdleEngaged` — `discussing`, untouched for `IDLE_AFTER_DAYS` (14) |
+
+`findCracks` runs all four in parallel. Sequence 6 of the lead-engine epic renders them on the
+Needs you feed; sequence 4's operator scripts read the same functions, which is why they live
+here rather than in a page. All four exclude archived rows and return whole `Client` rows.
+
+**`touches` is the memory of contact** — one row per call, message, DM or walk-in, cascading
+with the client. It existed once and migration `0013` dropped it along with the AI deal pipeline
+it belonged to; it comes back leaner than it left: `channel` (whatsapp / phone / email / walkin
+/ instagram / other), `direction` (out / in), `outcome` (sent / no_answer / callback / answered
+/ replied / met / not_interested), an optional `note`, an optional `draft_md` with the `model`
+that wrote it, and `logged_at`. No versions, no provenance table, no pipeline. `logTouch` stamps
+the client's `last_touched_at` alongside the insert — a history row that left the lead looking
+untouched would put them straight back on top of the staleness sort they just came off — and
+never moves that stamp backwards, so a back-dated touch is history being filled in rather than
+the relationship going quiet again. The three vocabularies follow the status ladder's shape:
+ordered set, label lookup, guard.
+
+**`cadence.ts` is the one place the shape of the outreach is written down.** A suggestion
+engine, not a scheduler: nothing there writes, nothing runs on a timer, and nothing it returns
+is binding. `CADENCE_STEPS` is ~5 touches over ~3 weeks as plain data — first touch on whichever
+door is open, a second channel on day 3, a follow-up on day 7, a walk-in on day 12 for A-tier
+leads with a town on file (the only "nearby" this model can honestly know), a last message on
+day 19 — and `suggestNextTouch(lead, history)` reads a history and answers with one of three
+things: the next rung, a reply owed to somebody who actually spoke, or a park onto `nurture`
+waking `NURTURE_WAKE_DAYS` (90) out. It returns null after a "not interested", because there is
+nothing to suggest after a no. `reachableChannels` / `bestChannel` are the same preference order
+the first touch uses, exposed for anything else that needs to pick a door.
 
 **Customer questionnaires.** `form_links` is one row per questionnaire sent to one lead. The
 primary key doubles as the link token the customer opens (a v4 uuid — unguessable, so the form

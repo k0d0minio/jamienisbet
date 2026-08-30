@@ -37,6 +37,20 @@ export function formatEpochDay(seconds: number | null): string {
   return shortEpochFormatter.format(new Date(seconds * 1000))
 }
 
+// A day at row scale: "2 Sep". Long enough to be unambiguous within a year,
+// short enough to ride the end of a line beside a name — which is where a due
+// date lives on this tier.
+const shortDayFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+})
+
+export function formatShortDay(value: Date | string | null): string {
+  if (!value) return "—"
+  const date = typeof value === "string" ? new Date(value) : value
+  return shortDayFormatter.format(date)
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000
 
 /** Whole days between `since` and `now` (both ms). Never negative. */

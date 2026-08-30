@@ -128,6 +128,20 @@ export const prospectStatuses: readonly ClientStatus[] = ["prospect", "nurture"]
 // the way a past client is shown muted among the clients.
 export const nurtureStatuses: readonly ClientStatus[] = ["nurture"]
 
+// The rungs where *something is supposed to happen next*: the pool being
+// worked, and the two open rungs of the ladder proper. This is the population
+// the next-action invariant applies to, and the one the crack-finder asks its
+// questions of.
+//
+// `nurture` is deliberately out. A parked relationship's whole point is that
+// nothing is planned — what it carries instead is a `wake_at`, and asking it
+// for a next action would turn every parked row into a crack.
+export const nextActionStatuses: readonly ClientStatus[] = [
+  "prospect",
+  "lead",
+  "discussing",
+]
+
 export function isClientStatus(value: string): value is ClientStatus {
   return (clientStatuses as readonly string[]).includes(value)
 }
@@ -398,9 +412,17 @@ export async function setClientStatus(
 ): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
-    // Working the ladder counts as touching the relationship — which is what
-    // moves the lead back down the staleness sort.
-    .set({ status, lastTouchedAt: new Date() })
+    .set({
+      status,
+      // Working the ladder counts as touching the relationship — which is what
+      // moves the lead back down the staleness sort.
+      lastTouchedAt: new Date(),
+      // The one exception to "the rungs carry no side effects", and it isn't
+      // really one: `wake_at` means nothing anywhere but `nurture`, so leaving
+      // it behind on a row that has woken up wouldn't be a side effect kept,
+      // it would be a date that is no longer about anything.
+      ...(status === "nurture" ? {} : { wakeAt: null }),
+    })
     .where(eq(clients.id, id))
     .returning()
   return row
@@ -412,6 +434,89 @@ export async function touchClient(id: string): Promise<Client | undefined> {
   const [row] = await getDb()
     .update(clients)
     .set({ lastTouchedAt: new Date() })
+    .where(eq(clients.id, id))
+    .returning()
+  return row
+}
+
+// ---- What happens next ------------------------------------------------------
+// The other half of the lead engine, and the half nothing enforces. These are
+// ordinary writes with no guard on them: a lead can be saved, edited and moved
+// up the ladder with `next_action` empty forever, and the only thing that ever
+// says so is a read (see queries/crack-finder.ts). That is the gentle
+// invariant, in code.
+
+/**
+ * Set — or clear — what happens next with this lead.
+ *
+ * Its own call rather than a field on `ClientProfilePatch` for the same reason
+ * the Stripe link and the delivery repo are: it is set by a gesture, not typed
+ * into the profile form. The gesture is usually accepting what the cadence
+ * suggested after logging a touch; sometimes it is editing that suggestion,
+ * and sometimes it is deciding one from the masthead. Passing null is
+ * dismissing it, which is allowed and deliberately cheap.
+ *
+ * It does **not** stamp `last_touched_at`. Deciding what to do next week is
+ * not contact, and the touch that prompted the decision already stamped it —
+ * counting the plan as work too would move a lead down the staleness sort for
+ * having been thought about.
+ */
+export async function setClientNextAction(
+  id: string,
+  next: { action: string; dueAt: Date | null } | null
+): Promise<Client | undefined> {
+  const [row] = await getDb()
+    .update(clients)
+    .set(
+      next
+        ? { nextAction: next.action, nextActionDue: next.dueAt }
+        : { nextAction: null, nextActionDue: null }
+    )
+    .where(eq(clients.id, id))
+    .returning()
+  return row
+}
+
+/**
+ * Park a relationship: nurture, waking on a date.
+ *
+ * One call rather than a status change plus two writes, because the three
+ * things are one decision — the cadence is spent (or they said "not now"), so
+ * stop planning and come back in `wakeAt`. Clearing the next action is part of
+ * it: a parked row with a next action still on it would show up in tomorrow's
+ * queue, which is precisely what parking was supposed to stop.
+ *
+ * Parking is working the relationship, so it stamps like any other ladder
+ * move.
+ */
+export async function parkClient(
+  id: string,
+  wakeAt: Date
+): Promise<Client | undefined> {
+  const [row] = await getDb()
+    .update(clients)
+    .set({
+      status: "nurture",
+      wakeAt,
+      nextAction: null,
+      nextActionDue: null,
+      lastTouchedAt: new Date(),
+    })
+    .where(eq(clients.id, id))
+    .returning()
+  return row
+}
+
+/** Move a parked row's wake date without waking it — "not this quarter
+ *  either". Null means "no date on file", which leaves it parked and out of
+ *  every queue until somebody moves it by hand. */
+export async function setClientWakeAt(
+  id: string,
+  wakeAt: Date | null
+): Promise<Client | undefined> {
+  const [row] = await getDb()
+    .update(clients)
+    .set({ wakeAt })
     .where(eq(clients.id, id))
     .returning()
   return row

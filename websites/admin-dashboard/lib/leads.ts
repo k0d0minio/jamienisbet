@@ -12,7 +12,7 @@ import {
   type DealTerms,
 } from "@jamie-nisbet/services"
 
-import { daysSince, waitingLabel } from "@/lib/format"
+import { daysSince, formatShortDay, waitingLabel } from "@/lib/format"
 import { formatMoney } from "@/lib/money"
 import { formatBps } from "@/lib/percent"
 
@@ -176,6 +176,45 @@ export function dealFigure(client: DealTerms): DealFigure | null {
       }
     }
   }
+}
+
+/** What a row's leading line says when there *is* a plan, and whether it has
+ *  already slipped. */
+export type NextActionLine = { text: string; overdue: boolean }
+
+/**
+ * What happens next with this lead, as one line.
+ *
+ * It takes over the row's leading line wherever a lead has one, and it earns
+ * that place: "Waiting 12 days" describes a state, "Call back after the lunch
+ * service · 2 Sep" is the work. For a prospect it is the whole point — nobody
+ * is waiting on an imported business, so the line that says how long they have
+ * waited was never true about them.
+ *
+ * Null when nothing is planned, which is allowed: the row then falls back to
+ * what it always said, and the Needs you feed is where a missing plan gets
+ * mentioned.
+ */
+export function nextActionLine(
+  client: Client,
+  now: number
+): NextActionLine | null {
+  if (!client.nextAction) return null
+  const due = client.nextActionDue
+  return {
+    text: due
+      ? `${client.nextAction} · ${formatShortDay(due)}`
+      : client.nextAction,
+    overdue: due !== null && due.getTime() < now,
+  }
+}
+
+/** A parked lead's line: when it comes back. Null for anyone who isn't
+ *  parked, and for a parked row with no date on it — which is its own kind of
+ *  crack, and one the feed reports rather than the row. */
+export function wakeLine(client: Client): string | null {
+  if (!isNurtured(client) || !client.wakeAt) return null
+  return `Wakes ${formatShortDay(client.wakeAt)}`
 }
 
 /** The leading line of a row — what the Leads list is sorted on. A client, a
