@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronRight, TriangleAlert } from "lucide-react"
+import { ChevronRight, CircleCheck, TriangleAlert } from "lucide-react"
 
 import {
   GlanceFigure,
@@ -13,6 +13,7 @@ import {
   cn,
 } from "@jamie-nisbet/ui"
 import {
+  IDLE_AFTER_DAYS,
   clientStatusLabel,
   customerStatuses,
   dealTermsOf,
@@ -34,7 +35,9 @@ import {
   compareProspects,
   daysWaiting,
   dealFigure,
+  hasNoPlan,
   isActiveClient,
+  isIdleDiscussion,
   isNurtured,
   isOpenLead,
   isPastClient,
@@ -114,6 +117,59 @@ const PROSPECT_FILTERS = [
   { key: "working", label: "Working", statuses: ["prospect"] },
   { key: "parked", label: "Nurture", statuses: nurtureStatuses },
 ] as const
+
+// The third way this screen is looked at, and the one nobody navigates to: the
+// two cracks the Needs you feed reports as counts.
+//
+// A crack is not a filter and could not have been one. The segments partition a
+// population by status — a closed set that adds up to "All" — and neither of
+// these does: "nothing planned" spans the cold pool *and* the ladder proper, so
+// no single view holds it, and both are questions about a column rather than
+// about a rung. So a crack replaces the partition instead of joining it: the
+// segmented control stands down, the screen takes the crack's own name, and
+// what it lists is exactly the set the feed counted. That is the contract those
+// two rows depend on — a number that opens onto a different number is worse
+// than no number at all.
+type CrackKey = "unplanned" | "idle"
+
+type Crack = {
+  /** The screen's name while this crack is on it. */
+  title: string
+  /** One line under the title: what these rows have in common. */
+  blurb: string
+  /** What it says when the crack has closed — a designed state, since a
+   *  closed crack is the whole point of naming it. */
+  empty: string
+  /** The row-level twin of the crack-finder's `where`, from lib/leads. */
+  matches: (row: Client, now: number) => boolean
+  /** Re-sort on fit tier, the way the crack-finder hands the rows over.
+   *  False leaves the read's own order — longest-quiet first. */
+  sorted: boolean
+}
+
+const CRACKS: Record<CrackKey, Crack> = {
+  unplanned: {
+    title: "Nothing planned",
+    blurb:
+      "Being worked, with no next step — or one nobody dated, which never reaches the queue.",
+    empty:
+      "Everything being worked carries a next step and a date. Nothing has fallen through.",
+    matches: (row) => hasNoPlan(row),
+    // Mostly prospects, and a pool is worked best-fit first.
+    sorted: true,
+  },
+  idle: {
+    title: "Gone quiet",
+    blurb: `In discussion, and nothing has happened in ${IDLE_AFTER_DAYS} days.`,
+    empty: "Every live conversation has moved in the last fortnight.",
+    matches: (row, now) => isIdleDiscussion(row, now),
+    sorted: false,
+  },
+}
+
+function isCrackKey(value: string | undefined): value is CrackKey {
+  return value === "unplanned" || value === "idle"
+}
 
 type Filter = {
   key: string
@@ -204,12 +260,23 @@ async function loadLeads(archived: boolean) {
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ archived?: string; filter?: string; view?: string }>
+  searchParams: Promise<{
+    archived?: string
+    filter?: string
+    view?: string
+    crack?: string
+  }>
 }) {
   const params = await searchParams
-  const archived = params.archived === "1"
-  const view: ViewKey = params.view === "prospects" ? "prospects" : "leads"
-  const cold = view === "prospects"
+  const crack = isCrackKey(params.crack) ? CRACKS[params.crack] : null
+  // A crack view takes the whole screen: the archive and the pool are both
+  // views of the roster, and a crack is a question asked of what is live.
+  // Every crack-finder query excludes archived rows, so honouring `archived`
+  // here would list rows the count that sent you never included.
+  const archived = crack === null && params.archived === "1"
+  const view: ViewKey =
+    crack === null && params.view === "prospects" ? "prospects" : "leads"
+  const cold = crack === null && view === "prospects"
   const filters = filtersFor(view)
   const filterKey: FilterKey = isFilterKey(params.filter, filters)
     ? params.filter
@@ -220,16 +287,24 @@ export default async function LeadsPage({
   // One read, split in two: the cold pool on one side, everything that is an
   // actual relationship on the other. Only the side this view is about is ever
   // counted, filtered or rendered — which is what keeps "All" honest on both.
-  const population = rows.filter((row) => isProspect(row) === cold)
+  // A crack cuts across that split instead of respecting it, which is exactly
+  // why it can't be a segment: it is asked of everyone being worked.
+  const population = crack
+    ? rows.filter((row) => crack.matches(row, now))
+    : rows.filter((row) => isProspect(row) === cold)
   // The query hands rows over longest-waiting first, which says nothing about a
   // prospect. Re-sorted on the thing that does: tier, then the parked ones
   // last. `sort` is stable, so ties keep the query's order underneath.
-  if (cold) population.sort(compareProspects)
+  if (cold || crack?.sorted) population.sort(compareProspects)
 
   const filter = filters.find((f) => f.key === filterKey)!
-  const visible = filter.statuses
-    ? population.filter((r) => filter.statuses!.includes(r.status))
-    : population
+  // The segments don't partition a crack, so they don't get to narrow one
+  // either — what the feed counted is what this screen lists.
+  const visible = crack
+    ? population
+    : filter.statuses
+      ? population.filter((r) => filter.statuses!.includes(r.status))
+      : population
   const { pipeline, monthly, inKind } = totals(rows)
 
   // Counts sit on the filter segments so the shape of the list is readable
@@ -270,16 +345,18 @@ export default async function LeadsPage({
     // looking at".
     <AppScreen
       title={
-        archived
-          ? cold
-            ? "Archived prospects"
-            : "Archived"
-          : cold
-            ? "Prospects"
-            : "Leads"
+        crack
+          ? crack.title
+          : archived
+            ? cold
+              ? "Archived prospects"
+              : "Archived"
+            : cold
+              ? "Prospects"
+              : "Leads"
       }
       masthead={
-        figures.length > 0 ? (
+        !crack && figures.length > 0 ? (
           <GlanceRow>
             {figures.map((figure) => (
               <GlanceFigure
@@ -292,6 +369,11 @@ export default async function LeadsPage({
         ) : undefined
       }
       actions={
+        // A crack view carries no switches. Neither the archive nor the pool is
+        // a thing you can be in *and* be looking at a crack, and a `+` on a
+        // screen whose whole subject is rows that already exist is a control
+        // with nothing to do.
+        crack ? undefined : (
         <>
           {/* Switching population resets the filter to All: the two views name
               their segments differently, and carrying "lost" into the pool
@@ -312,29 +394,45 @@ export default async function LeadsPage({
               in one at a time, so the form has nothing to offer that view. */}
           {!archived && !cold ? <ClientCreateForm /> : null}
         </>
+        )
       }
     >
       <div className="flex flex-col gap-4 pt-1 sm:gap-5">
         {/* The filters as one closed control: they partition the list, so they
             belong in a single track rather than a rail of separate chips you
-            could read as independent toggles. */}
-        <SegmentedControl
-          aria-label={cold ? "Filter prospects" : "Filter leads"}
-        >
-          {filters.map((f) => (
-            <SegmentedItem
-              key={f.key}
-              asChild
-              active={f.key === filterKey}
-              label={f.label}
-              count={countFor(f.key)}
+            could read as independent toggles. A crack isn't part of that
+            partition, so it replaces the control with a sentence saying what
+            is on screen and the way back to the roster. */}
+        {crack ? (
+          <p className="px-app-gutter text-app-footnote text-app-label-3">
+            {crack.blurb}{" "}
+            <Link
+              href="/leads"
+              className="text-app-tint underline underline-offset-2"
             >
-              {/* A plain <Link>: changing the filter re-renders this same
-                  screen, so there are no two pages to cross-fade between. */}
-              <Link href={hrefFor(f.key, { archived, view })} />
-            </SegmentedItem>
-          ))}
-        </SegmentedControl>
+              Back to Leads
+            </Link>
+            .
+          </p>
+        ) : (
+          <SegmentedControl
+            aria-label={cold ? "Filter prospects" : "Filter leads"}
+          >
+            {filters.map((f) => (
+              <SegmentedItem
+                key={f.key}
+                asChild
+                active={f.key === filterKey}
+                label={f.label}
+                count={countFor(f.key)}
+              >
+                {/* A plain <Link>: changing the filter re-renders this same
+                    screen, so there are no two pages to cross-fade between. */}
+                <Link href={hrefFor(f.key, { archived, view })} />
+              </SegmentedItem>
+            ))}
+          </SegmentedControl>
+        )}
 
         {/* The read failed. Say so in a group of its own, in plain words, and
             leave the rest of the screen standing. */}
@@ -351,22 +449,43 @@ export default async function LeadsPage({
         ) : null}
 
         {visible.length === 0 ? (
-          <EmptyLeads
-            archived={archived}
-            cold={cold}
-            filtered={population.length > 0}
-            allHref={hrefFor("all", { archived, view })}
-          />
+          crack ? (
+            // A crack that has closed. Its own words rather than the roster's
+            // empty state, because "no leads here" would be a lie about a
+            // screen whose subject is a gap: the leads exist, the gap doesn't.
+            <GroupedSection>
+              <GroupedRow
+                icon={<CircleCheck />}
+                label="Nothing to fix"
+                description={crack.empty}
+                chevron={false}
+              />
+            </GroupedSection>
+          ) : (
+            <EmptyLeads
+              archived={archived}
+              cold={cold}
+              filtered={population.length > 0}
+              allHref={hrefFor("all", { archived, view })}
+            />
+          )
         ) : (
           <GroupedSection>
             <ul>
               {visible.map((row, index) => {
                 const stale = isStale(row, now)
-                // The two rows that read muted, one per view: a client whose
-                // engagement is over, and a prospect parked on a wake date.
-                // Same idiom, same reason — still on the list, no longer live.
-                const quiet = cold ? isNurtured(row) : isPastClient(row)
-                const figure = cold ? null : dealFigure(row)
+                // Which population *this row* is from. The two ordinary views
+                // are already split by exactly this, so it changes nothing
+                // there; a crack view is the one screen that holds both, and a
+                // prospect showing a deal figure it can't have would be the
+                // first thing to go wrong on it.
+                const rowCold = isProspect(row)
+                // The two rows that read muted, one per population: a client
+                // whose engagement is over, and a prospect parked on a wake
+                // date. Same idiom, same reason — still on the list, no longer
+                // live.
+                const quiet = rowCold ? isNurtured(row) : isPastClient(row)
+                const figure = rowCold ? null : dealFigure(row)
                 const open = isOpenLead(row)
                 const who = whoLabel(row)
                 // What happens next takes the row's leading line whenever
@@ -456,7 +575,7 @@ export default async function LeadsPage({
                                 whole of what "nobody has graded this" means.
                                 The letter alone reads as a code on screen and
                                 is spoken in full. */}
-                            {cold && row.fitTier ? (
+                            {rowCold && row.fitTier ? (
                               <span
                                 className={cn(
                                   "shrink-0 font-mono text-app-subhead font-semibold tabular-nums",
@@ -493,7 +612,7 @@ export default async function LeadsPage({
                                 next.text
                               ) : wake ? (
                                 wake
-                              ) : cold ? (
+                              ) : rowCold ? (
                                 (prospectLabel(row) ?? "")
                               ) : (
                                 <>
@@ -516,7 +635,7 @@ export default async function LeadsPage({
                               rows that carry them grow a third line, and never
                               the term the figure above already named. A
                               prospect has no deal to badge. */}
-                          {cold ? null : (
+                          {rowCold ? null : (
                             <DealBadges
                               client={row}
                               omit={figure?.kind}

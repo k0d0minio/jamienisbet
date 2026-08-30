@@ -1,4 +1,15 @@
-import { and, asc, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm"
+import {
+  and,
+  asc,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm"
 
 import { getDb } from "../client"
 import { clients } from "../schema"
@@ -23,6 +34,13 @@ import { nextActionStatuses, nurtureStatuses, type Client } from "./clients"
 // the operator scripts in ../../scripts/ read the same four functions, which is the
 // point of them being here rather than in a page.
 //
+// Each question is written once, as a `where` builder, and asked two ways: for
+// its rows (the four `list*` functions) and for its size (`countCracks`, one
+// round trip for all four). The feed needs both — it renders two of the
+// queues and only counts the other two — and a count that drifted from its own
+// list would be the worst possible bug here: a number nagging about rows the
+// screen it links to doesn't hold.
+//
 // All four exclude archived rows and all four return whole `Client` rows: the
 // surfaces that show a crack show a lead, and a projection would only mean a
 // second read to render one.
@@ -41,6 +59,11 @@ export const IDLE_AFTER_DAYS = 14
 /** Common to every question here: the row is still on the books. */
 const live = isNull(clients.archivedAt)
 
+/** When the relationship last moved. `created_at` stands in for a row nobody
+ *  has worked yet, so an untouched lead ages from the day it arrived rather
+ *  than being invisible to every question that asks. */
+const lastWorked = sql`coalesce(${clients.lastTouchedAt}, ${clients.createdAt})`
+
 /** The end of `now`'s day, which is what "due today" means. Computed from the
  *  clock the caller passed rather than the database's, so a page and a script
  *  reading at the same moment agree on where today ends. */
@@ -48,6 +71,54 @@ function endOfDay(now: Date): Date {
   const at = new Date(now.getTime())
   at.setHours(23, 59, 59, 999)
   return at
+}
+
+// Drizzle types `and()` as possibly-undefined because it tolerates undefined
+// conditions; none of these pass one, so each builder narrows back to `SQL`.
+// That matters because the count below interpolates them into a `filter (where
+// …)` clause, which has no way to render a missing predicate.
+
+/** Owed today or already overdue, on a rung that owes something. */
+function dueWhere(now: Date): SQL {
+  return and(
+    live,
+    inArray(clients.status, [...nextActionStatuses]),
+    isNotNull(clients.nextActionDue),
+    lte(clients.nextActionDue, endOfDay(now))
+  ) as SQL
+}
+
+/** Being worked, with no next action — or one nobody dated, which never
+ *  reaches the queue above and so is the same crack. */
+function unplannedWhere(): SQL {
+  return and(
+    live,
+    inArray(clients.status, [...nextActionStatuses]),
+    or(isNull(clients.nextAction), isNull(clients.nextActionDue))
+  ) as SQL
+}
+
+/** Parked, and the date has come. */
+function wokenWhere(now: Date): SQL {
+  return and(
+    live,
+    inArray(clients.status, [...nurtureStatuses]),
+    isNotNull(clients.wakeAt),
+    lte(clients.wakeAt, now)
+  ) as SQL
+}
+
+/** Mid-conversation, and quiet for `days`. */
+function idleWhere(now: Date, days: number): SQL {
+  const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+  return and(
+    live,
+    // The one rung that means "we are talking". `lead` is not here: an
+    // unanswered arrival is the leads list's staleness nag, not a conversation
+    // that stopped.
+    inArray(clients.status, ["discussing"]),
+    lt(lastWorked, cutoff)
+  ) as SQL
 }
 
 /**
@@ -69,14 +140,7 @@ export async function listDueOutreach(
   const query = getDb()
     .select()
     .from(clients)
-    .where(
-      and(
-        live,
-        inArray(clients.status, [...nextActionStatuses]),
-        isNotNull(clients.nextActionDue),
-        lte(clients.nextActionDue, endOfDay(now))
-      )
-    )
+    .where(dueWhere(now))
     .orderBy(
       // Overdue before due-today. A boolean sorts false-then-true ascending,
       // so this is the one that needs saying backwards.
@@ -104,17 +168,8 @@ export async function listWithoutNextAction(
   const query = getDb()
     .select()
     .from(clients)
-    .where(
-      and(
-        live,
-        inArray(clients.status, [...nextActionStatuses]),
-        or(isNull(clients.nextAction), isNull(clients.nextActionDue))
-      )
-    )
-    .orderBy(
-      sql`${clients.fitTier} asc nulls last`,
-      asc(sql`coalesce(${clients.lastTouchedAt}, ${clients.createdAt})`)
-    )
+    .where(unplannedWhere())
+    .orderBy(sql`${clients.fitTier} asc nulls last`, asc(lastWorked))
   return opts.limit ? query.limit(opts.limit) : query
 }
 
@@ -135,14 +190,7 @@ export async function listWokenNurture(
   const query = getDb()
     .select()
     .from(clients)
-    .where(
-      and(
-        live,
-        inArray(clients.status, [...nurtureStatuses]),
-        isNotNull(clients.wakeAt),
-        lte(clients.wakeAt, now)
-      )
-    )
+    .where(wokenWhere(now))
     .orderBy(asc(clients.wakeAt))
   return opts.limit ? query.limit(opts.limit) : query
 }
@@ -162,21 +210,11 @@ export async function listIdleEngaged(
 ): Promise<Client[]> {
   const now = opts.now ?? new Date()
   const days = opts.days ?? IDLE_AFTER_DAYS
-  const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
   const query = getDb()
     .select()
     .from(clients)
-    .where(
-      and(
-        live,
-        // The one rung that means "we are talking". `lead` is not here: an
-        // unanswered arrival is the leads list's staleness nag, not a
-        // conversation that stopped.
-        inArray(clients.status, ["discussing"]),
-        lt(sql`coalesce(${clients.lastTouchedAt}, ${clients.createdAt})`, cutoff)
-      )
-    )
-    .orderBy(asc(sql`coalesce(${clients.lastTouchedAt}, ${clients.createdAt})`))
+    .where(idleWhere(now, days))
+    .orderBy(asc(lastWorked))
   return opts.limit ? query.limit(opts.limit) : query
 }
 
@@ -206,4 +244,43 @@ export async function findCracks(
     listIdleEngaged({ now, days: opts.days, limit: opts.limit }),
   ])
   return { due, unplanned, woken, idle }
+}
+
+/** The same four questions asked for their size rather than their rows. */
+export type CrackCounts = Record<keyof Cracks, number>
+
+/**
+ * How big each crack is, in one round trip.
+ *
+ * The feed needs both shapes at once: it works the due queue and the wakes as
+ * rows, and reports the other two as a count apiece — "12 with nothing planned"
+ * is the whole of what those two rows say, and fetching a hundred profiles to
+ * render two numbers would be the read that makes opening the app slow.
+ *
+ * One statement rather than four, because all four questions are asked of the
+ * same table and Postgres will answer them in a single pass. The predicates are
+ * the list functions' own, so a count can never disagree with the screen it
+ * links to.
+ */
+export async function countCracks(
+  opts: { now?: Date; days?: number } = {}
+): Promise<CrackCounts> {
+  const now = opts.now ?? new Date()
+  const days = opts.days ?? IDLE_AFTER_DAYS
+  const [row] = await getDb()
+    .select({
+      due: tally(dueWhere(now)),
+      unplanned: tally(unplannedWhere()),
+      woken: tally(wokenWhere(now)),
+      idle: tally(idleWhere(now, days)),
+    })
+    .from(clients)
+  return row ?? { due: 0, unplanned: 0, woken: 0, idle: 0 }
+}
+
+/** One crack's size as a column of the single count above. `count(*)` returns
+ *  a bigint, which the driver hands over as a string — `mapWith(Number)` is
+ *  what keeps a caller from adding "12" to 3 and getting "123". */
+function tally(where: SQL) {
+  return sql<number>`count(*) filter (where ${where})`.mapWith(Number)
 }

@@ -31,11 +31,13 @@ import {
   isWebsiteGrade,
   listTouchesForClient,
   logTouch,
+  NURTURE_WAKE_DAYS,
   parkClient,
   setClientArchived,
   setClientNextAction,
   setClientRepo,
   setClientStatus,
+  setClientWakeAt,
   setClientWorkStarted,
   setTaskClient,
   setTaskCompleted,
@@ -492,6 +494,41 @@ export async function saveNextAction(clientId: string, formData: FormData) {
 export async function clearNextAction(clientId: string) {
   await setClientNextAction(clientId, null)
   revalidateLead(clientId)
+}
+
+// ---- Wakes ------------------------------------------------------------------
+// The two answers a woken nurture row can be given from the feed. Both are one
+// tap, and neither opens anything: the whole value of the wakes section is that
+// a parked relationship whose date has come is decided in the time it takes to
+// read the name, or it silently becomes a parked relationship nobody decides
+// about — which is what `nurture` was invented not to be.
+
+/** What a re-promoted row is told to do. Deliberately not a cadence step: the
+ *  cadence is spent (that is why they were parked), and ninety days on, the
+ *  honest instruction is to open the conversation again rather than to send
+ *  rung six of a template that already ran out. */
+const WAKE_ACTION = "Get back in touch"
+
+/**
+ * Pick a parked relationship back up: onto `prospect`, with a fresh next
+ * action due today.
+ *
+ * Two writes rather than one call because they are two facts — where they sit
+ * and what is owed — and `setClientStatus` is what clears the wake date on the
+ * way out, since a date to come back is not about a row that has come back.
+ */
+export async function wakeProspect(id: string) {
+  await setClientStatus(id, "prospect")
+  await setClientNextAction(id, { action: WAKE_ACTION, dueAt: new Date() })
+  revalidateLead(id)
+}
+
+/** "Not this quarter either." Pushes the wake out by the cadence's own ninety
+ *  days and leaves everything else alone — the row stays parked, and stays out
+ *  of every queue until the new date comes. */
+export async function pushWake(id: string) {
+  await setClientWakeAt(id, addDays(new Date(), NURTURE_WAKE_DAYS))
+  revalidateLead(id)
 }
 
 function addDays(from: Date, days: number): Date {
