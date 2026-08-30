@@ -1,94 +1,164 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useOptimistic, useRef, useState, useTransition } from "react"
 import { Pencil } from "lucide-react"
 
 import {
   AppTextarea,
+  Button,
   GroupedBlock,
-  GroupedRow,
   GroupedSection,
   PendingButton,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
   toast,
 } from "@jamie-nisbet/ui"
 
 import { saveClientNotes } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 
-// Working notes, read on the page and written in a sheet — on a phone a live
-// five-row textarea is a scroll trap (the page scroll and the box's own scroll
-// fight), and the sheet gives the keyboard the whole screen instead. It opens
-// at the medium detent and can be dragged up to full height for a long note.
-export function LeadNotesCard({ id, notes }: { id: string; notes: string | null }) {
-  const [open, setOpen] = useState(false)
+// Working notes — the note itself is the editor. Tap the text and it becomes a
+// textarea exactly where it was reading, with the caret at the end of what is
+// already written.
+//
+// This used to be a sheet, for a real reason: a fixed-height box that scrolls
+// inside a page that also scrolls is a trap on a phone. The fix is not the
+// sheet, it is the box — `autoResize` grows the textarea to its content on
+// every keystroke, so it has nothing to scroll and the page keeps the only
+// scroll on screen. With that gone, so is the reason to send a one-line
+// correction through a bottom sheet.
+//
+// It saves when focus leaves — dismissing the keyboard on a phone is the same
+// gesture as being done — and on Save. Cancel and Save hold focus themselves
+// (mousedown prevented), so pressing either is one intention, not a blur race.
+export function LeadNotesCard({
+  id,
+  notes,
+}: {
+  id: string
+  notes: string | null
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState("")
   const [pending, startTransition] = useTransition()
+  // What the closed card reads while a save is in flight. `notes` is the
+  // server's answer: when the action lands the optimistic layer falls away
+  // onto it, so a refused write puts the old note back on its own.
+  const [shown, showNote] = useOptimistic(notes ?? "")
+  const box = useRef<HTMLTextAreaElement>(null)
+
+  // Focus the box and put the caret after the last word rather than selecting
+  // the note — you almost always came to add a line, not to replace it.
+  useEffect(() => {
+    if (!editing) return
+    const el = box.current
+    if (!el) return
+    el.focus()
+    el.setSelectionRange(el.value.length, el.value.length)
+  }, [editing])
+
+  function edit() {
+    setDraft(notes ?? "")
+    setEditing(true)
+  }
+
+  function commit() {
+    const next = draft.trim()
+    setEditing(false)
+    if (next === (notes ?? "")) return
+
+    startTransition(async () => {
+      showNote(next)
+      hapticTick()
+      const formData = new FormData()
+      formData.set("notes", next)
+      try {
+        await saveClientNotes(id, formData)
+      } catch {
+        // The draft is untouched, so putting the editor back is enough to
+        // hand the words back with it.
+        toast.error("Couldn't save the note — it's still in the box")
+        setEditing(true)
+      }
+    })
+  }
+
+  if (editing) {
+    return (
+      <GroupedSection header="Notes">
+        <GroupedBlock>
+          <div className="grid gap-3">
+            <AppTextarea
+              ref={box}
+              autoResize
+              rows={4}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              onBlur={commit}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setEditing(false)
+                // The one keyboard shortcut a multi-line box needs, since
+                // return is a newline here.
+                if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                  commit()
+                }
+              }}
+              placeholder="Working notes — calls, decisions, next steps…"
+              aria-label="Notes"
+              autoCapitalize="sentences"
+            />
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                className="px-3"
+                // Keep the caret where it is: without this the press blurs the
+                // box first, which would save the very draft it discards.
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => setEditing(false)}
+              >
+                Cancel
+              </Button>
+              <PendingButton
+                type="button"
+                pending={pending}
+                pendingText="Saving…"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={commit}
+              >
+                Save
+              </PendingButton>
+            </div>
+          </div>
+        </GroupedBlock>
+      </GroupedSection>
+    )
+  }
 
   return (
     <GroupedSection header="Notes">
-      {notes ? (
-        <GroupedBlock>
-          <p className="whitespace-pre-wrap">{notes}</p>
-        </GroupedBlock>
-      ) : (
-        <GroupedBlock>
-          Nothing written down yet — calls, decisions and next steps go here.
-        </GroupedBlock>
-      )}
-
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <GroupedRow
-            icon={<Pencil />}
-            label={notes ? "Edit notes" : "Write a note"}
+      <GroupedBlock className="p-0">
+        <button
+          type="button"
+          onClick={edit}
+          aria-label={shown ? "Edit notes" : "Write a note"}
+          aria-busy={pending || undefined}
+          className="flex w-full min-h-app-touch items-start gap-3 px-4 py-3 text-left transition-colors spring-press active:bg-app-press"
+        >
+          {shown ? (
+            <span className="min-w-0 flex-1 whitespace-pre-wrap">{shown}</span>
+          ) : (
+            // Empty, and designed: it says what belongs here and it is the
+            // thing you tap to start writing it.
+            <span className="min-w-0 flex-1 text-app-label-3">
+              Nothing written down yet — calls, decisions and next steps go
+              here.
+            </span>
+          )}
+          <Pencil
+            className="mt-0.5 size-3.5 shrink-0 text-app-label-3"
+            aria-hidden
           />
-        </SheetTrigger>
-        <SheetContent detents={["medium", "large"]}>
-          <SheetHeader>
-            <SheetTitle>Notes</SheetTitle>
-            <SheetDescription>
-              Calls, decisions, next steps — the running record.
-            </SheetDescription>
-          </SheetHeader>
-          <form
-            action={(formData) =>
-              startTransition(async () => {
-                hapticTick()
-                try {
-                  await saveClientNotes(id, formData)
-                  setOpen(false)
-                } catch {
-                  // The sheet stays open on a failure, so the note you just
-                  // typed is still there to try again with.
-                  toast.error("Couldn't save the note")
-                }
-              })
-            }
-            className="grid gap-3"
-          >
-            <AppTextarea
-              name="notes"
-              rows={8}
-              autoFocus
-              defaultValue={notes ?? ""}
-              placeholder="Working notes — calls, decisions, next steps…"
-              aria-label="Notes"
-            />
-            <PendingButton
-              pending={pending}
-              pendingText="Saving…"
-              className="w-full sm:w-fit"
-            >
-              Save
-            </PendingButton>
-          </form>
-        </SheetContent>
-      </Sheet>
+        </button>
+      </GroupedBlock>
     </GroupedSection>
   )
 }
