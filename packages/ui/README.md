@@ -57,6 +57,7 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Feedback | `Alert` (+ `AlertTitle`/`AlertDescription`; variants `default`/`info`/`success`/`warning`/`destructive`) |
 | Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
+| Machine-readable | `QrCode` (+ `canEncodeQr`) — see [QR codes](#qr-codes) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
 | App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material`, `AppField` (+ `AppLabel`/`AppInput`/`AppTextarea`), `AppSelect` (+ its parts) — see [App tier](#app-tier) |
 
@@ -74,6 +75,24 @@ view (`useKeyboardInset`, exported for anything else pinned to the bottom edge).
 that want the layout viewport to shrink instead should set
 `interactiveWidget: "resizes-content"` in their Next `viewport` export — the two don't
 fight, because the measurement reads zero once the layout viewport has already shrunk.
+
+### QR codes
+
+`QrCode` renders one short string — a link you hand over in person — as inline SVG, in
+the same no-dependency idiom as the data-viz primitives: byte mode, error-correction
+level M, versions 1–10 (213 characters). `canEncodeQr(value)` says whether it fits, so a
+call site can write its own sentence instead of reading a `null` back out of the render.
+
+```tsx
+import { QrCode, canEncodeQr } from "@jamie-nisbet/ui"
+
+{canEncodeQr(url) ? <QrCode value={url} label="QR code for the questionnaire" /> : null}
+```
+
+It is the one thing here that does **not** flip with the theme. A QR is read by a camera,
+not by a person, and plenty of scanners will not invert one — so it draws on `--scan-plate`
+in `--scan-ink` (`tokens/colors.css`), a pair the dark block deliberately leaves alone, and
+the quiet zone is part of the plate rather than a hole onto the page.
 
 ### Data-viz primitives
 Four dependency-free primitives for the numbers on an operating screen — **inline SVG, no
@@ -295,6 +314,10 @@ export function LeadProfile() {
 - **A row can carry an `accessory`** — a copy button beside an address, a delete beside a
   todo. It renders *outside* the row's own element (a button inside a button is not a
   thing), and the row gives up its chevron for it.
+- **So can a `GroupedDisclosure`** — an action you can take without opening the fold, such
+  as sharing the link the fold spells out. A `<summary>` has to be the details' first child
+  and can't hold a button either, so this one floats over the summary's trailing edge, on
+  the label's own line, and keeps its chevron: the fold still has to say it opens.
 - **Neither header listens to scroll.** The masthead is in ordinary flow and simply scrolls
   away; a sentinel and an `IntersectionObserver` fade the material and the compact title in
   at the moment it clears the bar. `onCollapsedChange` reports the hand-off to anything else

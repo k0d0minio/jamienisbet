@@ -317,6 +317,7 @@ function GroupedDisclosure({
   label,
   description,
   value,
+  accessory,
   defaultOpen = false,
   className,
   style,
@@ -327,32 +328,48 @@ function GroupedDisclosure({
   label: React.ReactNode
   description?: React.ReactNode
   value?: React.ReactNode
+  /** A control on the trailing edge that acts *without* opening the fold —
+   *  share this link, delete this row.
+   *
+   *  A GroupedRow puts its accessory beside the row. Here it has to go
+   *  *outside the `<details>` altogether*, in a wrapper: a `<summary>` must be
+   *  the details' first child and can't hold a button, and anything else
+   *  inside the details is hidden by the browser while the fold is closed —
+   *  which is when you most want to press this. So it overlays the summary's
+   *  trailing edge from the wrapper, on the label's own line: centred on a
+   *  one-line summary, level with the label on a two-line one. The summary
+   *  reserves the room with its right padding. */
+  accessory?: React.ReactNode
   /** Open on arrival — for the one set of answers you came to read. */
   defaultOpen?: boolean
 }) {
-  return (
+  const inset = {
+    "--app-row-inset": icon != null ? "3.25rem" : "1rem",
+  } as React.CSSProperties
+
+  const hairline =
+    "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-[var(--app-row-inset)] before:h-px before:bg-app-separator first:before:hidden"
+
+  const details = (
     <details
       data-slot="grouped-disclosure"
       open={defaultOpen}
       className={cn(
         "group/disclosure relative",
-        "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-[var(--app-row-inset)] before:h-px before:bg-app-separator",
-        "first:before:hidden",
+        // With an accessory beside it the wrapper below is the section body's
+        // direct child, so it draws the hairline and holds the inset.
+        accessory == null ? hairline : "w-full",
         className
       )}
-      style={
-        {
-          "--app-row-inset": icon != null ? "3.25rem" : "1rem",
-          ...style,
-        } as React.CSSProperties
-      }
+      style={accessory == null ? { ...inset, ...style } : style}
       {...props}
     >
       <summary
         className={cn(
           "flex min-h-app-touch cursor-pointer list-none items-center gap-3 px-4 py-2.5 text-app-body text-app-label",
           "transition-colors spring-press active:bg-app-press",
-          "[&::-webkit-details-marker]:hidden"
+          "[&::-webkit-details-marker]:hidden",
+          accessory != null && "pr-16"
         )}
       >
         {icon != null && (
@@ -389,6 +406,23 @@ function GroupedDisclosure({
         {children}
       </div>
     </details>
+  )
+
+  if (accessory == null) return details
+
+  return (
+    <div
+      data-slot="grouped-disclosure-with-accessory"
+      className={cn("relative", hairline)}
+      style={{ ...inset, ...style }}
+    >
+      {details}
+      {/* Over the summary's trailing edge, click-through except for the
+          control itself, so the rest of the row still opens the fold. */}
+      <div className="pointer-events-none absolute top-0 right-2 flex h-app-touch items-center">
+        <div className="pointer-events-auto">{accessory}</div>
+      </div>
+    </div>
   )
 }
 

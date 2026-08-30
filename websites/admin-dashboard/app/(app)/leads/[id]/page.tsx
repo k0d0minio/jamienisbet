@@ -256,6 +256,7 @@ export default async function LeadDetailPage({
             <FormLinks
               clientId={client.id}
               clientName={client.name}
+              clientEmail={client.email}
               clientRepo={client.githubRepo}
               links={formLinks}
               forms={formLibrary.forms}
