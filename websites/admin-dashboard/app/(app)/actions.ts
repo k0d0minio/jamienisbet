@@ -298,9 +298,9 @@ export async function connectClientRepo(id: string, fullName: string) {
 export type CreateClientRepoResult = {
   repo: RepoSummary
   /**
-   * Null when the `.icm/` baseline landed. A sentence to put on screen
-   * otherwise — the repo is created and connected either way, so this is a
-   * warning about the seeding, never a failure of the create.
+   * Null when the baseline landed. A sentence to put on screen otherwise —
+   * the repo is created and connected either way, so this is a warning about
+   * the seeding, never a failure of the create.
    *
    * Returned rather than thrown for the same reason `sendFormToClient` returns
    * its errors: Next redacts server-action exceptions in production, and the
@@ -313,9 +313,11 @@ export type CreateClientRepoResult = {
 // Private by default; the created repo's actual full name (owner may differ from
 // the token account via GITHUB_REPO_OWNER) and branch are what we store.
 //
-// A new repo is then seeded with the estate's `.icm/` baseline, so it shows up
-// on the tickets board (empty, not absent) and passes `icm-check.sh` from
-// minute one rather than waiting for someone to hand-create the folder.
+// A new repo is then seeded with the estate's baseline — `.icm/` so it shows up
+// on the tickets board (empty, not absent), plus the canonical root rails — and
+// so passes `icm-check.sh` from minute one rather than waiting for someone to
+// hand-create the folders. Its Layer 0 and `.claude/` are deliberately left to
+// `/project` adoption and `icm-check.sh --fix`; `lib/icm-scaffold.ts` says why.
 export async function createClientRepo(
   id: string,
   input: { name: string; description?: string; isPrivate?: boolean }
@@ -349,7 +351,7 @@ export async function createClientRepo(
   return {
     repo,
     scaffoldError: scaffold.error
-      ? `${repo.fullName} was created and connected, but its .icm/ baseline didn't land: ${scaffold.error}. Seed it by hand or with icm-check.sh --fix.`
+      ? `${repo.fullName} was created and connected, but its baseline didn't land: ${scaffold.error}. Seed it by hand or with icm-check.sh --fix.`
       : null,
   }
 }
