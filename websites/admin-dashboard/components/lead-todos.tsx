@@ -266,7 +266,9 @@ export function LeadTodos({
                 value={due}
                 onChange={(event) => setDue(event.target.value)}
                 aria-label="Due date (optional)"
-                className="min-w-0 flex-1"
+                // Full width beside the button on a phone; capped once there
+                // is room, because a due date is never 1500px of information.
+                className="min-w-0 flex-1 sm:max-w-52"
               />
               <PendingButton pending={adding} pendingText="Adding…">
                 Add
