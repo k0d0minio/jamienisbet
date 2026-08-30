@@ -5,6 +5,7 @@ import { generateText } from "ai"
 
 import {
   buildDraftPrompt,
+  buildEnrichmentPrompt,
   completeComplianceDate,
   createClientManually,
   createComplianceDate,
@@ -14,6 +15,10 @@ import {
   deleteComplianceDate,
   deleteFormLink,
   deleteTask,
+  enrichmentChanges,
+  enrichmentFieldLabels,
+  enrichmentPatch,
+  fetchWebsitePage,
   getClient,
   getFormLink,
   isBillingType,
@@ -23,6 +28,7 @@ import {
   isDealType,
   isDraftChannel,
   isDraftKind,
+  isEnrichmentField,
   isFitTier,
   isSuppressed,
   isTouchChannel,
@@ -32,7 +38,9 @@ import {
   listTouchesForClient,
   logTouch,
   NURTURE_WAKE_DAYS,
+  parseEnrichment,
   parkClient,
+  saveEnrichment as saveEnrichmentToLead,
   setClientArchived,
   setClientNextAction,
   setClientRepo,
@@ -49,10 +57,15 @@ import {
   type CadenceSuggestion,
   type ClientProfilePatch,
   type DraftChannel,
+  type EnrichmentChange,
+  type EnrichmentField,
+  type SuppressionKind,
 } from "@jamie-nisbet/services"
 
 import {
   DRAFT_MAX_OUTPUT_TOKENS,
+  ENRICH_MAX_OUTPUT_TOKENS,
+  ENRICH_MODEL,
   draftModelFor,
   isGatewayConfigured,
 } from "@/lib/ai"
@@ -660,6 +673,268 @@ async function isChannelClosed(
       return isSuppressed("phone", client.whatsapp ?? client.phone)
     case "instagram":
       return isSuppressed("instagram", client.instagram)
+  }
+}
+
+// ---- Enrichment -------------------------------------------------------------
+// Read their website, propose facts, change nothing until somebody says so.
+//
+// The second AI feature on this page and the one furthest from the standing
+// rule: nothing here composes a message, and nothing here can reach a person.
+// It fetches one page of a business's own site, has a cheap model say what is
+// on it, and puts the answer *beside* what is stored so a human accepts it a
+// field at a time.
+//
+// Two halves, deliberately separated by a person:
+//
+//   `enrichFromWebsite` reads and proposes. It writes nothing at all — not
+//   even the `enriched_at` stamp — so a preview that is closed unread costs a
+//   page fetch and leaves no trace.
+//
+//   `saveEnrichment` writes only what came back accepted, re-validating every
+//   value against the same closed sets the facts sheet uses, and derives the
+//   tier itself rather than taking one from the browser.
+//
+// The fetching, the prompt, the parsing and the diff all live in
+// @jamie-nisbet/services (`src/enrichment.ts`), and the tier in `src/tiering.ts`
+// — which is what lets `leads-enrich` grade the pool from a terminal and get
+// the same answers this screen does.
+
+/** What the sheet renders: what would change, the evidence behind it, and the
+ *  tier those facts would come to. */
+export type EnrichPreview = {
+  /** Where the facts came from — the address as fetched, and its title. */
+  source: { url: string; title: string | null }
+  changes: EnrichmentChange[]
+  /** What the model saw. Read, never stored. */
+  findings: string[]
+  /** Which model read it, for the line under the findings. */
+  model: string
+  /**
+   * What the letter would be if every change below were taken, and the reasons
+   * behind it.
+   *
+   * Computed here rather than in the browser, and stated as "if you take all of
+   * this" rather than tracking the toggles, because the tier is *derived* — the
+   * one authority on it is `deriveFitTier` in the services layer, and a second
+   * copy of the weights running in a sheet is exactly the drift this ticket
+   * exists to prevent. The letter that actually lands is derived again on save,
+   * from whatever was accepted.
+   */
+  tier: { now: string | null; ifAccepted: string | null; reasons: string[] }
+}
+
+export type EnrichResult =
+  | { ok: true; preview: EnrichPreview }
+  | { ok: false; message: string }
+
+/**
+ * Read this lead's website and propose what it says.
+ *
+ * Returned rather than thrown, like the draft action: Next redacts server-action
+ * exceptions in production, and the value is the whole point of the call.
+ *
+ * Four refusals, three of them before anything leaves the machine:
+ *
+ *   - **No website.** There is nothing to read, and the import already grades a
+ *     record with no address. A model asked to read a page that does not exist
+ *     is a model asked to invent one.
+ *   - **No Gateway.** Degrades to a stated absence, the way Stripe and GitHub
+ *     do, rather than to a failing button.
+ *   - **The site did not answer.** Reported as what it is. Emphatically *not*
+ *     graded `none` on its own: a site that times out might be down for an
+ *     hour, and inventing a finding from a failed request is the one thing this
+ *     feature must not do.
+ *   - **The model came back with something that isn't a proposal.** Same
+ *     answer — nothing is stored, and it is worth saying out loud.
+ */
+export async function enrichFromWebsite(clientId: string): Promise<EnrichResult> {
+  if (!isGatewayConfigured()) {
+    return {
+      ok: false,
+      message: "Enrichment isn't configured — the Gateway key is missing.",
+    }
+  }
+
+  try {
+    const client = await getClient(clientId)
+    if (!client) return { ok: false, message: "That lead no longer exists." }
+    if (!client.websiteUrl?.trim()) {
+      return {
+        ok: false,
+        message: "No website on file — add one on the facts sheet first.",
+      }
+    }
+
+    const fetched = await fetchWebsitePage(client.websiteUrl)
+    if (!fetched.ok) {
+      return { ok: false, message: `${fetched.reason} Grade it by hand instead.` }
+    }
+
+    const { system, prompt } = buildEnrichmentPrompt({
+      lead: client,
+      page: fetched.page,
+    })
+    const { text } = await generateText({
+      // A bare "provider/model" string is a Vercel AI Gateway model — see
+      // lib/ai.ts, and the services module behind it.
+      model: ENRICH_MODEL,
+      system,
+      prompt,
+      maxOutputTokens: ENRICH_MAX_OUTPUT_TOKENS,
+      // One retry, not three. This is a phone waiting on a sheet.
+      maxRetries: 1,
+    })
+
+    const proposal = parseEnrichment(text)
+    if (!proposal) {
+      return { ok: false, message: "The model didn't come back with facts. Try again." }
+    }
+
+    const changes = await withoutClosedChannels(
+      enrichmentChanges(client, proposal)
+    )
+    const { tier } = enrichmentPatch({
+      lead: client,
+      changes,
+      accepted: new Set(changes.map((change) => change.field)),
+    })
+
+    return {
+      ok: true,
+      preview: {
+        source: { url: fetched.page.finalUrl, title: fetched.page.title },
+        changes,
+        findings: proposal.findings,
+        model: ENRICH_MODEL,
+        tier: {
+          now: client.fitTier,
+          ifAccepted: tier.tier,
+          reasons: tier.signals.map((signal) => signal.reason),
+        },
+      },
+    }
+  } catch (err) {
+    console.error("[enrich] failed:", err)
+    return { ok: false, message: "Couldn't read that one. Try again." }
+  }
+}
+
+/**
+ * Drop any proposed contact detail that has already asked to be left alone.
+ *
+ * A page can perfectly well carry the address of somebody who opted out — a
+ * shared `geral@` on a group's site, a number that was suppressed after a call
+ * — and writing it back onto the record would put a door on this lead that
+ * every other surface then has to spend its time refusing. The suppression
+ * table is the floor under all of this; the cheapest way to honour it is not to
+ * offer the door in the first place.
+ */
+async function withoutClosedChannels(
+  changes: readonly EnrichmentChange[]
+): Promise<EnrichmentChange[]> {
+  const kept: EnrichmentChange[] = []
+  for (const change of changes) {
+    const kind: SuppressionKind | null =
+      change.field === "email"
+        ? "email"
+        : change.field === "phone" || change.field === "whatsapp"
+          ? "phone"
+          : change.field === "instagram"
+            ? "instagram"
+            : null
+    if (kind && (await isSuppressed(kind, change.value))) continue
+    kept.push(change)
+  }
+  return kept
+}
+
+export type SaveEnrichmentResult =
+  | { ok: true; saved: number; tier: string | null }
+  | { ok: false; message: string }
+
+/**
+ * Write the accepted facts, derive the tier from them, stamp the pass.
+ *
+ * The form posts one entry per accepted field — `accept` names them and
+ * `value:<field>` carries what was on screen — and **every value is
+ * re-validated here** rather than trusted. The browser held a proposal for as
+ * long as a sheet was open; what reaches the column has to pass the same guards
+ * the facts sheet's own action applies, because two of these are closed
+ * vocabularies stored as plain varchars and nothing at the database level would
+ * catch a word no surface can label.
+ *
+ * The tier is **not** posted. It is derived here from the row as it will stand
+ * once the patch lands — the ticket's own ordering: a model proposes facts, a
+ * pure function decides the letter. What the sheet showed was that same
+ * function's answer to the same question; if they disagree, this one is right.
+ *
+ * Accepting nothing is a real outcome and still stamps `enriched_at`: "I read
+ * it and there was nothing to change" is exactly what stops the batch fetching
+ * the same page again next week.
+ */
+export async function saveEnrichment(
+  clientId: string,
+  formData: FormData
+): Promise<SaveEnrichmentResult> {
+  try {
+    const client = await getClient(clientId)
+    if (!client) return { ok: false, message: "That lead no longer exists." }
+
+    const accepted = new Set<EnrichmentField>()
+    const changes: EnrichmentChange[] = []
+
+    for (const raw of formData.getAll("accept")) {
+      if (typeof raw !== "string" || !isEnrichmentField(raw)) continue
+      const value = enrichedValue(raw, formData.get(`value:${raw}`))
+      if (value === null) continue
+      accepted.add(raw)
+      changes.push({
+        field: raw,
+        label: enrichmentFieldLabels[raw],
+        current: client[raw],
+        value,
+        proposed: value,
+        conflict: client[raw] !== null,
+      })
+    }
+
+    const { patch, tier } = enrichmentPatch({ lead: client, changes, accepted })
+    await saveEnrichmentToLead(clientId, patch)
+    revalidateLead(clientId)
+    return { ok: true, saved: accepted.size, tier: tier.tier }
+  } catch (err) {
+    console.error("[enrich] save failed:", err)
+    return { ok: false, message: "Couldn't save that. Try again." }
+  }
+}
+
+/** One posted value, narrowed to what its column will accept — or null, which
+ *  drops the field rather than storing something the UI could not label. The
+ *  two closed sets go through the same guards `saveClientFacts` uses. */
+function enrichedValue(field: EnrichmentField, raw: FormDataEntryValue | null): string | null {
+  if (typeof raw !== "string") return null
+  const value = raw.trim()
+  if (value === "") return null
+
+  switch (field) {
+    case "websiteGrade":
+      return isWebsiteGrade(value) ? value : null
+    case "language":
+      return isClientLanguage(value) ? value : null
+    case "instagram":
+      return value.replace(/^@+/, "").slice(0, 100) || null
+    case "sector":
+      return value.slice(0, 60)
+    case "town":
+      return value.slice(0, 80)
+    case "email":
+      return value.slice(0, 200)
+    case "phone":
+    case "whatsapp":
+      return value.slice(0, 40)
+    case "hook":
+      return value.slice(0, 2000)
   }
 }
 

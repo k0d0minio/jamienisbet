@@ -1,0 +1,28 @@
+-- When somebody last read this business's website — sequence 7 of the
+-- lead-engine epic, and the whole of its schema cost.
+--
+-- One nullable column, no index, no backfill, no default. Every existing row
+-- means exactly what it meant before this ran, and null is the honest starting
+-- value: nobody has looked at any of them yet.
+--
+-- It is stamped by an enrichment pass whether or not a single proposed fact was
+-- accepted, because "I read it and there was nothing to change" is precisely
+-- the answer that stops `leads-enrich` fetching the same page again next week.
+--
+-- **It is not `last_touched_at` and must never be read as one.** Reading a
+-- stranger's home page is not contact — a column that conflated the two would
+-- put eighty prospects at the bottom of the staleness sort the morning after a
+-- batch that spoke to nobody. Nothing sorts, nags or measures a cadence from
+-- this one; it exists so a batch can skip a row.
+--
+-- No index, deliberately. The batch's read is `website_url is not null and
+-- (enriched_at is null or enriched_at < …)` over a few hundred rows on a table
+-- that is already scanned by every list on the dashboard; an index to answer a
+-- question a weekly script asks would cost more to maintain than it saves.
+--
+-- The A/B/C tier this feeds needs no column at all: `fit_tier` already exists,
+-- and what sequence 7 adds is that it is *derived* — `deriveFitTier` in
+-- packages/services/src/tiering.ts, over facts already stored. Re-tiering the
+-- pool is a re-run of a pure function, never a migration.
+
+ALTER TABLE "biz"."clients" ADD COLUMN "enriched_at" timestamp with time zone;

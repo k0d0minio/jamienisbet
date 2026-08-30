@@ -38,6 +38,16 @@ their web presence.
   message. That is a processor relationship and a transfer question in its own right, and
   it is **⚠️ needs confirmation** — to be settled in that sequence's own ticket, not
   assumed by this file.
+- **Sequence 7 sends the same facts, plus one page of the business's own public website**,
+  to the same processor to propose facts and grade the site. It adds a recipient of
+  nothing and a transfer of nothing that sequence 5 did not already make — the extra
+  content is a business's own home page, published by them — so it inherits that
+  **⚠️** and does not open a second one. Two things about it stay inside §&nbsp;6's line
+  deliberately: it reads **one page of their own site, on demand**, never a crawl and
+  never a broker; and the Google review count it might have wanted stays hand-entered
+  rather than pulled from an API. Nothing about a fit tier is decided by the model — the
+  A/B/C letter is arithmetic over stored facts (`packages/services/src/tiering.ts`),
+  which is what keeps the "no profiling with legal effect" line above true and readable.
 
 ## 2. The three-part test
 
@@ -162,9 +172,12 @@ Redo it before any of these becomes true:
 - volume rises beyond what one person can write and read;
 - messages start going out without a human reading each one first (the standing rule — *no
   outbound action without review* — is what currently prevents this);
-- the pool is bought, scraped, or enriched from a broker rather than compiled by hand;
+- the pool is bought, scraped, or enriched from a broker rather than compiled by hand
+  — reading one page of a business's own website on demand (sequence 7) is none of those,
+  but a crawler, a paid data source or a reviews API would be;
 - outreach extends to individuals rather than businesses;
-- the AI drafting step (sequence 5) sends prospect data anywhere this file has not assessed.
+- the AI steps (drafting in sequence 5, enrichment in sequence 7) send prospect data
+  anywhere this file has not assessed.
 
 ---
 

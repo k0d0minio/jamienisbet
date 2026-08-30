@@ -6,6 +6,7 @@ import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui
 import {
   clientStatusLabel,
   contactPointsOf,
+  deriveFitTier,
   draftChannelOf,
   draftKindFor,
   getClient,
@@ -179,6 +180,12 @@ async function loadLead(id: string) {
     channel: draftChannelOf(cadence?.channel),
   }
 
+  // What the four stored facts *derive* as, by the one function that owns the
+  // weights. Pure and cheap — four columns and no round trip — and it answers
+  // the question the stored letter cannot: whether the facts have moved on
+  // since somebody graded them. The facts card says so; nothing acts on it.
+  const derivedTier = deriveFitTier(client).tier
+
   // What happens next, as the masthead reads it. A parked lead's line is its
   // wake date instead — the one rung where nothing is planned on purpose.
   const parked = client.status === "nurture"
@@ -193,6 +200,10 @@ async function loadLead(id: string) {
     suppressed,
     channels,
     draft,
+    derivedTier,
+    // When the site was last read, formatted on the server like every other
+    // date this page hands to a client component.
+    enrichedOn: client.enrichedAt ? formatShortDay(client.enrichedAt) : null,
     lastWorked: waitingLabel(
       daysSince(client.lastTouchedAt ?? client.createdAt, now)
     ),
@@ -232,6 +243,8 @@ export default async function LeadDetailPage({
     suppressed,
     channels,
     draft,
+    derivedTier,
+    enrichedOn,
     lastWorked,
     next,
   } = loaded
@@ -376,6 +389,9 @@ export default async function LeadDetailPage({
                 websiteGrade: client.websiteGrade,
                 reviewCount: client.reviewCount,
               }}
+              derivedTier={derivedTier}
+              enrichConfigured={isGatewayConfigured()}
+              enrichedOn={enrichedOn}
             />
 
             <LeadDealCard

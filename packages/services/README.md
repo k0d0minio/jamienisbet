@@ -21,22 +21,26 @@ build step — consumers transpile the TypeScript via `transpilePackages` (same 
 src/
   client.ts          # lazy Drizzle client from DATABASE_URL — getDb() / db
   schema/index.ts    # Drizzle tables under the `biz` Postgres schema
+  ai.ts              # which model does what, and whether there is a Gateway to ask
   cadence.ts         # what to do next and when — the outreach template, as a pure function
   deal.ts            # what a deal is made of — components, and the helpers over them
+  enrichment.ts      # read their website, propose facts. Pure but for the one fetch
   forms.ts           # the questionnaire snapshot/answer types both apps share
   import.ts          # a compiled list row → the columns; the dedupe key. Pure
   outreach.ts        # the outreach voice and the grounding — what a draft is built from. Pure
+  tiering.ts         # facts → A/B/C, with the reasons. Pure
   queries/clients.ts # typed intake/list/update helpers for the leads table
   queries/touches.ts     # the touch log: the three vocabularies, the history, logging one
   queries/suppressions.ts # the permanent opt-out list, keyed to the contact not the lead
   queries/crack-finder.ts # the four reads that notice what the writes never refuse
+  queries/enrichment.ts  # which rows a pass would read, and what saving one means
   queries/tasks.ts       # todos
   queries/compliance.ts  # the PT compliance calendar (recurrence re-arms on complete)
   queries/form-links.ts  # customer questionnaires: publish, read, submit once
   queries/prospects.ts   # the import's read and its write — dedupe keys, the batch
   queries/retention.ts   # the 12-month rule: what has aged out, and forgetting it
   index.ts           # barrel
-scripts/             # the operator toolbox — five commands over everything above
+scripts/             # the operator toolbox — six commands over everything above
 drizzle/             # generated SQL migrations
 drizzle.config.ts    # drizzle-kit config (scoped to the `biz` schema)
 ```
@@ -57,7 +61,7 @@ import { createClientFromContact, listClients } from "@jamie-nisbet/services"
 
 Jamie's decision 8: Claude Code and opencode operate the leads system through repo
 scripts against the database — **no new HTTP surface on the admin app.** `scripts/` is
-that toolbox. Five commands, each a thin printer over the functions above; between them
+that toolbox. Six commands, each a thin printer over the functions above; between them
 they are enough to work the whole pool from a terminal without opening the dashboard.
 
 ```bash
@@ -72,11 +76,12 @@ The `--` matters: everything after it goes to the script rather than to pnpm.
 | `leads-queue` | Today's outreach — `listDueOutreach`, with the number, the address and the hook beside each row. |
 | `leads-log` | One touch, and what happens next: logs it, then accepts (or overrides) what the cadence suggests. |
 | `leads-crack` | The weekly reconcile — `findCracks`, all four questions, printed. |
+| `leads-enrich` | Reads their websites, fills the blanks, re-derives the tiers. Never replaces. |
 | `leads-purge` | The retention rule (LIA § 5), run by hand. |
 
 **Every one takes `--dry-run`, and every one takes `--help`.** The two that only read
 (`leads-queue`, `leads-crack`) accept the flag and ignore it, so it means the same thing
-on all five. Unknown flags are an **error**, not a shrug — `--dry-runn` on a script that
+on all six. Unknown flags are an **error**, not a shrug — `--dry-runn` on a script that
 writes to production is a typo nobody recovers from, so the parser refuses it and
 suggests what was meant. Each script prints the database host it is pointed at before it
 does anything, for the same reason.
@@ -85,7 +90,8 @@ does anything, for the same reason.
 point of them living here rather than in a `scripts/` folder at the repo root: the
 terminal and the Needs you feed answer "what is owed today" with the same query, so they
 can never drift apart. What the scripts do own is argument parsing, file reading and
-printing (`scripts/lib/`).
+printing (`scripts/lib/`) — and, in `leads-enrich` alone, the one `generateText` call
+this package makes (see § The Gateway).
 
 ### `leads-import`
 
@@ -151,6 +157,47 @@ clears whatever was planned and logs the reason — all four, because a script t
 three of them right would leave somebody who opted out in tomorrow's queue. It is not the
 same as an outcome of `not_interested`, which is a no to *this pitch*.
 
+### `leads-enrich`
+
+```bash
+DATABASE_URL=… AI_GATEWAY_API_KEY=… \
+  pnpm --filter @jamie-nisbet/services leads-enrich -- --dry-run
+DATABASE_URL=… AI_GATEWAY_API_KEY=… \
+  pnpm --filter @jamie-nisbet/services leads-enrich -- --limit 40
+DATABASE_URL=… pnpm --filter @jamie-nisbet/services leads-enrich -- --retier
+```
+
+Fetches one page of each lead's own website, has a cheap model say what is on it, and
+writes the answers into the columns that were **empty**. `--limit` (25), `--days` (30,
+how stale an enrichment must be to be read again), `--all`, `--client <who>` for a single
+lead, `--delay` (1000ms between leads).
+
+Three things about it are the whole design:
+
+- **It only fills blanks. There is no flag to make it replace.** A proposal that differs
+  from what is already stored is printed under *Left alone* — the field, the value on
+  file and the value the site gave — and never written. The hook is why: it is usually a
+  sentence Jamie wrote after looking at the business himself, and eighty-five of them
+  quietly bettered by a nano model overnight is exactly the failure this sequence was
+  specified to avoid. Conflicts are taken one at a time on the lead's own page, where
+  **Read their website** shows both values with a switch between them.
+- **A site that does not answer is not a finding.** A timeout, a 404 or a redirect to a
+  PDF is reported under *Couldn't read* and **nothing is graded** — writing
+  `website_grade: none` from a failed request would be the script inventing evidence.
+  Those get graded by hand.
+- **`--retier` is arithmetic, not a pass.** It re-derives every tier from the facts
+  already on file, reads no pages, calls no model, and prints what moved and why. That is
+  what "re-tiering is a re-run, never a migration" means in practice: change a weight in
+  `src/tiering.ts`, run this, read the diff. It is the one operation that **will**
+  overwrite a hand-set letter, which is why it is its own flag — the ordinary run never
+  touches a tier that already exists, and reports the drift instead.
+
+`enriched_at` is stamped on every row that was read, **whether or not anything was
+written** — "I looked and there was nothing new" is precisely what stops the next run
+fetching the same page. It is not `last_touched_at` and never stands in for it: reading a
+stranger's home page is not contact, and conflating the two would put the whole pool at
+the bottom of the staleness sort the morning after a batch that spoke to nobody.
+
 ### `leads-purge`
 
 The retention rule from [`.icm/docs/lia-cold-outreach.md`](../../.icm/docs/lia-cold-outreach.md)
@@ -177,6 +224,24 @@ anonymise nothing. `notes`, `intake_message` and `website_url` are **not** clear
 first two are prose the rule does not reach, the third is a live business address whose
 status as personal data is Jamie's call rather than a script's. The run reports how many
 rows carry them.
+
+## The Gateway
+
+`src/ai.ts` names the models — `DRAFT_MODEL_EN`, `DRAFT_MODEL_PT`, `ENRICH_MODEL` — and
+answers `isGatewayConfigured()`. Everything goes through the **Vercel AI Gateway**, so
+there is no provider package anywhere in the estate and no client to construct: the AI SDK
+reads a bare `provider/model` string as a Gateway model. One key
+(`AI_GATEWAY_API_KEY`, or a Vercel deployment's OIDC token), one bill, one budget.
+
+The ids live here rather than in the dashboard because the dashboard is no longer the only
+caller: a pool graded by one model from a terminal and another from a phone would be
+tiered two ways. `websites/admin-dashboard/lib/ai.ts` re-exports them behind
+`server-only`.
+
+**No AI SDK is imported in `src/`.** `outreach.ts` and `enrichment.ts` build prompts and
+read answers; they are pure. The single `generateText` call this package makes is in
+`scripts/leads-enrich.ts`, which is why `ai` is a **dev**dependency here — the websites
+that consume this package never pull it in.
 
 ## Migrations
 
@@ -219,6 +284,35 @@ rule, null = untiered), `website_url` / `website_grade` (`none`/`social_only`/`d
 names which one; both are provenance and stay off `ClientProfilePatch`. Every one of those
 vocabularies is defined in `queries/clients.ts` with a label lookup beside it, the same shape the
 status ladder uses.
+
+**The tier is derived, not typed.** `fit_tier` decides the order of the week — the outreach
+queue sorts overdue first and then by this letter — so `src/tiering.ts` owns it as a **pure
+function** over four stored columns and nothing else:
+
+| Signal | From | Points |
+|---|---|---|
+| **need** | `website_grade` | none / social only **3** · dated **2** · decent **0** · ungraded **1** |
+| **value** | `sector`, matched as word-prefixes in EN and PT | lives on being found **2** · unknown **1** · sells elsewhere (wholesale, industrial, logistics, agriculture) **0** |
+| **reach** | `town` | Mafra concelho **2** · the ring around it **1** · anywhere else, or unknown **0** |
+| **alive** | `review_count` | any reviews **1** · not looked up **0** · zero reviews **−1** |
+
+Out of 8: **A** from 6, **B** from 3, **C** below that, and `null` — untiered — when all four
+facts are empty, which is not the same as C. A Mafra restaurant with a dated site and forty
+reviews is a 7; a Lisbon clinic with a good one is a 3. `deriveFitTier` returns the letter, the
+score **and a line of English per signal**, so "why is this A-tier" is answered on the lead's
+page and in the terminal rather than by reading the source. Change a weight and re-run
+`leads-enrich --retier`; nothing about a tier is ever a migration.
+
+**Enrichment proposes the facts the function then reads.** `src/enrichment.ts` fetches one page
+of a lead's own website (`fetchWebsitePage` — the only function in this package that reaches the
+network: 12s timeout, 2MB cap, http(s) only, contact and social links pulled off the markup with
+a regex rather than asked for, because a model will happily invent an address that looks right),
+builds the prompt, and validates the answer into an `EnrichmentProposal` — nine nullable columns
+plus `findings`, which are the evidence behind the grade and are **read, never stored**.
+`enrichmentChanges` puts each proposal beside what is on file and marks the ones that would
+*replace* rather than fill; `enrichmentPatch` writes only what a caller says was accepted and
+derives the tier from the result. Nothing here decides anything: **AI proposes facts, the pure
+function decides the letter.** `enriched_at` records that a site was read at all.
 
 **Deal terms are composable.** A deal is not a price with decorations — it is any combination
 of four independent **components**, and it counts as *set* the moment one of them exists. None

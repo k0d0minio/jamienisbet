@@ -281,6 +281,44 @@ The Gateway is reached through the AI SDK with a bare `provider/model` string, s
 provider packages and no client to construct — one key, one bill, and a monthly budget in the
 Vercel dashboard as the spend tripwire.
 
+### Read their website — facts proposed, never taken
+
+The **Facts** group on **Person** has two rows at its foot, because there are two ways a fact
+gets there: type it, or read it off their site. The second is
+[`components/lead-enrich.tsx`](components/lead-enrich.tsx) — it fetches one page of the
+business's own website, has a cheap model say what is on it, and puts the answer *beside* what
+is stored.
+
+- **A blank fills itself; a value argues its case.** A proposal for an empty column arrives with
+  its switch on — that is a correction, and making you tap nine times to accept nine corrections
+  trains you to tap without reading. A proposal that would **replace** something arrives switched
+  off, every time, with what is already there printed next to it. The hook is why: it is usually a
+  sentence you wrote after looking at the business yourself.
+- **Nine columns, and only those.** Web presence, sector, town, language, the hook, and the four
+  contact doors. A proposed door that has already opted out is dropped server-side before the
+  sheet ever draws it — writing a suppressed address back onto a record would put a channel there
+  that every other surface then has to spend its time refusing.
+- **The tier is not on the list.** *A/B/C* is **derived** from the facts by a pure function in
+  [`packages/services/src/tiering.ts`](../../packages/services/src/tiering.ts), so the sheet
+  *reports* what the letter becomes rather than offering it, and the server derives it again on
+  save from whatever was actually accepted. AI proposes facts; the function decides the letter.
+  Where the stored tier and the facts have since parted company, the Fit tier row says so —
+  *"The facts now say B"* — and nothing acts on it: a re-tier is a gesture, not something that
+  happens to a record while nobody is looking.
+- **What the site shows.** Two to five lines of evidence — whether you can book online, how
+  recently anyone touched it, which doors it offers — read once and never stored. There is no
+  findings column and no provenance table.
+- **Accepting nothing is a real outcome.** *Save nothing, mark as read* stamps `enriched_at` so
+  the batch pass leaves the row alone; it is not `last_touched_at`, because reading a stranger's
+  home page is not contact.
+- **Four ways it declines, each saying which.** No website on file, no Gateway key, a site that
+  did not answer (reported — never graded, because a timeout is not a finding), and a model that
+  came back with something other than facts.
+
+The batch counterpart is `leads-enrich` in
+[`packages/services/scripts/`](../../packages/services/scripts/) — `--dry-run`, rate-limited,
+skips recently-read rows, fills blanks only, and `--retier` to re-derive every letter at once.
+
 Reference material and irreversible actions sink to the bottom of **Person** — **Intake** is a
 `GroupedDisclosure` that folds open on a tap, and archive/delete are the last section, under a
 **Danger zone** header in red, rather than beside the title where a thumb reaching for the
@@ -606,7 +644,7 @@ Import as a new Vercel project, attach the **same** Neon integration as the othe
 same Stripe account the payment-gateway uses), and optionally `GITHUB_TOKEN` for the delivery-repo
 connect/create and the Tickets board (plus `GITHUB_REPO_OWNER` to home new client repos under a
 specific user/org). Set `PORTFOLIO_BASE_URL` to the portfolio's origin so the Forms card builds
-customer links against the right host. `AI_GATEWAY_API_KEY` turns on the draft panel — set a
-small monthly budget on the Gateway in the Vercel dashboard as the spend tripwire; without the
-key the panel degrades to a "not set up" note and nothing else changes.
+customer links against the right host. `AI_GATEWAY_API_KEY` turns on the draft panel and
+*Read their website* — set a small monthly budget on the Gateway in the Vercel dashboard as the
+spend tripwire; without the key both degrade to a "not set up" note and nothing else changes.
 Consumes the shared packages as source (`transpilePackages` in [`next.config.ts`](next.config.ts)).

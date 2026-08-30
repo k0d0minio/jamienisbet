@@ -39,6 +39,7 @@
     "leads-queue": "tsx scripts/leads-queue.ts",
     "leads-log": "tsx scripts/leads-log.ts",
     "leads-crack": "tsx scripts/leads-crack.ts",
+    "leads-enrich": "tsx scripts/leads-enrich.ts",
     "leads-purge": "tsx scripts/leads-purge.ts"
   },
   "dependencies": {
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
+    "ai": "^7.0.85",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
