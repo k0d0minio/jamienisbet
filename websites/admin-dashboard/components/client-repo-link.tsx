@@ -94,25 +94,41 @@ function RepoError({ children }: { children: ReactNode }) {
 function ConnectExisting({ id }: { id: string }) {
   const [value, setValue] = useState("")
   const [repos, setRepos] = useState<string[]>([])
+  const [listingError, setListingError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  // Pull the account's repos once, to back the datalist. Best-effort: an empty
-  // list just means Jamie types "owner/name" by hand.
+  // Pull the account's repos once, to back the datalist. Still best-effort —
+  // the field takes an "owner/name" typed by hand and always did — but a
+  // listing that failed says so as a hint rather than passing for an account
+  // with nothing in it. It is the field's hint and not its error because
+  // nothing is blocked: the suggestions are missing, not the flow.
   useEffect(() => {
     let live = true
     listConnectableRepos()
-      .then((rows) => {
-        if (live) setRepos(rows.map((r) => r.fullName))
+      .then(({ repos: rows, error: listError }) => {
+        if (!live) return
+        setRepos(rows.map((r) => r.fullName))
+        setListingError(listError)
       })
-      .catch(() => {})
+      .catch(() => {
+        if (live) setListingError("GitHub didn't answer.")
+      })
     return () => {
       live = false
     }
   }, [])
 
   return (
-    <AppField label="Connect an existing repo" error={error}>
+    <AppField
+      label="Connect an existing repo"
+      hint={
+        listingError
+          ? `Type the full owner/name — the suggestions didn't load. ${listingError}`
+          : undefined
+      }
+      error={error}
+    >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <AppInput
           list="repo-options"
