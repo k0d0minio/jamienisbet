@@ -107,14 +107,16 @@ function isClosed(closed: Set<string>, kind: string, value: string | null): bool
   return value !== null && closed.has(`${kind}:${value}`)
 }
 
-/** The doors that are actually open, as a short string for the table. A closed
- *  one is named with a strike so it reads as *deliberately gone* rather than
- *  as a detail nobody filled in. */
+/** The doors that are actually open, as a short string for the table — with a
+ *  count of the ones that are closed, so an opted-out channel reads as
+ *  *deliberately gone* rather than as a detail nobody filled in. A walk-in
+ *  joins the list because a town is a door too, and it is the one nobody can
+ *  opt out of. */
 function channelLine(lead: Client, closed: Set<string>): string {
   const points = contactPointsOf(lead)
   const open = points.filter((point) => !closed.has(`${point.kind}:${point.value}`))
   const shut = points.length - open.length
-  const doors = new Set(open.map((point) => point.kind))
+  const doors = new Set<string>(open.map((point) => point.kind))
   if (lead.town) doors.add("walkin")
   const list = [...doors].join("/")
   return shut > 0 ? `${list || "—"} (${shut} closed)` : list || "—"
