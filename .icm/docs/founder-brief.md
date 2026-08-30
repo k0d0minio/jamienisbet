@@ -3,7 +3,7 @@
 > **ICM role:** Layer 3 — reference (identity). This is the original, verbatim brief
 > Jamie wrote to define what this repository should become. It is the source-of-truth
 > statement of intent for the whole system. Preserved here unchanged; the repository's
-> architecture (see the root [README.md](../../README.md) and [CLAUDE.md](../../CLAUDE.md))
+> architecture (see the root [README.md](../../README.md) and [AGENTS.md](../../AGENTS.md))
 > was derived from it.
 >
 > Every workspace traces back to a requirement in this document. When intent is unclear,
