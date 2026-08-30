@@ -94,6 +94,10 @@
   --color-warning-soft: var(--warning-soft);
   --color-destructive-soft: var(--danger-soft);
 
+  /* the QR plate — light and ink, the same in both themes (tokens/colors.css) */
+  --color-scan-plate: var(--scan-plate);
+  --color-scan-ink: var(--scan-ink);
+
   /* extra type-scale step the brand adds below Tailwind's --text-xs */
   --text-2xs: 0.6875rem;
 

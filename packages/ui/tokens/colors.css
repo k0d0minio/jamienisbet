@@ -76,6 +76,13 @@
 
   /* decorative blueprint grid line */
   --grid-line:     color-mix(in srgb, var(--neutral-900) 5%, transparent);
+
+  /* ---- Scan plate ------------------------------------------- */
+  /* A QR code is read by a camera, not by a person. It stays dark-on-light
+     in both themes — plenty of scanners will not invert one — so this is the
+     one pair here that the dark block deliberately leaves alone. */
+  --scan-plate:    var(--neutral-0);
+  --scan-ink:      var(--neutral-950);
 }
 
 /* ============================================================

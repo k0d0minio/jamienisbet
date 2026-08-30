@@ -35,6 +35,7 @@ import { scaffoldIcmBaseline } from "@/lib/icm-scaffold"
 import { loadOnboardingForm } from "@/lib/onboarding"
 import { parseAmountToMinor } from "@/lib/money"
 import { parsePercentToBps } from "@/lib/percent"
+import { formLinkUrl } from "@/lib/portfolio"
 import { getStripe } from "@/lib/stripe"
 import {
   clientSlug,
@@ -357,14 +358,23 @@ export async function disconnectClientRepo(id: string) {
 
 // ---- Customer questionnaires ------------------------------------------------
 // Publish a markdown questionnaire from `.icm/onboarding/` as a one-off link for
-// this lead. The link is *copied*, never sent from here: per the estate's "no
-// outbound action without review" rule the dashboard's job ends at putting a URL
-// on the clipboard, and a human writes the email around it.
+// this lead. The link is *handed over*, never sent from here: per the estate's
+// "no outbound action without review" rule the dashboard's job ends at offering
+// the URL — to a share sheet, a clipboard, a mail draft or a QR code — and a
+// human writes and sends the message around it.
 
 /** Returned rather than thrown: Next redacts server-action exceptions in
  * production, and "project-intake.md is a select with no options" is exactly
- * the sentence that has to survive the trip to the browser to be useful. */
-export type SendFormResult = { ok: true } | { ok: false; message: string }
+ * the sentence that has to survive the trip to the browser to be useful.
+ *
+ * The success case carries the published link back with it. That is what lets
+ * the picker turn straight into the share surface: without the token and its
+ * URL the browser would have to go looking for the row it just created. The
+ * URL is resolved here because only the server knows which portfolio it
+ * points at. */
+export type SendFormResult =
+  | { ok: true; link: { id: string; title: string; url: string } }
+  | { ok: false; message: string }
 
 /**
  * Parse the chosen questionnaire **now** and freeze the result onto the new
@@ -390,13 +400,16 @@ export async function sendFormToClient(
     const snapshot = await loadOnboardingForm(client.githubRepo, formId)
     // `formSlug` stays the bare filename it has always been; which repo it came
     // out of rides along in the snapshot.
-    await createFormLink({
+    const link = await createFormLink({
       clientId,
       formSlug: snapshot.slug,
       formSnapshot: snapshot,
     })
     revalidateLead(clientId)
-    return { ok: true }
+    return {
+      ok: true,
+      link: { id: link.id, title: snapshot.title, url: formLinkUrl(link.id) },
+    }
   } catch (err) {
     console.error("[forms] send failed:", err)
     return {

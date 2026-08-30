@@ -317,6 +317,7 @@ function GroupedDisclosure({
   label,
   description,
   value,
+  accessory,
   defaultOpen = false,
   className,
   style,
@@ -327,6 +328,13 @@ function GroupedDisclosure({
   label: React.ReactNode
   description?: React.ReactNode
   value?: React.ReactNode
+  /** A control on the trailing edge that acts *without* opening the fold —
+   *  share this link, delete this row. A GroupedRow puts its accessory beside
+   *  the row, but a `<summary>` has to be the details' first child and can't
+   *  hold a button, so this one floats over the summary's trailing edge
+   *  instead, on the label's own line: centred on a one-line summary, level
+   *  with the label on a two-line one. The summary reserves the room. */
+  accessory?: React.ReactNode
   /** Open on arrival — for the one set of answers you came to read. */
   defaultOpen?: boolean
 }) {
@@ -352,7 +360,8 @@ function GroupedDisclosure({
         className={cn(
           "flex min-h-app-touch cursor-pointer list-none items-center gap-3 px-4 py-2.5 text-app-body text-app-label",
           "transition-colors spring-press active:bg-app-press",
-          "[&::-webkit-details-marker]:hidden"
+          "[&::-webkit-details-marker]:hidden",
+          accessory != null && "pr-16"
         )}
       >
         {icon != null && (
@@ -384,6 +393,17 @@ function GroupedDisclosure({
           className="size-4 shrink-0 text-app-label-3 transition-transform spring-press group-open/disclosure:rotate-180"
         />
       </summary>
+
+      {accessory != null && (
+        <div
+          data-slot="grouped-disclosure-accessory"
+          // Outside the summary in the DOM, over it on the screen. The wrapper
+          // stays click-through so the rest of the row still opens the fold.
+          className="pointer-events-none absolute top-0 right-2 flex h-app-touch items-center"
+        >
+          <div className="pointer-events-auto">{accessory}</div>
+        </div>
+      )}
 
       <div className="px-4 pt-1 pb-3 text-app-callout text-app-label-2">
         {children}
