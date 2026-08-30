@@ -278,10 +278,14 @@ export function LeadFactsCard({ client }: { client: LeadFacts }) {
               </AppField>
             </div>
 
-            <AppField label="Website">
+            <AppField label="Website" hint="With or without the https://.">
               <AppInput
                 name="websiteUrl"
-                type="url"
+                // The URL keyboard, but not the URL *type*: the pool's
+                // addresses are written the way people say them ("example.pt"),
+                // and native url validation would refuse to submit the form
+                // over a missing scheme. `websiteHref` puts one on for the
+                // link instead.
                 inputMode="url"
                 autoCapitalize="none"
                 autoCorrect="off"
