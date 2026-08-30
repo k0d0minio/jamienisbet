@@ -100,3 +100,18 @@ export const DRAFT_MAX_OUTPUT_TOKENS = 2000
  *  short fields and five lines of findings — and the rest is the same
  *  allowance for a model that thinks before it answers. */
 export const ENRICH_MAX_OUTPUT_TOKENS = 2000
+
+/**
+ * And the same again for a reply triage, which is the two shapes at once: five
+ * short fields of classification, and — when the reply warrants one — a whole
+ * drafted answer inside the sixth.
+ *
+ * That answer is why sequence 8 has no model id of its own and calls
+ * `draftModelFor` instead. The expensive half of a triage is not deciding that
+ * somebody engaged; it is writing back to them in their own language, which is
+ * the exact register problem `DRAFT_MODEL_PT` exists for. A Portuguese business
+ * that replies in Portuguese and gets a translated-sounding answer has learned
+ * the same thing about the sender as if the first message had read that way —
+ * and it has learned it at the point where they were actually interested.
+ */
+export const TRIAGE_MAX_OUTPUT_TOKENS = 2000

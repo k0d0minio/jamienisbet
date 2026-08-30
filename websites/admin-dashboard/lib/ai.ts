@@ -26,6 +26,7 @@ export {
   DRAFT_MODEL_PT,
   ENRICH_MAX_OUTPUT_TOKENS,
   ENRICH_MODEL,
+  TRIAGE_MAX_OUTPUT_TOKENS,
   draftModelFor,
   isGatewayConfigured,
 } from "@jamie-nisbet/services"

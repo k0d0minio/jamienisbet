@@ -35,6 +35,7 @@ import { LeadIntake } from "@/components/lead-intake"
 import { LeadLinks } from "@/components/lead-links"
 import { LeadNextAction } from "@/components/lead-next-action"
 import { LeadNotesCard } from "@/components/lead-notes-card"
+import { LeadReply } from "@/components/lead-reply"
 import { LeadSegments } from "@/components/lead-segments"
 import { LeadStatusRow } from "@/components/lead-status-row"
 import { LeadSuppress } from "@/components/lead-suppress"
@@ -180,6 +181,12 @@ async function loadLead(id: string) {
     channel: draftChannelOf(cadence?.channel),
   }
 
+  // Where a reply most likely came in: the door the last touch used. Only a
+  // default, and the picker is right there — but on the common case the answer
+  // to "where did this arrive" is "the same place I wrote to them", which is a
+  // tap saved on every reply.
+  const replyChannel = rawTouches[0]?.channel ?? cadence?.channel ?? "whatsapp"
+
   // What the four stored facts *derive* as, by the one function that owns the
   // weights. Pure and cheap — four columns and no round trip — and it answers
   // the question the stored letter cannot: whether the facts have moved on
@@ -200,6 +207,7 @@ async function loadLead(id: string) {
     suppressed,
     channels,
     draft,
+    replyChannel,
     derivedTier,
     // When the site was last read, formatted on the server like every other
     // date this page hands to a client component.
@@ -243,6 +251,7 @@ export default async function LeadDetailPage({
     suppressed,
     channels,
     draft,
+    replyChannel,
     derivedTier,
     enrichedOn,
     lastWorked,
@@ -447,6 +456,23 @@ export default async function LeadDetailPage({
               clientName={client.name}
               count={touches.length}
               capped={touches.length === TOUCH_HISTORY_LIMIT}
+              // The other half of the memory of contact: what came back. Paste
+              // it, and the outcome, the rung, the next step and the answer are
+              // proposed one tap at a time — none of them applied until tapped,
+              // and the paste logged as an inbound touch whatever is done with
+              // them.
+              reply={
+                <LeadReply
+                  clientId={client.id}
+                  clientName={client.name}
+                  email={client.email}
+                  phone={client.phone}
+                  whatsapp={client.whatsapp}
+                  instagram={client.instagram}
+                  configured={isGatewayConfigured()}
+                  defaultChannel={replyChannel}
+                />
+              }
             >
               {touches.map((touch) => (
                 <TouchRow key={touch.id} touch={touch} />

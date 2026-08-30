@@ -21,6 +21,13 @@ export const CHANNELS = [
 
 export type ChannelValue = (typeof CHANNELS)[number]["value"]
 
+/** Narrows a stored channel to one the picker can start on. A row written
+ *  before this list changed falls through to the caller's default rather than
+ *  leaving a control with nothing selected. */
+export function isChannelValue(value: string): value is ChannelValue {
+  return CHANNELS.some((c) => c.value === value)
+}
+
 export const OUTCOMES = [
   { value: "sent", label: "Sent" },
   { value: "no_answer", label: "No answer" },
@@ -60,6 +67,28 @@ export function outcomesFor(
     OUTCOMES_BY_CHANNEL[channel as ChannelValue] ?? OUTCOMES_BY_CHANNEL.other
   return OUTCOMES.filter((o) => wanted.includes(o.value))
 }
+
+/**
+ * What a touch somebody *else* started can have come to — the override the
+ * reply triage offers over the outcome it proposed.
+ *
+ * Not channel-subsetted, unlike the outbound list above, and for a reason
+ * rather than an omission: the subsets there answer "what can happen when I
+ * try this door", and a pasted reply has already happened. Five words, all of
+ * them possible whichever way it arrived — a note of a call typed into the
+ * WhatsApp row is a real thing that occurs on a phone.
+ *
+ * Keep in step with `inboundOutcomes` in packages/services/src/queries/touches.ts.
+ */
+const INBOUND: readonly OutcomeValue[] = [
+  "replied",
+  "answered",
+  "met",
+  "callback",
+  "not_interested",
+]
+
+export const INBOUND_OUTCOMES = OUTCOMES.filter((o) => INBOUND.includes(o.value))
 
 /** A stored value's readable word. An unrecognised one falls through to
  *  itself, so a row written before this list changed still names itself

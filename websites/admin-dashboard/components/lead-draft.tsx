@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { AtSign, Copy, Mail, MessageCircle, PenLine } from "lucide-react"
+import { Copy, PenLine } from "lucide-react"
 
 import {
   AppField,
@@ -29,15 +29,13 @@ import {
   saveNextAction,
   type NextStepSuggestion,
 } from "@/app/(app)/actions"
+import { DraftHandoff } from "@/components/draft-handoff"
 import { NextStepPane } from "@/components/next-step-pane"
 import {
   DRAFT_CHANNELS,
   DRAFT_KINDS,
   DRAFT_KIND_HINTS,
   draftChannelLabel,
-  draftInstagramHref,
-  draftMailtoHref,
-  draftWhatsappHref,
   splitDraft,
   type DraftChannelValue,
   type DraftKindValue,
@@ -428,7 +426,7 @@ export function LeadDraft({
                     header="Hand it over"
                     footer="Each of these opens the message somewhere else with nothing sent. You press send."
                   >
-                    <HandoffRow
+                    <DraftHandoff
                       channel={channel}
                       value={doors[channel].value ?? ""}
                       subject={subject}
@@ -471,74 +469,4 @@ export function LeadDraft({
       <span className="sr-only">{`Draft outreach for ${clientName}`}</span>
     </GroupedSection>
   )
-}
-
-/**
- * The one row that puts this draft into the app it goes out of.
- *
- * Three shapes, because the three channels hand off differently: email and
- * WhatsApp both take the message in the URL, and Instagram takes nothing at
- * all — so there the row copies the draft and opens the profile in the same
- * tap, which is the closest thing to a prefill that exists.
- */
-function HandoffRow({
-  channel,
-  value,
-  subject,
-  body,
-  onHandoff,
-}: {
-  channel: DraftChannelValue
-  value: string
-  subject: string | null
-  body: string
-  onHandoff: () => void
-}) {
-  switch (channel) {
-    case "email":
-      return (
-        <GroupedRow
-          icon={<Mail />}
-          variant="tint"
-          label="Open an email draft"
-          description={subject ? `${value} · ${subject}` : value}
-          chevron={false}
-          href={draftMailtoHref({ email: value, subject, body })}
-          onClick={onHandoff}
-        />
-      )
-    case "whatsapp":
-      return (
-        <GroupedRow
-          icon={<MessageCircle />}
-          variant="tint"
-          label="Open the chat, message typed in"
-          description={value}
-          chevron={false}
-          href={draftWhatsappHref(value, body)}
-          target="_blank"
-          rel="noreferrer"
-          onClick={onHandoff}
-        />
-      )
-    case "instagram":
-      return (
-        <GroupedRow
-          icon={<AtSign />}
-          variant="tint"
-          label="Copy it and open Instagram"
-          description={`@${value}`}
-          chevron={false}
-          href={draftInstagramHref(value)}
-          target="_blank"
-          rel="noreferrer"
-          onClick={() => {
-            // Not awaited: the tap's own activation is what lets the link
-            // open, and an await before it would spend that.
-            void copyToClipboard(body, "Draft")
-            onHandoff()
-          }}
-        />
-      )
-  }
 }
