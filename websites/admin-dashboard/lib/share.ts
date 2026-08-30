@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 import { copyToClipboard } from "@/lib/clipboard"
 
@@ -28,18 +28,27 @@ function nativeShareSupported(payload?: ShareData): boolean {
   return payload == null || navigator.canShare == null || navigator.canShare(payload)
 }
 
+/** Whether the glass has a share sheet is a fact about the browser, fixed for
+ *  the life of the document — there is nothing to subscribe to, so the store
+ *  below hands back a no-op unsubscribe and never notifies. */
+const neverChanges = () => () => {}
+
 /**
  * Whether *this* browser can open a share sheet — for choosing the glyph and
  * the label before anyone taps.
  *
- * False through the server render and the first client one, so the markup
- * matches on both sides and hydration stays quiet; the phone flips it a frame
- * later. Both states draw the same size, so nothing moves when it does.
+ * `useSyncExternalStore` rather than an effect, because the two answers this
+ * needs are exactly the two it takes: the server (and the hydrating render)
+ * gets `false`, the browser gets the truth. The markup therefore matches on
+ * both sides and hydration stays quiet; a phone flips the glyph a frame later,
+ * and both states draw the same box, so nothing moves when it does.
  */
 export function useCanShare(): boolean {
-  const [can, setCan] = useState(false)
-  useEffect(() => setCan(nativeShareSupported()), [])
-  return can
+  return useSyncExternalStore(
+    neverChanges,
+    () => nativeShareSupported(),
+    () => false
+  )
 }
 
 /**
