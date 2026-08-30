@@ -1,15 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import {
-  AtSign,
-  Ellipsis,
-  Footprints,
-  Mail,
-  MessageCircle,
-  Phone,
-  Plus,
-} from "lucide-react"
+import { Plus } from "lucide-react"
 
 import {
   AppField,
@@ -33,6 +25,7 @@ import {
   saveNextAction,
   type NextStepSuggestion,
 } from "@/app/(app)/actions"
+import { ChannelGlyph } from "@/components/channel-glyph"
 import { NextStepPane } from "@/components/next-step-pane"
 import { hapticTick } from "@/lib/haptics"
 import {
@@ -65,25 +58,6 @@ import {
 // would cost every profile a markdown parser in the browser. The second pane
 // is `components/next-step-pane.tsx`, shared with the draft panel, which
 // arrives at the same question by a different route.
-
-/** Lucide has no brand glyphs; the substitutions match the contact card's. */
-function ChannelGlyph({ channel }: { channel: string }) {
-  const className = "size-5"
-  switch (channel) {
-    case "whatsapp":
-      return <MessageCircle className={className} aria-hidden />
-    case "phone":
-      return <Phone className={className} aria-hidden />
-    case "email":
-      return <Mail className={className} aria-hidden />
-    case "walkin":
-      return <Footprints className={className} aria-hidden />
-    case "instagram":
-      return <AtSign className={className} aria-hidden />
-    default:
-      return <Ellipsis className={className} aria-hidden />
-  }
-}
 
 export function LeadTouches({
   clientId,

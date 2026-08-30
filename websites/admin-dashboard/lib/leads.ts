@@ -1,8 +1,10 @@
 import {
+  IDLE_AFTER_DAYS,
   activeStatuses,
   customerStatuses,
   dealHeadline,
   fitTiers,
+  nextActionStatuses,
   nurtureStatuses,
   openStatuses,
   pastStatuses,
@@ -70,6 +72,35 @@ export function isNurtured(client: Client): boolean {
  *  never reach the staleness threshold. */
 export function isStale(client: Client, now: number): boolean {
   return isOpenLead(client) && daysWaiting(client, now) >= STALE_AFTER_DAYS
+}
+
+// The two cracks the Needs you feed counts, as predicates over a row already
+// in memory.
+//
+// They are the SQL in `packages/services/queries/crack-finder.ts` said again in
+// TypeScript, which is a duplication worth being uncomfortable about — so it
+// earns its place narrowly: the feed asks the database for the *counts*, and
+// the leads list, which has already read every row to render itself, filters
+// them here rather than paying for a seventh query to show the same rows. The
+// contract is that a count and the screen it links to agree, so if one of these
+// two definitions moves, both move.
+
+/** Being worked, with no next step — or one nobody dated, which never reaches
+ *  the due queue and so is the same crack. Mirrors `unplannedWhere`. */
+export function hasNoPlan(client: Client): boolean {
+  return (
+    (nextActionStatuses as readonly string[]).includes(client.status) &&
+    (client.nextAction === null || client.nextActionDue === null)
+  )
+}
+
+/** Mid-conversation and nothing has happened in a fortnight. Mirrors
+ *  `idleWhere` — including its clock, `last_touched_at` falling back to when
+ *  the row arrived. */
+export function isIdleDiscussion(client: Client, now: number): boolean {
+  return (
+    client.status === "discussing" && daysWaiting(client, now) >= IDLE_AFTER_DAYS
+  )
 }
 
 /** Where a prospect sits in the queue: tier first (A before B before C, and an
