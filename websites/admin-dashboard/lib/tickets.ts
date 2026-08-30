@@ -511,7 +511,7 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
 function synthesizedPrompt(repo: TicketRepo, path: string): string {
   return [
     `Read ${path} in ${repo.fullName} for full context, then do the work it describes.`,
-    "Follow that repo's own conventions and pipeline contracts (its CLAUDE.md and .icm/ own the rules).",
+    "Follow that repo's own conventions and pipeline contracts (its AGENTS.md and .icm/ own the rules).",
   ].join(" ")
 }
 

@@ -8,7 +8,7 @@ them, deployed as separate Vercel projects off one pnpm monorepo.
 
 ```text
 jamienisbet/
-├── CLAUDE.md            agent identity & routing (read first)
+├── AGENTS.md            agent identity & routing (read first; CLAUDE.md imports it)
 ├── README.md            you are here
 │
 ├── websites/
@@ -55,4 +55,4 @@ is preserved in
 [`.icm/docs/decisions.md`](.icm/docs/decisions.md) and the original intent in
 [`.icm/docs/founder-brief.md`](.icm/docs/founder-brief.md).
 
-— Start at [`CLAUDE.md`](CLAUDE.md)
+— Start at [`AGENTS.md`](AGENTS.md)

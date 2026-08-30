@@ -69,7 +69,7 @@ own Root Directory.
 ### The cost, and it is deliberate
 
 Anything **outside the workspace definition** (`packages/*`, `websites/*`) counts as a global change
-and deploys all four apps: `.icm/`, `.claude/`, `.github/`, `CLAUDE.md`, root configs. Ticket-only
+and deploys all four apps: `.icm/`, `.claude/`, `.github/`, `AGENTS.md`/`CLAUDE.md`, root configs. Ticket-only
 commits therefore build all four apps where the old `ignoreCommand` skipped them.
 
 That trade is taken knowingly. Those commits already cost four deployments under either mechanism —
