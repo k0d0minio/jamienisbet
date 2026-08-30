@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react"
 import {
+  AtSign,
   Building2,
   Check,
   Copy,
-  Instagram,
   Mail,
   MessageCircle,
   Pencil,
@@ -171,9 +171,10 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
 
       {client.instagram ? (
         // Stored bare; the '@' is punctuation, so it is put back here rather
-        // than kept in the column.
+        // than kept in the column. `AtSign` rather than a brand glyph: Lucide
+        // v1 dropped its logo set, and a handle is what this row actually is.
         <GroupedRow
-          icon={<Instagram />}
+          icon={<AtSign />}
           label="Instagram"
           value={`@${client.instagram}`}
           href={instagramUrl(client.instagram)}
