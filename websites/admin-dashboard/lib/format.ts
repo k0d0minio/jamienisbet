@@ -71,8 +71,12 @@ export function waitingLabel(days: number): string {
  * tapping it opens the conversation instead of dialling. wa.me wants the full
  * international number as bare digits: strip formatting, then a leading `+` or
  * `00`. Numbers stored without a country code get Portugal's (+351) — the
- * default market — since wa.me can't resolve a national-format number. */
-export function whatsappUrl(phone: string): string {
+ * default market — since wa.me can't resolve a national-format number.
+ *
+ * With `text`, the link opens the conversation with the message already typed
+ * into the box and nothing sent — which is the whole of the WhatsApp handoff:
+ * the draft crosses into their app, and a thumb still presses send. */
+export function whatsappUrl(phone: string, text?: string): string {
   let digits = phone.replace(/\D/g, "")
   if (phone.trim().startsWith("+")) {
     // already international, digits are complete
@@ -81,7 +85,8 @@ export function whatsappUrl(phone: string): string {
   } else if (digits.length === 9) {
     digits = `351${digits}`
   }
-  return `https://wa.me/${digits}`
+  const query = text?.trim() ? `?text=${encodeURIComponent(text.trim())}` : ""
+  return `https://wa.me/${digits}${query}`
 }
 
 /** An Instagram handle as its profile link. The handle is stored bare (the '@'

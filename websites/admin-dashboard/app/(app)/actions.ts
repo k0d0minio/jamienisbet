@@ -1,8 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { generateText } from "ai"
 
 import {
+  buildDraftPrompt,
   completeComplianceDate,
   createClientManually,
   createComplianceDate,
@@ -19,7 +21,10 @@ import {
   isClientStatus,
   isComplianceRecurrence,
   isDealType,
+  isDraftChannel,
+  isDraftKind,
   isFitTier,
+  isSuppressed,
   isTouchChannel,
   isTouchDirection,
   isTouchOutcome,
@@ -41,8 +46,14 @@ import {
   updateClient,
   type CadenceSuggestion,
   type ClientProfilePatch,
+  type DraftChannel,
 } from "@jamie-nisbet/services"
 
+import {
+  DRAFT_MAX_OUTPUT_TOKENS,
+  draftModelFor,
+  isGatewayConfigured,
+} from "@/lib/ai"
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
 import { renderFormAnswersMarkdown } from "@/lib/form-markdown"
 import { scaffoldIcmBaseline } from "@/lib/icm-scaffold"
@@ -399,6 +410,11 @@ export async function logTouchAction(
       direction,
       outcome,
       note: value("note"),
+      // Set only by the draft panel, which logs the message it just handed
+      // over. Capped rather than trusted: the field arrives from a textarea
+      // Jamie can type into, and the column is unbounded text.
+      draftMd: value("draftMd")?.slice(0, DRAFT_LIMIT) ?? null,
+      model: value("model")?.slice(0, 80) ?? null,
     })
     revalidateLead(clientId)
 
@@ -482,6 +498,132 @@ function addDays(from: Date, days: number): Date {
   const at = new Date(from.getTime())
   at.setDate(at.getDate() + days)
   return at
+}
+
+// ---- Drafting ---------------------------------------------------------------
+// AI comes back to the dashboard here, and on the other side of the standing
+// rule from where it was when the 2026-08 reversal removed it: this composes,
+// and a human sends. There is no Resend in this app, no auto-send path, no
+// document ceremony and no provenance table — a draft is a string, it is
+// handed over per channel, and if it is worth keeping it rides along on the
+// touch that was logged. Disposable by design.
+//
+// A server action rather than an API route, because that is what it is: one
+// screen calling one function with an id. No new HTTP surface exists on the
+// admin app (Jamie's decision 8), and none is added here.
+
+/** How long a draft may be, in and out. Four sentences is a few hundred
+ *  characters; this is the ceiling that stops a pasted essay reaching either
+ *  the model or the column. */
+const DRAFT_LIMIT = 4000
+
+export type GenerateDraftResult =
+  | { ok: true; draft: string; model: string }
+  | { ok: false; message: string }
+
+/**
+ * Write one message for this lead, on this channel, at this rung of the
+ * cadence.
+ *
+ * Returned rather than thrown, like every other action whose result a sheet has
+ * to render: Next redacts server-action exceptions in production, and the value
+ * is the whole point of the call.
+ *
+ * Grounding is everything on the row plus the history — assembled by
+ * `buildDraftPrompt` in @jamie-nisbet/services, which is where the voice lives
+ * so that a script drafting from a terminal sounds like this screen does.
+ *
+ * Two refusals, both before the Gateway is touched:
+ *
+ *   - **A closed channel.** Somebody who opted out gets no draft, not just no
+ *     send button — the app must not be able to produce the message at all.
+ *     `.icm/docs/lia-cold-outreach.md` § 4 names this as sequence 5's job.
+ *   - **No Gateway.** Unconfigured degrades to a stated absence, the same way
+ *     Stripe and GitHub do, rather than to a failing button.
+ */
+export async function generateTouchDraft(
+  clientId: string,
+  kind: string,
+  channel: string
+): Promise<GenerateDraftResult> {
+  if (!isDraftKind(kind)) {
+    return { ok: false, message: "Pick which message this is." }
+  }
+  if (!isDraftChannel(channel)) {
+    return { ok: false, message: "Pick a channel to write for." }
+  }
+  if (!isGatewayConfigured()) {
+    return {
+      ok: false,
+      message: "Drafting isn't configured — the Gateway key is missing.",
+    }
+  }
+
+  try {
+    const client = await getClient(clientId)
+    if (!client) return { ok: false, message: "That lead no longer exists." }
+
+    const closed = await isChannelClosed(client, channel)
+    if (closed) {
+      return {
+        ok: false,
+        message: "They opted out on this channel — nothing goes out here.",
+      }
+    }
+
+    const history = await listTouchesForClient(clientId)
+    const { system, prompt } = buildDraftPrompt({
+      lead: client,
+      kind,
+      channel,
+      history,
+    })
+
+    const model = draftModelFor(client.language)
+    const { text } = await generateText({
+      // A bare "provider/model" string is a Vercel AI Gateway model — see
+      // lib/ai.ts, which is the one place either id is written down.
+      model,
+      system,
+      prompt,
+      maxOutputTokens: DRAFT_MAX_OUTPUT_TOKENS,
+      // One retry, not three. This is a phone waiting on a sheet, and a
+      // second failure is worth saying out loud rather than sitting through.
+      maxRetries: 1,
+    })
+
+    const draft = text.trim()
+    if (draft === "") {
+      return { ok: false, message: "The model came back empty. Try again." }
+    }
+    return { ok: true, draft: draft.slice(0, DRAFT_LIMIT), model }
+  } catch (err) {
+    console.error("[drafts] generate failed:", err)
+    return { ok: false, message: "Couldn't write that one. Try again." }
+  }
+}
+
+/** Whether this lead's door on that channel has been closed. WhatsApp follows
+ *  the number rather than the column — their own line when they have one, the
+ *  phone number otherwise — which is the same rule every wa.me link in the app
+ *  already follows. */
+async function isChannelClosed(
+  client: {
+    email: string | null
+    phone: string | null
+    whatsapp: string | null
+    instagram: string | null
+  },
+  channel: DraftChannel
+): Promise<boolean> {
+  switch (channel) {
+    case "email":
+      return isSuppressed("email", client.email)
+    case "whatsapp":
+      return isSuppressed("phone", client.whatsapp ?? client.phone)
+    case "instagram":
+      return isSuppressed("instagram", client.instagram)
+  }
 }
 
 // ---- Opt-outs ---------------------------------------------------------------

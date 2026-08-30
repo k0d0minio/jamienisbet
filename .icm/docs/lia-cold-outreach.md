@@ -132,8 +132,9 @@ not about the lead row:
   dead end on the lead's profile — the address still readable and copyable, the send gesture
   gone — and the action discs for it are disabled; `leads-import` checks every contact point
   on a batch before it writes anything and skips the whole business, not just that channel;
-  and `leads-queue` marks a closed door rather than offering it. Contracted: the draft
-  handoff refuses a closed channel too (sequence 5).
+  `leads-queue` marks a closed door rather than offering it; and the draft panel on the lead's
+  profile disables a closed channel and its server action refuses one — the app cannot *write*
+  the message, not merely not send it (sequence 5, done).
 - **An erasure request does not erase the suppression.** Keeping the minimum needed to
   *stay* stopped is what honouring the objection requires; deleting it would be the one way
   to guarantee contacting them again. ✅ Only the contact point and the reason are kept.

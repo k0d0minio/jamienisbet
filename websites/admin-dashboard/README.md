@@ -238,6 +238,49 @@ not a scheduler: ~5 touches over ~3 weeks, first on whichever door is open, a se
 day 3, a follow-up in the first week, a walk-in on day 12 for A-tier leads with a town on file,
 and a last message on day 19.
 
+### Drafts — written here, sent by you
+
+Under the history sits **Draft** ([`components/lead-draft.tsx`](components/lead-draft.tsx)): the
+message for the next touch, grounded on this lead's own row. It is AI back in the dashboard
+after the 2026-08 reversal removed it, and it is allowed back because of where it stops — it
+composes, and a human sends. There is no Resend in this app, no auto-send path, no versioned
+documents and no `generations` table. A draft is a string.
+
+- **Grounded, not generic.** Name, company, sector, town, language, the **hook**, the website
+  and its grade, the review count, and the touch history — assembled by `buildDraftPrompt` in
+  [`packages/services/src/outreach.ts`](../../packages/services/src/outreach.ts), which is also
+  where the voice prompt lives so a script drafting from a terminal sounds like this screen.
+  The model is told never to invent a fact: with a thin row it says less.
+- **Four rungs, three doors.** *First · Bump · Follow-up · Last one* — the cadence's own steps
+  read as messages, prefilled from where this lead actually is. The door is email, WhatsApp or
+  Instagram; a phone call and a walk-in are touches, not drafts. The register follows the
+  channel, and an email draft carries its own `Subject:` line.
+- **pt-PT gets a better model.** English drafts run on a nano-class model; a lead whose
+  `language` is `pt` steps up to a Haiku-class one, because the failure mode there is not a
+  wrong language but a *translated* one, which is the exact signal a business uses to spot a
+  mailshot. Both ids live in [`lib/ai.ts`](lib/ai.ts).
+- **A first-touch email carries the two lines the law puts there** — where the details came
+  from, and how to stop it (Art 14; see
+  [`.icm/docs/lia-cold-outreach.md`](../../.icm/docs/lia-cold-outreach.md) § 3).
+- **Handoff, never send.** `mailto:` opens a compose window with subject and body filled in;
+  `wa.me/<number>?text=` opens the conversation with the message typed into the box; Instagram
+  has no prefill at all, so that row copies the draft and opens the profile in one tap. Every
+  one of them ends with a thumb pressing send in somebody else's app.
+- **The handoff offers to log the touch.** Taking the draft anywhere reveals *Log it — WhatsApp,
+  sent*, which writes the touch with the draft attached (`touches.draft_md`, plus which model
+  wrote it) and then leads into the cadence's next-step pane — the same one the touch log uses
+  ([`components/next-step-pane.tsx`](components/next-step-pane.tsx)). Read, hand over, log, plan:
+  one sheet.
+- **A closed door has no gesture.** A channel somebody opted out of is a disabled segment that
+  says why, and the server action refuses it too — the app must not be able to *write* the
+  message, not merely to send it. A lead with every channel closed, or none on file, gets a
+  stated dead end instead of the panel. With no `AI_GATEWAY_API_KEY` the section says drafting
+  isn't set up and nothing else on the page changes.
+
+The Gateway is reached through the AI SDK with a bare `provider/model` string, so there are no
+provider packages and no client to construct — one key, one bill, and a monthly budget in the
+Vercel dashboard as the spend tripwire.
+
 Reference material and irreversible actions sink to the bottom of **Person** — **Intake** is a
 `GroupedDisclosure` that folds open on a tap, and archive/delete are the last section, under a
 **Danger zone** header in red, rather than beside the title where a thumb reaching for the
@@ -384,6 +427,10 @@ proposal → milestone invoicing), with versioned review-gated documents, AI pro
 tracking, draft-only outreach composition, and a won-deal onboarding checklist — around 14
 screens in total. It was removed in favour of the four above: too much machinery for a
 one-person consultancy whose actual need is knowing who is waiting to hear back.
+
+Drafting came back in 2026-08 as the panel described under [Leads](#leads) — deliberately the
+lean half of what left: one string, one call, no table, no versions, no provenance ceremony, and
+still nothing that sends.
 
 Gone with it: the `deals`, `documents`, `generations`, `touches` and `workshop_messages` tables,
 the `app/api/ai/*` routes, and the `@jamie-nisbet/icm` package (its only consumer was those
@@ -559,5 +606,7 @@ Import as a new Vercel project, attach the **same** Neon integration as the othe
 same Stripe account the payment-gateway uses), and optionally `GITHUB_TOKEN` for the delivery-repo
 connect/create and the Tickets board (plus `GITHUB_REPO_OWNER` to home new client repos under a
 specific user/org). Set `PORTFOLIO_BASE_URL` to the portfolio's origin so the Forms card builds
-customer links against the right host.
+customer links against the right host. `AI_GATEWAY_API_KEY` turns on the draft panel — set a
+small monthly budget on the Gateway in the Vercel dashboard as the spend tripwire; without the
+key the panel degrades to a "not set up" note and nothing else changes.
 Consumes the shared packages as source (`transpilePackages` in [`next.config.ts`](next.config.ts)).

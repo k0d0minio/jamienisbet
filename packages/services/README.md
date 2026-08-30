@@ -25,6 +25,7 @@ src/
   deal.ts            # what a deal is made of — components, and the helpers over them
   forms.ts           # the questionnaire snapshot/answer types both apps share
   import.ts          # a compiled list row → the columns; the dedupe key. Pure
+  outreach.ts        # the outreach voice and the grounding — what a draft is built from. Pure
   queries/clients.ts # typed intake/list/update helpers for the leads table
   queries/touches.ts     # the touch log: the three vocabularies, the history, logging one
   queries/suppressions.ts # the permanent opt-out list, keyed to the contact not the lead
