@@ -112,7 +112,9 @@ function TermEditor({
   onSubmit,
   children,
 }: {
-  title: string
+  /** The term's name, where the field below doesn't already carry it — the
+   *  fee's does not ("Amount (€)"), a percentage's does. */
+  title?: string
   /** Whether this term is currently part of the deal — you can only remove
    *  what is there. */
   removable: boolean
@@ -134,7 +136,9 @@ function TermEditor({
           if (event.key === "Escape") onCancel()
         }}
       >
-        <span className="text-app-footnote text-app-label-3">{title}</span>
+        {title != null ? (
+          <span className="text-app-footnote text-app-label-3">{title}</span>
+        ) : null}
 
         {children}
 
@@ -340,7 +344,6 @@ function PercentEditor({
 
   return (
     <TermEditor
-      title={kind === "equity" ? "Equity" : "Commission"}
       removable={(stored ?? 0) > 0}
       pending={pending}
       onCancel={onCancel}
@@ -362,7 +365,9 @@ function PercentEditor({
           inputMode="decimal"
           autoComplete="off"
           enterKeyHint="done"
-          placeholder="0"
+          // A dash, not a zero: no percentage agreed is not the same fact as
+          // a nil cut deliberately agreed.
+          placeholder="—"
           autoFocus
         />
       </AppField>
