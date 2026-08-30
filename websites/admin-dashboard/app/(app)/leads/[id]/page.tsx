@@ -5,11 +5,16 @@ import { ChevronLeft } from "lucide-react"
 import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
 import {
   clientStatusLabel,
+  contactPointsOf,
   getClient,
   listFormLinksForClient,
   listOpenTasksForClient,
   listTouchesForClient,
   nextActionStatuses,
+  normalizeSuppressionValue,
+  suppressionKindLabel,
+  suppressionsForClient,
+  type SuppressionKind,
 } from "@jamie-nisbet/services"
 
 import { AppProfileScreen } from "@/components/app-screen"
@@ -27,6 +32,7 @@ import { LeadNextAction } from "@/components/lead-next-action"
 import { LeadNotesCard } from "@/components/lead-notes-card"
 import { LeadSegments } from "@/components/lead-segments"
 import { LeadStatusRow } from "@/components/lead-status-row"
+import { LeadSuppress } from "@/components/lead-suppress"
 import { LeadTodos } from "@/components/lead-todos"
 import { LeadTouches } from "@/components/lead-touches"
 import { TouchRow } from "@/components/touch-row"
@@ -44,6 +50,7 @@ import {
 } from "@/lib/lead-segments"
 import { dealFigure } from "@/lib/leads"
 import { listOnboardingForms } from "@/lib/onboarding"
+import type { SuppressedChannels } from "@/lib/suppression"
 
 export const metadata: Metadata = { title: "Lead" }
 export const dynamic = "force-dynamic"
@@ -83,12 +90,17 @@ async function loadLead(id: string) {
   // in Neon) are independent reads — one is what *can* be sent, the other what
   // already was — so they go together rather than in series. The library is
   // scoped to this lead: the house forms, plus any in their own delivery repo.
-  const [rawTasks, rawTouches, formLinks, formLibrary] = await Promise.all([
-    listOpenTasksForClient(client.id),
-    listTouchesForClient(client.id, TOUCH_HISTORY_LIMIT),
-    listFormLinksForClient(client.id),
-    listOnboardingForms(client.githubRepo),
-  ])
+  const [rawTasks, rawTouches, formLinks, formLibrary, optOuts] =
+    await Promise.all([
+      listOpenTasksForClient(client.id),
+      listTouchesForClient(client.id, TOUCH_HISTORY_LIMIT),
+      listFormLinksForClient(client.id),
+      listOnboardingForms(client.githubRepo),
+      // Who on this record has asked not to be contacted. One read for all
+      // four channels, because every handoff on this page — the action discs,
+      // the contact rows — has to know before it draws itself.
+      suppressionsForClient(client),
+    ])
 
   // Every todo here is this lead's, so the rows carry no name and no lead
   // picker — it would be the same name on each one.
@@ -114,6 +126,40 @@ async function loadLead(id: string) {
     loggedOn: formatShortDay(t.loggedAt),
   }))
 
+  // The opt-outs, resolved here rather than in the browser: the normalization
+  // that decides whether two spellings of a number are the same number lives
+  // in the services layer, and no client component pulls that in.
+  const closed = new Set(optOuts.map((row) => `${row.kind}:${row.value}`))
+  const isClosed = (kind: SuppressionKind, raw: string | null): boolean => {
+    const value = normalizeSuppressionValue(kind, raw)
+    return value !== null && closed.has(`${kind}:${value}`)
+  }
+  const chat = client.whatsapp ?? client.phone
+  const suppressed: SuppressedChannels = {
+    email: isClosed("email", client.email),
+    phone: isClosed("phone", client.phone),
+    whatsapp: isClosed("phone", chat),
+    instagram: isClosed("instagram", client.instagram),
+  }
+
+  // Every channel this record has, and what the opt-out section says about
+  // each: the values are the normalized ones, so what the sheet promises to
+  // close is literally what would land in the table.
+  const optOutByKey = new Map(
+    optOuts.map((row) => [`${row.kind}:${row.value}`, row] as const)
+  )
+  const channels = contactPointsOf(client).map((point) => {
+    const hit = optOutByKey.get(`${point.kind}:${point.value}`)
+    return {
+      kind: point.kind,
+      label: suppressionKindLabel(point.kind),
+      value: point.value,
+      closed: hit
+        ? { on: formatShortDay(hit.createdAt), reason: hit.reason }
+        : null,
+    }
+  })
+
   // What happens next, as the masthead reads it. A parked lead's line is its
   // wake date instead — the one rung where nothing is planned on purpose.
   const parked = client.status === "nurture"
@@ -125,6 +171,8 @@ async function loadLead(id: string) {
     touches,
     formLinks,
     formLibrary,
+    suppressed,
+    channels,
     lastWorked: waitingLabel(
       daysSince(client.lastTouchedAt ?? client.createdAt, now)
     ),
@@ -155,8 +203,17 @@ export default async function LeadDetailPage({
   const loaded = await loadLead(id)
   if (!loaded) notFound()
 
-  const { client, tasks, touches, formLinks, formLibrary, lastWorked, next } =
-    loaded
+  const {
+    client,
+    tasks,
+    touches,
+    formLinks,
+    formLibrary,
+    suppressed,
+    channels,
+    lastWorked,
+    next,
+  } = loaded
   const archived = client.archivedAt !== null
 
   // Which segment to open on. The client rewrites this in place as you switch,
@@ -238,6 +295,7 @@ export default async function LeadDetailPage({
           workStartedOn={
             client.workStartedAt ? formatDate(client.workStartedAt) : null
           }
+          suppressed={suppressed}
         />
       }
     >
@@ -278,6 +336,7 @@ export default async function LeadDetailPage({
                 whatsapp: client.whatsapp,
                 instagram: client.instagram,
               }}
+              suppressed={suppressed}
             />
 
             {/* What they *are*, as opposed to how you reach them — the block
@@ -313,6 +372,16 @@ export default async function LeadDetailPage({
             {/* Provenance, read once and then never — one folded row at the
                 foot of the record rather than a section of its own. */}
             <LeadIntake client={client} />
+
+            {/* The opt-out: irreversible in a different way from the two rows
+                below it, and about a person rather than about a record — so it
+                gets a section of its own rather than a third red row under a
+                footer that would be describing something else. */}
+            <LeadSuppress
+              clientId={client.id}
+              clientName={client.name}
+              channels={channels}
+            />
 
             {/* Rare and irreversible — last on the segment, in red, and nowhere
                 near the thumb reaching for the status at the top. */}

@@ -26,6 +26,7 @@ src/
   forms.ts           # the questionnaire snapshot/answer types both apps share
   queries/clients.ts # typed intake/list/update helpers for the leads table
   queries/touches.ts     # the touch log: the three vocabularies, the history, logging one
+  queries/suppressions.ts # the permanent opt-out list, keyed to the contact not the lead
   queries/crack-finder.ts # the four reads that notice what the writes never refuse
   queries/tasks.ts       # todos
   queries/compliance.ts  # the PT compliance calendar (recurrence re-arms on complete)
@@ -61,7 +62,8 @@ The first migration creates the `biz` schema and its tables.
 
 ## Scope
 
-Today: **`clients`** and its history in **`touches`**, plus the three working lists. Every intake — a portfolio contact enquiry or a sellers-site
+Today: **`clients`**, its history in **`touches`**, the permanent opt-out list in
+**`suppressions`**, plus the three working lists. Every intake — a portfolio contact enquiry or a sellers-site
 referral — creates one client row (the form only sets the `source` and which intake fields are
 populated); there is no separate table per form. Each client then gets fleshed out as the
 relationship moves up the ladder (`status`: `lead` → `discussing` → `active` → `past`, or the
@@ -157,6 +159,37 @@ untouched would put them straight back on top of the staleness sort they just ca
 never moves that stamp backwards, so a back-dated touch is history being filled in rather than
 the relationship going quiet again. The three vocabularies follow the status ladder's shape:
 ordered set, label lookup, guard.
+
+**`suppressions` is the permanent floor under all of it.** One row per contact point that
+has asked never to be contacted again: `kind` (email / phone / instagram), `value` stored
+normalized (lowercased address, E.164 number, bare lowercase handle), an optional `reason`
+in Jamie's words, and `created_at`. Unique on (`kind`, `value`), which makes every write an
+idempotent `ON CONFLICT DO NOTHING` and the import script's check a single indexed lookup.
+
+**It has no foreign key to `clients`, and that is the whole design.** A suppression is a
+fact about an address, not about a lead, so it outlives the row it was asked through — the
+archive, the delete, the retention purge, and next spring's re-import of the same business.
+A `client_id` here would die with the client and the next import would write them straight
+back in. For the same reason **nothing in this package deletes one**: an opt-out you can
+un-tick is an opt-out the next import quietly walks past, so removing a mis-typed row is a
+hand-written `DELETE` in psql rather than a tap on a phone.
+
+| Helper | Answers |
+|---|---|
+| `normalizeSuppressionValue(kind, raw)` / `toE164(raw)` | The canonical form. Every read and every write goes through it — a value stored normalized and looked up raw is a suppression that silently does nothing. `toE164` assumes `DEFAULT_COUNTRY_CODE` (351) for a bare nine-digit number, which is what the pool is. |
+| `contactPointsOf(client)` | Every way this lead can currently be reached, normalized and de-duplicated (`whatsapp` is the phone number for most of the pool and a second line for the rest). |
+| `isSuppressed(kind, value)` | The single-channel check — what the import script asks at the door. |
+| `findSuppressions(points)` / `suppressionsForClient(client)` | The same question for a whole lead or a whole batch, in one round trip, returning the rows so a dead-end state can say when and why. |
+| `suppressContactPoints(points, reason)` | Record the opt-out. Idempotent; `created_at` stays the date it was *first* asked for. |
+| `suppressClient(id, reason)` | The whole gesture as one call, the way `parkClient` is: suppress every contact point, log an inbound `not_interested` touch carrying the reason, move the lead to `not_won`, and clear the next action and any wake date. A surface that got three of those four right would leave someone who opted out sitting in tomorrow's queue. |
+
+The record itself is kept rather than deleted: a business that opted out and then appears in
+a later list should read as *the one that asked to be left alone*, not as a blank a fresh
+cadence starts against. What eventually clears the contact details is the retention rule, and
+the suppression stays standing after it. The reasoning, the channel split it rests on
+(role addresses at companies are opt-out under Lei 41/2004; a sole trader is a natural person
+and gets phone or walk-in first) and the retention rule itself are written up in
+[`.icm/docs/lia-cold-outreach.md`](../../.icm/docs/lia-cold-outreach.md).
 
 **`cadence.ts` is the one place the shape of the outreach is written down.** A suggestion
 engine, not a scheduler: nothing there writes, nothing runs on a timer, and nothing it returns
