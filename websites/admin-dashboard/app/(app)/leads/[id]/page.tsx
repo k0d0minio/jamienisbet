@@ -6,12 +6,15 @@ import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui
 import {
   clientStatusLabel,
   contactPointsOf,
+  draftChannelOf,
+  draftKindFor,
   getClient,
   listFormLinksForClient,
   listOpenTasksForClient,
   listTouchesForClient,
   nextActionStatuses,
   normalizeSuppressionValue,
+  suggestNextTouch,
   suppressionKindLabel,
   suppressionsForClient,
   type SuppressionKind,
@@ -25,6 +28,7 @@ import { FormLinks } from "@/components/form-links"
 import { LeadActionRow } from "@/components/lead-action-row"
 import { LeadContactCard } from "@/components/lead-contact-card"
 import { LeadDealCard } from "@/components/lead-deal-card"
+import { LeadDraft } from "@/components/lead-draft"
 import { LeadFactsCard } from "@/components/lead-facts-card"
 import { LeadIntake } from "@/components/lead-intake"
 import { LeadLinks } from "@/components/lead-links"
@@ -36,6 +40,7 @@ import { LeadSuppress } from "@/components/lead-suppress"
 import { LeadTodos } from "@/components/lead-todos"
 import { LeadTouches } from "@/components/lead-touches"
 import { TouchRow } from "@/components/touch-row"
+import { isGatewayConfigured } from "@/lib/ai"
 import {
   daysSince,
   formatDate,
@@ -160,6 +165,20 @@ async function loadLead(id: string) {
     }
   })
 
+  // Where the cadence thinks this lead is, read as a message rather than as a
+  // next action: which of the four rungs the draft panel should open on, and
+  // down which door. Pure — `suggestNextTouch` reads the history it was handed
+  // and nothing else — so it costs the profile no extra round trip.
+  //
+  // The channel is only a default and only sometimes a writable one: a cadence
+  // that says "walk in" is saying something true that is not a message, and the
+  // panel falls back to whichever door is actually open.
+  const cadence = suggestNextTouch(client, rawTouches, new Date(now))
+  const draft = {
+    kind: draftKindFor(cadence),
+    channel: draftChannelOf(cadence?.channel),
+  }
+
   // What happens next, as the masthead reads it. A parked lead's line is its
   // wake date instead — the one rung where nothing is planned on purpose.
   const parked = client.status === "nurture"
@@ -173,6 +192,7 @@ async function loadLead(id: string) {
     formLibrary,
     suppressed,
     channels,
+    draft,
     lastWorked: waitingLabel(
       daysSince(client.lastTouchedAt ?? client.createdAt, now)
     ),
@@ -211,6 +231,7 @@ export default async function LeadDetailPage({
     formLibrary,
     suppressed,
     channels,
+    draft,
     lastWorked,
     next,
   } = loaded
@@ -415,6 +436,26 @@ export default async function LeadDetailPage({
                 <TouchRow key={touch.id} touch={touch} />
               ))}
             </LeadTouches>
+
+            {/* What to say, and the doors it can go out of — directly under
+                the history it is grounded on, because the last thing that
+                happened is what decides the next message. Nothing here sends:
+                the panel hands the draft to a mail app, to WhatsApp or to the
+                clipboard, and offers to log the touch on the way past. */}
+            <LeadDraft
+              clientId={client.id}
+              clientName={client.name}
+              email={client.email}
+              phone={client.phone}
+              whatsapp={client.whatsapp}
+              instagram={client.instagram}
+              suppressed={suppressed}
+              configured={isGatewayConfigured()}
+              defaultKind={draft.kind}
+              defaultChannel={draft.channel}
+              hasHook={Boolean(client.hook)}
+              portuguese={client.language === "pt"}
+            />
 
             <LeadNotesCard id={client.id} notes={client.notes} />
 
