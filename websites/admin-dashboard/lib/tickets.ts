@@ -20,16 +20,36 @@ import "server-only"
 //   • LEGACY: flat `PREFIX-NNN-slug.md` files with an H1 `# <ID> · <title>`,
 //     a two-column metadata table and a Status row.
 //
-// Fetching is one git-tree call per repo (recursive, so epic folders and
-// `runs/` come back in the same response), then one raw read per open ticket
-// file. `_done/` is never fetched.
+// Fetching runs on three clocks, because a board read is not one request and
+// its parts go stale at very different speeds:
+//
+//   • DISCOVERY (hourly) — which repos exist, and which of them carry an
+//     `.icm/intake/` at all. The token owns ~35 repos and most never will, but
+//     each one used to cost a tree call on every render just to find that out
+//     again. The owner listing plus a one-request probe per repo answer it on
+//     an hourly clock instead. The whole estate is still on the board
+//     (icm-board decision D13) — the sweep is simply no longer something every
+//     render pays for, and a repo that gains an intake joins within the hour,
+//     or the moment the refresh control is used.
+//   • POSITION (a minute) — one recursive git-tree call per repo that actually
+//     has an intake; epic folders and `runs/` come back in the same response.
+//     This is the read that notices a ticket landing or a run opening.
+//   • CONTENT (a month) — ticket bodies read by blob SHA, not by path. A path
+//     read answers "what is in that file now" and has to be re-asked every
+//     minute, so a warm board re-read every open ticket in the estate. A git
+//     blob SHA *is* its content, so `git/blobs/<sha>` can never go stale: the
+//     minute-clock tree read is what notices a file changed, by handing back a
+//     different SHA, and only the files that actually changed are re-read.
+//
+// `_done/` is never fetched.
 //
 // Reuses the delivery-repo `GITHUB_TOKEN`; a fine-grained token needs Contents
-// read on the connected repos. Every fetch carries a 60-second revalidate —
-// the board is a glanceable list where "up to a minute behind main" is the
-// right trade against hammering the API on every phone refresh. Every fetch is
-// also tagged, so the board's explicit refresh control can bust the whole
-// minute in one `revalidateTag` when "current right now" is the point.
+// read on the connected repos. Every fetch carries a revalidate — one of the
+// three above — because the board is a glanceable list where "up to a minute
+// behind main" is the right trade against hammering the API on every phone
+// refresh. Every fetch is also tagged with the same tag whatever its
+// lifetime, so the board's explicit refresh control busts all three in one
+// `revalidateTag` when "current right now" is the point.
 //
 // That cache is easier to lose than it looks, and losing it is how this board
 // once 403'd every repo at once — a hundred-plus GitHub calls per view, on two
@@ -43,24 +63,51 @@ import "server-only"
 // `MAX_CONCURRENT_REQUESTS` in flight, so one cold read can't trip GitHub's
 // concurrency limit on its own.
 //
+// When a read does fail, it says so. Nothing here answers a refused request
+// with an empty list: a rate-limited roster call that returns "no repos" is
+// indistinguishable from an estate with no work in it, and reading the first
+// as the second is exactly how the outage presented itself.
+//
 // The board reads batch-first: `listBoard()` folds the tickets into repo
 // sections of batches (each epic folder, plus a Triage pseudo-batch for the
 // one-offs and a Backlog pseudo-batch for unmigrated legacy tickets), and a
 // "now" strip of today's picks, runs in flight, and blocked stubs.
 
+import { cache } from "react"
+
 import { listClientRepos } from "@jamie-nisbet/services"
 
-import { listAccessibleRepos } from "@/lib/github"
-
 const API = "https://api.github.com"
+
+/** The board's own clock: how long "what moved" — a repo's tree — is trusted.
+ * A glanceable list is allowed to be up to a minute behind main. */
 const REVALIDATE_SECONDS = 60
+
+/**
+ * How long the *shape* of the estate is trusted: the owner listing, and
+ * whether a given repo carries an `.icm/intake/` at all. Repos are created,
+ * and gain their first intake, on a scale of weeks — re-asking every minute
+ * bought nothing and cost a request per owned repo per render, which was the
+ * bulk of a cold read. Both reads are still tagged, so the refresh control
+ * takes a repo that just grew an intake straight onto the board.
+ */
+const DISCOVERY_REVALIDATE_SECONDS = 60 * 60
+
+/**
+ * How long a blob read is trusted. Reads are by SHA and a git blob SHA is its
+ * content, so this is a cache-size budget rather than a freshness one: the
+ * answer cannot go stale, and a ticket file that changes simply gets a new SHA
+ * and so a different entry.
+ */
+const BLOB_REVALIDATE_SECONDS = 60 * 60 * 24 * 30
 
 /**
  * How many GitHub requests this module will ever have in flight at once.
  *
- * One board read is not one request: it is a tree call per repo in the estate
- * and then a raw read per open ticket file — comfortably past a hundred on a
- * cold read. Fired as one `Promise.all` that is exactly GitHub's documented
+ * One board read is not one request: it is a tree call per repo with an intake
+ * and then a blob read per ticket file the trees say has changed — which on the
+ * first read of a deploy is every open ticket in the estate, comfortably past a
+ * hundred. Fired as one `Promise.all` that is exactly GitHub's documented
  * secondary rate limit ("no more than 100 concurrent requests"), and the whole
  * board comes back `403` — every repo at once, which is what a permissions
  * problem looks like and isn't one. Eight at a time costs a few hundred
@@ -71,13 +118,15 @@ const MAX_CONCURRENT_REQUESTS = 8
 /** Cache tag on every GitHub read, so the refresh action can bust them all. */
 export const BOARD_CACHE_TAG = "tickets"
 
-// The board shows every repo the token can see (the estate lives under one
-// owner), with client attribution joined in from the database rows that
-// connect a repo to a lead. The house repos are pinned so they exist even if
-// the accessible-repos call fails. Sustentus lives under its own org — outside
-// `affiliation=owner` — and is added explicitly: its `.icm/` is exempt from the
-// estate *tooling*, but its stubs are the very shape this parser speaks, and
-// seeing the whole estate on one board is the point (icm-board decision D13).
+// The pinned tier of the roster: read every render, never gated behind
+// discovery. The house repos are here so the board stands even when the owner
+// sweep fails, and every repo a client row points at is here because a
+// connected repo is onboard the moment its first ticket lands — it must not
+// have to wait out an hourly clock to appear. Sustentus lives under its own
+// org — outside `affiliation=owner`, so the sweep would never find it — and is
+// added explicitly: its `.icm/` is exempt from the estate *tooling*, but its
+// stubs are the very shape this parser speaks, and seeing the whole estate on
+// one board is the point (icm-board decision D13).
 const HOUSE_REPOS = ["k0d0minio/jamienisbet", "k0d0minio/icm-board"] as const
 const EXTRA_REPOS = ["sustentus/sustentus"] as const
 
@@ -273,7 +322,11 @@ function release(): void {
   else inFlight -= 1
 }
 
-async function gh(path: string, accept: string): Promise<Response> {
+async function gh(
+  path: string,
+  accept: string,
+  revalidate: number = REVALIDATE_SECONDS
+): Promise<Response> {
   await acquire()
   try {
     return await fetch(`${API}${path}`, {
@@ -297,7 +350,9 @@ async function gh(path: string, accept: string): Promise<Response> {
       // export it. Only 200s are stored, so a rate-limited read is never
       // cached and the board heals itself once the limit resets.
       cache: "force-cache",
-      next: { revalidate: REVALIDATE_SECONDS, tags: [BOARD_CACHE_TAG] },
+      // Three clocks, one tag: whichever lifetime a read is on, the refresh
+      // control still busts it.
+      next: { revalidate, tags: [BOARD_CACHE_TAG] },
     })
   } finally {
     release()
@@ -535,23 +590,34 @@ function parseLegacy(
 }
 
 // ---------------------------------------------------------------------------
-// Fetching. One recursive git-tree call per repo, then one raw read per open
-// ticket file. Best-effort per repo: one unreachable repo becomes a banner on
-// the board, not an empty page.
+// Fetching. One recursive git-tree call per repo that has an intake, then one
+// blob read per open ticket file — content-addressed, so on a warm board that
+// is only the files whose SHA moved. Best-effort per repo: one unreachable
+// repo becomes a banner on the board, not an empty page.
 
-type TreeEntry = { path: string; type: string }
+type TreeEntry = { path: string; type: string; sha: string }
 
 function blobUrl(repo: TicketRepo, path: string): string {
   return `https://github.com/${repo.fullName}/blob/HEAD/${path}`
 }
 
-async function fetchRaw(repo: TicketRepo, path: string): Promise<string | null> {
+/**
+ * One ticket file, read by blob SHA rather than by path.
+ *
+ * `contents/<path>` and `git/blobs/<sha>` hand back the same markdown, but
+ * they are not the same cache entry. A path read answers "what is in that file
+ * *now*", so it expires with the board's minute and a warm read re-fetched
+ * every open ticket in the estate — comfortably a hundred requests a minute
+ * for a set of files that changes a handful of times a day. A SHA read is
+ * content-addressed and therefore immutable: it is cached for a month, and the
+ * minute-clock tree read above is what notices a file changed, by naming a
+ * different SHA.
+ */
+async function fetchBlob(repo: TicketRepo, sha: string): Promise<string | null> {
   const res = await gh(
-    `/repos/${repo.fullName}/contents/${path
-      .split("/")
-      .map(encodeURIComponent)
-      .join("/")}`,
-    "application/vnd.github.raw+json"
+    `/repos/${repo.fullName}/git/blobs/${sha}`,
+    "application/vnd.github.raw+json",
+    BLOB_REVALIDATE_SECONDS
   )
   if (!res.ok) return null
   return res.text()
@@ -577,8 +643,8 @@ async function fetchRepoTickets(
     }
     const { tree } = (await res.json()) as { tree: TreeEntry[] }
 
-    const stubPaths: { path: string; epic: string }[] = []
-    const legacyPaths: string[] = []
+    const stubPaths: { path: string; epic: string; sha: string }[] = []
+    const legacyPaths: { path: string; sha: string }[] = []
     const runSlugs = new Set<string>()
 
     for (const entry of tree) {
@@ -600,23 +666,23 @@ async function fetchRepoTickets(
       if (segments.length === 1) {
         const nameLower = segments[0].toLowerCase()
         if (nameLower === "readme.md" || nameLower === "context.md") continue
-        legacyPaths.push(entry.path)
+        legacyPaths.push({ path: entry.path, sha: entry.sha })
       } else if (segments.length === 2) {
         if (segments[1].toLowerCase() === "breakdown.md") continue
-        stubPaths.push({ path: entry.path, epic: segments[0] })
+        stubPaths.push({ path: entry.path, epic: segments[0], sha: entry.sha })
       }
     }
 
     const [stubResults, legacyResults] = await Promise.all([
       Promise.all(
-        stubPaths.map(async ({ path, epic }) => {
-          const raw = await fetchRaw(repo, path)
+        stubPaths.map(async ({ path, epic, sha }) => {
+          const raw = await fetchBlob(repo, sha)
           return raw === null ? null : parseStub(path, epic, raw)
         })
       ),
       Promise.all(
-        legacyPaths.map(async (path) => {
-          const raw = await fetchRaw(repo, path)
+        legacyPaths.map(async ({ path, sha }) => {
+          const raw = await fetchBlob(repo, sha)
           return raw === null
             ? null
             : parseLegacy(repo, path, blobUrl(repo, path), raw)
@@ -742,14 +808,92 @@ function rank(t: Ticket): number {
     : 3
 }
 
+// --- the roster ------------------------------------------------------------
+// Two tiers. The pinned repos above are read every render. Everything else the
+// token owns goes through discovery on the hourly clock: one small request
+// each, asking only whether the repo has an `.icm/intake/` to read. Most of
+// the estate does not and never will, and the answer to that question does not
+// change between two renders a minute apart.
+
 /**
- * The board's repo roster: every repo the token owns (most-recently-pushed
- * first from GitHub, re-sorted by name), joined with the client rows for
- * attribution, plus the pinned house repos and sustentus. Deduped by full
- * name — first source wins; client attribution is applied wherever a client
- * row points at a repo.
+ * Every repo the token owns, most-recently-pushed first.
+ *
+ * Read here rather than through `lib/github.ts`'s picker listing for two
+ * reasons. It is a board read, so it belongs on the board's cache, tag and
+ * concurrency cap — the caching invariants at the top of this file only hold
+ * while they live in one place. And it has to be able to fail out loud: the
+ * picker's listing is a typing aid where an empty answer costs nothing, while
+ * an empty roster here silently halves the board. That is the shape the 403
+ * outage arrived in — the roster had already collapsed before a single tree
+ * call ran, so a spent rate limit read as an estate whose repos were broken.
  */
-async function loadRepos(): Promise<TicketRepo[]> {
+async function fetchOwnedRepos(): Promise<{
+  fullNames: string[]
+  error: string | null
+}> {
+  try {
+    const res = await gh(
+      "/user/repos?per_page=100&sort=pushed&affiliation=owner",
+      "application/vnd.github+json",
+      DISCOVERY_REVALIDATE_SECONDS
+    )
+    if (!res.ok) return { fullNames: [], error: await githubFailure(res) }
+    const rows = (await res.json()) as { full_name: string }[]
+    return { fullNames: rows.map((r) => r.full_name), error: null }
+  } catch (err) {
+    return {
+      fullNames: [],
+      error: err instanceof Error ? err.message : "network error",
+    }
+  }
+}
+
+/** What discovery found. `unknown` is GitHub declining to answer — reported,
+ * never guessed at in either direction. */
+type IntakeProbe = "present" | "absent" | { unknown: string }
+
+/**
+ * Does this repo carry an `.icm/intake/` at all? One request, on the discovery
+ * clock, standing in for the recursive tree call the board used to spend on
+ * every owned repo whether or not it had ever held a ticket.
+ */
+async function probeIntake(fullName: string): Promise<IntakeProbe> {
+  try {
+    const res = await gh(
+      `/repos/${fullName}/contents/.icm/intake`,
+      "application/vnd.github+json",
+      DISCOVERY_REVALIDATE_SECONDS
+    )
+    if (res.ok) return "present"
+    // 404: no intake folder, no access, or no commits. 409: an empty repo.
+    // Either way there is nothing to read and never was — not an error.
+    if (res.status === 404 || res.status === 409) return "absent"
+    return { unknown: await githubFailure(res) }
+  } catch (err) {
+    return { unknown: err instanceof Error ? err.message : "network error" }
+  }
+}
+
+type Roster = {
+  /** Everything the board will show: the pinned tier, plus the owned repos
+   * discovery found an intake in. */
+  repos: TicketRepo[]
+  /** Repos discovery couldn't get an answer for. They stay in the roster and
+   * are named on the board, but their tree call is skipped — firing a fan-out
+   * into a limit that just refused a single one-request probe is how a bad
+   * minute becomes a spent hour. */
+  unreadable: TicketFetchError[]
+  /** The owner sweep itself failed: the board is standing on its pinned tier
+   * alone, and says so rather than quietly showing half an estate. */
+  sweepError: string | null
+}
+
+/**
+ * The board's repo roster, with client attribution joined in from the database
+ * rows that connect a repo to a lead. Deduped by full name — the pinned tier
+ * wins; client attribution applies wherever a client row points at a repo.
+ */
+async function loadRoster(): Promise<Roster> {
   const rows = await listClientRepos()
   const attribution = new Map<string, { clientId: string; clientName: string }>()
   for (const row of rows) {
@@ -760,28 +904,42 @@ async function loadRepos(): Promise<TicketRepo[]> {
       })
   }
 
-  const accessible = await listAccessibleRepos()
-  const ordered: string[] = [
-    ...HOUSE_REPOS,
-    ...rows.map((r) => r.githubRepo),
-    ...accessible.map((r) => r.fullName),
-    ...EXTRA_REPOS,
-  ]
-
-  const seen = new Set<string>()
-  const repos: TicketRepo[] = []
-  for (const fullName of ordered) {
-    if (seen.has(fullName)) continue
-    seen.add(fullName)
+  const toRepo = (fullName: string): TicketRepo => {
     const client = attribution.get(fullName)
-    repos.push({
+    return {
       fullName,
       slug: fullName.split("/").pop() ?? fullName,
       clientId: client?.clientId ?? null,
       clientName: client?.clientName ?? null,
-    })
+    }
   }
-  return repos
+
+  const pinned = new Set<string>([
+    ...HOUSE_REPOS,
+    ...rows.map((r) => r.githubRepo),
+    ...EXTRA_REPOS,
+  ])
+
+  const sweep = await fetchOwnedRepos()
+  const probed = await Promise.all(
+    sweep.fullNames
+      .filter((fullName) => !pinned.has(fullName))
+      .map(async (fullName) => ({
+        fullName,
+        probe: await probeIntake(fullName),
+      }))
+  )
+
+  const repos = [...pinned].map(toRepo)
+  const unreadable: TicketFetchError[] = []
+  for (const { fullName, probe } of probed) {
+    if (probe === "absent") continue
+    const repo = toRepo(fullName)
+    repos.push(repo)
+    if (probe !== "present") unreadable.push({ repo, message: probe.unknown })
+  }
+
+  return { repos, unreadable, sweepError: sweep.error }
 }
 
 // ---------------------------------------------------------------------------
@@ -919,31 +1077,40 @@ function sectionUrgency(section: RepoSection, hasRun: boolean): number {
   return 3
 }
 
-/**
- * The whole board in one read: every open ticket across the estate, folded
- * into repo sections of batches plus the now-strip. Returns
- * `configured: false` when GITHUB_TOKEN is unset; a database failure is its
- * own banner (`dbError`), not an empty board that lies about there being no
- * work.
- */
-export async function listBoard(): Promise<{
+/** One estate read: every open ticket across the estate, before anything is
+ * folded into the shape a screen wants. */
+type EstateRead = {
   configured: boolean
   repos: TicketRepo[]
   /** Every open item (batch tickets and runs) — the chip counts' source. */
   tickets: Ticket[]
-  sections: RepoSection[]
-  strip: Ticket[]
   errors: TicketFetchError[]
+  /** The owner sweep failed, so the roster is the pinned tier alone. */
+  rosterError: string | null
   dbError: string | null
-}> {
-  const empty = { repos: [], tickets: [], sections: [], strip: [], errors: [] }
+}
+
+/**
+ * The estate, read once per request.
+ *
+ * The Data Cache already shares the *requests* between the two screens that
+ * read the board — that is what the invariants at the top of this file are
+ * for. `cache` shares the parse and the fold within a single render, so a
+ * screen reaching for both the board and the strip pays for neither twice.
+ *
+ * Returns `configured: false` when GITHUB_TOKEN is unset; a database failure
+ * is its own banner (`dbError`), not an empty board that lies about there
+ * being no work.
+ */
+const readEstate = cache(async (): Promise<EstateRead> => {
+  const empty = { repos: [], tickets: [], errors: [], rosterError: null }
   if (!isConfigured()) {
     return { configured: false, ...empty, dbError: null }
   }
 
-  let repos: TicketRepo[] = []
+  let roster: Roster
   try {
-    repos = await loadRepos()
+    roster = await loadRoster()
   } catch (err) {
     return {
       configured: true,
@@ -953,8 +1120,18 @@ export async function listBoard(): Promise<{
     }
   }
 
+  const skip = new Set(roster.unreadable.map((e) => e.repo.fullName))
   const [results, todayKeys] = await Promise.all([
-    Promise.all(repos.map(fetchRepoTickets)),
+    Promise.all(
+      roster.repos.map((repo) =>
+        skip.has(repo.fullName)
+          ? Promise.resolve({
+              tickets: [] as Ticket[],
+              error: null as TicketFetchError | null,
+            })
+          : fetchRepoTickets(repo)
+      )
+    ),
     fetchTodayKeys(),
   ])
 
@@ -971,6 +1148,31 @@ export async function listBoard(): Promise<{
         a.repo.slug.localeCompare(b.repo.slug) ||
         a.id.localeCompare(b.id)
     )
+
+  return {
+    configured: true,
+    repos: roster.repos,
+    tickets,
+    errors: [
+      ...roster.unreadable,
+      ...results
+        .map((r) => r.error)
+        .filter((e): e is TicketFetchError => e !== null),
+    ],
+    rosterError: roster.sweepError,
+    dbError: null,
+  }
+})
+
+/**
+ * The whole board: the estate read, folded into repo sections of batches plus
+ * the now-strip. What /tickets renders.
+ */
+export async function listBoard(): Promise<
+  EstateRead & { sections: RepoSection[]; strip: Ticket[] }
+> {
+  const read = await readEstate()
+  const { repos, tickets } = read
 
   const sections = repos
     .map((repo) => {
@@ -993,18 +1195,29 @@ export async function listBoard(): Promise<{
     )
     .map(({ section }) => section)
 
-  const errors = results
-    .map((r) => r.error)
-    .filter((e): e is TicketFetchError => e !== null)
-  return {
-    configured: true,
-    repos,
-    tickets,
-    sections,
-    strip: assembleStrip(tickets),
-    errors,
-    dbError: null,
-  }
+  return { ...read, sections, strip: assembleStrip(tickets) }
+}
+
+/**
+ * Just the now-strip — today's picks, runs in flight, what's stuck.
+ *
+ * Home renders at most five rows of it and nothing else, and used to call
+ * `listBoard()` for them: the whole estate folded into repo sections and
+ * batches, then thrown away. The GitHub reads underneath are the same reads
+ * /tickets makes and are shared with it through the Data Cache, so this was
+ * never a second trip to the API — but it is now the same trip without the
+ * assembly, and home says what it actually depends on.
+ */
+export async function listStrip(): Promise<{
+  configured: boolean
+  strip: Ticket[]
+  errors: TicketFetchError[]
+  rosterError: string | null
+  dbError: string | null
+}> {
+  const { configured, tickets, errors, rosterError, dbError } =
+    await readEstate()
+  return { configured, strip: assembleStrip(tickets), errors, rosterError, dbError }
 }
 
 // ---------------------------------------------------------------------------
