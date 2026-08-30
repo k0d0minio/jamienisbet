@@ -83,8 +83,8 @@ function PendingBody({
       <div className="rounded-app-control border border-app-separator bg-app-canvas px-3 py-2 font-mono text-app-caption break-all">
         {url}
       </div>
-      {/* Two lines, because they are two different errands: getting the link
-          to the person, and looking after the link itself. */}
+      {/* One wrapping row, leading with the two that hand the link over. It
+          breaks where the glass makes it break rather than where a div does. */}
       <div className="flex flex-wrap items-center gap-1">
         <ShareFormLinkSheet
           url={url}
@@ -99,8 +99,6 @@ function PendingBody({
           </Button>
         </ShareFormLinkSheet>
         <CopyButton value={url} what="Questionnaire link" />
-      </div>
-      <div className="flex flex-wrap items-center gap-1">
         <a
           href={url}
           target="_blank"
