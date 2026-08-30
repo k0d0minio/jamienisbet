@@ -35,6 +35,8 @@ import {
   setTaskClient,
   setTaskCompleted,
   suggestNextTouch,
+  suppressClient,
+  suppressionKindLabel,
   touchClient,
   updateClient,
   type CadenceSuggestion,
@@ -480,6 +482,60 @@ function addDays(from: Date, days: number): Date {
   const at = new Date(from.getTime())
   at.setDate(at.getDate() + days)
   return at
+}
+
+// ---- Opt-outs ---------------------------------------------------------------
+// The one gesture on this page that can't be taken back, and the legal floor
+// under everything the lead engine does. Somebody said "take me off your list",
+// so every channel closes at once, the relationship ends, and the reason goes
+// into the record — see `suppressClient` in the services layer, which is where
+// all four of those writes actually happen so the operator scripts get the
+// same behaviour without repeating them.
+//
+// The suppression is keyed to the contact points, not to this lead, which is
+// what makes it survive an archive, a delete, a retention purge and the next
+// import of the same business.
+
+/** What was closed, ready to be read back to the user — the kinds already
+ *  turned into their labels, since nothing on the client side holds this
+ *  vocabulary. */
+export type SuppressResult =
+  | { ok: true; closed: string[] }
+  | { ok: false; message: string }
+
+/**
+ * Record an opt-out for this lead and end the relationship.
+ *
+ * Returned rather than thrown, like the other actions whose result the sheet
+ * has to render: Next redacts server-action exceptions in production, and what
+ * comes back here is the confirmation — which channels are now closed.
+ *
+ * A lead with no contact details on file is still suppressed as far as the
+ * ladder goes (they asked, so the relationship is over) but nothing goes into
+ * the table, because there is no contact point to key it to. The result says
+ * so rather than reporting a success that closed nothing.
+ */
+export async function suppressClientContacts(
+  clientId: string,
+  formData: FormData
+): Promise<SuppressResult> {
+  const raw = formData.get("reason")
+  const reason = typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null
+
+  try {
+    const result = await suppressClient(clientId, reason)
+    if (!result) return { ok: false, message: "That lead no longer exists." }
+    revalidateLead(clientId)
+    return {
+      ok: true,
+      closed: [
+        ...new Set(result.points.map((point) => suppressionKindLabel(point.kind))),
+      ],
+    }
+  } catch (err) {
+    console.error("[suppressions] suppress failed:", err)
+    return { ok: false, message: "Couldn't record that opt-out." }
+  }
 }
 
 // ---- Delivery repo ---------------------------------------------------------

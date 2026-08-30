@@ -5,6 +5,7 @@ import {
   pgSchema,
   text,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core"
@@ -284,6 +285,54 @@ export const touches = biz.table("touches", {
 // first. Postgres scans a composite index backwards as happily as forwards, so
 // the ascending form serves the descending order without a second index.
 (t) => [index("touches_client_id_logged_at_idx").on(t.clientId, t.loggedAt)])
+
+// ---------------------------------------------------------------------------
+// The permanent floor under the outreach: who must never be contacted again.
+//
+// A suppression is not a property of a lead, which is the whole reason it is
+// its own table with no foreign key. Somebody who says "take me off your list"
+// has opted out of *being contacted*, and that survives everything that could
+// happen to the row they were contacted through: archiving it, deleting it,
+// purging it for retention, or re-importing the same business from a fresh
+// batch next spring. A suppression keyed to a client id would die with the
+// client and the next import would cheerfully write them back in.
+//
+// So the key is the contact point itself — an address, a number, a handle —
+// stored normalized (see normalizeSuppressionValue in queries/suppressions.ts)
+// so that "Geral@Example.PT" and "geral@example.pt" are the same opt-out, and
+// "912 345 678" and "+351912345678" are the same number.
+//
+// Nothing in this package deletes a row from here, and that is deliberate
+// rather than unfinished — see the note above `suppressContactPoints`.
+export const suppressions = biz.table("suppressions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  // Which kind of contact point: 'email' | 'phone' | 'instagram'. The three
+  // channels that carry an address you can hold onto — a walk-in has no
+  // identifier to suppress, and a phone number covers the call and the
+  // WhatsApp alike, because they are the same number arriving by two doors.
+  // See suppressionKinds in queries/suppressions.ts.
+  kind: varchar("kind", { length: 20 }).notNull(),
+  // The contact point, normalized: lowercased email, E.164 phone, bare
+  // lowercase handle. 200 characters matches the widest column it mirrors
+  // (`clients.email`).
+  value: varchar("value", { length: 200 }).notNull(),
+
+  // Why, in Jamie's words — "Replied: remove me", "Asked at the door". Null
+  // is allowed (an opt-out is valid without an explanation), but the profile's
+  // gesture always offers to record one, because in a year the reason is the
+  // only thing that says whether this was a request or a mistake.
+  reason: varchar("reason", { length: 200 }),
+
+  // When they opted out. Never moved: a second opt-out through the same
+  // channel is the same opt-out, so the insert is a no-op on conflict rather
+  // than an update, and this stays the date it was first asked for.
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+},
+// One contact point, one row. The unique constraint is what makes the import
+// script's "skip anything suppressed" check a single indexed lookup, and what
+// lets every write here be an idempotent insert.
+(t) => [unique("suppressions_kind_value_key").on(t.kind, t.value)])
 
 // ---------------------------------------------------------------------------
 // The two working lists. Everything else on the dashboard is derived live from

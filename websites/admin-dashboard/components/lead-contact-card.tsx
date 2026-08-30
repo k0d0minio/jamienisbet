@@ -32,6 +32,7 @@ import {
 import { saveClientContact } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 import { instagramUrl, whatsappUrl } from "@/lib/format"
+import { NO_SUPPRESSIONS, type SuppressedChannels } from "@/lib/suppression"
 
 // Who they are and how to reach them — as things to *act on*, not a form. Each
 // row is the action itself (tap the email row and the mail app opens), with a
@@ -48,6 +49,13 @@ import { instagramUrl, whatsappUrl } from "@/lib/format"
 // Editing lives behind the last row, in a sheet, so the page carries the
 // details without carrying the input fields — the old profile form put four
 // text boxes front and centre for a record that changes maybe twice in its life.
+//
+// **A channel somebody opted out of is a dead end here, not a send gesture.**
+// The row keeps its place and keeps its value — you still need to be able to
+// read the address, and to copy it against the DGC list — but it stops being
+// tappable and says why. Dropping the row instead would leave a page that
+// looks like the address was never on file, which is exactly the page from
+// which somebody re-adds it.
 
 export type ContactDetails = {
   id: string
@@ -97,7 +105,20 @@ function CopyValueButton({
   )
 }
 
-export function LeadContactCard({ client }: { client: ContactDetails }) {
+/** What a closed row says for itself, in the description slot. Short, because
+ *  the section that explains an opt-out — when, and what they said — is
+ *  further down the page. */
+const OPTED_OUT = "Opted out — don't use this"
+
+export function LeadContactCard({
+  client,
+  // Defaults to "nothing closed", so a caller that hasn't looked renders the
+  // card exactly as it read before opt-outs existed.
+  suppressed = NO_SUPPRESSIONS,
+}: {
+  client: ContactDetails
+  suppressed?: SuppressedChannels
+}) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -116,7 +137,10 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
           icon={<Mail />}
           label="Email"
           value={client.email}
-          href={`mailto:${client.email}`}
+          description={suppressed.email ? OPTED_OUT : undefined}
+          // No mailto on a closed channel: the row is the record of an address
+          // that must not be written to.
+          href={suppressed.email ? undefined : `mailto:${client.email}`}
           accessory={
             <CopyValueButton
               value={client.email}
@@ -137,7 +161,8 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
           icon={<MessageCircle />}
           label="WhatsApp"
           value={<span className="font-mono">{chat}</span>}
-          href={whatsappUrl(chat)}
+          description={suppressed.whatsapp ? OPTED_OUT : undefined}
+          href={suppressed.whatsapp ? undefined : whatsappUrl(chat)}
           target="_blank"
           rel="noreferrer"
           accessory={
@@ -158,6 +183,7 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
           icon={<Phone />}
           label="Phone"
           value={<span className="font-mono">{client.phone}</span>}
+          description={suppressed.phone ? OPTED_OUT : undefined}
           chevron={false}
           accessory={
             <CopyValueButton
@@ -177,7 +203,10 @@ export function LeadContactCard({ client }: { client: ContactDetails }) {
           icon={<AtSign />}
           label="Instagram"
           value={`@${client.instagram}`}
-          href={instagramUrl(client.instagram)}
+          description={suppressed.instagram ? OPTED_OUT : undefined}
+          href={
+            suppressed.instagram ? undefined : instagramUrl(client.instagram)
+          }
           target="_blank"
           rel="noreferrer"
           accessory={
