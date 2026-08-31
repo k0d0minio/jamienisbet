@@ -180,15 +180,28 @@ function valueSignal(sector: string | null): TierSignal {
 
 /** Businesses whose customers find, compare and book them online — where a bad
  *  site costs money every week. Prefixes, so "restaurante" and "restaurant"
- *  both hit `restaur` — see `matches` for why they are anchored. */
+ *  both hit `restaur` — see `matches` for why they are anchored.
+ *
+ *  Several entries are second spellings of a type already here, because the
+ *  list writes a business by what it serves rather than by what it is: "Tapas"
+ *  and "Sushi" beside `restaur`, "Dental" beside `dentaria`, "Fitness"
+ *  beside `gym`, "Aparthotel" and "B&B" beside `hotel`. Without them the
+ *  same business scores two different tiers depending on the words whoever
+ *  compiled the row happened to use — "Dental clinic" hit `clinic` and plain
+ *  "Dental" hit nothing. */
 const HIGH_VALUE_SECTORS = [
   "restaur",
+  "tasca",
+  "tapas",
+  "sushi",
   "cafe",
   "pastelaria",
   "padaria",
   "bakery",
   "bar",
   "hotel",
+  "aparthotel",
+  "b&b",
   "alojamento",
   "guesthouse",
   "hostel",
@@ -196,11 +209,14 @@ const HIGH_VALUE_SECTORS = [
   "clinic",
   "dentist",
   "dentaria",
+  "dental",
   "medic",
   "fisioterap",
   "veterinar",
   "gym",
   "ginasio",
+  "fitness",
+  "crossfit",
   "pilates",
   "yoga",
   "cabeleireir",
