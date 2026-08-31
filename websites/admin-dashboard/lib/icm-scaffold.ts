@@ -3,7 +3,8 @@ import "server-only"
 // Seeding a freshly created client delivery repo with the estate's baseline —
 // the `.icm/` folder the tickets board reads (`.icm/intake/`) and the
 // questionnaire picker looks in (`.icm/onboarding/`, when the repo grows one),
-// plus the canonical root rails that sit beside it.
+// the `.claude/` assets a cloud session in that repo has no history to learn
+// the estate's conventions from, and the canonical root rails beside them.
 //
 // Without it a new client repo is *absent* from the board rather than empty,
 // and `icm-check.sh` later reports it as a gap. Creating the repo from the
@@ -20,16 +21,31 @@ import "server-only"
 //
 // Two rules come straight from the template's own README and are kept:
 //
-//   - **Never overwrite.** `commitRepoFile` refuses to touch an existing path,
-//     and an "exists" outcome is a quiet skip, not a failure.
+//   - **Never overwrite.** `commitRepoFiles` reads the repo's current tree first
+//     and writes only the paths that are free; a taken one is a quiet skip, not
+//     a failure.
 //   - **A derived prefix is *suggested*, not settled.** `icm-check.sh` says so
 //     on stdout to whoever ran it; there is no stdout here, so the seeded
 //     README carries the same caveat in writing.
 //
+// Writes go through the git **tree** API (`commitRepoFiles`), and that is what
+// lets `.claude/` be seeded at all. The two hooks `settings.json` wires up are
+// invoked by path —
+//
+//     "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh"
+//
+// — so they have to be committed executable, and the contents API, which the
+// rest of the dashboard writes through, only ever writes mode 100644. A hook
+// seeded 100644 looks present and never runs, and `icm-check.sh --fix` then
+// declines to repair it because the file already exists: a silent broken state
+// where there had been a visible, repairable gap. The tree API is the only way
+// to say 100755, and it pays for itself twice over — the whole baseline lands
+// as one commit rather than a dozen in the first minute of a repo's life.
+//
 // ---------------------------------------------------------------------------
-// What is deliberately *not* seeded, and why. Both were open questions on the
+// What is deliberately *not* seeded, and why. This was an open question on the
 // stub that added `root/` here (`.icm/intake/triage/scaffold-root-rails.md`);
-// they are settled against `icm-check.sh`, which is the estate's own definition
+// it is settled against `icm-check.sh`, which is the estate's own definition
 // of a conformant repo.
 //
 //   - **`AGENTS.md`, and therefore the `CLAUDE.md` importer that points at it.**
@@ -49,19 +65,8 @@ import "server-only"
 //     *un-migrated* repos a shape they haven't been moved to yet, and a repo
 //     born today has no legacy Layer 0 to move: it is new-shape by
 //     construction, and the rails are worth having from minute one.
-//
-//   - **`.claude/`** — canonical for every live repo, and it belongs in a
-//     scaffold in principle. It cannot be seeded *from here*: the two hooks
-//     `settings.json` wires up are invoked by path, so they must be committed
-//     executable, and the contents API only ever writes mode 100644. Seeding
-//     them would leave a repo whose hooks look present and never run, and which
-//     `icm-check.sh --fix` would then decline to repair because the files
-//     already exist. A visible, repairable gap beats a file that looks right
-//     and isn't, so `.claude/` stays with `--fix`, which has a filesystem and
-//     can `chmod`. Doing it here needs the git *tree* API (mode 100755) —
-//     parked as its own triage stub.
 
-import { commitRepoFile } from "@/lib/github"
+import { commitRepoFiles, type NewRepoFile } from "@/lib/github"
 
 const API = "https://api.github.com"
 
@@ -84,10 +89,16 @@ type TemplateSource = {
   /** Paths relative to `from` that this scaffold never seeds — see the header
    * for why each one is excluded. */
   skip?: readonly string[]
+  /** Path prefixes, relative to `from`, whose files are committed executable
+   * (mode 100755) instead of 100644. Mirrors `icm-check.sh --fix`, which
+   * `chmod +x`es exactly `hooks/*` after copying them: a hook is invoked by
+   * path from `settings.json`, so a 100644 copy is present and inert. */
+  executablePrefixes?: readonly string[]
 }
 
 const SOURCES: readonly TemplateSource[] = [
   { from: "icm", to: ".icm/" },
+  { from: "claude", to: ".claude/", executablePrefixes: ["hooks/"] },
   // `root/CLAUDE.md` is the one-line `@AGENTS.md` importer, and there is no
   // `AGENTS.md` in a repo this new for it to import.
   { from: "root", to: "", skip: ["CLAUDE.md"] },
@@ -136,7 +147,12 @@ function suggestedPrefixNote(prefix: string): string {
 /** One template file, already addressed as the path it will take in the new
  * repo — so `intake/README.md` under the `icm` source is `.icm/intake/README.md`
  * here, and `opencode.json` under `root` is just `opencode.json`. */
-type TemplateFile = { path: string; content: string }
+type TemplateFile = {
+  path: string
+  content: string
+  /** From the source's `executablePrefixes` — the file's mode in the commit. */
+  executable: boolean
+}
 
 async function gh(path: string, accept: string): Promise<Response> {
   return fetch(`${API}${path}`, {
@@ -204,6 +220,9 @@ async function readTemplate(
     files.push({
       path: `${source.to}${relativePath}`,
       content: await raw.text(),
+      executable: (source.executablePrefixes ?? []).some((prefix) =>
+        relativePath.startsWith(prefix)
+      ),
     })
   }
   return files
@@ -235,13 +254,16 @@ export type ScaffoldResult = {
 }
 
 /**
- * Copy every folder in `SOURCES` into the new repo, one commit per file via the
- * contents API. Existing paths are never touched, so this is safe to run
+ * Copy every folder in `SOURCES` into the new repo as a single commit via the
+ * git tree API. Existing paths are never touched, so this is safe to run
  * against a repo that already has part of the baseline.
  *
- * A source that can't be read is reported but doesn't stop the others: a repo
+ * A source that can't be *read* is reported but doesn't stop the others: a repo
  * with its `.icm/` and no `opencode.json` is worth strictly more than a repo
- * with neither, and the error sentence names what's missing either way.
+ * with neither, and the error sentence names what's missing either way. The
+ * *write* is all-or-nothing by construction — one commit, one ref move — so a
+ * failed seed leaves the repo exactly as GitHub created it, which is the state
+ * `icm-check.sh --fix` knows how to close.
  *
  * Never throws: the caller has already created the repo on GitHub and stored
  * the pointer, and a scaffold that fails must not cost the lead its link.
@@ -283,28 +305,24 @@ export async function scaffoldIcmBaseline(
     return { prefix, created: [], error: problems.join("; ") }
   }
 
-  const created: string[] = []
-  const failures: string[] = []
-  for (const file of template) {
-    const result = await commitRepoFile(
-      fullName,
-      file.path,
-      render(file, prefix),
-      `Seed the ICM baseline: ${file.path}`
-    )
-    if (result.outcome === "created") created.push(file.path)
-    // "exists" is a skip, not a failure — the template never overwrites.
-    if (result.outcome === "failed") {
-      failures.push(`${file.path} (${result.error})`)
-    }
-  }
-  if (failures.length > 0) {
-    problems.push(`couldn't commit ${failures.join(", ")}`)
+  const payload: NewRepoFile[] = template.map((file) => ({
+    path: file.path,
+    content: render(file, prefix),
+    executable: file.executable,
+  }))
+  const result = await commitRepoFiles(
+    fullName,
+    payload,
+    "Seed the estate baseline"
+  )
+  if (result.outcome === "failed") {
+    problems.push(result.error)
+    return { prefix, created: [], error: problems.join("; ") }
   }
 
   return {
     prefix,
-    created,
+    created: result.created,
     error: problems.length === 0 ? null : problems.join("; "),
   }
 }

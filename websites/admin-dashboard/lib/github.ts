@@ -216,10 +216,7 @@ export async function commitRepoFile(
   }
   try {
     const res = await gh(
-      `/repos/${fullName}/contents/${path
-        .split("/")
-        .map(encodeURIComponent)
-        .join("/")}`,
+      `/repos/${fullName}/contents/${encodeRepoPath(path)}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -257,3 +254,203 @@ export async function commitRepoFile(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Multi-file commit — how the estate baseline lands in a freshly created client
+// repo. This one goes through the git *tree* API (read the ref, build a tree,
+// write a commit, move the ref) rather than the contents API, for two reasons:
+//
+//   - **File modes.** The contents API always writes `100644`, and the two
+//     `.claude/` hooks are invoked by path from `settings.json`, so they have
+//     to be committed `100755` or they are present and inert. The tree API is
+//     the only way to say so.
+//   - **One commit.** A dozen contents-API PUTs are a dozen commits in the
+//     first minute of a repo's life; a scaffold should be one line in
+//     `git log`.
+//
+// The never-overwrite rule survives the move. The contents API gave it for free
+// (422 on a path that is already taken); here it is an explicit read of the
+// repo's current tree before anything is written.
+
+/** One file to create. Never an edit: an existing path is left alone. */
+export type NewRepoFile = {
+  path: string
+  /** UTF-8 text. The tree API takes inline blob content, so there is no
+   * separate blob call — and no binary; every canonical asset is text. */
+  content: string
+  /** Commit mode `100755` instead of `100644`. */
+  executable?: boolean
+}
+
+export type CommitFilesResult =
+  | {
+      /** `unchanged` when every path was already taken — no commit was made. */
+      outcome: "committed" | "unchanged"
+      created: string[]
+      /** Paths that already existed. Untouched, and not a failure. */
+      skipped: string[]
+      /** The commit on GitHub, when there was one. */
+      htmlUrl: string | null
+    }
+  /** Nothing was written — the ref never moved, so this is all-or-nothing. */
+  | { outcome: "failed"; error: string }
+
+const encodeRepoPath = (path: string) =>
+  path.split("/").map(encodeURIComponent).join("/")
+
+/** A GitHub read whose failure is a sentence someone can act on. `what` names
+ * the step, because "HTTP 404" alone doesn't say which of five calls it was. */
+async function ghJson<T>(
+  what: string,
+  path: string,
+  init: RequestInit = {}
+): Promise<T> {
+  const res = await gh(path, init)
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as {
+      message?: string
+    } | null
+    throw new Error(
+      body?.message
+        ? `couldn't ${what} — GitHub returned HTTP ${res.status}: ${body.message}`
+        : `couldn't ${what} — GitHub returned HTTP ${res.status}`
+    )
+  }
+  return (await res.json()) as T
+}
+
+/** The fallback for a repo whose tree GitHub truncates: a truncated listing
+ * can't answer "does this path exist?", and guessing would overwrite. Only the
+ * candidate paths are checked, so it stays one request per file we'd write. */
+async function takenPathsIndividually(
+  fullName: string,
+  candidates: readonly string[]
+): Promise<Set<string>> {
+  const taken = new Set<string>()
+  for (const path of candidates) {
+    const res = await gh(
+      `/repos/${fullName}/contents/${encodeRepoPath(path)}`
+    )
+    if (res.ok) taken.add(path)
+  }
+  return taken
+}
+
+/**
+ * Create every file that doesn't already exist, as one commit on the repo's
+ * default branch. Existing paths come back as `skipped` — they are never
+ * touched, so this is safe to re-run against a repo that already has part of
+ * what it's being handed.
+ *
+ * Never throws: like `commitRepoFile`, the failure is returned as a sentence,
+ * because Next redacts server-action exceptions in production and the detail is
+ * the whole value of the message.
+ */
+export async function commitRepoFiles(
+  fullName: string,
+  files: readonly NewRepoFile[],
+  message: string
+): Promise<CommitFilesResult> {
+  if (!isGithubConfigured()) {
+    return {
+      outcome: "failed",
+      error: "GitHub is not configured in this environment.",
+    }
+  }
+  if (files.length === 0) {
+    return { outcome: "unchanged", created: [], skipped: [], htmlUrl: null }
+  }
+  try {
+    const repo = await getRepo(fullName)
+    if (!repo) {
+      return {
+        outcome: "failed",
+        error: `${fullName} doesn't exist or isn't visible to this token.`,
+      }
+    }
+    const branch = encodeRepoPath(repo.defaultBranch)
+
+    const ref = await ghJson<{ object: { sha: string } }>(
+      `read ${fullName}'s ${repo.defaultBranch} branch`,
+      `/repos/${fullName}/git/ref/heads/${branch}`
+    )
+    const parent = ref.object.sha
+
+    // A commit SHA resolves to its own tree here, so this single read is both
+    // the base tree and the set of paths already taken.
+    const base = await ghJson<{
+      sha: string
+      tree: { path: string; type: string }[]
+      truncated?: boolean
+    }>(
+      `read ${fullName}'s file listing`,
+      `/repos/${fullName}/git/trees/${parent}?recursive=1`
+    )
+    const taken = base.truncated
+      ? await takenPathsIndividually(
+          fullName,
+          files.map((f) => f.path)
+        )
+      : new Set(
+          base.tree.filter((e) => e.type === "blob").map((e) => e.path)
+        )
+
+    const skipped = files.filter((f) => taken.has(f.path)).map((f) => f.path)
+    const fresh = files.filter((f) => !taken.has(f.path))
+    if (fresh.length === 0) {
+      return { outcome: "unchanged", created: [], skipped, htmlUrl: null }
+    }
+
+    const json = { "Content-Type": "application/json" }
+    const tree = await ghJson<{ sha: string }>(
+      `build the tree for ${fullName}`,
+      `/repos/${fullName}/git/trees`,
+      {
+        method: "POST",
+        headers: json,
+        body: JSON.stringify({
+          base_tree: base.sha,
+          tree: fresh.map((f) => ({
+            path: f.path,
+            mode: f.executable ? "100755" : "100644",
+            type: "blob",
+            content: f.content,
+          })),
+        }),
+      }
+    )
+
+    const commit = await ghJson<{ sha: string; html_url?: string }>(
+      `commit to ${fullName}`,
+      `/repos/${fullName}/git/commits`,
+      {
+        method: "POST",
+        headers: json,
+        body: JSON.stringify({ message, tree: tree.sha, parents: [parent] }),
+      }
+    )
+
+    // Until the ref moves nothing above is reachable, so a failure here leaves
+    // the branch exactly as it was — dangling objects GitHub collects itself.
+    await ghJson(
+      `move ${fullName}'s ${repo.defaultBranch} branch`,
+      `/repos/${fullName}/git/refs/heads/${branch}`,
+      {
+        method: "PATCH",
+        headers: json,
+        body: JSON.stringify({ sha: commit.sha }),
+      }
+    )
+
+    return {
+      outcome: "committed",
+      created: fresh.map((f) => f.path),
+      skipped,
+      htmlUrl: commit.html_url ?? null,
+    }
+  } catch (err) {
+    return {
+      outcome: "failed",
+      error: err instanceof Error ? err.message : "network error",
+    }
+  }
+}
