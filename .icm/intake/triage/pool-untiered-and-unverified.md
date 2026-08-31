@@ -144,3 +144,37 @@ Everything the stub listed under "What closing it takes" that needs the database
 phone: the three runs, the two Estoril numbers, the truncated Atlântico number, the
 paywalled Mafra restaurant numbers, Tik Tapas's Instagram handle, and now the 34
 no-website rows that need a grade before they can rank. This stub stays put until then.
+
+## The 34, flagged rather than graded — migration 0023
+
+The blind-spot rows now get asked about. `0023_flag_pool_web_presence_unknown` sets a
+dated `next_action` ("Confirm whether they have a website, then grade it") on every seeded
+row that still has neither a `website_url` nor a `website_grade`, so they surface in
+`listDueOutreach` instead of sorting mid-pool forever. It runs in CI on merge to main,
+which is the only place a `DATABASE_URL` lives.
+
+**It writes nothing about anybody's website.** `website_grade`, `website_url` and
+`fit_tier` are untouched, so the tiering inputs stay as honest as they were and the letter
+stays arithmetic. Grading these in SQL was the obvious move and the wrong one: 26 of the 34
+notes say only "Listed via Google" or "Listed via directory", which is not evidence of no
+website; exactly one ("Sunset Surf Lodge — no own site confirmed") supports a `none`, and
+one contradicts it outright ("Salty Souls Surf School — Sold via Expedia *and their own
+site*"), a row that needs its URL found rather than its presence denied. There is no
+cautious letter either — every non-null grade scores at least 2 on `need` where null scores
+1, and `none` and `social_only` both score the maximum 3, so any grade invented in a
+migration can only push these rows *up* the call list.
+
+The date is load-bearing. `unplannedWhere` in `queries/crack-finder.ts` counts an action
+with no due date as the same crack as no action at all, so text alone would look planned
+and surface nowhere. All 34 come due together — this is one sitting with a phone, not a
+schedule, and re-dating from the dashboard is a normal edit.
+
+Guarded the way 0022 is: scoped to `source_detail = '2026-07-23 Mafra/Lisbon prospect
+list'`, only rows where both website columns are still null, never overwriting a
+`next_action` or `next_action_due` somebody already set (which also makes a second apply a
+no-op), and `nurture` excluded because a parked row is meant to have nothing planned.
+Verified against the seed: the predicate matches exactly those 34, touches nothing already
+graded or holding a URL, and leaves no ungraded no-URL row unflagged.
+
+This does not close the gap — it stops the gap being silent. A person still has to confirm
+each one and set the grade, and `leads-enrich --retier` then picks the points up.
