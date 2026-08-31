@@ -155,6 +155,13 @@
       "when": 1788112573801,
       "tag": "0021_enrichment_stamp",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788167126767,
+      "tag": "0022_seed_mafra_lisbon_prospects",
+      "breakpoints": true
     }
   ]
 }
