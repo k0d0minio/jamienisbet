@@ -203,9 +203,9 @@ the bottom of the staleness sort the morning after a batch that spoke to nobody.
 The retention rule from [`.icm/docs/lia-cold-outreach.md`](../../.icm/docs/lia-cold-outreach.md)
 § 5, run by hand rather than on a timer. Rows on `prospect` or `not_won` with no activity
 for `RETENTION_MONTHS` (12) are **anonymised, not deleted**: the name, company, email,
-phone, WhatsApp, Instagram and hook are cleared; the sector, the town, the tier and the
-dates stay, so the fact that a business of that shape was once approached survives and
-stops the same list being compiled again next spring.
+phone, WhatsApp, Instagram, website URL and hook are cleared; the sector, the town, the
+tier, the website grade and the dates stay, so the fact that a business of that shape was
+once approached survives and stops the same list being compiled again next spring.
 
 Three things about it are deliberate:
 
@@ -220,10 +220,13 @@ Three things about it are deliberate:
 
 `company` is cleared alongside `name` even though § 5 names only the name: on an imported
 business row the two hold the same string, so clearing one and leaving the other would
-anonymise nothing. `notes`, `intake_message` and `website_url` are **not** cleared — the
-first two are prose the rule does not reach, the third is a live business address whose
-status as personal data is Jamie's call rather than a script's. The run reports how many
-rows carry them.
+anonymise nothing. `website_url` is cleared because § 5 names it — a row left reading
+*restaurant · Ericeira · https://…* names the business as squarely as the name did, and for
+a sole trader whose site carries their own name it names a person. `website_grade` survives
+it: a letter about a site nobody can now find is shape, not identity, and the missing URL is
+what drops the row out of `listEnrichable`. `notes` and `intake_message` are **not** cleared
+— they are prose the rule does not reach and a script cannot read, so the run reports how
+many rows carry one and Jamie reads them.
 
 ## The Gateway
 

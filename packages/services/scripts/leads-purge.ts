@@ -44,12 +44,14 @@ Options
   --help
 
 What it clears
-  name, company, email, phone, whatsapp, instagram, hook
+  name, company, email, phone, whatsapp, instagram, website url, hook
 
 What it keeps
-  sector, town, tier, status and the dates — the fact that a business of that
-  shape was once approached, which is what stops the same list being compiled
-  and worked again next spring. Any opt-out stays standing (LIA §4).
+  sector, town, tier, website grade, status and the dates — the fact that a
+  business of that shape was once approached, which is what stops the same list
+  being compiled and worked again next spring. Any opt-out stays standing
+  (LIA §4). Notes and any intake message are left alone and reported: §5 does
+  not reach prose, and only a person can say whether it names anyone.
 
 Who it looks at
   Rows on prospect or not_won, archived ones included, whose last activity is
@@ -98,12 +100,12 @@ async function main(): Promise<void> {
     }
   )
 
-  const withProse = due.filter((row) => row.notes || row.intakeMessage || row.websiteUrl)
+  const withProse = due.filter((row) => row.notes || row.intakeMessage)
   if (withProse.length > 0) {
     line("")
     bullet(
-      `${plural(withProse.length, "row")} also carry notes, an intake message or a website URL. ` +
-        "§5 names the contact fields only, so those are left as they are — read them if any could name a person."
+      `${plural(withProse.length, "row")} also carry notes or an intake message. ` +
+        "§5 does not reach prose, so those are left as they are — read them if any could name a person."
     )
   }
 
@@ -135,6 +137,7 @@ function contactSummary(row: Client): string {
   if (row.phone) held.push("phone")
   if (row.whatsapp) held.push("whatsapp")
   if (row.instagram) held.push("instagram")
+  if (row.websiteUrl) held.push("website")
   if (row.hook) held.push("hook")
   return held.length > 0 ? `name + ${held.join(", ")}` : "name only"
 }

@@ -5,6 +5,7 @@
 **Activity assessed:** contacting small businesses in Mafra, Ericeira and greater Lisbon
 who have not asked to be contacted, to offer web and software work.
 **Written:** 30 August 2026 · **Applies from:** before the first batch goes out.
+**Amended:** 31 August 2026 — §5 adds the website address to what the purge clears.
 
 > **Purpose.** This is the written record of *why* I believe I may contact a business that
 > never asked me to, *how far* that goes, and *where it stops*. GDPR Art 6(1)(f) is only
@@ -154,9 +155,21 @@ not about the lead row:
 Prospect data earns its keep by being worked. When it is not:
 
 - A row on **`prospect`** or **`not_won`** that has not been touched for **12 months** is
-  anonymised by the purge script — name, email, phone, WhatsApp, Instagram and the hook
-  cleared; the sector, town and the fact that a business of that shape was once approached
-  kept. Any suppression entry **stays**, per §4.
+  anonymised by the purge script — name, email, phone, WhatsApp, Instagram, the website
+  address and the hook cleared; the sector, town and the fact that a business of that shape
+  was once approached kept. Any suppression entry **stays**, per §4.
+- **The website address is on that list deliberately.** A row left reading *restaurant ·
+  Ericeira · https://…* names the business as squarely as the name column did, and where the
+  business is a sole trader whose site carries their own name it names a person — the same
+  boundary §3 calls the judgement most worth a second opinion, settled here the safer way
+  rather than argued. Nothing was given up by clearing it: what stops the same list being
+  compiled and worked again next spring is the sector, the town and the dates, not the URL,
+  and a row a year cold is not worked from its website either. ✅
+- **`notes` and `intake_message` are not cleared, and the reasoning above does not reach
+  them.** They are my own words about a prospect and a form-filler's words about themselves;
+  whether either names a person is a question about what was written, which a script cannot
+  answer. `leads-purge` reports how many rows carry one so that I read them. ⚠️ *If notes
+  routinely turn out to name individuals, they belong on the cleared list too.*
 - Rows that engaged (`discussing` and up) leave this assessment entirely: they are a
   business relationship with its own basis and its own accounting retention.
 - The purge runs as an operator script, not on a timer — `leads-purge` in
