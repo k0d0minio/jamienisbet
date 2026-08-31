@@ -24,9 +24,15 @@ import "server-only"
 //   - **Never overwrite.** `commitRepoFiles` reads the repo's current tree first
 //     and writes only the paths that are free; a taken one is a quiet skip, not
 //     a failure.
-//   - **A derived prefix is *suggested*, not settled.** `icm-check.sh` says so
-//     on stdout to whoever ran it; there is no stdout here, so the seeded
-//     README carries the same caveat in writing.
+//   - **No substitutions.** Nothing in the template is templated per repo, so a
+//     file is committed exactly as it reads in `icm-board` — no rendering step,
+//     no appended notes. That is what makes a seeded copy drift-checkable
+//     against the canonical one at all: anything written *around* the template
+//     here would read as divergence from the day the repo was born. It is also
+//     what keeps this file honest about a contract it does not own — the estate
+//     retired ticket prefixes and numbers on 2026-08-28 (identity is the
+//     `<epic>/<slug>` path), and a scaffold that paraphrases the contract is a
+//     scaffold that goes stale silently the next time it moves.
 //
 // Writes go through the git **tree** API (`commitRepoFiles`), and that is what
 // lets `.claude/` be seeded at all. The two hooks `settings.json` wires up are
@@ -107,39 +113,6 @@ const SOURCES: readonly TemplateSource[] = [
 /** The template is four files deep at most; the cap is only there so a
  * misconfigured path can't walk a whole repository. */
 const MAX_DEPTH = 4
-
-/**
- * The ticket prefix for a brand-new repo, mirroring `derive_prefix` in
- * `icm-check.sh`: the first hyphen-segment of the repo name, uppercased, A–Z
- * only, capped at five characters.
- *
- * The script's other two sources don't apply here — a repo created seconds ago
- * has no tickets to read a prefix off, and the script's known-prefix map covers
- * repos that already exist. So this is always the "suggested" case, and the
- * seeded README says so.
- *
- * Falls back to the letters of the whole name, then to a generic prefix: repo
- * names may legally be all digits, which would otherwise derive to nothing.
- * The script never has to handle that because a human reads its output.
- */
-export function deriveTicketPrefix(repoName: string): string {
-  const letters = (s: string) => s.toUpperCase().replace(/[^A-Z]/g, "")
-  const derived = letters(repoName.split("-")[0]) || letters(repoName)
-  return derived.slice(0, 5) || "TKT"
-}
-
-/** Appended to the seeded `.icm/intake/README.md` — the written form of the
- * warning `icm-check.sh --fix` prints when it derives a prefix. */
-function suggestedPrefixNote(prefix: string): string {
-  return [
-    "",
-    `> Ticket prefix \`${prefix}\` was derived from the repo name when this baseline was`,
-    "> seeded from the admin dashboard — **suggested, not settled.** Confirm it before",
-    "> cutting the first ticket (numbers are never reused), and register it in",
-    "> `_system/contracts/TICKETS.md` in the `icm-board` repo.",
-    "",
-  ].join("\n")
-}
 
 // ---------------------------------------------------------------------------
 // Reading the template.
@@ -228,20 +201,10 @@ async function readTemplate(
   return files
 }
 
-/** `{{PREFIX}}` substituted, plus the suggested-prefix caveat on the one file
- * that names the prefix. */
-function render(file: TemplateFile, prefix: string): string {
-  const body = file.content.replaceAll("{{PREFIX}}", prefix)
-  if (file.path !== ".icm/intake/README.md") return body
-  return `${body.trimEnd()}\n${suggestedPrefixNote(prefix)}`
-}
-
 // ---------------------------------------------------------------------------
 // Seeding.
 
 export type ScaffoldResult = {
-  /** The prefix written into `.icm/intake/README.md`. */
-  prefix: string
   /** Paths committed into the repo, in template order. */
   created: string[]
   /**
@@ -271,11 +234,8 @@ export type ScaffoldResult = {
 export async function scaffoldIcmBaseline(
   fullName: string
 ): Promise<ScaffoldResult> {
-  const prefix = deriveTicketPrefix(fullName.split("/").pop() ?? fullName)
-
   if (!process.env.GITHUB_TOKEN) {
     return {
-      prefix,
       created: [],
       error: "GITHUB_TOKEN isn't set on this deployment.",
     }
@@ -302,12 +262,12 @@ export async function scaffoldIcmBaseline(
   }
 
   if (template.length === 0) {
-    return { prefix, created: [], error: problems.join("; ") }
+    return { created: [], error: problems.join("; ") }
   }
 
   const payload: NewRepoFile[] = template.map((file) => ({
     path: file.path,
-    content: render(file, prefix),
+    content: file.content,
     executable: file.executable,
   }))
   const result = await commitRepoFiles(
@@ -317,11 +277,10 @@ export async function scaffoldIcmBaseline(
   )
   if (result.outcome === "failed") {
     problems.push(result.error)
-    return { prefix, created: [], error: problems.join("; ") }
+    return { created: [], error: problems.join("; ") }
   }
 
   return {
-    prefix,
     created: result.created,
     error: problems.length === 0 ? null : problems.join("; "),
   }
