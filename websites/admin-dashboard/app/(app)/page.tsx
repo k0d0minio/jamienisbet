@@ -36,6 +36,10 @@ import {
 import { AddTodo, type TodoLead } from "@/components/add-todo"
 import { AppScreen } from "@/components/app-screen"
 import { ChannelGlyph } from "@/components/channel-glyph"
+import {
+  ComplianceCalendar,
+  type ComplianceEntry,
+} from "@/components/compliance-calendar"
 import { LeadRow } from "@/components/lead-row"
 import { NurtureWakes, type Wake } from "@/components/nurture-wakes"
 import {
@@ -165,6 +169,11 @@ type DbReads = {
   onCadence: boolean
   todos: OverdueTodo[]
   compliance: OverdueCompliance[]
+  /** Every open obligation, not only the ones near enough for the section
+   *  above — the calendar sheet is where they are entered, and entering a
+   *  year of them is useless if the list you check against stops at a
+   *  fortnight. */
+  calendar: ComplianceEntry[]
   /** Open todos that are filed but not yet due — counted, never listed, so
    *  the Overdue section can say it is a filter rather than the whole list. */
   filed: number
@@ -187,6 +196,7 @@ async function loadDb(): Promise<DbReads> {
     onCadence: false,
     todos: [],
     compliance: [],
+    calendar: [],
     filed: 0,
     leads: [],
   }
@@ -246,17 +256,20 @@ async function loadDb(): Promise<DbReads> {
         ]
       })
 
+    // Mapped once and sliced twice: the calendar sheet takes every open
+    // obligation, the section above only the ones close enough to act on.
     const horizon = now + COMPLIANCE_HORIZON_DAYS * DAY_MS
-    const compliance = dates
-      .filter((date) => date.dueDate.getTime() <= horizon)
-      .map((date) => ({
-        id: date.id,
-        title: date.title,
-        notes: date.notes,
-        dueDate: date.dueDate.toISOString(),
-        recurrence: date.recurrence,
-        late: date.dueDate.getTime() < now,
-      }))
+    const calendar: ComplianceEntry[] = dates.map((date) => ({
+      id: date.id,
+      title: date.title,
+      notes: date.notes,
+      dueDate: date.dueDate.toISOString(),
+      recurrence: date.recurrence,
+      late: date.dueDate.getTime() < now,
+    }))
+    const compliance = calendar.filter(
+      (date) => Date.parse(date.dueDate) <= horizon
+    )
 
     return {
       now,
@@ -283,6 +296,7 @@ async function loadDb(): Promise<DbReads> {
       onCadence: clients.some((c) => isProspect(c) || c.nextActionDue !== null),
       todos,
       compliance,
+      calendar,
       filed: tasks.length - todos.length,
       // Everyone a todo can point at, the cold pool included — the picker
       // groups them apart rather than dropping them, since a todo about a
@@ -476,6 +490,18 @@ export default async function NeedsYouPage({
         ) : null}
 
         {allClear ? <AllClear partial={notes.length > 0} /> : null}
+
+        {/* The compliance calendar, and the only way a date gets into it.
+            Below everything owed, because nothing in it is owed — the dates
+            that are have already been listed under Overdue. It renders on
+            every day, including the empty ones: the day the contabilista
+            returns the pack is exactly the day nothing else needs you, and a
+            way in that only appears when something is late is no way in.
+
+            Not while Neon is down, though: an empty calendar and an unreadable
+            one look identical, and this is the one section that would invite
+            you to type a dozen dates into a write that cannot land. */}
+        {db.error === null ? <ComplianceCalendar dates={db.calendar} /> : null}
 
         {/* Last, and quiet on purpose: these two inform, they never nag. */}
         <QuietCracks unplanned={db.cracks.unplanned} idle={db.cracks.idle} />
