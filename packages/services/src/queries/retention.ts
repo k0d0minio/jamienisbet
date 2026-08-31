@@ -86,21 +86,31 @@ export async function listPurgeable(
  * Forget the business behind one row, keep the shape of it.
  *
  * Cleared: the name, the company, the email, the phone, the WhatsApp line, the
- * Instagram handle and the hook. Kept: the sector, the town, the tier, the
- * status and the dates — the fact that a business of that shape was once
- * approached, which is what stops the same list being compiled and worked
- * again next spring.
+ * Instagram handle, the website address and the hook. Kept: the sector, the
+ * town, the tier, the status and the dates — the fact that a business of that
+ * shape was once approached, which is what stops the same list being compiled
+ * and worked again next spring.
  *
  * `company` is cleared alongside `name` even though §5 names only the name:
  * for an imported business row the two hold the same string, so clearing one
  * and leaving the other would anonymise nothing. That is reading the rule, not
  * extending it.
  *
- * What is **not** cleared: `notes`, `intake_message` and `website_url`. The
- * first two are prose §5 does not reach and a script should not guess at; the
- * third is a live business address whose status as personal data is a judgement
- * call rather than a coding one. Both are flagged by the purge script's output
- * rather than decided by it.
+ * `website_url` is on §5's list for the same kind of reason. A row left reading
+ * *restaurant · Ericeira · https://…* names the business as squarely as the
+ * name column did, and where that business is a sole trader whose site carries
+ * their own name it names a person. Nothing was lost by clearing it: what
+ * survives to stop next spring's re-import is the sector, the town and the
+ * dates, and a row a year cold is not worked from its website either. The
+ * `website_grade` stays — a letter about a site nobody can now find is shape,
+ * not identity — and clearing the URL is what drops the row out of
+ * `listEnrichable`, which is the right answer for a business that has been
+ * forgotten.
+ *
+ * What is **not** cleared: `notes` and `intake_message`. They are Jamie's own
+ * words about a prospect and a form-filler's about themselves, so whether
+ * either names a person is a question about what was written — flagged by the
+ * purge script's output for a human to read, never decided by it.
  *
  * `last_touched_at` is deliberately left alone. Every other write in this
  * layer stamps it, because every other write is somebody working the
@@ -121,6 +131,7 @@ export async function anonymiseClient(id: string): Promise<Client | undefined> {
       phone: null,
       whatsapp: null,
       instagram: null,
+      websiteUrl: null,
       hook: null,
     })
     .where(eq(clients.id, id))
