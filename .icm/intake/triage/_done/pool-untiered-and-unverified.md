@@ -178,3 +178,14 @@ graded or holding a URL, and leaves no ungraded no-URL row unflagged.
 
 This does not close the gap — it stops the gap being silent. A person still has to confirm
 each one and set the grade, and `leads-enrich --retier` then picks the points up.
+
+## Closed 2026-08-31
+
+Closed on the owner's call once migration `0023_flag_pool_web_presence_unknown` put the 34
+no-website rows into the dashboard's **Needs you** feed as dated next actions, on the basis
+that the remaining work is flagged there. Two pieces are not flagged by 0023 and moved to
+`triage/pool-not-yet-tiered-and-partly-unreachable.md` rather than closing with this file:
+the three script runs (nothing in the dashboard represents a script that has not been run,
+so `fit_tier` is still null on all 101), and the 37 rows with no phone, no email and no
+Instagram that fall outside 0023's predicate because they already carry a `website_url` or a
+`website_grade`.
