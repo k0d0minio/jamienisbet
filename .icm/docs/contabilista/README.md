@@ -23,9 +23,14 @@ These consolidate the legal-and-tax research carried out 15 June – 1 July 2026
 Read any of them with `git show e4bd7cb^:<path>`.
 
 The compliance calendar that stage 05 of that workspace was meant to produce **was never generated** —
-it was blocked on exactly this conversation. Document 02 §5 is that calendar, pending her review;
-once confirmed it feeds [`JN-027`](../../intake/JN-027-seed-compliance-calendar.md) and the
-dashboard's `biz.compliance_dates`.
+it was blocked on exactly this conversation. Document 02 §5 is that calendar, pending her review.
+
+Once she confirms it, the dates are entered into `biz.compliance_dates` through the admin
+dashboard, and the **Needs you** feed surfaces each one as it comes due. That is Jamie's data
+entry, not a ticket: `biz.*` is business state, operated through the dashboard and never mirrored
+into git. (`JN-027 · Seed the compliance calendar` used to stand in for it; it was an owner task
+parked in the backlog, and it went with the numbered series on 2026-08-28. Read it with
+`git show b11cc6b^:.icm/intake/JN-027-seed-compliance-calendar.md`.)
 
 ## Standing caveat
 
