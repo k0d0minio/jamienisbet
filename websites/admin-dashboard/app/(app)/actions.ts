@@ -1468,11 +1468,12 @@ export type CreateClientRepoResult = {
 // Private by default; the created repo's actual full name (owner may differ from
 // the token account via GITHUB_REPO_OWNER) and branch are what we store.
 //
-// A new repo is then seeded with the estate's baseline — `.icm/` so it shows up
-// on the tickets board (empty, not absent), plus the canonical root rails — and
-// so passes `icm-check.sh` from minute one rather than waiting for someone to
-// hand-create the folders. Its Layer 0 and `.claude/` are deliberately left to
-// `/project` adoption and `icm-check.sh --fix`; `lib/icm-scaffold.ts` says why.
+// A new repo is then seeded with the estate's baseline in one commit — `.icm/`
+// so it shows up on the tickets board (empty, not absent), `.claude/` so the
+// first cloud session in it knows the estate's conventions, plus the canonical
+// root rails — and so passes `icm-check.sh` from minute one rather than waiting
+// for someone to hand-create the folders. Only its Layer 0 is deliberately left
+// to `/project` adoption; `lib/icm-scaffold.ts` says why.
 export async function createClientRepo(
   id: string,
   input: { name: string; description?: string; isPrivate?: boolean }
