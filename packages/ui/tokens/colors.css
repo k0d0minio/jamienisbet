@@ -19,7 +19,10 @@
   --blue-950: #141F2A;
 
   /* ---- Neutrals: cool grey ---------------------------------- */
-  --neutral-0:   #FFFFFF;
+  /* 0 and 900 are also the logo's paper/ink (see --logo-* below).
+     Paper #FFFEFA, ink #1E1E1E — the logo is deliberately monochrome;
+     slate blue never appears inside a tile. */
+  --neutral-0:   #FFFEFA;
   --neutral-50:  #F7F8F9;
   --neutral-100: #EFF1F3;
   --neutral-200: #E2E5E9;
@@ -29,7 +32,7 @@
   --neutral-600: #4C545D;
   --neutral-700: #383E45;
   --neutral-800: #24282D;
-  --neutral-900: #15181C;
+  --neutral-900: #1E1E1E;
   --neutral-950: #0C0E11;
 
   /* ---- Semantic accents (muted, never neon) ----------------- */
@@ -83,6 +86,10 @@
      one pair here that the dark block deliberately leaves alone. */
   --scan-plate:    var(--neutral-0);
   --scan-ink:      var(--neutral-950);
+
+  /* ---- Logo: monochrome tile + ink, flips with the theme -------- */
+  --logo-tile:     var(--neutral-0);    /* paper (light) / ink (dark) */
+  --logo-ink:      var(--neutral-900);   /* ink    (light) / paper (dark) */
 }
 
 /* ============================================================
@@ -120,4 +127,8 @@
   --danger-soft:   color-mix(in srgb, #E0685E 16%, transparent);
 
   --grid-line:     color-mix(in srgb, #FFFFFF 6%, transparent);
+
+  /* Logo flips: ink tile + paper mark in the dark reading. */
+  --logo-tile:     var(--neutral-900);
+  --logo-ink:      var(--neutral-0);
 }

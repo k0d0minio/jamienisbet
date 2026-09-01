@@ -2,57 +2,67 @@ import * as React from "react"
 
 import { cn } from "../../lib/utils"
 
-// J-then-N typographic monogram. The brand's earlier abstract "node" mark was
-// dropped (2026-06-15) — do not reintroduce it. SVG sources of truth:
-// assets/logo/mark-monogram.svg and assets/logo/mark-monogram-solid.svg.
+// Geometric J-N lockup (2026 logo rollout): the J is a bar with a filled
+// diamond foot, the N is two bars joined by a falling diagonal bar — all set
+// inside a thin frame tile. The brand palette here is deliberately monochrome
+// paper/ink (--neutral-0 / --neutral-900); the tile form flips via the
+// --logo-tile / --logo-ink semantic pair, slate blue never appears inside a
+// tile. SVG sources of truth: assets/logo/logo-mark.svg,
+// assets/logo/logo-mark-solid.svg, assets/logo/logo-full.svg. The earlier
+// stroke monogram (assets/logo/mark-monogram.svg) is retired — do not
+// reintroduce it.
 
-/** JN monogram that inherits the current text colour. Size via className. */
+function MarkShapes() {
+  return (
+    <>
+      <rect x="26.1" y="28" width="9.6" height="49.7" />
+      <rect x="43.9" y="28" width="9.6" height="50.7" />
+      <rect x="74.8" y="28" width="9.6" height="50.7" />
+      <path d="M47.1 34.1 L54.9 27.9 L79.9 59.9 L72.1 66.1 Z" />
+      <path d="M21.8 70.5 L34.5 75.2 L21.8 79.9 L9.0 75.2 Z" />
+    </>
+  )
+}
+
+/** Geometric JN mark that inherits the current text colour. Size via className. */
 function LogoMark({ className, ...props }: React.ComponentProps<"svg">) {
   return (
     <svg
       viewBox="0 0 100 100"
-      fill="none"
+      fill="currentColor"
       role="img"
       aria-label="Jamie Nisbet"
       className={cn("size-6", className)}
       {...props}
     >
-      <g
-        stroke="currentColor"
-        strokeWidth={7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      >
-        <path d="M28 32 H44 M40 32 V58 Q40 69 29 69 Q21 69 21 60" />
-        <path d="M56 70 V34 L78 70 V34" />
-      </g>
+      <MarkShapes />
     </svg>
   )
 }
 
-/** JN monogram on the fixed slate tile — favicons, app sidebars, slide footers.
- *  Stays slate + white in both themes (uses the raw ramp, not flipping aliases). */
+/** Tile lockup — thin frame + mark, theme-driven via --logo-tile / --logo-ink.
+ *  Favicons, logins, app sidebars, slide footers. */
 function LogoMarkSolid({ className, ...props }: React.ComponentProps<"svg">) {
   return (
     <svg
       viewBox="0 0 100 100"
-      fill="none"
       role="img"
       aria-label="Jamie Nisbet"
       className={cn("size-9", className)}
       {...props}
     >
-      <rect x="2" y="2" width="96" height="96" rx="20" fill="var(--blue-600)" />
-      <g
-        stroke="var(--neutral-0)"
-        strokeWidth={7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      >
-        <path d="M28 32 H44 M40 32 V58 Q40 69 29 69 Q21 69 21 60" />
-        <path d="M56 70 V34 L78 70 V34" />
+      <rect
+        x="1"
+        y="1"
+        width="98"
+        height="98"
+        rx="2"
+        fill="var(--logo-tile)"
+        stroke="var(--logo-ink)"
+        strokeWidth="2"
+      />
+      <g fill="var(--logo-ink)">
+        <MarkShapes />
       </g>
     </svg>
   )
