@@ -23,7 +23,7 @@ Identity and token specifics live in one place — read them, don't restate them
 
 ## Which tier am I on?
 
-**Marketing tier** — `websites/portfolio`, `websites/payment-gateway`, `websites/sellers-site`,
+**Marketing tier** — `websites/portfolio`, `websites/sellers-site`,
 and anything in `packages/ui` outside `src/components/app/`. Everything on this page applies
 as written. Nothing below changes for you.
 

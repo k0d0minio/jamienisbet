@@ -15,7 +15,7 @@ Decided 2026-06 from the founding questionnaire (~50 answers). Most load-bearing
   seeded from. Repos are seeded from the estate template by `icm-check.sh --fix`; the
   `_system/icm-template` path and the `/onboard` command named here are both retired, and
   since 2026-08-26 the template itself lives in `k0d0minio/icm-board`.)_
-- **`websites/` here = `portfolio/`, `payment-gateway/`, `admin-dashboard/`, `sellers-site/`**
+- **`websites/` here = `portfolio/`, `admin-dashboard/`, `sellers-site/`**
   (Next.js + Vercel). Client sites are **external repos**. No `clients/` or `personal/` here.
 - **Daily todos + morning brief = the dashboard's working list.** _(The founding standalone
   `tracker/` — and its personal/business privacy wall — are both retired; see the 2026-07

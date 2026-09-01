@@ -2,11 +2,9 @@ import "server-only"
 import Stripe from "stripe"
 
 // Server-side Stripe client for the admin. Constructed lazily so the app still
-// boots and renders a "not configured" state when STRIPE_SECRET_KEY is unset —
-// the same guarded pattern the payment-gateway uses (websites/payment-gateway/
-// lib/stripe.ts). This is owner-only surface, so the secret key is used directly
-// to read financials and raise invoices/payment links. Never import from a
-// client component.
+// boots and renders a "not configured" state when STRIPE_SECRET_KEY is unset.
+// This is owner-only surface, so the secret key is used directly to read
+// financials and raise invoices/payment links. Never import from a client component.
 
 let cached: Stripe | null | undefined
 

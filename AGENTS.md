@@ -16,8 +16,6 @@ packages, deployed as four Vercel projects.
   profile*, *Tickets* (every active repo's `.icm/intake/` backlog in one read-only board),
   and *Money* (Stripe). Business state lives in **one**
   store — the Neon `biz.*` schema — operated through the dashboard, never mirrored into git.
-- **[`websites/payment-gateway/`](websites/payment-gateway/)** — the client-facing pay page
-  (`/pay/[invoice]`, Stripe Embedded Checkout + signature-verified webhook).
 - **[`websites/sellers-site/`](websites/sellers-site/)** — the affiliate program's public
   front door (referral intake → Neon + Resend).
 - **[`packages/`](packages/)** — `ui` (the design system; **the** brand source of truth,
@@ -46,7 +44,6 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 |---|---|
 | Change the portfolio (content, case studies, contact form) | [`websites/portfolio/`](websites/portfolio/) |
 | Change the admin cockpit (Leads, Tickets, Money) | [`websites/admin-dashboard/`](websites/admin-dashboard/) |
-| Change how clients pay an invoice | [`websites/payment-gateway/`](websites/payment-gateway/) |
 | Change the affiliate/referral intake | [`websites/sellers-site/`](websites/sellers-site/) |
 | Brand colours, tokens, components, voice | [`packages/ui/`](packages/ui/) + [`packages/ui/BRAND.md`](packages/ui/BRAND.md) — the per-turn UI checklist auto-loads from [`.claude/skills/design-dna/`](.claude/skills/design-dna/SKILL.md) |
 | Data model / queries (`biz.*`) | [`packages/services/`](packages/services/) |

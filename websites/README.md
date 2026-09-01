@@ -1,18 +1,17 @@
 # Websites
 
 > **ICM role:** Layer 1 — router
-> **Purpose:** Routes to every web app Jamie hosts under his own roof — portfolio, payment gateway, admin dashboard, and the public sellers site — all sharing one brand identity.
+> **Purpose:** Routes to every web app Jamie hosts under his own roof — portfolio, admin dashboard, and the public sellers site — all sharing one brand identity.
 
 ## What this folder accomplishes
 This is the home for Jamie's **own** front-facing and internal web apps — four live Next.js (App Router) applications deployed on Vercel. The unifying thread is brand identity: every app consumes the design system from [`packages/ui`](../packages/ui/), so the whole estate looks coherent. **Client websites do not live here** — each client site is its own external repo; the admin dashboard records the link on that lead's `biz.clients` record.
 
 ## How it connects to the architecture
 - **Upstream / reads from:** [`packages/ui`](../packages/ui/) (design system), [`packages/services`](../packages/services/) (Neon `biz.*` data layer), [`packages/app-shell`](../packages/app-shell/) (marketing-site chrome/i18n).
-- **Downstream / feeds:** Vercel deployments; leads into Neon `biz.clients` (portfolio contact form + sellers referral form, each also notifying via Resend); payments via Stripe (payment gateway + admin invoicing).
+- **Downstream / feeds:** Vercel deployments; leads into Neon `biz.clients` (portfolio contact form + sellers referral form, each also notifying via Resend); payments via Stripe (admin invoicing).
 
 ## Contents
 - `portfolio/` — Jamie's public portfolio and proof-of-work showcase. i18n (en/fr/pt), markdown case studies, contact form wired to Neon (`biz.clients`) + Resend.
-- `payment-gateway/` — Stripe Embedded Checkout surface where clients pay invoices (`/pay/[invoice]`), with a signature-verified Stripe webhook. Stripe is the invoice source of truth.
 - `admin-dashboard/` — **the business cockpit.** Owner-only, password-gated, installable PWA. Four screens, operating the Neon `biz.*` store via [`@jamie-nisbet/services`](../packages/services/): **Leads** (every lead and customer in one staleness-sorted list, with todos and compliance dates folded above it), a **lead's profile** (contact, value, notes, delivery repo, Stripe link), **Tickets** (every active repo's `.icm/intake/` backlog, read-only), and **Money** (Stripe balance, invoices, payment links, payments).
 - `sellers-site/` — public affiliate + partner referral intake (the 10% program's front door), wired to Neon + Resend like the portfolio.
 
@@ -21,7 +20,7 @@ Each app consumes the shared design system from [`packages/ui`](../packages/ui/)
 
 ## Deployment (Vercel)
 
-Four Vercel projects on the **kodominio** team, all off this repo. Each app carries its own
+Three Vercel projects on the **kodominio** team, all off this repo. Each app carries its own
 `vercel.json` (framework + skip-build rule); the one setting `vercel.json` cannot express is the
 **Root Directory**, so a fresh import needs exactly this mapping (everything else — pnpm
 workspace install at the repo root, `next build` — is auto-detected):
@@ -30,13 +29,12 @@ workspace install at the repo root, `next build` — is auto-detected):
 |---|---|---|
 | `portfolio` | `websites/portfolio` | `jamienisbet.com` |
 | `jamie-nisbet` | `websites/admin-dashboard` | `app.jamienisbet.com` |
-| `payment-gateway` | `websites/payment-gateway` | `pay.jamienisbet.com` |
 | `client-referrals` | `websites/sellers-site` | `sell.jamienisbet.com` |
 
 Env vars live in each Vercel project (never in git) — each app's README lists what it needs.
 
 **Skipped builds.** Ticket flips in `.icm/intake/` land on this repo's `main` alongside app work,
-and four Vercel projects watch the same repo. (Estate-control edits no longer do: `_system/` and the
+and three Vercel projects watch the same repo. (Estate-control edits no longer do: `_system/` and the
 three commands left for `k0d0minio/icm-board` on 2026-08-26, which removed a whole class of
 global-change commit from this repo.) Skipping is handled by **Vercel's built-in monorepo skipping**, which is on by default
 and needs no configuration — there is deliberately no `ignoreCommand` in any `vercel.json`.
@@ -69,22 +67,22 @@ own Root Directory.
 ### The cost, and it is deliberate
 
 Anything **outside the workspace definition** (`packages/*`, `websites/*`) counts as a global change
-and deploys all four apps: `.icm/`, `.claude/`, `.github/`, `AGENTS.md`/`CLAUDE.md`, root configs. Ticket-only
-commits therefore build all four apps where the old `ignoreCommand` skipped them.
+and deploys all three apps: `.icm/`, `.claude/`, `.github/`, `AGENTS.md`/`CLAUDE.md`, root configs. Ticket-only
+commits therefore build all three apps where the old `ignoreCommand` skipped them.
 
-That trade is taken knowingly. Those commits already cost four deployments under either mechanism —
+That trade is taken knowingly. Those commits already cost three deployments under either mechanism —
 the ignore step never saved the quota, only the build minutes — and app commits, which are the
-majority of pushes, now cost one deployment instead of four.
+majority of pushes, now cost one deployment instead of three.
 
 `.icm/onboarding/` needs no special handling as a result. It is an input to the dashboard only
 (traced into the bundle by [`next.config.ts`](admin-dashboard/next.config.ts)), it sits outside the
 workspace, and a global change redeploys the dashboard along with everything else.
 
-### Preview deployments are off for two apps
+### Preview deployments are off for one app
 
-Previews are the bulk of the spend — every branch push otherwise costs up to four
-deployments. `payment-gateway` and `sellers-site` are rarely worth a preview URL, so both
-opt out of everything except `main` in their own `vercel.json`:
+Previews are the bulk of the spend — every branch push otherwise costs up to three
+deployments. `sellers-site` is rarely worth a preview URL, so it
+opts out of everything except `main` in its own `vercel.json`:
 
 ```json
 { "git": { "deploymentEnabled": { "*": false, "**": false, "main": true } } }
@@ -96,7 +94,7 @@ a no-op. `*` covers flat names like `chore-x`, `**` covers slashed ones like `cl
 `main` wins over both because a branch matching several rules deploys if *any* of them is
 `true`.
 
-`portfolio` and `admin-dashboard` keep previews: they are the two whose UI is worth looking
+`portfolio` and `admin-dashboard` keep previews: they are the two whose UIs are worth looking
 at before merge. Extend the pattern to them only if the daily cap starts biting again.
 
 ## Notes
