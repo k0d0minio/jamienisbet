@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [portfolio, sellers-site, payment-gateway, admin-dashboard]
+        app: [portfolio, sellers-site, admin-dashboard]
     steps:
       - uses: actions/checkout@v4
 

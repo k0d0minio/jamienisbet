@@ -1,7 +1,7 @@
 # jamienisbet — the web estate
 
 The personal web estate of **Jamie Nisbet**, a software engineer / AI consultant based in
-Mafra, Portugal. Deliberately small: four Next.js apps and the shared packages beneath
+Mafra, Portugal. Deliberately small: three Next.js apps and the shared packages beneath
 them, deployed as separate Vercel projects off one pnpm monorepo.
 
 ## The map
@@ -16,8 +16,6 @@ jamienisbet/
 │   │                    contact form → Neon biz.clients + Resend notification
 │   ├── admin-dashboard/ the cockpit — owner-only PWA, four screens:
 │   │                    Leads · a lead's profile · Tickets · Money (Stripe)
-│   ├── payment-gateway/ the client-facing pay page — /pay/[invoice], Stripe Embedded
-│   │                    Checkout + signature-verified webhook
 │   └── sellers-site/    the affiliate program's front door — referral intake → Neon + Resend
 │
 ├── packages/            shared code
@@ -36,12 +34,12 @@ jamienisbet/
 
 - **Business state lives in one store** — the Neon `biz.*` schema (leads, todos, compliance
   dates), operated through the admin dashboard. Nothing is mirrored back into git; money
-  itself lives in Stripe (the payment gateway is its client-facing checkout surface).
+  itself lives in Stripe.
 - **The Tickets screen** reads every active repo's `.icm/intake/` markdown backlog live from
   GitHub (read-only; the repos own their tickets) — the client repos plus the two house
   repos, this one and `icm-board`. Canonical ticket spec: `_system/contracts/TICKETS.md`
   in `icm-board`; the copy that matters here is [`.icm/intake/README.md`](.icm/intake/README.md).
-- **CI** (`.github/workflows/`) typechecks, lints and builds all four apps and guards DB
+- **CI** (`.github/workflows/`) typechecks, lints and builds all three apps and guards DB
   migrations. CI is the source of truth — don't run checks locally.
 
 ## History

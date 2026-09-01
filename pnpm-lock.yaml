@@ -174,70 +174,6 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  websites/payment-gateway:
-    dependencies:
-      '@jamie-nisbet/app-shell':
-        specifier: workspace:*
-        version: link:../../packages/app-shell
-      '@jamie-nisbet/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@stripe/react-stripe-js':
-        specifier: ^3.7.0
-        version: 3.10.0(@stripe/stripe-js@7.9.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@stripe/stripe-js':
-        specifier: ^7.3.0
-        version: 7.9.0
-      lucide-react:
-        specifier: ^1.20.0
-        version: 1.20.0(react@19.2.7)
-      next:
-        specifier: ^16.2.9
-        version: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      next-intl:
-        specifier: ^4.13.0
-        version: 4.13.0(next@16.2.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
-      next-themes:
-        specifier: ^0.4.6
-        version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      react:
-        specifier: ^19.2.7
-        version: 19.2.7
-      react-dom:
-        specifier: ^19.2.7
-        version: 19.2.7(react@19.2.7)
-      server-only:
-        specifier: ^0.0.1
-        version: 0.0.1
-      stripe:
-        specifier: ^18.2.1
-        version: 18.5.0(@types/node@25.9.3)
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4.3.1
-        version: 4.3.1
-      '@types/node':
-        specifier: ^25.9.3
-        version: 25.9.3
-      '@types/react':
-        specifier: ^19.2.17
-        version: 19.2.17
-      '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.17)
-      eslint:
-        specifier: ^9.39.4
-        version: 9.39.4(jiti@2.7.0)
-      eslint-config-next:
-        specifier: ^16.2.9
-        version: 16.2.9(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
-      tailwindcss:
-        specifier: ^4.3.1
-        version: 4.3.1
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
   websites/portfolio:
     dependencies:
       '@jamie-nisbet/app-shell':
@@ -2055,17 +1991,6 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
-
-  '@stripe/react-stripe-js@3.10.0':
-    resolution: {integrity: sha512-UPqHZwMwDzGSax0ZI7XlxR3tZSpgIiZdk3CiwjbTK978phwR/fFXeAXQcN/h8wTAjR4ZIAzdlI9DbOqJhuJdeg==}
-    peerDependencies:
-      '@stripe/stripe-js': '>=1.44.1 <8.0.0'
-      react: '>=16.8.0 <20.0.0'
-      react-dom: '>=16.8.0 <20.0.0'
-
-  '@stripe/stripe-js@7.9.0':
-    resolution: {integrity: sha512-ggs5k+/0FUJcIgNY08aZTqpBTtbExkJMYMLSMwyucrhtWexVOEY1KJmhBsxf+E/Q15f5rbwBpj+t0t2AW2oCsQ==}
-    engines: {node: '>=12.16'}
 
   '@swc/core-darwin-arm64@1.15.43':
     resolution: {integrity: sha512-v1aVuvXdo/BHxJzco9V2xpHrvwWmhfS8t6gziY5wJxd+Z2h8AeJRnAwPD8itCDaGXVBwJ/CaKfxEzTkG0Va0OA==}
@@ -5861,15 +5786,6 @@ snapshots:
   '@stablelib/base64@1.0.1': {}
 
   '@standard-schema/spec@1.1.0': {}
-
-  '@stripe/react-stripe-js@3.10.0(@stripe/stripe-js@7.9.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
-    dependencies:
-      '@stripe/stripe-js': 7.9.0
-      prop-types: 15.8.1
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
-
-  '@stripe/stripe-js@7.9.0': {}
 
   '@swc/core-darwin-arm64@1.15.43':
     optional: true

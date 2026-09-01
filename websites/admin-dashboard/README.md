@@ -455,8 +455,7 @@ pushes the change to their Stripe customer, and a lead can be linked ahead of bi
 profile. See [`lib/clients-stripe.ts`](lib/clients-stripe.ts).
 
 With `STRIPE_SECRET_KEY` unset the app still runs: this page shows a "not configured" notice and
-the Leads screen is unaffected. The client-facing pay page lives in
-[`websites/payment-gateway`](../payment-gateway/); this admin is where invoices are *raised*.
+the Leads screen is unaffected. This admin is where invoices are *raised*.
 
 ## Deliberately not here
 
@@ -641,7 +640,7 @@ Requires the `biz` schema to exist — run the migration in
 
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
-same Stripe account the payment-gateway uses), and optionally `GITHUB_TOKEN` for the delivery-repo
+and optionally `GITHUB_TOKEN` for the delivery-repo
 connect/create and the Tickets board (plus `GITHUB_REPO_OWNER` to home new client repos under a
 specific user/org). Set `PORTFOLIO_BASE_URL` to the portfolio's origin so the Forms card builds
 customer links against the right host. `AI_GATEWAY_API_KEY` turns on the draft panel and

@@ -4,9 +4,7 @@
 - cut: 2026-09-01, from Jamie's brief and an inventory of every current monogram
   consumption point across the estate
 - scope: `packages/ui` (the brand source of truth) + `websites/admin-dashboard` +
-  `websites/portfolio` + `websites/sellers-site`. The `websites/payment-gateway`
-  deprecation is **out of scope** — that is a separate triage ticket
-  (`.icm/intake/triage/deprecate-payment-gateway.md`).
+  `websites/portfolio` + `websites/sellers-site`.
 
 ## What was understood
 
@@ -53,8 +51,7 @@
    updated components; no app re-draws the artwork. The one hand-copied path (the admin's
    `lib/app-icon.tsx` and its `app/icon-*.png`/`apple-icon.png` routes) is re-derived from
    the new set.
-4. **Payment-gateway deprecation is a separate ticket** — not widened into this epic
-   (`.icm/intake/triage/deprecate-payment-gateway.md`).
+
 
 ## Build order
 
@@ -67,8 +64,7 @@
 4. `sellers-site-rollout` — depends on 1. Swap the sellers pitch/template marks and
    favicon.
 
-2–4 are independent of each other once 1 lands; their ordering above is just the list
-order. `triage/deprecate-payment-gateway.md` is orthogonal and may be cut at any time.
+2–4 are independent of each other once 1 lands; their ordering above is just the list order.
 
 ## Sources
 
