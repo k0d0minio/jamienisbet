@@ -12,8 +12,9 @@ properties and React primitives. **They are kept in sync — change one, mirror 
 
 It is built on **Tailwind CSS v4 + [shadcn/ui](https://ui.shadcn.com)** (new-york style, the
 unified `radix-ui` package). The components are idiomatic shadcn primitives themed with the
-brand tokens; the aesthetic is **Swiss-minimal**: one disciplined slate-blue (`#3A5A78`),
-cool-grey neutrals, Hanken Grotesk + IBM Plex Mono, hairline borders over heavy shadows,
+brand tokens; the aesthetic is **Swiss-minimal**: one disciplined slate-blue (`#3A5A78`) as the interaction
+tint, cool-grey neutrals (the logo is pure paper/ink — `#FFFEFA` on `#1E1E1E`), Hanken
+Grotesk + IBM Plex Mono, hairline borders over heavy shadows,
 generous whitespace, and a full light **+ dark** theme. The longer brand guide lives in
 [`BRAND.md`](BRAND.md).
 
@@ -39,7 +40,7 @@ generous whitespace, and a full light **+ dark** theme. The longer brand guide l
   **`src/components/brand/`** — the brand-only primitives (Eyebrow, IconButton, the JN
   logo marks).
 - **`src/lib/utils.ts`** — the `cn()` class-merge helper. **`src/index.ts`** — the barrel.
-- **`assets/`** — `logo/` (JN monogram SVGs), `brand/` (social card + email signature HTML),
+- **`assets/`** — `logo/` (JN mark + tile + full-lockup SVGs), `brand/` (social card + email signature HTML),
   `lib/icons.js` (Lucide UMD helper for static HTML).
 - **`emails/`** — branded HTML source for Resend's dashboard **Templates** feature (contact/
   referral notifications, invoice reminder, outreach, follow-up). See [`emails/README.md`](emails/README.md).

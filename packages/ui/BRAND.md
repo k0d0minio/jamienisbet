@@ -31,7 +31,7 @@ The brand voice is *quiet, casual confidence* — professional without being cor
 
 ## Visual foundations
 
-**Colour.** One brand hue: **slate blue**, base `--blue-600 #3A5A78` — the restrained, professional answer to a louder Majorelle. Neutrals are *cool* grey (never pure black; text tops out at `--neutral-900`). Semantic colours (success/warning/danger) are **muted, never neon**. Always design against the semantic aliases (`--surface`, `--text-1`, `--border`, `--primary`), which flip correctly between the **light and dark** themes via `[data-theme="dark"]`.
+**Colour.** One brand hue: **slate blue**, base `--blue-600 #3A5A78` — the restrained, professional answer to a louder Majorelle. Slate is the **interaction tint** (buttons, links, focus, active nav) and never appears in the logo. Neutrals are *cool* grey (never pure black; text tops out at `--neutral-900`). The **logo is monochrome paper/ink** — `--neutral-0 #FFFEFA` (paper) and `--neutral-900 #1E1E1E` (ink), flipped per theme by the `--logo-tile` / `--logo-ink` pair. Semantic colours (success/warning/danger) are **muted, never neon**. Always design against the semantic aliases (`--surface`, `--text-1`, `--border`, `--primary`), which flip correctly between the **light and dark** themes via `[data-theme="dark"]`.
 
 **Type.** *(Marketing tier — the app tier sets UI text in the system stack; see § App tier.)* **Hanken Grotesk** (neutral grotesque) for everything structural; **IBM Plex Mono** as the engineer's signature — eyebrows, metadata, figures, code, and table data. Hierarchy comes from **weight + size + tight tracking** (`-0.02` to `-0.03em` on display sizes), not decoration. Body is 16px at 1.5–1.65 leading. Weights 300–800; headings sit at 600.
 
@@ -195,7 +195,7 @@ ships its own, and raw values are as banned at an app-tier call site as anywhere
 - **Delivery:** in React apps import `lucide-react` directly (a dependency of `@jamie-nisbet/ui`). In static HTML / UMD surfaces (slides, docs, email) use the shared helper `assets/lib/icons.js` → `<Icon name="ArrowRight" size={18} />` (PascalCase Lucide names), or `<i data-lucide="check"></i>` + `lucide.createIcons()`.
 - **Usage:** icons are functional, not decorative — they sit in buttons, nav, status rows, and feature lists at `15–21px`. Tinted `--text-3` at rest, `--primary` when they carry meaning (active nav, feature accents).
 - **No emoji. No multicolour/3D icons.** Unicode arrows (`↗`) are fine inline in mono labels.
-- **Logo** is bespoke (not an icon): see `assets/logo/`. The brand leads with the **Hanken Grotesk wordmark** ("Jamie Nisbet"); the compact mark is a **typographic JN monogram** (J first) in the same family — `mark-monogram.svg` (currentColor) and `mark-monogram-solid.svg` (white JN on a slate tile) for app/sidebar/favicon use. *(Locked 2026-06-15: the earlier abstract node/stack marks were dropped at the user's request.)*
+- **Logo** is bespoke (not an icon): see `assets/logo/`. The 2026 mark is a **geometric JN lockup** — a J (vertical bar + diamond foot) and an N (two bars tied by a diagonal) inside a thin frame tile, rendered in pure paper/ink. The full form adds a teardrop diamond and the **Hanken Grotesk wordmark** ("JAMIE NISBET") below it. The set: `logo-mark.svg` (currentColor mark), `logo-mark-solid.svg` (frame + mark, baked to the dark reading for favicon/PNG pipelines), `logo-full.svg` (tile + diamond + wordmark). In React, `LogoMark` (mark, currentColor) and `LogoMarkSolid` (frame + mark, theme-flipped via `--logo-tile`/`--logo-ink`) replace the retired stroke monogram. *(Locked 2026-09-01 in the logo rollout; the old `mark-monogram*.svg` typographic JN was retired.)*
 
 ---
 
@@ -212,7 +212,7 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 - `app.css` + `tokens/app.css` — the **app tier** (see § App tier). Opt-in: linked *after* `styles.css` by operated surfaces only, never by a marketing site.
 
 **Assets** (`assets/`)
-- `logo/` — `mark-monogram.svg` (currentColor JN), `mark-monogram-solid.svg` (white JN on slate tile).
+- `logo/` — `logo-mark.svg` (currentColor JN), `logo-mark-solid.svg` (frame + mark, dark reading), `logo-full.svg` (tile + diamond + wordmark).
 - `brand/` — `social-card.html` (1200×630 OG), `email-signature.html`.
 - `lib/icons.js` — shared Lucide → `<Icon>` helper for UMD/static surfaces.
 
