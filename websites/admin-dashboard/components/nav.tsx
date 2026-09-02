@@ -100,8 +100,8 @@ export function TabBar() {
 // ------------------------------------------------------------------
 
 /** The leading sidebar — the tab bar's desktop form. Same four destinations in
- *  the same order, the monogram at the head and sign out at the foot; from here
- *  up the compact title bar carries no app-level controls of its own. */
+ *  the same order, the brand mark at the head and sign out at the foot; from
+ *  here up the compact title bar carries no app-level controls of its own. */
 export function Sidebar() {
   const pathname = usePathname()
 
@@ -124,6 +124,11 @@ export function Sidebar() {
         href="/"
         className="flex min-h-app-touch items-center gap-2 px-4 py-4 text-app-headline font-semibold text-app-label"
       >
+        {/* The mark alone, in currentColor, so it takes the row's own
+            --app-label and flips with the appearance; the tile form belongs on
+            surfaces that stand apart from their background, not in a lockup
+            with a wordmark beside it. size-5 is the sidebar's glyph size — the
+            nav icons under it and the tab bar's all set there. */}
         <LogoMark className="size-5 shrink-0" aria-hidden />
         <span className="truncate">Consultancy JN</span>
       </Link>

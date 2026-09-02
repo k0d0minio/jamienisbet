@@ -33,9 +33,13 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-6 px-app-gutter pt-screen-safe pb-screen-safe">
       <div className="flex w-full max-w-sm flex-col items-center gap-3 text-center">
-        {/* The installed icon, at the size it sits on a home screen — the same
-            tile the splash showed a second ago, so the app is recognisably
-            the thing that was just launched. */}
+        {/* The icon form, at the size it sits on a home screen, so the app is
+            recognisably the thing that was just launched. The tile form and not
+            the bare mark: this one stands alone over the canvas rather than
+            leading a row of text. It flips with the appearance where the
+            installed PNG cannot — the generated icon is baked to the dark
+            reading and drops the frame the OS mask would crop (lib/app-icon.tsx),
+            so the two match on ink and geometry, not on chrome. */}
         <LogoMarkSolid className="size-14" />
         <div className="flex flex-col gap-1">
           <h1 className="text-app-title-1 font-bold text-app-label">

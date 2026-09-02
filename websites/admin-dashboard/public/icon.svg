@@ -1,7 +1,16 @@
+<!-- Tab favicon: the 2026 JN icon form, copied from the design system's
+     packages/ui/assets/logo/logo-mark-solid.svg. Unlike the generated PNGs in
+     lib/app-icon.tsx this one is never masked, so it keeps the framed tile and
+     the artwork's own placement inside it. Baked to the dark reading (ink tile,
+     paper mark) because a static favicon cannot read --logo-tile/--logo-ink. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Consultancy JN">
-  <rect width="100" height="100" rx="22" fill="#3A5A78" />
-  <g stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M28 32 H44 M40 32 V58 Q40 69 29 69 Q21 69 21 60" />
-    <path d="M56 70 V34 L78 70 V34" />
+  <rect x="1" y="1" width="98" height="98" rx="2" fill="#1E1E1E" />
+  <rect x="1" y="1" width="98" height="98" rx="2" fill="none" stroke="#FFFEFA" stroke-width="2" />
+  <g fill="#FFFEFA">
+    <rect x="26.1" y="28" width="9.6" height="49.7" />
+    <rect x="43.9" y="28" width="9.6" height="50.7" />
+    <rect x="74.8" y="28" width="9.6" height="50.7" />
+    <path d="M47.1 34.1 L54.9 27.9 L79.9 59.9 L72.1 66.1 Z" />
+    <path d="M21.8 70.5 L34.5 75.2 L21.8 79.9 L9.0 75.2 Z" />
   </g>
 </svg>
