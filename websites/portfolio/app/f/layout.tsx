@@ -14,7 +14,7 @@ import { site } from "@/lib/site"
 // (so the locale machinery has nothing to resolve) and it is a single task with
 // a single button, so a nav bar offering "Work" and "About" is just somewhere
 // else to click. What it keeps is the brand — the same tokens, the same type,
-// the monogram at the top — so it reads as Jamie's, not as a form vendor's.
+// the mark at the top — so it reads as Jamie's, not as a form vendor's.
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
