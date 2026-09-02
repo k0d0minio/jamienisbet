@@ -49,6 +49,17 @@ export function parseArgs(argv: readonly string[], spec: FlagSpec): Args {
       continue
     }
     if (token === "--") {
+      // A leading `--` is pnpm's, not the caller's. Every one of these scripts
+      // is documented as `pnpm --filter … <script> -- --dry-run`, and pnpm 10
+      // forwards that separator into argv instead of eating it — so the
+      // standard "everything after this is positional" reading would file
+      // every real flag under `rest` and run the script with none of them.
+      // That is not a cosmetic misparse: `--dry-run` silently ignored is a
+      // script that writes to the database when it was told to report.
+      // No script here takes positionals, so the separator is only ever
+      // pnpm's, and the strictness this file exists for stays intact — an
+      // unknown flag after it still throws.
+      if (at === 0) continue
       rest.push(...argv.slice(at + 1))
       break
     }

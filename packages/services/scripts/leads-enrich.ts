@@ -235,7 +235,7 @@ async function enrichOne(lead: Client): Promise<EnrichOutcome> {
   const { system, prompt } = buildEnrichmentPrompt({ lead, page: fetched.page })
 
   try {
-    const { text } = await generateText({
+    const { text, finishReason } = await generateText({
       // A bare "provider/model" string is a Vercel AI Gateway model — see
       // src/ai.ts, which is the one place either id is written down.
       model: ENRICH_MODEL,
@@ -245,7 +245,21 @@ async function enrichOne(lead: Client): Promise<EnrichOutcome> {
       maxRetries: 1,
     })
     const proposal = parseEnrichment(text)
-    if (!proposal) return { ok: false, reason: "the model didn't return facts" }
+    if (!proposal) {
+      // Two different failures wore the same sentence until this run. A
+      // reasoning model that exhausts its budget mid-thought returns an empty
+      // string with `finishReason: "length"` — nothing was refused and nothing
+      // was malformed, the ceiling was simply too low — and reporting that as
+      // "didn't return facts" sends the reader to the prompt when the fix is
+      // ENRICH_MAX_OUTPUT_TOKENS. Say which one it was.
+      return {
+        ok: false,
+        reason:
+          finishReason === "length"
+            ? "the model ran out of output tokens before it answered"
+            : "the model didn't return facts",
+      }
+    }
     return { ok: true, changes: enrichmentChanges(lead, proposal) }
   } catch (error) {
     return { ok: false, reason: `the gateway failed — ${(error as Error).message}` }
