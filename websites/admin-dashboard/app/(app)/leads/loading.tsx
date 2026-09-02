@@ -7,6 +7,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { AppScreen } from "@/components/app-screen"
+import { LoadingLine } from "@/components/loading-line"
 
 // The leads screen is a full read of every client, so on mobile data there is a
 // beat of nothing between tapping the tab and the list arriving. The shape lands
@@ -50,6 +51,7 @@ export default function LeadsLoading() {
   return (
     <AppScreen
       title="Leads"
+      subtitle={<LoadingLine>Loading leads</LoadingLine>}
       masthead={
         <GlanceRow>
           {/* Two, not three: the third figure only exists when something is

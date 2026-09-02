@@ -18,8 +18,8 @@ const badgeVariants = cva(
           "bg-secondary text-secondary-foreground border-border [a&]:hover:bg-secondary/90 [a&]:active:bg-muted",
         outline:
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground [a&]:active:bg-accent [a&]:active:text-accent-foreground",
-        // Muted state tints. `tint` is the brand slate at soft strength — the
-        // "this is live/active" step, where `default` (solid slate) would
+        // Muted state tints. `tint` is the brand ink at soft strength — the
+        // "this is live/active" step, where `default` (solid ink) would
         // shout in a list of rows that each carry one.
         tint: "bg-primary-soft text-primary-soft-foreground",
         success: "bg-success-soft text-success",

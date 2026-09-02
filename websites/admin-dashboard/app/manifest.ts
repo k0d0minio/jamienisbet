@@ -5,11 +5,11 @@ import type { MetadataRoute } from "next"
 // phone home screen as "Consultancy JN".
 //
 // The icons are static files in public/, cut from the brand artwork itself
-// (public/logos/4.png, the icon form's dark reading at 2000px) rather than
-// re-drawn as vector paths — the mark is typographic, and an approximation of
-// it in hand-written SVG is visibly not the logo. Two crops, both taken around
-// the *frame's* centre (50, 47.75 in source %) rather than the image's, because
-// the artwork sits 2.25% high in its own canvas:
+// (packages/ui/assets/logo/reference/icon-dark.png, the icon form's dark
+// reading at 2000px) rather than re-drawn — the mark is typographic, and a
+// hand-written approximation of it is visibly not the logo. Two crops, both
+// taken around the *frame's* centre (50, 47.75 in source %) rather than the
+// image's, because the artwork sits 2.25% high in its own canvas:
 //
 //   any / apple  a 95.5%-wide square crop — the widest that stays on the source
 //                — which puts the frame at 80% of the tile, corners 56.6% out
@@ -35,15 +35,13 @@ export default function manifest(): MetadataRoute.Manifest {
     // deliberate iPad-style scale-up — a leading sidebar and a wider grouped
     // column — and an installed tablet app told "portrait" can never reach it.
     orientation: "any",
-    // The splash and the installed chrome take the app's light canvas
-    // (--bg), not the brand slate: the admin follows the system appearance
-    // and its chrome is a material over that canvas, so a slate bar would be
-    // the one edge that never matched the app. A manifest cannot carry a
-    // media query, so this is the light reading; the mode-reactive value is
-    // the <meta name="theme-color"> pair in app/layout.tsx, which wins
-    // wherever both are read.
-    background_color: "#F7F8F9",
-    theme_color: "#F7F8F9",
+    // The splash and the installed chrome take the app's canvas (--bg) —
+    // the logo's paper — so the icon's tile and the screen behind it are
+    // the same sheet. A manifest cannot carry a media query, so this is the
+    // light reading; the mode-reactive value is the <meta name="theme-color">
+    // pair in app/layout.tsx, which wins wherever both are read.
+    background_color: "#FFFEFA",
+    theme_color: "#FFFEFA",
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

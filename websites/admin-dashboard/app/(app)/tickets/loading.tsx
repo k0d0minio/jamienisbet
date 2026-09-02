@@ -2,6 +2,7 @@ import { GlanceFigure, GlanceRow, GroupedSection, Skeleton, cn } from "@jamie-ni
 
 import { AppScreen } from "@/components/app-screen"
 import { BoardRefresh } from "@/components/board-refresh"
+import { LoadingLine } from "@/components/loading-line"
 
 // Tickets is a fan-out of GitHub reads — every connected repo's `.icm/intake/`
 // folder, fetched on every visit (`dynamic = "force-dynamic"`). On a phone on
@@ -109,6 +110,7 @@ export default function TicketsLoading() {
     // than as broken.
     <AppScreen
       title="Tickets"
+      subtitle={<LoadingLine>Loading the board</LoadingLine>}
       // The bar button renders for real, like the title: it busts the cache
       // this read is already missing, and a grey square where an icon is about
       // to be would move the bar's contents the moment the board lands.

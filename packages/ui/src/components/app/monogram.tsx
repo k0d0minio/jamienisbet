@@ -6,7 +6,7 @@ import { cn } from "../../lib/utils"
 //
 // A person on an operating screen needs a face, and there are no photographs
 // in this estate: what stands in is their initials, set in the brand's mono on
-// a neutral disc. Neutral rather than tinted on purpose — slate is the tint for
+// a neutral disc. Neutral rather than tinted on purpose — ink is the tint for
 // things you can press, and an avatar is not one of them.
 //
 // Requires "@jamie-nisbet/ui/app.css" — the marketing entry never loads it.

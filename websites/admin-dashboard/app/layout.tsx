@@ -39,12 +39,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // The status bar and the browser's own chrome take the app's canvas colour
   // in whichever mode the system is in — the app follows the OS appearance, so
-  // a fixed slate bar would be the one part of it that didn't. These are the
-  // canvas (`--bg`) in each theme, written literally because a meta tag is
-  // resolved by the OS long before a stylesheet exists to read a token from.
+  // a fixed bar would be the one part of it that didn't. These are the canvas
+  // (`--bg`) in each theme — the logo's paper and its ink — written literally
+  // because a meta tag is resolved by the OS long before a stylesheet exists
+  // to read a token from.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7F8F9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0C0E11" },
+    { media: "(prefers-color-scheme: light)", color: "#FFFEFA" },
+    { media: "(prefers-color-scheme: dark)", color: "#1E1E1E" },
   ],
   width: "device-width",
   initialScale: 1,

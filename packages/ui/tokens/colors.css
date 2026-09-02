@@ -1,39 +1,29 @@
 /* ============================================================
    COLOR — Jamie Nisbet Design System
-   Calm, minimal, Swiss. One disciplined slate-blue primary,
-   a cool neutral ramp, and restrained semantic colors.
+   Calm, minimal, Swiss — and monochrome. The palette is the logo's:
+   paper #FFFEFA and ink #1E1E1E, with a warm grey ramp between them.
+   Ink is the interaction tint in light and paper is in dark; there
+   is no second hue. Semantic colours (success/warning/danger) stay
+   muted and state-only, so meaning never rests on the tint alone.
    ============================================================ */
 
 :root {
-  /* ---- Primary: slate blue ---------------------------------- */
-  --blue-50:  #F2F6FA;
-  --blue-100: #E3EBF3;
-  --blue-200: #C6D6E5;
-  --blue-300: #9DB6CF;
-  --blue-400: #6E90B2;
-  --blue-500: #4A6E94;
-  --blue-600: #3A5A78;   /* ★ brand base */
-  --blue-700: #2F4A63;
-  --blue-800: #283D51;
-  --blue-900: #1E2E3D;
-  --blue-950: #141F2A;
-
-  /* ---- Neutrals: cool grey ---------------------------------- */
-  /* 0 and 900 are also the logo's paper/ink (see --logo-* below).
-     Paper #FFFEFA, ink #1E1E1E — the logo is deliberately monochrome;
-     slate blue never appears inside a tile. */
-  --neutral-0:   #FFFEFA;
-  --neutral-50:  #F7F8F9;
-  --neutral-100: #EFF1F3;
-  --neutral-200: #E2E5E9;
-  --neutral-300: #CBD0D6;
-  --neutral-400: #9AA2AC;
-  --neutral-500: #6B747F;
-  --neutral-600: #4C545D;
-  --neutral-700: #383E45;
-  --neutral-800: #24282D;
-  --neutral-900: #1E1E1E;
-  --neutral-950: #0C0E11;
+  /* ---- Neutrals: paper → ink ---------------------------------- */
+  /* 0 and 900 are the logo's own paper and ink, exactly. Everything
+     between is warm grey — a tint of the paper, never a cool grey, so a
+     card, a border and the tile all read as one sheet. */
+  --neutral-0:   #FFFEFA;   /* ★ paper */
+  --neutral-50:  #F8F7F3;
+  --neutral-100: #F0EFEA;
+  --neutral-200: #E4E3DD;
+  --neutral-300: #CECDC7;
+  --neutral-400: #9D9C97;
+  --neutral-500: #6F6E6A;
+  --neutral-600: #4F4E4B;
+  --neutral-700: #3A3937;
+  --neutral-800: #2B2B2A;
+  --neutral-900: #1E1E1E;   /* ★ ink */
+  --neutral-950: #121212;
 
   /* ---- Semantic accents (muted, never neon) ----------------- */
   --green-500:  #2E7D5B;
@@ -45,10 +35,12 @@
 
   /* ============================================================
      SEMANTIC ALIASES — light theme (default)
-     Always design against these, not the raw ramps above.
+     Always design against these, not the raw ramp above.
      ============================================================ */
-  --bg:            var(--neutral-50);
-  --surface:       var(--neutral-0);
+  /* The page is the paper the logo sits on; a card lifts to white, one
+     step off it, and a hairline does the rest of the separating. */
+  --bg:            var(--neutral-0);
+  --surface:       #FFFFFF;
   --surface-2:     var(--neutral-50);
   --surface-sunken:var(--neutral-100);
 
@@ -59,16 +51,17 @@
 
   --border:        var(--neutral-200);   /* hairline      */
   --border-strong: var(--neutral-300);
-  --border-focus:  var(--blue-600);
+  --border-focus:  var(--neutral-900);
 
-  --primary:       var(--blue-600);
-  --primary-hover: var(--blue-700);
-  --primary-active:var(--blue-800);
+  /* Ink is the tint. Hover lifts a step, press deepens past rest. */
+  --primary:       var(--neutral-900);
+  --primary-hover: var(--neutral-700);
+  --primary-active:var(--neutral-950);
   --primary-fg:    var(--neutral-0);
-  --primary-soft:  var(--blue-50);
-  --primary-soft-fg: var(--blue-700);
+  --primary-soft:  color-mix(in srgb, var(--neutral-900) 8%, transparent);
+  --primary-soft-fg: var(--neutral-900);
 
-  --ring:          color-mix(in srgb, var(--blue-600) 35%, transparent);
+  --ring:          color-mix(in srgb, var(--neutral-900) 30%, transparent);
 
   --success:       var(--green-500);
   --success-soft:  var(--green-50);
@@ -87,37 +80,41 @@
   --scan-plate:    var(--neutral-0);
   --scan-ink:      var(--neutral-950);
 
-  /* ---- Logo: monochrome tile + ink, flips with the theme -------- */
+  /* ---- Logo: paper tile + ink, flips with the theme ------------ */
   --logo-tile:     var(--neutral-0);    /* paper (light) / ink (dark) */
   --logo-ink:      var(--neutral-900);   /* ink    (light) / paper (dark) */
 }
 
 /* ============================================================
    DARK THEME
+   The canvas is the logo's ink; cards lift one step out of it;
+   paper becomes the text and the tint.
    ============================================================ */
 [data-theme="dark"] {
-  --bg:            var(--neutral-950);
-  --surface:       #14181D;
-  --surface-2:     #1A1F25;
-  --surface-sunken:#0C0E11;
+  --bg:            var(--neutral-900);
+  --surface:       #262625;
+  --surface-2:     #2C2C2B;
+  --surface-sunken:#171717;
 
-  --text-1:        #EAECEF;
-  --text-2:        #A8B0BA;
-  --text-3:        #767E89;
-  --text-inverse:  var(--neutral-950);
+  --text-1:        var(--neutral-0);
+  --text-2:        #B9B8B2;
+  --text-3:        #8A8984;
+  --text-inverse:  var(--neutral-900);
 
-  --border:        #262C33;
-  --border-strong: #353C44;
-  --border-focus:  var(--blue-400);
+  --border:        #343433;
+  --border-strong: #454543;
+  --border-focus:  var(--neutral-0);
 
-  --primary:       var(--blue-400);
-  --primary-hover: var(--blue-300);
-  --primary-active:var(--blue-200);
-  --primary-fg:    #0C141C;
-  --primary-soft:  color-mix(in srgb, var(--blue-400) 16%, transparent);
-  --primary-soft-fg: var(--blue-200);
+  /* Paper is the tint. Hover and press step down the ramp — the same
+     "away from rest" direction, read against an ink page. */
+  --primary:       var(--neutral-0);
+  --primary-hover: var(--neutral-200);
+  --primary-active:var(--neutral-300);
+  --primary-fg:    var(--neutral-900);
+  --primary-soft:  color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  --primary-soft-fg: var(--neutral-0);
 
-  --ring:          color-mix(in srgb, var(--blue-400) 45%, transparent);
+  --ring:          color-mix(in srgb, var(--neutral-0) 40%, transparent);
 
   --success:       #4FB286;
   --success-soft:  color-mix(in srgb, #4FB286 16%, transparent);
@@ -126,7 +123,7 @@
   --danger:        #E0685E;
   --danger-soft:   color-mix(in srgb, #E0685E 16%, transparent);
 
-  --grid-line:     color-mix(in srgb, #FFFFFF 6%, transparent);
+  --grid-line:     color-mix(in srgb, var(--neutral-0) 6%, transparent);
 
   /* Logo flips: ink tile + paper mark in the dark reading. */
   --logo-tile:     var(--neutral-900);

@@ -8,6 +8,7 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { AppProfileScreen } from "@/components/app-screen"
+import { LoadingLine } from "@/components/loading-line"
 
 // A lead's profile is four reads — the record, its todos, its sent forms, and
 // the questionnaire library out of two GitHub repos — so on mobile data there
@@ -44,7 +45,7 @@ export default function LeadLoading() {
     <AppProfileScreen
       name="Lead"
       avatar={<Skeleton className="size-16 shrink-0 rounded-full" />}
-      meta={<Skeleton className="h-3.5 w-32" />}
+      meta={<LoadingLine>Loading the record</LoadingLine>}
       badges={
         <div className="-my-0.5 flex items-center">
           {Array.from({ length: 2 }, (_, i) => (

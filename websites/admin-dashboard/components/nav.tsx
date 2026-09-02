@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Inbox, LogOut, Ticket, Users, Wallet, type LucideIcon } from "lucide-react"
 
-import { LogoMark, Material, cn } from "@jamie-nisbet/ui"
+import { LogoFull, LogoLockup, Material, cn } from "@jamie-nisbet/ui"
 
 import { logout } from "@/app/login/actions"
 
@@ -122,15 +122,18 @@ export function Sidebar() {
     >
       <Link
         href="/"
-        className="flex min-h-app-touch items-center gap-2 px-4 py-4 text-app-headline font-semibold text-app-label"
+        className="flex min-h-app-touch items-center px-4 py-4 text-app-label"
+        aria-label="Consultancy JN — home"
       >
-        {/* The mark alone, in currentColor, so it takes the row's own
-            --app-label and flips with the appearance; the tile form belongs on
-            surfaces that stand apart from their background, not in a lockup
-            with a wordmark beside it. size-5 is the sidebar's glyph size — the
-            nav icons under it and the tab bar's all set there. */}
-        <LogoMark className="size-5 shrink-0" aria-hidden />
-        <span className="truncate">Consultancy JN</span>
+        {/* The full lockup, in currentColor, so it takes the row's own
+            --app-label and flips with the appearance; the tile form belongs
+            on surfaces that stand apart from their background, and a sidebar
+            head is part of the surface. It is the name here — "Consultancy
+            JN" is what the app is filed under, and the phone bar and the app
+            menu still say so where there is no room for the lockup. */}
+        <LogoLockup>
+          <LogoFull className="size-20" aria-hidden />
+        </LogoLockup>
       </Link>
 
       <nav className="flex flex-1 flex-col gap-1 px-3 py-2" aria-label="Primary">

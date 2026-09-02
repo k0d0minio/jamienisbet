@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl"
-import { Button, Eyebrow } from "@jamie-nisbet/ui"
+import { Button, Eyebrow, LogoFull } from "@jamie-nisbet/ui"
 import { ArrowRight } from "lucide-react"
 
 import { Link } from "@jamie-nisbet/app-shell/i18n"
@@ -11,6 +11,7 @@ export default function NotFound() {
   return (
     <Section>
       <Container size="md" className="flex flex-col items-start gap-5">
+        <LogoFull className="mb-3 size-24" aria-hidden />
         <Eyebrow rule index="404">
           {t("eyebrow")}
         </Eyebrow>

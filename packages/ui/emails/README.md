@@ -57,8 +57,9 @@ put a voice to the emails"`, to match the "Good to talk{{{CONTEXT}}}." sentence 
 
 ## Brand reference
 
-- Colours: `--blue-600 #3A5A78` (primary/links), neutrals `#FFFFFF`/`#F7F8F9` (surfaces),
-  `#E2E5E9` (border), `#15181C`/`#4C545D`/`#6B747F` (text-1/2/3) — see
+- Colours: ink `#1E1E1E` (primary/links — the logo's own; there is no second hue),
+  neutrals `#FFFFFF`/`#F8F7F3` (surfaces), `#E4E3DD` (border), `#1E1E1E`/`#4F4E4B`/`#6F6E6A`
+  (text-1/2/3) — see
   [`../tokens/`](../tokens/). Dark mode is
   intentionally not implemented here — most inboxes strip `<style>`/media queries, so all values
   are hardcoded light-mode.

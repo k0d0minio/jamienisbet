@@ -548,7 +548,7 @@ The app is built mobile-first and installs to a phone home screen as **Consultan
   icons. The mode-reactive theme colour is the `<meta name="theme-color">` pair in
   [`app/layout.tsx`](app/layout.tsx), since a manifest cannot carry a media query.
 - **Icons** — static PNGs in [`public/`](public/), cut from the brand artwork itself
-  ([`public/logos/4.png`](public/logos/), the icon form's dark reading at 2000px):
+  ([`packages/ui/assets/logo/reference/icon-dark.png`](../../packages/ui/assets/logo/reference/), the icon form's dark reading at 2000px):
   `/icon-192.png` and `/icon-512.png` (`any`), `/icon-maskable-512.png`, `/apple-icon.png`
   (180×180 for iOS), and `/icon.png` (64px favicon). They are **not** redrawn from the design
   system's vector paths — the mark is typographic, and an approximation of it in hand-written
@@ -625,7 +625,7 @@ lib/                    # auth, formatting, stripe client, money, percent, finan
                         #              Neon driver to read a label
                         #   haptics.ts — the one tick, and the rule for when it fires
 public/                 # icon.png (favicon), the installed PNG icons, sw.js (service
-                        #   worker), offline.html (offline fallback), logos/ (brand artwork)
+                        #   worker), offline.html (offline fallback)
 ```
 
 ## Local development

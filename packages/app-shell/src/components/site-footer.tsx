@@ -1,10 +1,10 @@
 import type * as React from "react"
-import { Eyebrow, LogoMarkSolid } from "@jamie-nisbet/ui"
+import { Eyebrow, LogoFull } from "@jamie-nisbet/ui"
 import { Mail, MapPin } from "lucide-react"
 
 import { Link } from "../i18n/navigation"
 
-// Shared footer frame for the marketing sites: brand block + tagline on the
+// Shared footer frame for the marketing sites: the full logo + tagline on the
 // left, a contact column on the right, and a bottom bar. Presentational only —
 // each site's own components/site-footer.tsx resolves translations (it may be
 // an async server component) and fills the slots.
@@ -38,14 +38,16 @@ export function SiteFooter({
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-[var(--layout-xl)] flex-col gap-10 px-5 py-12 sm:px-8 md:flex-row md:items-start md:justify-between">
-        <div className="flex max-w-sm flex-col gap-3">
+        <div className="flex max-w-sm flex-col gap-4">
+          {/* The full lockup is the brand block's name — there is no typeset
+              one beside it. 112px is where the wordmark reads at a glance
+              from a phone held at arm's length. */}
           <Link
             href="/"
-            className="flex items-center gap-2.5"
+            className="inline-flex w-fit transition-opacity hover:opacity-80 active:opacity-65"
             aria-label={homeAriaLabel}
           >
-            <LogoMarkSolid className="size-8" />
-            <span className="font-semibold tracking-tight">{siteName}</span>
+            <LogoFull className="size-28" aria-label={siteName} />
           </Link>
           <p className="text-sm text-muted-foreground">{tagline}</p>
           {brandExtra}

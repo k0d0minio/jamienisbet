@@ -1,6 +1,7 @@
 import { GlanceFigure, GlanceRow, GroupedSection, Skeleton } from "@jamie-nisbet/ui"
 
 import { AppScreen } from "@/components/app-screen"
+import { LoadingLine } from "@/components/loading-line"
 
 // Money is four Stripe round-trips on every visit (balance, invoices, links,
 // payments) plus the lead list for the invoice picker, so on mobile data there
@@ -33,6 +34,7 @@ export default function MoneyLoading() {
   return (
     <AppScreen
       title="Money"
+      subtitle={<LoadingLine>Loading Stripe</LoadingLine>}
       masthead={
         <GlanceRow>
           {/* Two, not three: a balance the account has none of is omitted on

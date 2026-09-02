@@ -49,4 +49,8 @@ export * from "./components/app/select"
 export * from "./components/brand/eyebrow"
 export * from "./components/brand/icon-button"
 export * from "./components/brand/logo"
-export * from "./components/brand/logo-icon"
+export * from "./components/brand/logo-loader"
+
+// motion — the marketing tier's entrance and the logo's responses (motion.dev)
+export * from "./components/motion/reveal"
+export * from "./components/motion/logo-lockup"

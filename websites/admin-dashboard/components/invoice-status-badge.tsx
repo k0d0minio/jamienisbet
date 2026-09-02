@@ -11,7 +11,7 @@ import { invoiceStateLabel, type InvoiceState } from "@/lib/invoice-state"
 // Colour is the whole point, and it is state-only and muted, never neon:
 //
 //   draft          grey    raised, not yet anybody's problem
-//   open           slate   owed, and on time — the brand tint, softly
+//   open           ink     owed, and on time — the brand tint, softly
 //   overdue        red     the one that needs you
 //   paid           green   landed
 //   void           grey    closed on purpose; nothing to do
