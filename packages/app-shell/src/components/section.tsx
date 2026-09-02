@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn, Eyebrow } from "@jamie-nisbet/ui"
+import { cn, Eyebrow, Reveal } from "@jamie-nisbet/ui"
 
 const widths = {
   sm: "max-w-[var(--layout-sm)]",
@@ -21,11 +21,21 @@ export function Container({
   )
 }
 
+// A page section reveals itself once as it scrolls into view — the marketing
+// tier's one entrance (a fade and an 8px rise on the brand clock), applied at
+// the section so every site gets it from one place and no page has to opt in.
+// `Reveal` is a client component; the section's contents stay server-rendered
+// and are passed through as children.
 export function Section({
   className,
+  children,
   ...props
-}: React.ComponentProps<"section">) {
-  return <section className={cn("py-16 sm:py-24", className)} {...props} />
+}: Omit<React.ComponentProps<"section">, "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration">) {
+  return (
+    <Reveal as="section" className={cn("py-16 sm:py-24", className)} {...props}>
+      {children}
+    </Reveal>
+  )
 }
 
 export function SectionHeading({

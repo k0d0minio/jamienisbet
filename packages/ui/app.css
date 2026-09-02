@@ -119,7 +119,7 @@
   --color-app-label: var(--app-label);
   --color-app-label-2: var(--app-label-2);
   --color-app-label-3: var(--app-label-3);
-  /* One tint, slate, for everything interactive. */
+  /* One tint — ink, paper in dark — for everything interactive. */
   --color-app-tint: var(--app-tint);
   /* The soft tinted fill under a circular action, and its press step. */
   --color-app-fill: var(--app-fill);

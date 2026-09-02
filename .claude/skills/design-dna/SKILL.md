@@ -5,9 +5,10 @@ description: The per-turn design checklist for any UI work in this repo. Use thi
 
 # Design DNA — how UI ships in this repo
 
-The brand is **Swiss-minimal, quiet, casual confidence**: one slate blue, cool-grey
-neutrals, hairline 1px borders doing the structural work, generous whitespace, mono
-figures, sentence case. Quiet does **not** mean flat — hierarchy comes from weight,
+The brand is **Swiss-minimal, quiet, casual confidence** — and monochrome: the logo's paper
+and ink are the canvas and the tint (ink in light, paper in dark), warm-grey neutrals between
+them and no second hue, hairline 1px borders doing the structural work, generous whitespace,
+mono figures, sentence case. Quiet does **not** mean flat — hierarchy comes from weight,
 size, spacing, and real states, not from decoration. No gradients, no emoji, no neon,
 no bounce.
 
@@ -62,7 +63,7 @@ so a call site writes no ids. A phone sheet that holds a form takes native
 detents: `<SheetContent detents={["medium", "large"]}>`. Reach for those before a table or a
 bare `Card`; the desktop tables are being retired, one codepath from phone to laptop.
 
-Everything else holds on both tiers, unchanged: slate is the only tint (`--app-tint` *is*
+Everything else holds on both tiers, unchanged: there is one tint, ink (`--app-tint` *is*
 `--primary`; no per-domain accents), semantic colour is state-only and muted, sentence case,
 no emoji, semantic tokens only, the 44px touch floor, four designed states.
 
@@ -119,9 +120,12 @@ The admin is an installed, one-handed PWA; the marketing sites are read on phone
 ## Motion
 
 Quick and confident, from `tokens/motion.css` only: 120–260ms, ease-out, fades and
-~2px translations. Press = colour deepens — never a shrink, never bounce or spring.
-Anything animated respects `prefers-reduced-motion`. The one decorative loop allowed
-is the "rolling deploy" spinner.
+small translations. Press = colour deepens — never a shrink, never bounce or spring.
+Anything animated respects `prefers-reduced-motion`. The marketing tier's one entrance is
+`Reveal` (a fade and an 8px rise, once, into view; `Section` already is one — don't add a
+second on top of it, and don't invent another). The logo's only choreography is
+`LogoLockup`. Loading is the JN icon (`LogoLoader`) on routes and refreshes, and the
+"rolling deploy" `Spinner` on a pending button; nothing else loops.
 
 On the **app tier**, spring motion is sanctioned where iOS muscle memory expects it — sheet
 detents, header collapse, row press — through the pattern utilities `spring-sheet`,

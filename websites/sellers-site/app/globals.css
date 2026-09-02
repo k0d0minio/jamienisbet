@@ -20,9 +20,10 @@
    flush against the viewport edges. */
 @source "../../../packages/app-shell/src";
 
-/* Sticky-header anchor offset for the single-page nav. */
+/* Sticky-header anchor offset for the single-page nav. 88px: the bar carries
+   the full logo, whose wordmark needs the 64px it gets inside that height. */
 :root {
-  --header-h: 4rem;
+  --header-h: 5.5rem;
 }
 section[id] {
   scroll-margin-top: calc(var(--header-h) + 1.5rem);

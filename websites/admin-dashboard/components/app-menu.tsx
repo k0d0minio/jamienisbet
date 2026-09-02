@@ -71,12 +71,10 @@ export function AppMenu({ className }: { className?: string }) {
 
       <SheetContent>
         <SheetHeader>
-          {/* Stays type, not the full lockup. `logo-full.svg` sets its wordmark
-              in Hanken Grotesk, the marketing face the app tier does not take
-              (BRAND.md § App tier), and it is baked to the dark reading, so it
-              would not flip with the appearance. It also reads "JAMIE NISBET" —
-              the person — where this names the app. And SheetTitle is the
-              sheet's accessible name, which wants a string. */}
+          {/* Stays type, not the full lockup. The lockup reads "Jamie Nisbet."
+              — the person — where this names the app; the sidebar carries it
+              from `md` up, and this sheet is the phone's. And SheetTitle is
+              the sheet's accessible name, which wants a string. */}
           <SheetTitle>Consultancy JN</SheetTitle>
           <SheetDescription>
             This device stays signed in until you sign out of it.

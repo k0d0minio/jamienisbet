@@ -1,6 +1,7 @@
 import { GroupedSection, Skeleton, cn } from "@jamie-nisbet/ui"
 
 import { AppScreen } from "@/components/app-screen"
+import { LoadingLine } from "@/components/loading-line"
 
 // The feed is the widest read in the app — Neon, Stripe and every repo's
 // `.icm/intake/` over the GitHub API, all at once — so it is the screen most
@@ -65,11 +66,9 @@ export default function NeedsYouLoading() {
     <AppScreen
       title="Needs you"
       // The count is the one thing the subtitle carries, and it is exactly what
-      // isn't known yet — so a bar rather than a guess. It stands on the page
-      // canvas, where Skeleton's own fill nearly matches in dark; --app-press
-      // is the tier's "one stop off whatever is under you" wash, which darkens
-      // in light and lifts in dark.
-      subtitle={<Skeleton className="mt-0.5 h-3.5 w-40 bg-app-press" />}
+      // isn't known yet — so the loading line stands in its place: the JN
+      // icon drawing itself in, beside the word.
+      subtitle={<LoadingLine>Loading what needs you</LoadingLine>}
     >
       <div className="flex flex-col gap-app-section pt-1 pb-2">
         <SectionSkeleton header="Waiting on you" />

@@ -14,8 +14,9 @@
    tier: translucent materials become structural, elevation is real,
    springs are sanctioned, and UI text sets in the system font stack.
 
-   What it does NOT change: slate is still the only tint (--app-tint
-   is --primary), semantics stay muted and state-only, figures stay in
+   What it does NOT change: there is still one tint (--app-tint is
+   --primary — ink in light, paper in dark; there is no second hue),
+   semantics stay muted and state-only, figures stay in
    IBM Plex Mono, copy stays sentence case, and every call site still
    reads a semantic token — the raw ramps in colors.css are as banned
    here as anywhere else.
@@ -99,18 +100,18 @@
 
   --elevation-flat: none;
   /* A card that has genuinely lifted (a dragged row, an open group). */
-  --elevation-raised: 0 1px 2px rgba(20, 31, 42, 0.04),
-    0 4px 12px rgba(20, 31, 42, 0.07);
+  --elevation-raised: 0 1px 2px rgba(30, 30, 30, 0.04),
+    0 4px 12px rgba(30, 30, 30, 0.07);
   /* Floating chrome — tab bar, collapsed header. Cast upward as well
      as down, because the bar hovers over the content edge. */
-  --elevation-chrome: 0 -1px 2px rgba(20, 31, 42, 0.03),
-    0 8px 24px rgba(20, 31, 42, 0.1);
+  --elevation-chrome: 0 -1px 2px rgba(30, 30, 30, 0.03),
+    0 8px 24px rgba(30, 30, 30, 0.1);
   /* A sheet rising from the bottom edge: the cast is upward. */
-  --elevation-sheet: 0 -8px 16px rgba(20, 31, 42, 0.06),
-    0 -24px 64px rgba(20, 31, 42, 0.18);
+  --elevation-sheet: 0 -8px 16px rgba(30, 30, 30, 0.06),
+    0 -24px 64px rgba(30, 30, 30, 0.18);
   /* A popover anchored to a control on desktop. */
-  --elevation-popover: 0 4px 8px rgba(20, 31, 42, 0.06),
-    0 16px 40px rgba(20, 31, 42, 0.14);
+  --elevation-popover: 0 4px 8px rgba(30, 30, 30, 0.06),
+    0 16px 40px rgba(30, 30, 30, 0.14);
 
   /* ============================================================
      MOTION — springs
@@ -252,10 +253,10 @@
   --app-label: var(--text-1);
   --app-label-2: var(--text-2);
   --app-label-3: var(--text-3);
-  /* The one interactive tint. Slate, as everywhere else. */
+  /* The one interactive tint. Ink (paper in dark), as everywhere else. */
   --app-tint: var(--primary);
   /* The tinted disc a circular action sits on, and what it deepens to under
-     a thumb. Soft rather than solid: a row of five solid slate discs would
+     a thumb. Soft rather than solid: a row of five solid ink discs would
      shout, and the tint's job here is "this is pressable", not "this first".
      Both sides are derived from --primary, so both flip in dark on their
      own. */
@@ -287,8 +288,8 @@
   --material-border: color-mix(in srgb, #ffffff 10%, transparent);
 
   --material-label: var(--text-1);
-  --material-label-2: #b8c0ca;
-  --material-label-3: #8b939e;
+  --material-label-2: #c9c8c2;
+  --material-label-3: #9a9994;
 
   --elevation-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.45);
   --elevation-chrome: 0 -1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.55);

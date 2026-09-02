@@ -12,8 +12,8 @@ properties and React primitives. **They are kept in sync — change one, mirror 
 
 It is built on **Tailwind CSS v4 + [shadcn/ui](https://ui.shadcn.com)** (new-york style, the
 unified `radix-ui` package). The components are idiomatic shadcn primitives themed with the
-brand tokens; the aesthetic is **Swiss-minimal**: one disciplined slate-blue (`#3A5A78`) as the interaction
-tint, cool-grey neutrals (the logo is pure paper/ink — `#FFFEFA` on `#1E1E1E`), Hanken
+brand tokens; the aesthetic is **Swiss-minimal and monochrome**: the logo's paper (`#FFFEFA`) and ink
+(`#1E1E1E`) as the canvas and the tint, warm-grey neutrals between them and no second hue, Hanken
 Grotesk + IBM Plex Mono, hairline borders over heavy shadows,
 generous whitespace, and a full light **+ dark** theme. The longer brand guide lives in
 [`BRAND.md`](BRAND.md).
@@ -40,7 +40,7 @@ generous whitespace, and a full light **+ dark** theme. The longer brand guide l
   **`src/components/brand/`** — the brand-only primitives (Eyebrow, IconButton, the JN
   logo marks).
 - **`src/lib/utils.ts`** — the `cn()` class-merge helper. **`src/index.ts`** — the barrel.
-- **`assets/`** — `logo/` (JN mark + tile + full-lockup SVGs), `brand/` (social card + email signature HTML),
+- **`assets/`** — `logo/` (the reference artwork under `reference/`, and the traced icon + full-lockup SVGs), `brand/` (social card + email signature HTML),
   `lib/icons.js` (Lucide UMD helper for static HTML).
 - **`emails/`** — branded HTML source for Resend's dashboard **Templates** feature (contact/
   referral notifications, invoice reminder, outreach, follow-up). See [`emails/README.md`](emails/README.md).
@@ -59,7 +59,8 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Motion & feedback | `Skeleton` (shapes `line`/`row`/`card`/`stat`/`block`), `Spinner`, `Toaster` + `toast()`, `PendingButton` |
 | Data | `Stat`, `Delta`, `Sparkline`, `Meter` — see [Data-viz primitives](#data-viz-primitives) |
 | Machine-readable | `QrCode` (+ `canEncodeQr`) — see [QR codes](#qr-codes) |
-| Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid` |
+| Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid`, `LogoFull`, `LogoLoader` |
+| Motion | `Reveal`, `RevealGroup`, `RevealItem`, `LogoLockup` — see [Motion & feedback](#motion--feedback) |
 | App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material`, `AppField` (+ `AppLabel`/`AppInput`/`AppTextarea`), `AppSelect` (+ its parts) — see [App tier](#app-tier) |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
@@ -346,10 +347,21 @@ All animation rides `tokens/motion.css` (durations, easings, and the two loop sp
   line), `row` (a list row), `card`, `stat` (a mono figure) — or the default free-form
   `block` you size with `className`. Skeletons are `aria-hidden`; mark the region they
   stand in for with `aria-busy`.
-- **`Spinner`** — the "rolling deploy": a ring of six segments turning steadily, the one
-  decorative loop the brand allows. Draws in `currentColor` at icon size, so it drops
-  into buttons as-is. Standalone it announces "Loading"; inside a labelled control pass
-  `aria-hidden`.
+- **`LogoLoader`** — the JN icon as the loading indicator: the frame draws itself in, the
+  letters fade in and then breathe slowly. Every route's `loading.tsx`, pull-to-refresh, and
+  the board's refresh use it. Draws in `currentColor` at icon size; standalone it announces
+  "Loading", inside a labelled region pass `aria-hidden`. Still under reduced motion.
+- **`Spinner`** — the "rolling deploy": a ring of six segments turning steadily, kept for
+  the pending button, where a 16px JN would not read. Draws in `currentColor` at icon size.
+  Standalone it announces "Loading"; inside a labelled control pass `aria-hidden`.
+- **`Reveal` / `RevealGroup` / `RevealItem`** — the marketing tier's one entrance, on
+  [motion.dev](https://motion.dev): a fade and an 8px rise, once, as the element scrolls into
+  view (`mount` plays it on load; a group staggers its items 80ms apart). `Section` in
+  `@jamie-nisbet/app-shell` is a `Reveal`, so every marketing page has it without opting in.
+  Client components — pass server-rendered content through as children. Under reduced
+  motion they render their children still and visible.
+- **`LogoLockup`** — wraps the logo where it is a link: quietens on hover and press, and
+  crossfades when `fadeKey` (the resolved theme) changes.
 - **`Toaster` + `toast()`** — quiet confirmations for actions that resolve off-screen.
   Mount `<Toaster />` once in the root layout, then `toast("Saved")`,
   `toast.success("Invoice sent")`, `toast.error("Couldn't save", { description: "…" })`.

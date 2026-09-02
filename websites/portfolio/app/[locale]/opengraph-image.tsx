@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og"
 import { getTranslations } from "next-intl/server"
 
-import { LOGO_ICON_DARK_64 } from "@jamie-nisbet/ui"
+import { LogoFull } from "@jamie-nisbet/ui"
 
 import { site } from "@/lib/site"
 import { routing } from "@jamie-nisbet/app-shell/i18n"
@@ -13,19 +13,16 @@ export function generateStaticParams() {
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
-// Dynamic Open Graph card, set on the dark theme's surface.
+// Dynamic Open Graph card, set on the dark reading: the logo's ink as the
+// canvas, paper for the type.
 //
 // The colours are written literally because Satori resolves this at build time,
 // with no stylesheet to read a custom property from; they are the [data-theme="dark"]
-// values of --surface, --text-1 and --text-2.
+// values of --bg, --text-1 and --text-2 (tokens/colors.css).
 //
-// The mark comes from the design system as artwork rather than as a component:
-// Satori has no CSS masking to paint LogoMark's letters through and no stylesheet
-// to read --logo-tile/--logo-ink from, so LOGO_ICON_DARK_64 is the icon form's dark
-// reading pre-rasterised at the 64px this card paints it at. That is what keeps the
-// card off a second, hand-drawn copy of the logo, which is what stood here before.
-// It carries the tile's own paper/ink, so the slate plate it used to sit on is gone
-// with it: slate is the interaction tint and never appears in the mark.
+// The mark is the full lockup from the design system — vector paths traced from
+// the artwork, which Satori draws as it draws any SVG. It cannot resolve
+// `currentColor` or a token, so the component takes its ink as a literal here.
 export default async function OpengraphImage({
   params,
 }: {
@@ -41,37 +38,32 @@ export default async function OpengraphImage({
           height: "100%",
           width: "100%",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           justifyContent: "space-between",
+          alignItems: "flex-end",
           padding: 80,
-          background: "#14181D",
-          color: "#EAECEF",
+          background: "#1E1E1E",
+          color: "#FFFEFA",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders
-              to a PNG at build time; next/image has nothing to optimise here. */}
-          <img src={LOGO_ICON_DARK_64} width={64} height={64} alt="" />
-          <div style={{ fontSize: 32, fontWeight: 600 }}>{site.name}</div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 760 }}>
           <div
             style={{
               fontSize: 64,
               fontWeight: 700,
               letterSpacing: -1,
               lineHeight: 1.05,
-              maxWidth: 920,
             }}
           >
             {t("og.headline")}
           </div>
-          <div style={{ fontSize: 30, color: "#A8B0BA" }}>
+          <div style={{ fontSize: 30, color: "#B9B8B2" }}>
             {`${t("role")} · ${site.location}`}
           </div>
         </div>
+
+        <LogoFull ink="#FFFEFA" width={220} height={220} style={{ flexShrink: 0 }} />
       </div>
     ),
     { ...size }

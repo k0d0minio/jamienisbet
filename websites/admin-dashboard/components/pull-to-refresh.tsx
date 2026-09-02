@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useRef, useState, useTransition } from "react"
 import { RefreshCw } from "lucide-react"
 
-import { Spinner, cn } from "@jamie-nisbet/ui"
+import { LogoLoader, cn } from "@jamie-nisbet/ui"
 
 import { hapticTick } from "@/lib/haptics"
 
@@ -107,12 +107,13 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
         aria-hidden={!refreshing}
       >
         {/* Two states, one slot: while the finger is down the arrow winds up
-            with the pull, and once released it hands over to the design
-            system's spinner — the same loop every other pending action uses. */}
+            with the pull, and once released it hands over to the JN loader —
+            the icon drawing itself in, the same indicator every route's
+            loading state shows. */}
         {refreshing ? (
-          // The Spinner labels itself "Loading"; the sr-only line below says the
+          // The loader labels itself "Loading"; the sr-only line below says the
           // more specific thing, so here it is decorative.
-          <Spinner
+          <LogoLoader
             className="mb-2 size-5 text-app-label-3"
             role={undefined}
             aria-label={undefined}

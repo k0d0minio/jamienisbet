@@ -1,4 +1,4 @@
-import { LogoMark } from "@jamie-nisbet/ui"
+import { LogoFull } from "@jamie-nisbet/ui"
 import { ExternalLink } from "lucide-react"
 
 import { ThemeToggle } from "@jamie-nisbet/app-shell"
@@ -16,14 +16,10 @@ export default function PitchLayout({
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border print:hidden">
         <div className="mx-auto flex h-[var(--header-h)] max-w-[var(--layout-xl)] items-center justify-between gap-4 px-5 sm:px-8">
-          <span className="flex items-center gap-2.5 font-semibold tracking-tight">
-            {/* Untinted: the mark is monochrome paper/ink and slate never
-                appears inside it (BRAND.md § Colour), so it takes the lockup's
-                own text colour and flips with the theme like the name beside
-                it — the same reading the shared marketing header uses. */}
-            <LogoMark className="size-6" />
-            {site.name}
-          </span>
+          {/* The full lockup is the name, in currentColor on the canvas — the
+              same reading the shared marketing header uses. Not a link: the
+              pitch is the customer's page, and there is nowhere home from it. */}
+          <LogoFull className="size-16" aria-label={site.name} />
           <div className="flex items-center gap-1">
             <LanguageSwitcher />
             <ThemeToggle />

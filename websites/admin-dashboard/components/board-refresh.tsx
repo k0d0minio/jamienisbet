@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { RefreshCw } from "lucide-react"
 
-import { Spinner, cn } from "@jamie-nisbet/ui"
+import { LogoLoader, cn } from "@jamie-nisbet/ui"
 
 import { refreshBoard } from "@/app/(app)/tickets/actions"
 
@@ -43,7 +43,7 @@ export function BoardRefresh() {
       )}
     >
       {pending ? (
-        <Spinner
+        <LogoLoader
           className="size-5"
           role={undefined}
           aria-label={undefined}
