@@ -1,3 +1,9 @@
+> Resolved 2026-09-02, in the admin rollout PR (#124) rather than as its own pick-up —
+> and not the way the prompt below describes. Jamie's call was to stop redrawing the mark
+> at all: `LogoMark`/`LogoMarkSolid` now paint the letters through an alpha mask cut from
+> the reference PNGs, so there is no geometry left to re-cut. The frame stayed vector. See
+> `packages/ui/src/components/brand/logo-letters.ts` and BRAND.md § Iconography.
+
 # Stub: The shipped JN mark is not the artwork it was drawn from
 
 - lane: bug
