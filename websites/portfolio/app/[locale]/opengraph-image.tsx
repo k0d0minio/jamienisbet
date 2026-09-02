@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og"
 import { getTranslations } from "next-intl/server"
 
+import { LOGO_ICON_DARK_64 } from "@jamie-nisbet/ui"
+
 import { site } from "@/lib/site"
 import { routing } from "@jamie-nisbet/app-shell/i18n"
 
@@ -17,12 +19,13 @@ export const contentType = "image/png"
 // with no stylesheet to read a custom property from; they are the [data-theme="dark"]
 // values of --surface, --text-1 and --text-2.
 //
-// The mark is the favicon file itself — the icon form's dark reading, cut from the
-// brand artwork — inlined as a data URI. Satori has no CSS masking, so the mask the
-// design system paints LogoMark through cannot be used here; embedding the artwork
-// keeps the card off a second, hand-drawn copy of the logo, which is what stood here
-// before. It carries the tile's own paper/ink, so the slate plate it used to sit on
-// is gone with it: slate is the interaction tint and never appears in the mark.
+// The mark comes from the design system as artwork rather than as a component:
+// Satori has no CSS masking to paint LogoMark's letters through and no stylesheet
+// to read --logo-tile/--logo-ink from, so LOGO_ICON_DARK_64 is the icon form's dark
+// reading pre-rasterised at the 64px this card paints it at. That is what keeps the
+// card off a second, hand-drawn copy of the logo, which is what stood here before.
+// It carries the tile's own paper/ink, so the slate plate it used to sit on is gone
+// with it: slate is the interaction tint and never appears in the mark.
 export default async function OpengraphImage({
   params,
 }: {
@@ -30,9 +33,6 @@ export default async function OpengraphImage({
 }) {
   const { locale } = await params
   const t = await getTranslations({ locale })
-  const mark = await fetch(new URL("../icon.png", import.meta.url)).then((res) =>
-    res.arrayBuffer()
-  )
 
   return new ImageResponse(
     (
@@ -52,12 +52,7 @@ export default async function OpengraphImage({
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders
               to a PNG at build time; next/image has nothing to optimise here. */}
-          <img
-            src={`data:image/png;base64,${Buffer.from(mark).toString("base64")}`}
-            width={64}
-            height={64}
-            alt=""
-          />
+          <img src={LOGO_ICON_DARK_64} width={64} height={64} alt="" />
           <div style={{ fontSize: 32, fontWeight: 600 }}>{site.name}</div>
         </div>
 
