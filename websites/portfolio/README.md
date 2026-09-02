@@ -25,11 +25,12 @@ light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tok
 
 ## Contents
 
-- `app/` — Next.js App Router: home (`page.tsx`, a single scrolling page), `work/` (index + `work/[slug]` case-study pages), `actions/contact.ts` and `actions/form.ts` (server actions), `f/[token]` (customer questionnaires — see below), plus `icon.svg`, `opengraph-image.tsx`, `sitemap.ts`, `robots.ts`.
+- `app/` — Next.js App Router: home (`page.tsx`, a single scrolling page), `work/` (index + `work/[slug]` case-study pages), `actions/contact.ts` and `actions/form.ts` (server actions), `f/[token]` (customer questionnaires — see below), plus `icon.png`, `opengraph-image.tsx`, `sitemap.ts`, `robots.ts`.
 - `components/` — site chrome (`site-header`, `site-footer`, `theme-*`), layout primitives (`section.tsx`), the contact form, the customer questionnaire form, the markdown renderer, and the home `sections/`.
 - `content/work/*.md` — case studies as markdown + YAML front-matter, editable as plain text (ICM Principle 2). Four real engagements (Vine Cliff Vineyards, Agorasim, Collabimmo, Boys To Men Retreat). Front-matter `url` is optional: set it to the live site and the case-study page renders a "Visit the live site" link.
 - `lib/` — `site.ts` (copy/config), `work.ts` (content loader), `contact-schema.ts` (shared zod schema), `form-answer-schema.ts` (validation derived from a questionnaire snapshot), `services.ts` (the offered services as locale-invariant ids, shared by the Services section, contact form, and contact action).
 - Brand/theme are **not** redefined here — the design system from [`packages/ui`](../../packages/ui/) is the single source of truth, linked via `app/globals.css`. (The earlier `theme.config` idea is replaced by that import.)
+- The **marks** come from that same source. The header, footer and questionnaire render `LogoMark`/`LogoMarkSolid` from the package, so they follow it without this app holding any artwork. The two places that need a *file* — the favicon [`app/icon.png`](app/icon.png) and the Open Graph card, which inlines it because Satori cannot paint through a CSS mask — carry a 64px crop of the icon form's dark reading, cut from the brand artwork rather than redrawn. Nothing here draws the logo by hand; see [BRAND.md](../../packages/ui/BRAND.md) § Iconography → Logo.
 
 ## Customer questionnaires — `/f/[token]`
 
@@ -52,7 +53,7 @@ nothing customer-facing belongs on the owner-only dashboard.
   double-submit can only land one set of answers; an unknown or spent token renders a dead end
   (two different ones — "check the link" vs "you're already done"), never the form.
 - **Its own root layout** ([`app/f/layout.tsx`](app/f/layout.tsx)): brand tokens and the
-  monogram, no nav, and none of the locale machinery — questionnaires are authored in one
+  mark, no nav, and none of the locale machinery — questionnaires are authored in one
   language, which is why the route sits outside `/[locale]` and is excluded from the
   next-intl matcher in [`proxy.ts`](proxy.ts).
 

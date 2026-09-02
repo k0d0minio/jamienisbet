@@ -11,7 +11,18 @@ export function generateStaticParams() {
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
-// Dynamic Open Graph card in the brand palette (slate #3A5A78 on dark surface).
+// Dynamic Open Graph card, set on the dark theme's surface.
+//
+// The colours are written literally because Satori resolves this at build time,
+// with no stylesheet to read a custom property from; they are the [data-theme="dark"]
+// values of --surface, --text-1 and --text-2.
+//
+// The mark is the favicon file itself — the icon form's dark reading, cut from the
+// brand artwork — inlined as a data URI. Satori has no CSS masking, so the mask the
+// design system paints LogoMark through cannot be used here; embedding the artwork
+// keeps the card off a second, hand-drawn copy of the logo, which is what stood here
+// before. It carries the tile's own paper/ink, so the slate plate it used to sit on
+// is gone with it: slate is the interaction tint and never appears in the mark.
 export default async function OpengraphImage({
   params,
 }: {
@@ -19,6 +30,9 @@ export default async function OpengraphImage({
 }) {
   const { locale } = await params
   const t = await getTranslations({ locale })
+  const mark = await fetch(new URL("../icon.png", import.meta.url)).then((res) =>
+    res.arrayBuffer()
+  )
 
   return new ImageResponse(
     (
@@ -36,29 +50,14 @@ export default async function OpengraphImage({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              display: "flex",
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              background: "#3A5A78",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
-              <g
-                stroke="#FFFFFF"
-                strokeWidth={7}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M28 32 H44 M40 32 V58 Q40 69 29 69 Q21 69 21 60" />
-                <path d="M56 70 V34 L78 70 V34" />
-              </g>
-            </svg>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders
+              to a PNG at build time; next/image has nothing to optimise here. */}
+          <img
+            src={`data:image/png;base64,${Buffer.from(mark).toString("base64")}`}
+            width={64}
+            height={64}
+            alt=""
+          />
           <div style={{ fontSize: 32, fontWeight: 600 }}>{site.name}</div>
         </div>
 

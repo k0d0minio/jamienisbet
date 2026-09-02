@@ -37,7 +37,10 @@ export function SiteHeader({
           className="flex items-center gap-2.5 font-semibold tracking-tight"
           aria-label={homeAriaLabel}
         >
-          <LogoMark className="size-6 text-primary" />
+          {/* Untinted: the mark is monochrome paper/ink and slate never appears
+              inside it (BRAND.md § Colour), so it takes the lockup's own text
+              colour and flips with the theme like the name beside it. */}
+          <LogoMark className="size-6" />
           <span>{siteName}</span>
         </Link>
 
