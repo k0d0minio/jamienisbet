@@ -13,7 +13,10 @@ export const metadata: Metadata = {
   description: "Owner-only environment for operating the business.",
   robots: { index: false, follow: false },
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    // 64px so the browser downscales by whole factors to the 32 and 16 it
+    // actually paints. Cropped flush to the logo's frame, unlike the installed
+    // icons — at tab size the artwork's outer margin is pixels spent on nothing.
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "64x64" }],
     apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
   },
   // iOS standalone: launch fullscreen from the home screen under the app name.

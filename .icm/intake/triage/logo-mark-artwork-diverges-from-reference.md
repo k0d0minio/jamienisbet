@@ -34,11 +34,14 @@ from it:
    inner margin; the shipped mark sits low and left and the J's spearhead runs into the
    frame's own stroke.
 
-The consequence beyond the artwork: `websites/admin-dashboard/lib/app-icon.tsx` sizes the
-maskable PWA icon against the furthest ink in the mark, and that furthest point is
-currently the spearhead tip (45.7 units from centre, which is what pins the icon at 70% of
-the tile). Fixing the J moves that number, so the icon's scale has to be recomputed at the
-same time — the file says so at the call site, but it is worth saying here too.
+Where this still bites: `LogoMark` and `LogoMarkSolid` are the mark on every surface that
+renders it live — the admin's sidebar masthead, its phone title bar and its login screen
+today, and the portfolio and sellers-site chrome once stubs 3 and 4 land. The admin's
+*installed* icons and favicon no longer depend on the geometry at all: they were cut
+straight from the reference PNGs in the admin rollout, precisely because a hand-written
+approximation of a typographic mark does not read as the logo. That is the same reason
+this stub exists, and it is worth weighing when deciding how the components should render
+the mark once it is re-cut.
 
 ## Prompt
 
@@ -63,12 +66,10 @@ Mirror the change into `assets/logo/logo-mark.svg`, `logo-mark-solid.svg` and th
 mark at 512, 180, 48 and 32 against the reference and look at it, in both readings. A
 mark that is only ever read as source is how the current geometry shipped.
 
-Then recompute the one consumer that measures the artwork:
-`websites/admin-dashboard/lib/app-icon.tsx` centres the mark and scales it so its furthest
-ink clears an 80%-diameter maskable safe zone. Re-derive the ink extents, the recentring
-offset and the scale from the new paths, and update the numbers in that file's comment —
-they are all stated there. Check `websites/admin-dashboard/public/icon.svg`, which copies
-the tile form verbatim, at the same time.
+No consumer measures the artwork any more, so nothing downstream needs recomputing: the
+admin's installed icons and favicon are static PNGs cut from the reference set, not
+derived from these paths. Check them by eye once the mark is re-cut, though — the point of
+the epic is that the live components and the installed icons read as the same logo.
 
 Run no local build/lint/typecheck — **CI is the source of truth.** Ship on a `claude/`
 branch as a PR; when CI is green, close this stub with

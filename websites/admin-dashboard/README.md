@@ -482,8 +482,8 @@ Single owner, single password. `ADMIN_PASSWORD` unlocks the app; a signed (HMAC 
 every route and bounces unauthenticated requests to `/login`. See [`lib/auth.ts`](lib/auth.ts).
 
 The gate's matcher skips any path containing a `.` (static files), so the PWA assets
-(`/manifest.webmanifest`, `/sw.js`, `/offline.html`, `/icon.svg`, `/apple-icon.png`,
-`/icon-192.png`, `/icon-512.png`) are all publicly reachable **by design** — a phone must be
+(`/manifest.webmanifest`, `/sw.js`, `/offline.html`, `/icon.png`, `/apple-icon.png`,
+`/icon-192.png`, `/icon-512.png`, `/icon-maskable-512.png`) are all publicly reachable **by design** — a phone must be
 able to fetch the manifest and icons to install the app before you sign in. None of them expose
 business data.
 
@@ -547,11 +547,15 @@ The app is built mobile-first and installs to a phone home screen as **Consultan
   iPad-style scale-up), the app's light canvas as `theme_color`/`background_color`, and PNG
   icons. The mode-reactive theme colour is the `<meta name="theme-color">` pair in
   [`app/layout.tsx`](app/layout.tsx), since a manifest cannot carry a media query.
-- **Icons** — one favicon SVG ([`public/icon.svg`](public/icon.svg)) plus PNGs rendered on the
-  fly from the JN monogram via `next/og` `ImageResponse` ([`lib/app-icon.tsx`](lib/app-icon.tsx)):
-  `/icon-192.png`, `/icon-512.png` (also maskable), and `/apple-icon.png` (180×180 for iOS). One
-  full-bleed tile serves all three purposes — the arithmetic that keeps the mark inside the
-  maskable safe zone is in that file. No build-time image pipeline or committed binaries.
+- **Icons** — static PNGs in [`public/`](public/), cut from the brand artwork itself
+  ([`public/logos/4.png`](public/logos/), the icon form's dark reading at 2000px):
+  `/icon-192.png` and `/icon-512.png` (`any`), `/icon-maskable-512.png`, `/apple-icon.png`
+  (180×180 for iOS), and `/icon.png` (64px favicon). They are **not** redrawn from the design
+  system's vector paths — the mark is typographic, and an approximation of it in hand-written
+  SVG is visibly not the logo. The maskable reading is its own file because a square frame has
+  to shrink to about 56% of the tile for its corners to clear the 40% radius a circular mask
+  guarantees, and shipping that padding as `any` would waste a fifth of every unmasked tile.
+  The crops are documented in [`app/manifest.ts`](app/manifest.ts).
 - **Service worker** ([`public/sw.js`](public/sw.js), registered by
   [`components/service-worker-register.tsx`](components/service-worker-register.tsx)) — makes the
   app installable and serves [`public/offline.html`](public/offline.html) for navigations when the
@@ -569,9 +573,6 @@ app/
   globals.css           # design-system link + phone plumbing (safe areas, coarse-pointer targets)
   layout.tsx            # root <html> + design-system styles + PWA metadata/viewport + SW register
   manifest.ts           # /manifest.webmanifest (PWA install manifest — "Consultancy JN")
-  icon-192.png/         # generated PNG icons (next/og ImageResponse); dotted paths bypass the auth gate
-  icon-512.png/
-  apple-icon.png/       # 180×180 apple-touch-icon for iOS home screen
   not-found.tsx         # a URL that is nothing, including a deleted lead's bookmark
   login/                # /login page + login/logout server actions
   (app)/                # authenticated area (route group — no URL segment)
@@ -616,14 +617,15 @@ components/             # login form, nav, service-worker register, lead + money
                         #   client-create-form.tsx — add a lead or a customer by hand
                         #   deal-badges.tsx — barter / equity / commission / started, on the row
                         #   work-started-button.tsx — one-tap "the work has begun"
-lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets, app-icon
+lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets
                         #   leads.ts — the staleness threshold and the row labels the feed and
                         #              the Leads list both read a lead by
                         #   touches.ts / lead-facts.ts — the model's closed vocabularies,
                         #              mirrored for the browser so a sheet needn't ship the
                         #              Neon driver to read a label
                         #   haptics.ts — the one tick, and the rule for when it fires
-public/                 # icon.svg (favicon), sw.js (service worker), offline.html (offline fallback)
+public/                 # icon.png (favicon), the installed PNG icons, sw.js (service
+                        #   worker), offline.html (offline fallback), logos/ (brand artwork)
 ```
 
 ## Local development
