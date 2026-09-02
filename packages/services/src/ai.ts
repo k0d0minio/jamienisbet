@@ -96,10 +96,27 @@ export function isGatewayConfigured(): boolean {
  *  tokens thinking before it writes a word. */
 export const DRAFT_MAX_OUTPUT_TOKENS = 2000
 
-/** The same headroom for an enrichment. The object itself is small — nine
- *  short fields and five lines of findings — and the rest is the same
- *  allowance for a model that thinks before it answers. */
-export const ENRICH_MAX_OUTPUT_TOKENS = 2000
+/**
+ * The same headroom for an enrichment, three times over — and the multiple is
+ * the finding rather than a guess.
+ *
+ * The object itself is small: nine short fields and five lines of findings,
+ * about 300 tokens of text. What is not small is what `gpt-5-nano` spends
+ * before writing them. Reading a whole home page against this rubric measured
+ * at ~3,000 reasoning tokens on an ordinary surf-school site, so the old 2,000
+ * was under the model's own floor for this task — and a reasoning model that
+ * runs out mid-thought returns `finishReason: "length"` with an **empty**
+ * string, not a truncated object. The batch read that as "the model didn't
+ * return facts" and left the row ungraded, which looks exactly like a model
+ * refusing rather than a ceiling set too low.
+ *
+ * Raised rather than capped with a lower reasoning effort, because the
+ * integration is deliberately a bare model string (see the note at the top of
+ * this file) and one number is cheaper to keep honest than a provider-specific
+ * option in two callers. At nano prices the whole 101-row pool is a few cents
+ * either way.
+ */
+export const ENRICH_MAX_OUTPUT_TOKENS = 6000
 
 /**
  * And the same again for a reply triage, which is the two shapes at once: five
