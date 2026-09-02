@@ -195,7 +195,8 @@ ships its own, and raw values are as banned at an app-tier call site as anywhere
 - **Delivery:** in React apps import `lucide-react` directly (a dependency of `@jamie-nisbet/ui`). In static HTML / UMD surfaces (slides, docs, email) use the shared helper `assets/lib/icons.js` → `<Icon name="ArrowRight" size={18} />` (PascalCase Lucide names), or `<i data-lucide="check"></i>` + `lucide.createIcons()`.
 - **Usage:** icons are functional, not decorative — they sit in buttons, nav, status rows, and feature lists at `15–21px`. Tinted `--text-3` at rest, `--primary` when they carry meaning (active nav, feature accents).
 - **No emoji. No multicolour/3D icons.** Unicode arrows (`↗`) are fine inline in mono labels.
-- **Logo** is bespoke (not an icon): see `assets/logo/`. The 2026 mark is a **geometric JN lockup** — a J (vertical bar + diamond foot) and an N (two bars tied by a diagonal) inside a thin frame tile, rendered in pure paper/ink. The full form adds a teardrop diamond and the **Hanken Grotesk wordmark** ("JAMIE NISBET") below it. The set: `logo-mark.svg` (currentColor mark), `logo-mark-solid.svg` (frame + mark, baked to the dark reading for favicon/PNG pipelines), `logo-full.svg` (tile + diamond + wordmark). In React, `LogoMark` (mark, currentColor) and `LogoMarkSolid` (frame + mark, theme-flipped via `--logo-tile`/`--logo-ink`) replace the retired stroke monogram. *(Locked 2026-09-01 in the logo rollout; the old `mark-monogram*.svg` typographic JN was retired.)*
+- **Logo** is bespoke (not an icon): see `assets/logo/`. The 2026 mark is a **typographic JN lockup** — a J with a hooked descender and an N, set inside a thin frame tile, in pure paper/ink. The full form adds a teardrop diamond and the **Hanken Grotesk wordmark** ("JAMIE NISBET") below it. In React, `LogoMark` (letters alone, `currentColor`) and `LogoMarkSolid` (frame + letters, theme-flipped via `--logo-tile`/`--logo-ink`) are the only ways to render it.
+  **The letters are the artwork, never a redrawing of it.** They ship as an alpha mask cut from the reference PNGs — `logo-mark.png`, inlined at `src/components/brand/logo-letters.ts` — and are painted through that mask, which is what keeps `currentColor` working. The frame stays vector because it is a rectangle. Do not reintroduce a hand-drawn path version: the mark is a typeface, and the geometric approximation that briefly stood in for it (three bars, a diagonal, a diamond foot) did not read as the logo at any size. *(Locked 2026-09-01; letters replaced with the artwork 2026-09-02 — `.icm/intake/triage/_done/logo-mark-artwork-diverges-from-reference.md`. The older `mark-monogram*.svg` stroke JN was retired at the same rollout.)*
 
 ---
 
@@ -212,7 +213,7 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 - `app.css` + `tokens/app.css` — the **app tier** (see § App tier). Opt-in: linked *after* `styles.css` by operated surfaces only, never by a marketing site.
 
 **Assets** (`assets/`)
-- `logo/` — `logo-mark.svg` (currentColor JN), `logo-mark-solid.svg` (frame + mark, dark reading), `logo-full.svg` (tile + diamond + wordmark).
+- `logo/` — `logo-mark.png` (the JN letters as an alpha mask; source of record for `logo-letters.ts`), `logo-full.svg` (tile + diamond + wordmark).
 - `brand/` — `social-card.html` (1200×630 OG), `email-signature.html`.
 - `lib/icons.js` — shared Lucide → `<Icon>` helper for UMD/static surfaces.
 

@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Consultancy JN">
-  <rect width="100" height="100" rx="22" fill="#3A5A78" />
-  <g stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M28 32 H44 M40 32 V58 Q40 69 29 69 Q21 69 21 60" />
-    <path d="M56 70 V34 L78 70 V34" />
-  </g>
-</svg>
