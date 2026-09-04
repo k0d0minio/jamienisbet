@@ -67,7 +67,7 @@ import "server-only"
 //     root bundle only once a repo carries `AGENTS.md`, so a scaffolded repo
 //     lands with **no gaps** — just the two warnings every repo carries until a
 //     human has adopted it ("no Layer-0 identity file", "no `.icm/project.md`").
-//     `opencode.json` is seeded regardless, because that gate exists to spare
+//     `opencode.jsonc` is seeded regardless, because that gate exists to spare
 //     *un-migrated* repos a shape they haven't been moved to yet, and a repo
 //     born today has no legacy Layer 0 to move: it is new-shape by
 //     construction, and the rails are worth having from minute one.
@@ -119,7 +119,7 @@ const MAX_DEPTH = 4
 
 /** One template file, already addressed as the path it will take in the new
  * repo — so `intake/README.md` under the `icm` source is `.icm/intake/README.md`
- * here, and `opencode.json` under `root` is just `opencode.json`. */
+ * here, and `opencode.jsonc` under `root` is just `opencode.jsonc`. */
 type TemplateFile = {
   path: string
   content: string
@@ -222,7 +222,7 @@ export type ScaffoldResult = {
  * against a repo that already has part of the baseline.
  *
  * A source that can't be *read* is reported but doesn't stop the others: a repo
- * with its `.icm/` and no `opencode.json` is worth strictly more than a repo
+ * with its `.icm/` and no `opencode.jsonc` is worth strictly more than a repo
  * with neither, and the error sentence names what's missing either way. The
  * *write* is all-or-nothing by construction — one commit, one ref move — so a
  * failed seed leaves the repo exactly as GitHub created it, which is the state
