@@ -6,6 +6,9 @@ export const site = {
   email: "contact@jamienisbet.com",
   domain: "jamienisbet.com",
   url: "https://jamienisbet.com",
+  // Google Analytics 4 measurement ID. Public by design — it is visible in the
+  // page source of every site that runs gtag.js.
+  analyticsId: "G-2F0F3Y5H4E",
   // Location is a proper noun but appears inside translated sentences as an ICU
   // arg; the English label lives here as the canonical value.
   location: "Portugal",

@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "../globals.css"
 
 import { ThemeProvider } from "@jamie-nisbet/app-shell"
+import { GoogleAnalytics } from "@/components/google-analytics"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { site } from "@/lib/site"
@@ -83,6 +84,7 @@ export default async function LocaleLayout({
           </ThemeProvider>
         </NextIntlClientProvider>
         <Analytics />
+        <GoogleAnalytics />
       </body>
     </html>
   )
