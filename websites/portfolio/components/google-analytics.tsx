@@ -17,6 +17,16 @@ export function GoogleAnalytics() {
   // Nothing to load in dev — keeps local page views out of the property.
   if (process.env.NODE_ENV !== "production") return null
 
+  // Preview deployments build with NODE_ENV=production too, so the check above
+  // doesn't keep branch previews out of the property on its own. NEXT_PUBLIC_
+  // VERCEL_ENV distinguishes them — but it only reaches the browser when the
+  // project has "Automatically expose System Environment Variables" enabled, so
+  // this excludes a known-non-production env rather than requiring a known
+  // production one. Unset (not on Vercel, or not exposed) therefore still
+  // loads the tag: analytics missing on the live site is the worse failure.
+  const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV
+  if (vercelEnv && vercelEnv !== "production") return null
+
   return (
     <>
       <Script
