@@ -74,9 +74,9 @@ That trade is taken knowingly. Those commits already cost three deployments unde
 the ignore step never saved the quota, only the build minutes — and app commits, which are the
 majority of pushes, now cost one deployment instead of three.
 
-`.icm/onboarding/` needs no special handling as a result. It is an input to the dashboard only
-(traced into the bundle by [`next.config.ts`](admin-dashboard/next.config.ts)), it sits outside the
-workspace, and a global change redeploys the dashboard along with everything else.
+The house questionnaires no longer live in this repo at all — they are icm-board's
+`workspaces/sell/references/forms/`, read by the dashboard over the GitHub API — so nothing
+outside the app folders is traced into a bundle any more.
 
 ### Preview deployments are off for one app
 

@@ -13,7 +13,7 @@ import { site } from "@/lib/site"
 // this form, which is the point: no account, no password, one link.
 //
 // Everything rendered here comes from the link's `form_snapshot`. This page
-// never reads `.icm/onboarding/`, so a question reworded in git after the link
+// never reads the questionnaire markdown, so a question reworded in git after the link
 // was sent changes nothing about what this person is looking at.
 
 export const dynamic = "force-dynamic"

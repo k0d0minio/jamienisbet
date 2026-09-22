@@ -2,7 +2,8 @@ import "server-only"
 
 // Seeding a freshly created client delivery repo with the estate's baseline —
 // the `.icm/` folder the tickets board reads (`.icm/intake/`) and the
-// questionnaire picker looks in (`.icm/onboarding/`, when the repo grows one),
+// questionnaire picker looks in (`.icm/onboarding/`, when the repo grows one —
+// the house forms themselves live in icm-board's deal workspace),
 // the `.claude/` assets a cloud session in that repo has no history to learn
 // the estate's conventions from, and the canonical root rails beside them.
 //

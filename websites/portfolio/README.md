@@ -43,8 +43,10 @@ nothing customer-facing belongs on the owner-only dashboard.
   unguessable, so there is no account and no password. `dynamic = "force-dynamic"`, `noindex` on
   the page *and* the layout, and `/f/` is disallowed in [`robots.ts`](app/robots.ts).
 - **The page never reads markdown.** Every question comes from the link's `form_snapshot`,
-  frozen when the dashboard sent it, so rewording a question in `.icm/onboarding/` afterwards
-  can't change a form already in someone's inbox.
+  frozen when the dashboard sent it, so rewording a question in icm-board's
+  `workspaces/sell/references/forms/` afterwards can't change a form already in someone's inbox.
+  (`/start` is the other way round: it reads `intake-diagnostic.md` live from icm-board, creates
+  the lead row and a completed `form_links` row, so the answers reach the same Forms history.)
 - **Validated against that same snapshot.** [`lib/form-answer-schema.ts`](lib/form-answer-schema.ts)
   builds a Zod schema from the frozen questions at submit time — required fields, select options,
   yes/no coercion — so a hand-crafted POST can't smuggle in an answer that was never offered.

@@ -84,6 +84,7 @@ import {
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
 import { renderFormAnswersMarkdown } from "@/lib/form-markdown"
 import { scaffoldIcmBaseline } from "@/lib/icm-scaffold"
+import { DEALS_PATH, DEALS_REPO, readDealFolder } from "@/lib/deals"
 import { loadOnboardingForm } from "@/lib/onboarding"
 import { parseAmountToMinor } from "@/lib/money"
 import { parsePercentToBps } from "@/lib/percent"
@@ -91,7 +92,7 @@ import { formLinkUrl } from "@/lib/portfolio"
 import { getStripe } from "@/lib/stripe"
 import {
   clientSlug,
-  commitRepoFile,
+  commitRepoFiles,
   createRepo,
   getRepo,
   isGithubConfigured,
@@ -290,6 +291,29 @@ export async function saveDealTerms(id: string, formData: FormData) {
   if (formData.has("equity")) {
     const raw = value("equity")
     patch.equityBps = raw === null ? null : parsePercentToBps(raw)
+  }
+
+  // The monthly support line beside a one-off ("one-off + support"). Cleared
+  // means none — zero, the column's default, not null.
+  if (formData.has("support")) {
+    const raw = value("support")
+    patch.supportMinor = raw === null ? 0 : (parseAmountToMinor(raw) ?? 0)
+  }
+
+  // Which folder under icm-board's `workspaces/deals/` this relationship's
+  // documents live in. A slug and nothing else — it is joined to a path and a
+  // GitHub URL downstream — and the column's UNIQUE constraint is what says
+  // "one folder is one relationship"; a duplicate throws here, and the card
+  // reports that it couldn't save.
+  if (formData.has("dealSlug")) {
+    const raw = value("dealSlug")
+    if (raw !== null && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(raw)) {
+      throw new Error("A deal folder is lower-case letters, digits and single hyphens.")
+    }
+    if (raw !== null && raw.length > 80) {
+      throw new Error("A deal folder name is at most 80 characters.")
+    }
+    patch.dealSlug = raw
   }
 
   const updated = await updateClient(id, patch)
@@ -1519,7 +1543,8 @@ export async function disconnectClientRepo(id: string) {
 }
 
 // ---- Customer questionnaires ------------------------------------------------
-// Publish a markdown questionnaire from `.icm/onboarding/` as a one-off link for
+// Publish a markdown questionnaire from the house library (icm-board's
+// `workspaces/sell/references/forms/`) or the lead's own repo as a one-off link for
 // this lead. The link is *handed over*, never sent from here: per the estate's
 // "no outbound action without review" rule the dashboard's job ends at offering
 // the URL — to a share sheet, a clipboard, a mail draft or a QR code — and a
@@ -1593,13 +1618,25 @@ export async function removeFormLink(id: string, clientId: string) {
 export type WriteFormResult = { ok: boolean; message: string }
 
 /**
- * Close the questionnaire loop: render a completed link's answers to markdown
- * and commit them into the client's delivery repo as
- * `.icm/docs/form-<slug>-<YYYY-MM-DD>.md` — provenance a session working in
- * that repo can read. Neon stays the record; the file is a rendered copy.
+ * Close the questionnaire loop the deal-workspace way (icm-board D24, one home
+ * per fact): render a completed link's answers to markdown and commit them
+ * into **icm-board**, in the relationship's own folder —
  *
- * Never overwrites: if the dated path is taken (the same form written twice,
- * or re-completed the same day), the write walks to `-2`, `-3`, … instead.
+ *     workspaces/deals/<deal_slug>/<engagement>/answers/<form-slug>.md
+ *
+ * or the client folder's `answers/` when `DEAL.md` names no live engagement.
+ * One commit straight to main, message `Deal: <slug> — <form-slug> answers`,
+ * with a provenance header naming the `form_links` row. Neon stays the record;
+ * the file is the one kind of copy the rule allows — immutable, stamped with
+ * where it came from — so a `/client` session reads the lead's own words.
+ *
+ * Never overwrites: `commitRepoFiles` only ever creates. If `<form-slug>.md` is
+ * already there (the same form answered twice), the write lands as
+ * `<form-slug>-<completed date>.md` once, and after that it refuses and says
+ * so — a third copy is a question for the folder, not the button.
+ *
+ * Refuses plainly when the row has no `deal_slug`: without the folder there is
+ * nowhere the copy belongs. The token needs Contents: write on icm-board.
  */
 export async function writeFormAnswersToRepo(
   linkId: string,
@@ -1607,10 +1644,11 @@ export async function writeFormAnswersToRepo(
 ): Promise<WriteFormResult> {
   const client = await getClient(clientId)
   if (!client) return { ok: false, message: "That lead no longer exists." }
-  if (!client.githubRepo) {
+  if (!client.dealSlug) {
     return {
       ok: false,
-      message: "No delivery repo connected — connect one on this profile first.",
+      message:
+        "No deal folder on this row — set one in the Deal card (it must exist under workspaces/deals/ in icm-board) first.",
     }
   }
 
@@ -1622,29 +1660,34 @@ export async function writeFormAnswersToRepo(
     return { ok: false, message: "This form hasn't been answered yet." }
   }
 
-  const markdown = renderFormAnswersMarkdown(link)
-  const base = `.icm/docs/form-${link.formSlug}-${link.completedAt
-    .toISOString()
-    .slice(0, 10)}`
+  const folder = await readDealFolder(client.dealSlug)
+  if (!folder) {
+    return { ok: false, message: "GITHUB_TOKEN isn't set on this deployment, so icm-board can't be read or written." }
+  }
+  if (folder.error) return { ok: false, message: folder.error }
 
-  for (let attempt = 1; attempt <= 5; attempt++) {
-    const path = attempt === 1 ? `${base}.md` : `${base}-${attempt}.md`
-    const result = await commitRepoFile(
-      client.githubRepo,
-      path,
-      markdown,
-      `Record questionnaire answers: ${link.formSlug}`
-    )
-    if (result.outcome === "created") {
-      return { ok: true, message: `Committed ${path} to ${client.githubRepo}.` }
+  const dir = folder.engagement
+    ? `${DEALS_PATH}/${client.dealSlug}/${folder.engagement}/answers`
+    : `${DEALS_PATH}/${client.dealSlug}/answers`
+  const markdown = renderFormAnswersMarkdown(link, {
+    dealSlug: client.dealSlug,
+    engagement: folder.engagement,
+    clientId: client.id,
+  })
+  const message = `Deal: ${client.dealSlug} — ${link.formSlug} answers`
+  const dated = link.completedAt.toISOString().slice(0, 10)
+
+  for (const path of [`${dir}/${link.formSlug}.md`, `${dir}/${link.formSlug}-${dated}.md`]) {
+    const result = await commitRepoFiles(DEALS_REPO, [{ path, content: markdown }], message)
+    if (result.outcome === "failed") return { ok: false, message: result.error }
+    if (result.outcome === "committed") {
+      return { ok: true, message: `Committed ${path} to ${DEALS_REPO}.` }
     }
-    if (result.outcome === "failed") {
-      return { ok: false, message: result.error }
-    }
+    // "unchanged": the path is taken — never touched. Try the dated name once.
   }
   return {
     ok: false,
-    message: "Five copies of this form are already in the repo for that date.",
+    message: `Both ${link.formSlug}.md and ${link.formSlug}-${dated}.md are already in ${dir}/ — nothing was overwritten.`,
   }
 }
 

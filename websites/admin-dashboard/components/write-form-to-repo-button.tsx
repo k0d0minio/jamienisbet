@@ -8,11 +8,12 @@ import { Button, cn } from "@jamie-nisbet/ui"
 import { writeFormAnswersToRepo } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 
-// "Write to repo" on an answered form: commit the rendered answers into the
-// client's delivery repo so sessions working there read the client's own words.
-// Deliberate rather than automatic — a repo commit is an outward write, so it
-// happens on a click, and the outcome (committed where, or why not) is said
-// on the spot.
+// "Snapshot to deal folder" on an answered form: commit the rendered answers
+// into the relationship's folder in icm-board (`workspaces/deals/<slug>/…/
+// answers/`) so a `/client` session reads the lead's own words. Deliberate
+// rather than automatic — a commit is an outward write, so it happens on a
+// click, never overwrites, and the outcome (committed where, or why not) is
+// said on the spot.
 export function WriteFormToRepoButton({
   linkId,
   clientId,
@@ -42,7 +43,7 @@ export function WriteFormToRepoButton({
         onClick={onWrite}
       >
         <GitCommitHorizontal />
-        {pending ? "Writing…" : "Write to repo"}
+        {pending ? "Committing…" : "Snapshot to deal folder"}
       </Button>
       {result ? (
         <span

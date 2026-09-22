@@ -431,10 +431,12 @@ the first touch uses, exposed for anything else that needs to pick a door.
 
 **Customer questionnaires.** `form_links` is one row per questionnaire sent to one lead. The
 primary key doubles as the link token the customer opens (a v4 uuid — unguessable, so the form
-needs no account), `form_snapshot` is the markdown from `.icm/onboarding/` frozen by the
-dashboard at send time — in this repo for house questionnaires, or in the lead's own delivery
-repo for ones written for them, which is what the snapshot's `sourceRepo` records (absent on
-links sent before the library went multi-repo, all of which were house forms). `form_slug` stays
+needs no account), `form_snapshot` is the questionnaire markdown frozen at send time — icm-board's
+`workspaces/sell/references/forms/` for house questionnaires (the deal workspace owns them),
+or the lead's own delivery repo's `.icm/onboarding/` for ones written for them, which is what
+the snapshot's `sourceRepo` and `sourcePath` record (absent on links sent before the library
+went multi-repo, all of which were house forms). The parser is `forms-parse.ts`, shared with
+the portfolio's `/start` page. `form_slug` stays
 the bare filename either way. `answers` stays null until they submit. The freeze is the point:
 questions are content in git, answers are business state here, and editing a question later can
 never reinterpret answers already collected. `completed_at` makes the link one-shot —

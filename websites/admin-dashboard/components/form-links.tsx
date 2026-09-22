@@ -117,11 +117,11 @@ function PendingBody({
 function AnsweredBody({
   link,
   clientId,
-  hasRepo,
+  hasDealFolder,
 }: {
   link: FormLink
   clientId: string
-  hasRepo: boolean
+  hasDealFolder: boolean
 }) {
   const answered = zipAnswers(link.formSnapshot, link.answers)
   return (
@@ -137,11 +137,16 @@ function AnsweredBody({
         ))}
       </dl>
       <div className="flex flex-wrap items-center gap-1">
-        {/* Only offered when there's a repo to write to — no repo, no button,
-            and connecting one later makes it appear. */}
-        {hasRepo ? (
+        {/* Only offered when the row names a deal folder — that is where the
+            snapshot belongs (icm-board D24). Setting one in the Deal card
+            makes the button appear; without one it says why it isn't here. */}
+        {hasDealFolder ? (
           <WriteFormToRepoButton linkId={link.id} clientId={clientId} />
-        ) : null}
+        ) : (
+          <span className="text-app-footnote text-app-label-3">
+            Set a deal folder in the Deal card to snapshot these answers into it.
+          </span>
+        )}
         <DeleteFormLinkButton id={link.id} clientId={clientId} answered />
       </div>
     </div>
@@ -152,7 +157,7 @@ export function FormLinks({
   clientId,
   clientName,
   clientEmail,
-  clientRepo,
+  dealSlug,
   links,
   forms,
   formErrors,
@@ -161,8 +166,8 @@ export function FormLinks({
   clientName: string
   /** The lead's address, or null — gates the mail draft among the ways to send. */
   clientEmail: string | null
-  /** The lead's delivery repo ("owner/name"), or null — gates "Write to repo". */
-  clientRepo: string | null
+  /** The row's deal folder in icm-board, or null — gates the answers snapshot. */
+  dealSlug: string | null
   links: FormLink[]
   forms: FormChoiceView[]
   formErrors: string[]
@@ -172,7 +177,7 @@ export function FormLinks({
   return (
     <GroupedSection
       header="Forms"
-      footer={`Questionnaires live in .icm/onboarding/ — in this repo, or in ${clientName}'s own delivery repo. Sending one publishes a link; handing it over is yours to do.`}
+      footer={`The house questionnaires live in icm-board's workspaces/sell/references/forms/; ${clientName}'s own in their delivery repo's .icm/onboarding/. Sending one publishes a link; handing it over is yours to do. Answers stay in Neon — a snapshot goes to the deal folder only when you ask.`}
     >
       <SendFormRow
         clientId={clientId}
@@ -231,7 +236,7 @@ export function FormLinks({
                 <AnsweredBody
                   link={link}
                   clientId={clientId}
-                  hasRepo={clientRepo !== null}
+                  hasDealFolder={dealSlug !== null}
                 />
               ) : (
                 <PendingBody
