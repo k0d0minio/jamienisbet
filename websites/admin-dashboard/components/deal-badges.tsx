@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Hammer, PieChart, Percent } from "lucide-react"
+import { ArrowLeftRight, Hammer, LifeBuoy, PieChart, Percent } from "lucide-react"
 
 import { Badge, cn } from "@jamie-nisbet/ui"
 import {
@@ -7,6 +7,7 @@ import {
   type DealTerms,
 } from "@jamie-nisbet/services"
 
+import { formatMoney } from "@/lib/money"
 import { formatBps } from "@/lib/percent"
 
 // Not every engagement is a euro figure invoiced monthly. Some are work traded
@@ -49,6 +50,9 @@ function badgeKinds(
       // pills repeat the figure beside them; this one qualifies it — without
       // it a swap's notional €800 reads as €800 of income.
       if (kind === "barter") return true
+      // A support line beside a cash figure is already in that figure
+      // ("€2,400 + €60/mo" — lib/leads.ts), so the pill would say it twice.
+      if (kind === "support") return omit !== "cash" && omit !== "support"
       return kind !== omit
     })
 }
@@ -105,6 +109,17 @@ export function DealBadges({
         >
           <PieChart aria-hidden />
           {formatBps(equity)} equity
+        </Badge>
+      ) : null}
+
+      {kinds.has("support") ? (
+        <Badge
+          variant="secondary"
+          className={PILL}
+          title="Basic support — crash fixes on call, every month, beside the build"
+        >
+          <LifeBuoy aria-hidden />
+          {formatMoney(client.supportMinor, "eur")}/mo support
         </Badge>
       ) : null}
 

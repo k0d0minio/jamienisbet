@@ -68,9 +68,17 @@ export type DealTerms = {
   barterTerms: string | null
   commissionBps: number | null
   equityBps: number | null
+  /** The monthly support line beside a one-off — "one-off + support". 0 = none. */
+  supportMinor: number
 }
 
-export const dealComponentKinds = ["cash", "barter", "equity", "commission"] as const
+export const dealComponentKinds = [
+  "cash",
+  "barter",
+  "support",
+  "equity",
+  "commission",
+] as const
 export type DealComponentKind = (typeof dealComponentKinds)[number]
 
 /** One term of a deal, already narrowed and clamped — a caller renders it
@@ -78,6 +86,9 @@ export type DealComponentKind = (typeof dealComponentKinds)[number]
 export type DealComponent =
   | { kind: "cash"; valueMinor: number; billingType: BillingType }
   | { kind: "barter"; valueMinor: number; terms: string | null }
+  /** Crash fixes on call, every month, beside a one-off — never a retainer
+   *  (that is `cash` with `billingType: monthly`). */
+  | { kind: "support"; valueMinor: number }
   | { kind: "equity"; bps: number }
   | { kind: "commission"; bps: number }
 
@@ -106,6 +117,13 @@ export function dealComponents(terms: DealTerms): DealComponent[] {
       valueMinor: terms.valueMinor,
       billingType: isBillingType(terms.billingType) ? terms.billingType : "one_off",
     })
+  }
+
+  // The support line rides directly behind the figure it belongs beside: a
+  // one-off with a monthly line is one shape ("one-off + support"), read as
+  // "€N + €M/mo". Zero means none — a landing page, or a client-owned build.
+  if (terms.supportMinor > 0) {
+    components.push({ kind: "support", valueMinor: terms.supportMinor })
   }
 
   // Equity before commission: of everything on a deal, the stake is the one
@@ -141,6 +159,7 @@ export function dealTermsOf(terms: DealTerms): DealTermMap {
   const named: DealTermMap = {
     cash: null,
     barter: null,
+    support: null,
     equity: null,
     commission: null,
   }
@@ -151,6 +170,9 @@ export function dealTermsOf(terms: DealTerms): DealTermMap {
         break
       case "barter":
         named.barter = component
+        break
+      case "support":
+        named.support = component
         break
       case "equity":
         named.equity = component
@@ -179,4 +201,23 @@ export function dealHeadline(terms: DealTerms): DealComponent | null {
     return component
   }
   return null
+}
+
+/**
+ * The headline as text, with the support line folded in where the deal has
+ * one: "€N + €M/mo support". The caller formats money (the model has no
+ * locale); this only says which two numbers go together, so a one-off with
+ * support never reads as a bare one-off on a row.
+ */
+export function dealHeadlineParts(terms: DealTerms): {
+  headline: DealComponent
+  supportMinor: number
+} | null {
+  const headline = dealHeadline(terms)
+  if (!headline) return null
+  // Support beside a *cash* headline is the "one-off + support" shape. Beside
+  // anything else it stands on its own and gets its own badge.
+  const supportMinor =
+    headline.kind === "cash" ? Math.max(0, terms.supportMinor) : 0
+  return { headline, supportMinor }
 }

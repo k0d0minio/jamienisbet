@@ -174,12 +174,30 @@ export function dealFigure(client: DealTerms): DealFigure | null {
     case "cash": {
       const amount = formatMoney(headline.valueMinor, "eur")
       const monthly = headline.billingType === "monthly"
-      const value = monthly ? `${amount}/mo` : amount
+      // "One-off + support": the monthly support line rides in the figure
+      // itself — "€2,400 + €60/mo" — so a build with a support line never
+      // reads as a bare one-off on a row (icm-board pricing.md § Support).
+      const support =
+        !monthly && client.supportMinor > 0
+          ? ` + ${formatMoney(client.supportMinor, "eur")}/mo`
+          : ""
+      const value = monthly ? `${amount}/mo` : `${amount}${support}`
       return {
         kind: "cash",
         value,
-        label: monthly ? "Per month" : "Value",
+        label: monthly ? "Per month" : support ? "Value + support" : "Value",
         standalone: value,
+      }
+    }
+    case "support": {
+      // A support line with no fee beside it — a build handed over before the
+      // dashboard existed, say. The figure is the monthly line itself.
+      const amount = formatMoney(headline.valueMinor, "eur")
+      return {
+        kind: "support",
+        value: `${amount}/mo`,
+        label: "Support",
+        standalone: `${amount}/mo support`,
       }
     }
     case "barter": {

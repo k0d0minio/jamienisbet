@@ -164,12 +164,16 @@ export function isClientSource(value: string): value is ClientSource {
 
 /** Which language to open in. `en-pt` is the honest third answer for a business
  *  that reads either — most of Mafra's do. */
-export const clientLanguages = ["en", "pt", "en-pt"] as const
+export const clientLanguages = ["en", "pt", "fr", "en-pt"] as const
 export type ClientLanguage = (typeof clientLanguages)[number]
 
 export const clientLanguageLabels: Record<ClientLanguage, string> = {
   en: "English",
   pt: "Portuguese",
+  // The third language the business works in (icm-board `terms.md` §
+  // Languages) — Belgian and French leads arrive through the portfolio's
+  // French pages and the referral site.
+  fr: "French",
   "en-pt": "Either",
 }
 
@@ -254,6 +258,41 @@ export async function createClientFromContact(
       intakeMessage: input.message,
       service: input.service ?? null,
       source: input.source ?? "portfolio",
+    })
+    .returning()
+  return row
+}
+
+/** What the portfolio's `/start` page collects: the identity a row needs,
+ *  plus the answers the free-look questionnaire produced (kept whole on the
+ *  `form_links` row it also creates). */
+export type FormIntake = {
+  name: string
+  email: string
+  phone?: string | null
+  /** The "what eats your week" answer — the lead's own words, where the
+   *  contact form's message would be. */
+  intakeMessage: string | null
+  /** Locale-invariant service id mapped from the "what done looks like"
+   *  choice, or null. */
+  service?: string | null
+  budget?: string | null
+  /** 'en' | 'pt' | 'fr' from the form's language question. */
+  language?: string | null
+}
+
+export async function createClientFromIntake(input: FormIntake): Promise<Client> {
+  const [row] = await getDb()
+    .insert(clients)
+    .values({
+      name: input.name,
+      email: input.email,
+      phone: input.phone ?? null,
+      intakeMessage: input.intakeMessage,
+      service: input.service ?? null,
+      budget: input.budget ?? null,
+      language: input.language ?? null,
+      source: "portfolio",
     })
     .returning()
   return row
@@ -624,6 +663,8 @@ export type ClientProfilePatch = Partial<
     | "barterTerms"
     | "commissionBps"
     | "equityBps"
+    | "supportMinor"
+    | "dealSlug"
     | "workStartedAt"
   >
 >
