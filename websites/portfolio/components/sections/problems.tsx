@@ -38,7 +38,7 @@ export async function Problems() {
         <div className="grid gap-4 lg:grid-cols-3">
           {PROBLEM_IDS.map((id) => {
             const Icon = icons[id]
-            const { primary, covers } = PROBLEMS[id]
+            const { covers } = PROBLEMS[id]
             return (
               <Card key={id} className="gap-5">
                 <CardHeader className="gap-3">
@@ -69,8 +69,12 @@ export async function Problems() {
                   </div>
                 </CardContent>
                 <CardFooter>
+                  {/* Every problem starts the same way — with the free look.
+                      The covered-service chips above still reach the contact
+                      form with their locale-invariant id, so the DB taxonomy
+                      is untouched. */}
                   <Button asChild variant="outline" size="sm" className="w-fit">
-                    <Link href={{ pathname: "/", query: { service: primary }, hash: "contact" }}>
+                    <Link href="/start">
                       {t("cta")}
                       <ArrowRight />
                     </Link>
@@ -81,13 +85,14 @@ export async function Problems() {
           })}
         </div>
 
-        {/* AI advice folded in rather than given its own bucket — still reaches the
-            contact form as the aiConsultancy enquiry id. */}
+        {/* AI advice folded in rather than given its own bucket — the answer
+            is the free look, which sorts what belongs to software, to a
+            person, or to nothing. */}
         <p className="inline-flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Sparkles className="size-4 text-primary" />
           {t("aiAsideLead")}{" "}
           <Link
-            href={{ pathname: "/", query: { service: "aiConsultancy" }, hash: "contact" }}
+            href="/start"
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             {t("aiAsideLink")}

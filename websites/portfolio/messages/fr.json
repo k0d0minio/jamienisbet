@@ -26,18 +26,18 @@
   },
   "hero": {
     "title": "Récupérez votre temps. Je construis le logiciel qui gère les corvées à votre place.",
-    "intro": "Je suis Jamie — un ingénieur expérimenté qui travaille directement avec vous. Je crée des sites, de l'automatisation et de l'IA qui vous déchargent de l'administratif, puis continuent à travailler à mesure que vous grandissez.",
-    "startProject": "Démarrer un projet",
-    "seeWork": "Voir les travaux"
+    "intro": "Je suis Jamie — un ingénieur expérimenté qui travaille directement avec vous. Chaque projet commence par un regard gratuit sur votre façon de travailler aujourd'hui. Sans discours commercial, sans facture.",
+    "seeWork": "Voir les travaux",
+    "freeLook": "Demander un regard gratuit"
   },
   "problems": {
     "eyebrow": "Comment puis-je aider ?",
     "title": "Commencez par ce qui vous ralentit.",
     "intro": "La plupart des gens viennent me voir avec l'un de ces trois problèmes. Dites-moi lequel vous ressemble — je vous montrerai ce que je ferais.",
     "coversLabel": "Cela couvre",
-    "cta": "Démarrer ce projet",
+    "cta": "Demander un regard gratuit",
     "aiAsideLead": "Vous ne savez pas si l'IA en vaut la peine pour vous ?",
-    "aiAsideLink": "Demandez-moi — je serai franc.",
+    "aiAsideLink": "Demandez un regard gratuit — je vous dirai ce qui relève du logiciel, ce qui relève d'une personne, et ce qui ne vaut pas la peine d'être construit.",
     "items": {
       "busywork": {
         "title": "Déchargez-moi des corvées",
@@ -59,16 +59,16 @@
     "intro": "Trois étapes entre votre premier message et un résultat qui fonctionne.",
     "steps": [
       {
-        "title": "On échange",
-        "description": "Vous me dites ce que vous cherchez à faire, en mots simples. Je pose quelques questions et je vous dis honnêtement si je suis la bonne personne pour aider."
+        "title": "Regarder, puis trier",
+        "description": "Un appel, puis une page sur votre façon de travailler : ce qui pourrait tourner tout seul, ce qui a besoin d'une personne, ce qui mérite un assistant, et ce qu'il ne faut pas construire."
       },
       {
-        "title": "Vous recevez un prix fixe",
-        "description": "Un périmètre clair et un prix clair avant que quoi que ce soit ne commence — souvent avec des options, pour choisir ce qui convient à votre budget. Aucune ligne cachée."
+        "title": "Construire ce qui a du sens",
+        "description": "Périmètre fixe, prix fixe, trois options au choix — et la personne au téléphone est celle qui construit."
       },
       {
-        "title": "Je le construis",
-        "description": "Vous échangez avec la personne qui écrit le code, les décisions sont donc rapides. Vous restez au courant, et le travail fini vous appartient — sans dépendance."
+        "title": "Transmettre, proprement gouverné",
+        "description": "Le code, les comptes et le dépôt vous appartiennent — avec sa propre façon de travailler à l'intérieur, pour que votre équipe ou n'importe quel développeur puisse continuer."
       }
     ]
   },
@@ -82,7 +82,7 @@
       },
       {
         "q": "Combien ça coûte ?",
-        "a": "Mon tarif habituel est de 120 €/heure, mais l'essentiel du travail est proposé à prix fixe pour le périmètre — avec des options — pour que vous connaissiez le montant avant de commencer."
+        "a": "L'essentiel du travail est proposé à prix fixe pour le périmètre, avec trois options pour choisir ce qui convient. Ça commence par un regard gratuit ; pour les systèmes plus grands ou plus enchevêtrés, un court diagnostic payant d'abord — déduit de la construction."
       },
       {
         "q": "Et si je veux des changements plus tard ?",
@@ -187,10 +187,7 @@
   "contact": {
     "eyebrow": "Contact",
     "title": "Parlons de votre projet.",
-    "intro": "Dites-moi ce que vous cherchez à faire. Je réponds sous un à deux jours avec quelques questions ou, si c'est pertinent, une marche à suivre. Sans pression commerciale.",
-    "rateLead": "Mon tarif habituel est de",
-    "rateAmount": "120 €/heure",
-    "rateTrail": ", généralement proposé sous forme de prix fixe pour le périmètre — avec des options, pour choisir ce qui vous convient."
+    "intro": "Dites-moi ce que vous cherchez à faire. Je réponds sous un à deux jours avec quelques questions ou, si c'est pertinent, une marche à suivre. Sans pression commerciale."
   },
   "form": {
     "name": "Nom",
@@ -248,6 +245,10 @@
         {
           "title": "Livré, pas juste démontré",
           "description": "Accessible, rapide, testé et observable en production. J'optimise pour ce qui tournera encore dans un an, pas pour ce qui fait une belle démo la semaine prochaine."
+        },
+        {
+          "title": "Une méthode que vous pouvez lire",
+          "description": "Construit sur le Model Workspace Protocol (Van Clief & McDermott, 2026) : le dépôt porte lui-même ses étapes, ses points de validation et ses comptes rendus en fichiers texte, pour un processus auditable et qui vous appartient."
         }
       ]
     }
@@ -281,5 +282,31 @@
   },
   "og": {
     "headline": "Des fonctionnalités d'IA et des logiciels qui sont livrés — et qui rapportent."
+  },
+  "start": {
+    "metaTitle": "Demander un regard gratuit",
+    "metaDescription": "Huit questions courtes, puis un appel. Vous recevez une page sur votre façon de travailler — ce qui relève du logiciel, d'une personne, et ce qui ne vaut pas la peine d'être construit. Gratuit, sans discours commercial.",
+    "eyebrow": "Le regard gratuit",
+    "title": "Dites-moi comment vous travaillez. Je vous dirai par où commencer.",
+    "intro": "Huit questions courtes pour que notre premier appel démarre là où vous en êtes. Après l'appel, vous recevez une page — ce que j'ai vu, à quoi appartient chaque partie du travail, trois choses que je ferais d'abord, et comment je commencerais. Gratuit, et rien n'a encore de prix.",
+    "identityTitle": "Comment vous joindre",
+    "name": "Votre nom",
+    "email": "E-mail",
+    "phone": "Téléphone ou WhatsApp",
+    "phoneHint": "Facultatif — si vous préférez que j'appelle.",
+    "questionsTitle": "À propos de l'activité",
+    "submit": "Envoyer — et réserver l'appel",
+    "submitting": "Envoi…",
+    "successTitle": "Merci — c'est bien reçu.",
+    "successBody": "Je le lis attentivement et je réponds sous un jour ou deux avec quelques créneaux pour l'appel. La page vient ensuite, et elle est gratuite.",
+    "unavailableTitle": "Le formulaire ne se charge pas pour le moment.",
+    "unavailableBody": "Écrivez-moi plutôt — quelques lignes sur l'activité et sur ce qui vous mange la semaine suffisent pour commencer.",
+    "errors": {
+      "name": "Dites-moi votre nom, s'il vous plaît.",
+      "email": "Un e-mail pour que je puisse répondre.",
+      "emailInvalid": "Cet e-mail ne semble pas correct.",
+      "fixFields": "Quelques réponses méritent un coup d'œil.",
+      "failed": "Un problème est survenu à l'envoi. Réessayez, ou écrivez-moi directement."
+    }
   }
 }
