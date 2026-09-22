@@ -28,7 +28,8 @@ import { DealBadges } from "@/components/deal-badges"
 import { FormLinks } from "@/components/form-links"
 import { LeadActionRow } from "@/components/lead-action-row"
 import { LeadContactCard } from "@/components/lead-contact-card"
-import { LeadDealCard } from "@/components/lead-deal-card"
+import { LeadDealCard, type AgreementSuggestion } from "@/components/lead-deal-card"
+import { LeadDealFolder } from "@/components/lead-deal-folder"
 import { LeadDraft } from "@/components/lead-draft"
 import { LeadFactsCard } from "@/components/lead-facts-card"
 import { LeadIntake } from "@/components/lead-intake"
@@ -55,12 +56,18 @@ import {
   isLeadSegmentKey,
   type LeadSegmentKey,
 } from "@/lib/lead-segments"
+import { dealBadge, readDealFolder } from "@/lib/deals"
 import { dealFigure } from "@/lib/leads"
 import { listOnboardingForms } from "@/lib/onboarding"
 import type { SuppressedChannels } from "@/lib/suppression"
 
 export const metadata: Metadata = { title: "Lead" }
-export const dynamic = "force-dynamic"
+// No `dynamic = "force-dynamic"` (2026-09-22): the page is request-time anyway
+// (it awaits `params` and reads Neon through drizzle, not fetch), and the
+// export would set `fetchCache: "force-no-store"` across the segment — which
+// strips the 60-second cache off every GitHub read in `lib/deals.ts` and
+// `lib/onboarding.ts` and re-reads icm-board on every render. `lib/tickets.ts`'s
+// header says how that once 403'd the board.
 
 // How much history the profile reads. A prospect that ran a full cadence has
 // five or six touches; a client three years in could have hundreds, and none
@@ -97,7 +104,7 @@ async function loadLead(id: string) {
   // in Neon) are independent reads — one is what *can* be sent, the other what
   // already was — so they go together rather than in series. The library is
   // scoped to this lead: the house forms, plus any in their own delivery repo.
-  const [rawTasks, rawTouches, formLinks, formLibrary, optOuts] =
+  const [rawTasks, rawTouches, formLinks, formLibrary, optOuts, dealFolder] =
     await Promise.all([
       listOpenTasksForClient(client.id),
       listTouchesForClient(client.id, TOUCH_HISTORY_LIMIT),
@@ -107,6 +114,9 @@ async function loadLead(id: string) {
       // four channels, because every handoff on this page — the action discs,
       // the contact rows — has to know before it draws itself.
       suppressionsForClient(client),
+      // The deal folder in icm-board, when the row names one — the words
+      // beside the state (D24). Null when there is no slug or no token.
+      readDealFolder(client.dealSlug),
     ])
 
   // Every todo here is this lead's, so the rows carry no name and no lead
@@ -198,6 +208,22 @@ async function loadLead(id: string) {
   const parked = client.status === "nurture"
   const nextDate = parked ? client.wakeAt : client.nextActionDue
 
+  // The agreement's figures, offered on the Deal card when the folder has
+  // paper and the row says something else — a prefill Jamie saves, never a
+  // sync (D24). Silent when they already agree, or there is no agreement.
+  const agreement = dealFolder?.agreement ?? null
+  const suggestion: AgreementSuggestion | null =
+    agreement &&
+    agreement.agreedMinor !== null &&
+    (agreement.agreedMinor !== client.valueMinor ||
+      (agreement.recurringMinor ?? 0) !== client.supportMinor)
+      ? {
+          agreedMinor: agreement.agreedMinor,
+          recurringMinor: agreement.recurringMinor,
+          source: `05-agreement.md in ${dealFolder?.engagement ?? "the deal folder"}`,
+        }
+      : null
+
   return {
     client,
     tasks,
@@ -206,6 +232,8 @@ async function loadLead(id: string) {
     formLibrary,
     suppressed,
     channels,
+    dealFolder,
+    suggestion,
     draft,
     replyChannel,
     derivedTier,
@@ -250,6 +278,8 @@ export default async function LeadDetailPage({
     formLibrary,
     suppressed,
     channels,
+    dealFolder,
+    suggestion,
     draft,
     replyChannel,
     derivedTier,
@@ -406,14 +436,32 @@ export default async function LeadDetailPage({
             <LeadDealCard
               client={{
                 id: client.id,
+                name: client.name,
+                dealSlug: client.dealSlug,
                 valueMinor: client.valueMinor,
                 billingType: client.billingType,
                 dealType: client.dealType,
                 barterTerms: client.barterTerms,
                 commissionBps: client.commissionBps,
                 equityBps: client.equityBps,
+                supportMinor: client.supportMinor,
               }}
+              // The folder name follows the repo name's rule, with hyphens:
+              // `clientSlug` gives snake_case for GitHub, deal folders are
+              // kebab-case (workspaces/deals/README.md).
+              proposedSlug={clientSlug(client.name).replace(/_/g, "-")}
+              suggestion={suggestion}
             />
+
+            {/* The words beside the state: what the deal folder in icm-board
+                says, read live, with the badge when it and the rung cannot
+                both be true (D24). Only when the row names a folder. */}
+            {dealFolder ? (
+              <LeadDealFolder
+                folder={dealFolder}
+                badge={dealBadge(client.status, dealFolder)}
+              />
+            ) : null}
 
             {/* Provenance, read once and then never — one folded row at the
                 foot of the record rather than a section of its own. */}
@@ -511,7 +559,7 @@ export default async function LeadDetailPage({
               clientId={client.id}
               clientName={client.name}
               clientEmail={client.email}
-              clientRepo={client.githubRepo}
+              dealSlug={client.dealSlug}
               links={formLinks}
               forms={formLibrary.forms}
               formErrors={formLibrary.errors}
