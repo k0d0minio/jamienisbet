@@ -8,7 +8,7 @@ import { routing } from "@jamie-nisbet/app-shell/i18n"
 // alternates (Google reads alternates.languages, not separate URLs).
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
-  const paths = ["", "/work", ...getCaseStudySlugs().map((slug) => `/work/${slug}`)]
+  const paths = ["", "/start", "/work", ...getCaseStudySlugs().map((slug) => `/work/${slug}`)]
 
   return paths.flatMap((path) =>
     routing.locales.map((locale) => ({
