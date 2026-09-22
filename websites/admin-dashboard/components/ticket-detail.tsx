@@ -29,10 +29,10 @@ export function TicketDetail({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        {!ticket.prompt ? (
+        {!ticket.pickup ? (
           <span className="text-app-footnote text-app-label-3">
             {ticket.kind === "run"
-              ? "A run in flight — the work lives on its branch and PR."
+              ? "A lane run in flight — the operator merges its PR; nothing to pick up."
               : "No prompt section in this ticket."}
           </span>
         ) : (
@@ -51,9 +51,9 @@ export function TicketDetail({
               </Button>
             ) : null}
             <CopyButton
-              value={ticket.prompt}
-              label="Copy prompt"
-              what="Prompt"
+              value={ticket.pickup}
+              label={ticket.pickupKind === "verb" ? "Copy pick-up" : "Copy prompt"}
+              what={ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"}
               className="text-app-footnote"
             />
             {/* The desk-bound twin of the same tap: a local terminal session
@@ -105,6 +105,26 @@ export function TicketDetail({
           </a>
         </span>
       </div>
+
+      {/* Exactly what the buttons above send — the pipeline verb where the
+          repo carries the router, the prompt body where it does not (icm-board
+          decision D26). Said on the ticket so there is never a surprise about
+          which one a tap will paste. */}
+      {ticket.pickup ? (
+        <p className="flex flex-wrap items-baseline gap-x-2 text-app-footnote text-app-label-3">
+          <span>Sends</span>
+          <code className="rounded-xs bg-app-press px-1.5 py-0.5 font-mono text-app-caption text-app-label-2 break-all">
+            {ticket.pickupKind === "verb"
+              ? ticket.pickup
+              : `${ticket.pickup.slice(0, 80)}${ticket.pickup.length > 80 ? "…" : ""}`}
+          </code>
+          {ticket.pickupKind === "verb" ? (
+            <span>— the repo carries the /pipeline router</span>
+          ) : (
+            <span>— the prompt body; this repo has no /pipeline router yet</span>
+          )}
+        </p>
+      ) : null}
 
       {/* The ticket's own header lines — priority, size, depends-on. They are
           machine-written key/value pairs, so the values set in mono the way

@@ -111,7 +111,10 @@ function RepoSectionView({ section }: { section: RepoSection }) {
               batch.next
                 ? {
                     title: batch.next.title,
-                    prompt: batch.next.prompt,
+                    // The verb where the repo carries the router, the prompt
+                    // body where it does not — what "Copy next" puts on the
+                    // clipboard (D26).
+                    prompt: batch.next.pickup,
                     sessionUrl: claudeSessionUrl(batch.next),
                   }
                 : null

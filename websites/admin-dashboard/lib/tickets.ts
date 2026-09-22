@@ -143,6 +143,10 @@ export type TicketRepo = {
    * Null for house/unattributed repos. */
   clientId: string | null
   clientName: string | null
+  /** Carries the `/pipeline` router (`.claude/skills/pipeline/SKILL.md`), so
+   * the board sends the pick-up verb rather than the prompt body (icm-board
+   * decision D26). Probed once per repo on the discovery clock. */
+  pipeline: boolean
 }
 
 // Board order is workflow order: the day's picks, then what's moving, then
@@ -185,6 +189,17 @@ export type Ticket = {
   /** The pasteable `## Prompt` body — synthesized from the path for stubs
    * that don't carry one, so the one-tap pick-up works estate-wide. */
   prompt: string | null
+  /**
+   * What the board actually sends — the copy button, the session link, the
+   * terminal link (icm-board decision D26). Where the repo carries the
+   * `/pipeline` router it is the verb: `/pipeline new <epic>/<slug>` for an
+   * epic stub, `/pipeline <lane> .icm/intake/triage/<slug>.md` for a triage
+   * stub, `/pipeline build|release <slug>` for a run in flight by its stage.
+   * Where it does not, it is the `## Prompt` body as before. Null when there
+   * is nothing to send (a legacy ticket with no prompt, a lane run in flight).
+   */
+  pickup: string | null
+  pickupKind: "verb" | "prompt" | null
   /** The ticket markdown minus its header block, rendered on the board. */
   body: string
 }
@@ -257,10 +272,12 @@ function claudePromptUrl(repoFullName: string, prompt: string): string {
  */
 const PROMPT_MAX_ENCODED_CHARS = 4500
 
-/** A ticket's prompt, URL-encoded — null when absent or past the ceiling. */
+/** What the board sends for a ticket, URL-encoded — null when absent or past
+ * the ceiling. A verb is a few dozen characters and never hits the cap; a
+ * prompt body still can. */
 function encodedTicketPrompt(ticket: Ticket): string | null {
-  if (!ticket.prompt) return null
-  const encoded = encodeURIComponent(ticket.prompt)
+  if (!ticket.pickup) return null
+  const encoded = encodeURIComponent(ticket.pickup)
   return encoded.length > PROMPT_MAX_ENCODED_CHARS ? null : encoded
 }
 
@@ -435,6 +452,8 @@ type Stub = {
   epic: string
   slug: string
   title: string
+  /** The `- lane:` line — a triage stub's consuming lane. */
+  lane: string | null
   priority: string | null
   sequence: number | null
   sequenceTotal: number | null
@@ -495,6 +514,7 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
     epic,
     slug,
     title,
+    lane: fields.get("lane")?.toLowerCase() ?? null,
     priority: priorityToken ? `P${priorityToken[1]}` : null,
     sequence: seqMatch ? Number(seqMatch[1]) : null,
     sequenceTotal: seqMatch ? Number(seqMatch[2]) : null,
@@ -504,6 +524,51 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
     prompt: extractPrompt(lines),
     body: readingBody(lines),
   }
+}
+
+// The lane words a triage stub may carry — the template's own vocabulary
+// (icm-board `lib/project.sh` → pipeline_lanes). A stub outside it gets the
+// prompt body rather than a verb the router would refuse.
+const LANES = new Set(["bug", "tweak", "chore", "hotfix", "handover"])
+
+/**
+ * What the board sends for one ticket (icm-board decision D26). The verb where
+ * the repo carries the router; the `## Prompt` body where it does not, or
+ * where a verb cannot be formed (a triage stub with no valid lane, a legacy
+ * flat ticket). A lane run in flight is the operator's PR to merge and is
+ * never resumed, so it sends nothing.
+ */
+function pickupFor(
+  repo: TicketRepo,
+  ticket: {
+    kind: "stub" | "legacy" | "run"
+    epic?: string | null
+    slug: string
+    lane?: string | null
+    runStage?: "build" | "release" | "lane" | null
+  },
+  prompt: string | null
+): { pickup: string | null; pickupKind: Ticket["pickupKind"] } {
+  if (repo.pipeline) {
+    if (ticket.kind === "stub" && ticket.epic === "triage") {
+      if (ticket.lane && LANES.has(ticket.lane)) {
+        return {
+          pickup: `/pipeline ${ticket.lane} .icm/intake/triage/${ticket.slug}.md`,
+          pickupKind: "verb",
+        }
+      }
+    } else if (ticket.kind === "stub" && ticket.epic) {
+      return { pickup: `/pipeline new ${ticket.epic}/${ticket.slug}`, pickupKind: "verb" }
+    } else if (ticket.kind === "run") {
+      if (ticket.runStage === "lane") return { pickup: null, pickupKind: null }
+      return {
+        pickup: `/pipeline ${ticket.runStage === "release" ? "release" : "build"} ${ticket.slug}`,
+        pickupKind: "verb",
+      }
+    }
+  }
+  if (ticket.kind === "run") return { pickup: null, pickupKind: null }
+  return prompt ? { pickup: prompt, pickupKind: "prompt" } : { pickup: null, pickupKind: null }
 }
 
 /** A pick-up prompt for stubs that don't carry one (sustentus's, mostly), so
@@ -585,6 +650,10 @@ function parseLegacy(
     priority,
     meta,
     prompt: extractPrompt(lines),
+    // Decided per repo once the roster is known — `fetchRepoTickets` fills
+    // these in with `pickupFor` after the parse.
+    pickup: null,
+    pickupKind: null,
     body: readingBody(lines),
   }
 }
@@ -646,6 +715,11 @@ async function fetchRepoTickets(
     const stubPaths: { path: string; epic: string; sha: string }[] = []
     const legacyPaths: { path: string; sha: string }[] = []
     const runSlugs = new Set<string>()
+    // Which stage each run in flight is at, read from which outputs exist —
+    // the same derivation `project-labels.sh --stage auto` makes: Build's
+    // notes.md present → release is next; a `lane/` folder → a lane run, not
+    // resumable; otherwise build is next.
+    const runStages = new Map<string, "build" | "release" | "lane">()
 
     for (const entry of tree) {
       if (entry.type !== "blob") {
@@ -656,8 +730,12 @@ async function fetchRepoTickets(
         const run = entry.path.match(/^\.icm\/runs\/([^/]+)$/)
         if (run && run[1] !== "_done" && repo.slug !== "sustentus")
           runSlugs.add(run[1])
+        const lane = entry.path.match(/^\.icm\/runs\/([^/]+)\/lane$/)
+        if (lane) runStages.set(lane[1], "lane")
         continue
       }
+      const notes = entry.path.match(/^\.icm\/runs\/([^/]+)\/03_build\/output\/notes\.md$/)
+      if (notes && runStages.get(notes[1]) !== "lane") runStages.set(notes[1], "release")
       const m = entry.path.match(/^\.icm\/intake\/(.+)$/)
       if (!m) continue
       const rel = m[1]
@@ -725,6 +803,7 @@ async function fetchRepoTickets(
         openDep && s.blocked === null
           ? [...s.meta, ["Waiting on", openDep]]
           : s.meta
+      const prompt = s.prompt ?? synthesizedPrompt(repo, s.path)
       return {
         repo,
         path: s.path,
@@ -738,12 +817,14 @@ async function fetchRepoTickets(
         sequenceTotal: s.sequenceTotal,
         priority: s.priority,
         meta,
-        prompt: s.prompt ?? synthesizedPrompt(repo, s.path),
+        prompt,
+        ...pickupFor(repo, { kind: "stub", epic: s.epic, slug: s.slug, lane: s.lane }, prompt),
         body: s.body,
       }
     })
 
     for (const slug of [...runSlugs].sort()) {
+      const runStage = runStages.get(slug) ?? "build"
       tickets.push({
         repo,
         path: `.icm/runs/${slug}`,
@@ -756,13 +837,21 @@ async function fetchRepoTickets(
         sequence: null,
         sequenceTotal: null,
         priority: null,
-        meta: [["Run", `.icm/runs/${slug}`]],
+        meta: [
+          ["Run", `.icm/runs/${slug}`],
+          ["Stage", runStage === "lane" ? "lane (the operator merges)" : `${runStage} next`],
+        ],
         prompt: null,
+        ...pickupFor(repo, { kind: "run", slug, runStage }, null),
         body: "",
       })
     }
 
-    tickets.push(...legacyResults.filter((t): t is Ticket => t !== null))
+    tickets.push(
+      ...legacyResults
+        .filter((t): t is Ticket => t !== null)
+        .map((t) => ({ ...t, ...pickupFor(repo, { kind: "legacy", slug: t.id }, t.prompt) }))
+    )
     return { tickets, error: null }
   } catch (err) {
     return {
@@ -857,6 +946,24 @@ type IntakeProbe = "present" | "absent" | { unknown: string }
  * clock, standing in for the recursive tree call the board used to spend on
  * every owned repo whether or not it had ever held a ticket.
  */
+/**
+ * Does this repo carry the `/pipeline` router? One request on the discovery
+ * clock, like the intake probe: it decides whether the board sends the
+ * pick-up verb or the prompt body for every ticket in the repo (D26).
+ */
+async function probeRouter(fullName: string): Promise<boolean> {
+  try {
+    const res = await gh(
+      `/repos/${fullName}/contents/.claude/skills/pipeline/SKILL.md`,
+      "application/vnd.github+json",
+      DISCOVERY_REVALIDATE_SECONDS
+    )
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 async function probeIntake(fullName: string): Promise<IntakeProbe> {
   try {
     const res = await gh(
@@ -911,6 +1018,7 @@ async function loadRoster(): Promise<Roster> {
       slug: fullName.split("/").pop() ?? fullName,
       clientId: client?.clientId ?? null,
       clientName: client?.clientName ?? null,
+      pipeline: false,
     }
   }
 
@@ -938,6 +1046,14 @@ async function loadRoster(): Promise<Roster> {
     repos.push(repo)
     if (probe !== "present") unreadable.push({ repo, message: probe.unknown })
   }
+
+  // The router probe, once per repo on the roster, on the same hourly clock as
+  // discovery — so a repo that gains the pipeline sends verbs within the hour.
+  await Promise.all(
+    repos.map(async (repo) => {
+      repo.pipeline = await probeRouter(repo.fullName)
+    })
+  )
 
   return { repos, unreadable, sweepError: sweep.error }
 }
