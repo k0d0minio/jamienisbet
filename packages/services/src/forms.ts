@@ -1,18 +1,20 @@
 // The shape of a published questionnaire — the contract between the two apps.
 //
-// Questions are content and live in git (`.icm/onboarding/<slug>.md` — in this
-// repo for general forms, in a client's own delivery repo for ones written for
-// them; convention in that folder's README); answers are business state and
-// live in Neon. The
-// bridge between them is the *snapshot*: clicking "Send form" on a lead parses
-// the markdown at that moment and freezes the result into
+// Questions are content and live in git — the house forms in icm-board's
+// `workspaces/sell/references/forms/<slug>.md` (the deal workspace owns them
+// since 2026-09-22; that folder's README carries the grammar), a client's own
+// forms in their delivery repo's `.icm/onboarding/<slug>.md`; answers are
+// business state and live in Neon. The bridge between them is the *snapshot*:
+// clicking "Send form" on a lead (or submitting the portfolio's `/start` page)
+// parses the markdown at that moment and freezes the result into
 // `biz.form_links.form_snapshot`, so a link renders — and its answers stay
 // readable against — exactly the questions that were asked, however the markdown
 // is edited afterwards.
 //
-// The admin dashboard writes these types (its parser produces a FormSnapshot);
-// the portfolio reads them (its public page renders one and validates answers
-// against it). Neither app owns the shape, which is why it lives here.
+// The parser lives beside these types (`./forms-parse.ts`) so both apps run
+// the same one: the dashboard produces snapshots for links, the portfolio
+// renders one for `/start` and validates answers against it. Neither app owns
+// the shape, which is why it lives here.
 
 /** The whole vocabulary. Four field types, deliberately — no conditional logic,
  * no uploads. A form that needs more than this isn't a job for this tool. */
@@ -52,6 +54,12 @@ export type FormSnapshot = {
    * the other half of the provenance.
    */
   sourceRepo?: string | null
+  /**
+   * The file's path inside `sourceRepo` — `workspaces/sell/references/forms/
+   * <slug>.md` for a house form, `.icm/onboarding/<slug>.md` for a client's.
+   * Additive like `sourceRepo`; absent on older snapshots.
+   */
+  sourcePath?: string | null
   title: string
   intro: string
   fields: FormField[]

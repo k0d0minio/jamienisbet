@@ -122,6 +122,13 @@ export const clients = biz.table("clients", {
   billingType: varchar("billing_type", { length: 20 })
     .notNull()
     .default("one_off"),
+  // The monthly support line beside a one-off — the "one-off + support" shape
+  // (icm-board `_system/knowledge/pricing.md` § Support): crash fixes on call
+  // for a build with state, priced by the build's complexity. 0 = none — a
+  // landing page has no ongoing cost, and a client-owned build's ongoing work
+  // is a retainer (`billing_type: monthly`), not this. Counts into the leads
+  // list's */ month* total for active rows.
+  supportMinor: integer("support_minor").notNull().default(0),
 
   // ---- How the deal is settled ----------------------------------------------
   // Not every engagement is paid in euros. `deal_type` says how to read the
@@ -173,6 +180,16 @@ export const clients = biz.table("clients", {
   // null = not yet connected.
   githubRepo: varchar("github_repo", { length: 200 }),
   githubDefaultBranch: varchar("github_default_branch", { length: 100 }),
+
+  // ---- Deal folder -----------------------------------------------------------
+  // Which folder under icm-board's `workspaces/deals/` holds this relationship's
+  // words and documents — the intake verdict, the look, the quote, the proposal,
+  // the agreement, the form-answer snapshots. One home per fact (icm-board
+  // decision D24): the *state* is this row, the *documents* are that folder, and
+  // the dashboard reads the folder live and never writes state from it. Null =
+  // no deal folder (a relationship that predates the workspace, or one that
+  // never opened one). Unique when set: one folder, one relationship.
+  dealSlug: varchar("deal_slug", { length: 80 }).unique(),
 
   // ---- Activity ------------------------------------------------------------
   // When Jamie last worked this relationship — set by status changes and profile
@@ -374,7 +391,9 @@ export const tasks = biz.table("tasks", {
 // customer needs no account to answer, and nothing else has to be minted or
 // kept in step with it. `form_snapshot` is the parsed markdown frozen at send
 // time (see ../forms.ts) — the reason a form already in someone's inbox never
-// changes under them when the file in `.icm/onboarding/` is edited. `answers`
+// changes under them when the markdown (icm-board's
+// `workspaces/sell/references/forms/`, or a client repo's `.icm/onboarding/`)
+// is edited. `answers`
 // is null until they submit; `completed_at` is what makes the link one-shot.
 export const formLinks = biz.table("form_links", {
   id: uuid("id").primaryKey().defaultRandom(),

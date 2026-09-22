@@ -1,10 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@jamie-nisbet/ui"
 import { getTranslations } from "next-intl/server"
-import { FileText, Sparkles } from "lucide-react"
+import { Eye, FileText, Sparkles } from "lucide-react"
 
 import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 
+// The free look leads (icm-board positioning.md): it is the thing anyone can
+// send anyone, at no cost to either side.
 const icons: Record<string, typeof FileText> = {
+  look: Eye,
   landing: FileText,
   bigger: Sparkles,
 }
@@ -26,7 +29,7 @@ export async function WhatYouSell() {
           title={t("title")}
           intro={t("intro")}
         />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {points.map((point) => {
             const Icon = icons[point.key] ?? FileText
             return (

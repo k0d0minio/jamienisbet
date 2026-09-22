@@ -4,6 +4,8 @@ import { useState, useTransition, type ReactNode } from "react"
 import {
   ArrowLeftRight,
   Coins,
+  FolderGit2,
+  LifeBuoy,
   Pencil,
   Percent,
   PieChart,
@@ -55,13 +57,29 @@ import { bpsToPercentInput, formatBps, parsePercentToBps } from "@/lib/percent"
 
 /** The deal columns this card reads and writes, plus the row it writes them
  *  back to. Billing and deal type arrive as the plain strings the Client row
- *  carries; narrowing them is the model's job, not this card's. */
-export type DealDetails = DealTerms & { id: string }
+ *  carries; narrowing them is the model's job, not this card's. `name` is
+ *  only here to propose a deal folder slug; `dealSlug` is which folder under
+ *  icm-board's `workspaces/deals/` this relationship's documents live in. */
+export type DealDetails = DealTerms & {
+  id: string
+  name: string
+  dealSlug: string | null
+}
+
+/** What the deal folder's agreement says the money is, when the folder has
+ *  one — offered on the card as a prefill, never written by it (icm-board
+ *  D24: the row is the state, the folder is the words; Jamie reconciles). */
+export type AgreementSuggestion = {
+  agreedMinor: number | null
+  recurringMinor: number | null
+  /** Where it came from, for the row's hint — "05-agreement.md in berceo-platform". */
+  source: string
+}
 
 /** Which term is being edited. Cash and a swap share one editor because they
  *  share one figure in the model — they are two readings of `valueMinor`, so
  *  at most one of them is ever a term and one editor writes both. */
-type TermKey = "fee" | "equity" | "commission"
+type TermKey = "fee" | "equity" | "commission" | "support" | "folder" | "agreement"
 
 /** How the fee is paid. `billingType` and `dealType` are two columns, but they
  *  answer one question a person actually asks of a fee, so the control asks it
@@ -375,7 +393,227 @@ function PercentEditor({
   )
 }
 
-export function LeadDealCard({ client }: { client: DealDetails }) {
+/** The monthly support line beside a build — "one-off + support" (icm-board
+ *  pricing.md § Support). Not a retainer: a retainer is the fee itself, paid
+ *  monthly. This is what keeps the lights on after handover, priced by the
+ *  build's complexity, and it only makes sense next to a one-off. */
+function SupportEditor({
+  client,
+  pending,
+  onCancel,
+  onCommit,
+}: {
+  client: DealDetails
+  pending: boolean
+  onCancel: () => void
+  onCommit: (formData: FormData) => void
+}) {
+  const [amount, setAmount] = useState(
+    client.supportMinor > 0 ? (client.supportMinor / 100).toFixed(2) : ""
+  )
+  const [error, setError] = useState<string | null>(null)
+
+  function submit() {
+    const trimmed = amount.trim()
+    if (trimmed !== "" && parseAmountToMinor(trimmed) === null) {
+      setError("An amount like 60 or 60.00.")
+      return
+    }
+    setError(null)
+    const formData = new FormData()
+    formData.set("support", trimmed)
+    onCommit(formData)
+  }
+
+  function remove() {
+    const formData = new FormData()
+    formData.set("support", "")
+    onCommit(formData)
+  }
+
+  return (
+    <TermEditor
+      title="Support"
+      removable={client.supportMinor > 0}
+      pending={pending}
+      onCancel={onCancel}
+      onRemove={remove}
+      onSubmit={submit}
+    >
+      <AppField
+        label="Per month (€)"
+        hint="Basic support beside the build: crash fixes on call. Needs the fail-safe page and Sentry wired first."
+        error={error}
+      >
+        <AppInput
+          value={amount}
+          onChange={(event) => setAmount(event.target.value)}
+          inputMode="decimal"
+          autoComplete="off"
+          enterKeyHint="done"
+          placeholder="0.00"
+          autoFocus
+        />
+      </AppField>
+    </TermEditor>
+  )
+}
+
+/** A folder name is a slug: lower-case, digits, single hyphens, ≤ 80. The
+ *  action enforces the same rule; this just tells you before you post. */
+const DEAL_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/** The deal folder — which `workspaces/deals/<slug>/` in icm-board holds this
+ *  relationship's documents. Proposed from the name the same way the delivery
+ *  repo's name is (`clientSlug`, with hyphens where the repo takes
+ *  underscores); Jamie confirms. The dashboard never creates the folder —
+ *  `/client <name>` in icm-board does — it only records which one this row is. */
+function FolderEditor({
+  client,
+  proposed,
+  pending,
+  onCancel,
+  onCommit,
+}: {
+  client: DealDetails
+  proposed: string
+  pending: boolean
+  onCancel: () => void
+  onCommit: (formData: FormData) => void
+}) {
+  const [slug, setSlug] = useState(client.dealSlug ?? proposed)
+  const [error, setError] = useState<string | null>(null)
+
+  function submit() {
+    const trimmed = slug.trim()
+    if (trimmed !== "" && (!DEAL_SLUG.test(trimmed) || trimmed.length > 80)) {
+      setError("Lower-case letters, digits and single hyphens — like alix-hahusseau.")
+      return
+    }
+    setError(null)
+    const formData = new FormData()
+    formData.set("dealSlug", trimmed)
+    onCommit(formData)
+  }
+
+  function remove() {
+    const formData = new FormData()
+    formData.set("dealSlug", "")
+    onCommit(formData)
+  }
+
+  return (
+    <TermEditor
+      title="Deal folder"
+      removable={client.dealSlug !== null}
+      pending={pending}
+      onCancel={onCancel}
+      onRemove={remove}
+      onSubmit={submit}
+    >
+      <AppField
+        label="Folder under workspaces/deals/"
+        hint="The folder in icm-board that holds this relationship's documents. One folder is one relationship — the name must be unused."
+        error={error}
+      >
+        <AppInput
+          value={slug}
+          onChange={(event) => setSlug(event.target.value)}
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          enterKeyHint="done"
+          placeholder={proposed}
+          className="font-mono"
+          autoFocus
+        />
+      </AppField>
+    </TermEditor>
+  )
+}
+
+/** "Use these": the agreement's figures from the deal folder, prefilled into
+ *  one editor so the row can be brought in line with the paper in a tap and a
+ *  Save. Nothing is written until Save — the folder never writes the row. */
+function AgreementEditor({
+  suggestion,
+  pending,
+  onCancel,
+  onCommit,
+}: {
+  suggestion: AgreementSuggestion
+  pending: boolean
+  onCancel: () => void
+  onCommit: (formData: FormData) => void
+}) {
+  const toInput = (minor: number | null) =>
+    minor !== null && minor > 0 ? (minor / 100).toFixed(2) : ""
+  const [amount, setAmount] = useState(toInput(suggestion.agreedMinor))
+  const [support, setSupport] = useState(toInput(suggestion.recurringMinor))
+  const [error, setError] = useState<string | null>(null)
+
+  function submit() {
+    const a = amount.trim()
+    const s = support.trim()
+    if ((a !== "" && parseAmountToMinor(a) === null) || (s !== "" && parseAmountToMinor(s) === null)) {
+      setError("Amounts like 2500 or 2500.00.")
+      return
+    }
+    setError(null)
+    const formData = new FormData()
+    formData.set("value", a)
+    formData.set("billingType", "one_off")
+    formData.set("dealType", "cash")
+    formData.set("support", s)
+    onCommit(formData)
+  }
+
+  return (
+    <TermEditor
+      title={`From ${suggestion.source}`}
+      removable={false}
+      pending={pending}
+      onCancel={onCancel}
+      onRemove={() => undefined}
+      onSubmit={submit}
+    >
+      <AppField label="Agreed (€, one-off)" error={error}>
+        <AppInput
+          value={amount}
+          onChange={(event) => setAmount(event.target.value)}
+          inputMode="decimal"
+          autoComplete="off"
+          enterKeyHint="next"
+          placeholder="0.00"
+          autoFocus
+        />
+      </AppField>
+      <AppField label="Support per month (€)" hint="The agreement's recurring line; blank for none.">
+        <AppInput
+          value={support}
+          onChange={(event) => setSupport(event.target.value)}
+          inputMode="decimal"
+          autoComplete="off"
+          enterKeyHint="done"
+          placeholder="0.00"
+        />
+      </AppField>
+    </TermEditor>
+  )
+}
+
+export function LeadDealCard({
+  client,
+  proposedSlug,
+  suggestion = null,
+}: {
+  client: DealDetails
+  /** What the folder would be called if it followed the name — `clientSlug`
+   *  with hyphens. Computed on the server so the card carries no slug logic. */
+  proposedSlug: string
+  /** The folder's agreement, when it has one and it disagrees with the row. */
+  suggestion?: AgreementSuggestion | null
+}) {
   const [editing, setEditing] = useState<TermKey | null>(null)
   const [picking, setPicking] = useState(false)
   const [feeIntent, setFeeIntent] = useState<PaidHow | null>(null)
@@ -384,7 +622,10 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
   const terms = dealTermsOf(client)
   const feeSlotFree = terms.cash === null && terms.barter === null
   const empty =
-    feeSlotFree && terms.equity === null && terms.commission === null
+    feeSlotFree &&
+    terms.equity === null &&
+    terms.commission === null &&
+    terms.support === null
 
   // One term at a time, through the same scoped action every editor posts to.
   // The editor stays open on a failure, holding what was typed, because the
@@ -457,12 +698,49 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
       hint: "A cut of their revenue",
     })
   }
+  // Support only makes sense beside a one-off build — a retainer already
+  // pays monthly, and a swap has nothing to keep the lights on for.
+  if (terms.support === null && terms.barter === null && terms.cash?.billingType !== "monthly") {
+    available.push({
+      key: "support",
+      intent: null,
+      icon: <LifeBuoy />,
+      label: "Support",
+      hint: "A monthly line beside the build — crash fixes on call",
+    })
+  }
 
   return (
     <GroupedSection
       header="Deal"
-      footer="Your own record of what was agreed — any combination of a fee, a swap, a stake and a cut. Stripe stays the authority on what was invoiced and paid."
+      footer="Your own record of what was agreed — any combination of a fee, a swap, a stake, a cut and a support line. Stripe stays the authority on what was invoiced and paid; the deal folder in icm-board holds the words."
     >
+      {/* The agreement's figures, offered when the folder has paper and the
+          row says something else. A prefill, not a sync: Save is yours. */}
+      {suggestion && editing === null && !picking ? (
+        <GroupedRow
+          icon={<FolderGit2 />}
+          label="Use the agreement's figures"
+          description={[
+            suggestion.agreedMinor !== null ? formatMoney(suggestion.agreedMinor, "eur") : null,
+            suggestion.recurringMinor ? `${formatMoney(suggestion.recurringMinor, "eur")}/mo support` : null,
+          ]
+            .filter(Boolean)
+            .join(" + ") || suggestion.source}
+          chevron={false}
+          variant="tint"
+          onClick={() => openEditor("agreement")}
+        />
+      ) : null}
+      {editing === "agreement" ? (
+        <AgreementEditor
+          suggestion={suggestion ?? { agreedMinor: null, recurringMinor: null, source: "the deal folder" }}
+          pending={pending}
+          onCancel={cancel}
+          onCommit={commit}
+        />
+      ) : null}
+
       {/* The fee, in whichever of its two readings this deal uses. */}
       {editing === "fee" ? (
         <FeeEditor
@@ -550,6 +828,26 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
         />
       ) : null}
 
+      {editing === "support" ? (
+        <SupportEditor
+          client={client}
+          pending={pending}
+          onCancel={cancel}
+          onCommit={commit}
+        />
+      ) : terms.support ? (
+        <TermRow
+          icon={<LifeBuoy />}
+          label="Support"
+          onEdit={() => openEditor("support")}
+          value={
+            <span className="font-mono">
+              {formatMoney(terms.support.valueMinor, "eur")}/mo
+            </span>
+          }
+        />
+      ) : null}
+
       {/* Nothing agreed yet is a fact about the relationship, not a gap — so
           it is said plainly and the way out of it sits directly under it. */}
       {empty && editing === null && !picking ? (
@@ -558,6 +856,31 @@ export function LeadDealCard({ client }: { client: DealDetails }) {
           the company, a cut of their revenue — and one of them is enough.
         </GroupedBlock>
       ) : null}
+
+      {/* Where the words live. Always a row, even unset: a relationship with
+          no folder is a fact worth seeing, and the way to fix it is the tap. */}
+      {editing === "folder" ? (
+        <FolderEditor
+          client={client}
+          proposed={proposedSlug}
+          pending={pending}
+          onCancel={cancel}
+          onCommit={commit}
+        />
+      ) : (
+        <TermRow
+          icon={<FolderGit2 />}
+          label="Deal folder"
+          onEdit={() => openEditor("folder")}
+          value={
+            client.dealSlug ? (
+              <span className="font-mono">{client.dealSlug}</span>
+            ) : (
+              <span className="text-app-label-3">None — propose {proposedSlug}</span>
+            )
+          }
+        />
+      )}
 
       {editing === null && picking ? (
         <>

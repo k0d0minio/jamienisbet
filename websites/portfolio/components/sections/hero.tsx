@@ -36,9 +36,11 @@ export async function Hero() {
               {t("intro")}
             </RevealItem>
             <RevealItem className="mt-2 flex flex-wrap items-center gap-3">
+              {/* The primary call to action is the free look — every project
+                  starts there (icm-board positioning.md § The three verbs). */}
               <Button asChild size="lg">
-                <Link href="/#contact">
-                  {t("startProject")}
+                <Link href="/start">
+                  {t("freeLook")}
                   <ArrowRight />
                 </Link>
               </Button>

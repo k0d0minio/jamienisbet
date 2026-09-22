@@ -26,18 +26,18 @@
   },
   "hero": {
     "title": "Get your time back. I build the software that runs the busywork for you.",
-    "intro": "I'm Jamie — a senior engineer who works with you directly. I build websites, automation, and AI that take the admin off your plate, then keep working as you grow.",
-    "startProject": "Start a project",
-    "seeWork": "See the work"
+    "intro": "I'm Jamie — a senior engineer who works with you directly. Every project starts with a free look at how you work today. No pitch, no invoice.",
+    "seeWork": "See the work",
+    "freeLook": "Get a free look"
   },
   "problems": {
     "eyebrow": "What can I help with?",
     "title": "Start with what's slowing you down.",
     "intro": "Most people come to me with one of three problems. Tell me which one sounds like you — I'll show you what I'd do about it.",
     "coversLabel": "This covers",
-    "cta": "Start this project",
+    "cta": "Get a free look",
     "aiAsideLead": "Not sure AI is even worth it for you?",
-    "aiAsideLink": "Ask me — I'll be straight with you.",
+    "aiAsideLink": "Get a free look — I'll tell you what belongs to software, what belongs to a person, and what isn't worth building.",
     "items": {
       "busywork": {
         "title": "Take the busywork off my plate",
@@ -59,16 +59,16 @@
     "intro": "Three steps from your first message to a working result.",
     "steps": [
       {
-        "title": "We talk",
-        "description": "You tell me what you're trying to do, in plain words. I ask a few questions and tell you honestly whether I'm the right person to help."
+        "title": "Look, then sort",
+        "description": "A call, then a one-page look at how you work: what could run itself, what needs a person, what's worth an assistant, and what not to build."
       },
       {
-        "title": "You get a fixed quote",
-        "description": "A clear scope and a clear price before anything starts — usually with options, so you pick what fits your budget. No hidden line items."
+        "title": "Build what makes sense",
+        "description": "Fixed scope, fixed price, three options to choose between — and the person on the call is the person who builds it."
       },
       {
-        "title": "I build it",
-        "description": "You deal with the person writing the code, so decisions are quick. You stay in the loop, and the finished work is yours to keep — no lock-in."
+        "title": "Hand it over, governed",
+        "description": "You own the code, the accounts and the repository — with its own way of working inside it, so your team or any developer can carry on."
       }
     ]
   },
@@ -82,7 +82,7 @@
       },
       {
         "q": "What will it cost?",
-        "a": "My standard rate is €120/hour, but most work is quoted as a fixed price for the scope — with options — so you know the number before we start."
+        "a": "Most work is a fixed price for the scope, with three options so you pick what fits. It starts with a free look, and for larger or messier systems a short paid diagnostic first — credited against the build."
       },
       {
         "q": "What if I want changes later?",
@@ -187,10 +187,7 @@
   "contact": {
     "eyebrow": "Contact",
     "title": "Let's talk about your project.",
-    "intro": "Tell me what you're trying to do. I'll reply within a day or two with a few questions or, if it's a fit, a way forward. No hard sell.",
-    "rateLead": "My standard rate is",
-    "rateAmount": "€120/hour",
-    "rateTrail": ", usually quoted as a fixed price for the scope — with options, so you can pick what fits."
+    "intro": "Tell me what you're trying to do. I'll reply within a day or two with a few questions or, if it's a fit, a way forward. No hard sell."
   },
   "form": {
     "name": "Name",
@@ -248,6 +245,10 @@
         {
           "title": "Shipped, not demoed",
           "description": "Accessible, fast, tested, and observable in production. I optimise for the thing still running in a year, not the thing that demos well next week."
+        },
+        {
+          "title": "A method you can read",
+          "description": "Built on the Model Workspace Protocol (Van Clief & McDermott, 2026): the repository carries its own stages, gates and records as plain files, so the process is auditable and yours."
         }
       ]
     }
@@ -281,5 +282,31 @@
   },
   "og": {
     "headline": "AI features and software that ship — and earn their keep."
+  },
+  "start": {
+    "metaTitle": "Get a free look",
+    "metaDescription": "Eight short questions, then a call. You get a one-page look at how you work — what belongs to software, what belongs to a person, and what isn't worth building. Free, no pitch.",
+    "eyebrow": "The free look",
+    "title": "Tell me how you work. I'll tell you where to start.",
+    "intro": "Eight short questions so our first call starts where you are. After the call you get one page — what I saw, where each part of the work belongs, three things I'd do first, and how I'd start. Free, and nothing has a price yet.",
+    "identityTitle": "How to reach you",
+    "name": "Your name",
+    "email": "Email",
+    "phone": "Phone or WhatsApp",
+    "phoneHint": "Optional — if you'd rather I call.",
+    "questionsTitle": "About the business",
+    "submit": "Send — and book the call",
+    "submitting": "Sending…",
+    "successTitle": "Thanks — that's in.",
+    "successBody": "I'll read it properly and reply within a day or two with a couple of times for the call. The page comes after that, and it's free.",
+    "unavailableTitle": "The form isn't loading right now.",
+    "unavailableBody": "Email me instead — a few lines about the business and what eats your week is plenty to start.",
+    "errors": {
+      "name": "Please tell me your name.",
+      "email": "An email so I can reply.",
+      "emailInvalid": "That email doesn't look right.",
+      "fixFields": "A couple of answers need a look.",
+      "failed": "Something went wrong sending this. Please try again, or email me directly."
+    }
   }
 }

@@ -46,7 +46,7 @@ export type SentLink = { id: string; title: string; url: string }
 export function SendFormControl({
   clientId,
   forms,
-  // Files in `.icm/onboarding/` that wouldn't parse, or a repo that couldn't be
+  // Questionnaire files that wouldn't parse, or a repo that couldn't be
   // read. Shown here rather than swallowed: a questionnaire missing from the
   // picker with no explanation is the kind of thing you rediscover months later.
   formErrors,
@@ -81,13 +81,15 @@ export function SendFormControl({
     <div className="flex flex-col gap-3">
       {forms.length === 0 ? (
         <p className="text-app-subhead text-app-label-3">
-          No questionnaires to send. They live in{" "}
+          No questionnaires to send. The house ones live in icm-board&apos;s{" "}
+          <code className="rounded-xs bg-app-press px-1 py-0.5 text-app-caption">
+            workspaces/sell/references/forms/
+          </code>
+          , a client&apos;s own in their delivery repo&apos;s{" "}
           <code className="rounded-xs bg-app-press px-1 py-0.5 text-app-caption">
             .icm/onboarding/
-          </code>{" "}
-          — in this repo for general ones, or in this lead&apos;s connected
-          delivery repo for ones written for them. Add a markdown file to either
-          and it shows up here.
+          </code>
+          . Add a markdown file to either and it shows up here.
         </p>
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

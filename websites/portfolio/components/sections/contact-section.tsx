@@ -35,11 +35,6 @@ export async function ContactSection() {
             </span>
           </div>
 
-          <p className="mt-2 rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-            {t("rateLead")}{" "}
-            <span className="font-medium text-foreground">{t("rateAmount")}</span>
-            {t("rateTrail")}
-          </p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6 sm:p-8">

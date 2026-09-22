@@ -14,7 +14,11 @@ import { z } from "zod"
 // inbox; the form shows a translated label for each (see dict.form.budgetOptions).
 export const budgetOptions = [
   "Not sure yet",
-  "~€200 — landing page",
+  // The floor is €500 everywhere (icm-board pricing.md, 2026-09-22) — the
+  // landing page is priced *from* it. Rows stored before this carry the old
+  // "~€200 — landing page" string; the dashboard maps it on display
+  // (components/lead-intake.tsx), nothing rewrites it.
+  "~€500 — landing page",
   "€500–€1,000",
   "€1,000–€5,000",
   "€5,000+",

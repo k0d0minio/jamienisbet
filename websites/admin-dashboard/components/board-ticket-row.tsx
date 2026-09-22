@@ -50,8 +50,10 @@ export function BoardTicketRow({
 }) {
   const [open, setOpen] = useState(false)
 
-  // Bound to a const so the narrowing survives into the tray's closure.
-  const prompt = ticket.prompt
+  // What the board sends for this ticket — the pipeline verb where the repo
+  // carries the router, the prompt body otherwise (D26). Bound to a const so
+  // the narrowing survives into the tray's closure.
+  const prompt = ticket.pickup
 
   const icon = "size-6" // tray icons read at a glance mid-swipe
 

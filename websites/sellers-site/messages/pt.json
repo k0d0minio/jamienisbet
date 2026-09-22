@@ -52,7 +52,7 @@
       {
         "key": "pay",
         "title": "O cliente paga",
-        "description": "O cliente paga a minha fatura pelo trabalho. As landing pages simples começam em €200; projetos maiores são orçamentados à medida."
+        "description": "O cliente paga a minha fatura pelo trabalho. As landing pages simples começam em €500; projetos maiores são orçamentados à medida."
       },
       {
         "key": "payout",
@@ -64,12 +64,17 @@
   "whatYouSell": {
     "eyebrow": "O que vendes",
     "title": "Vende o simples. O resto passas-me a mim.",
-    "intro": "Landing pages que podes orçamentar tu mesmo, a partir de €200. Qualquer coisa maior, basta apresentares-me — continuas a ganhar os teus 10%.",
+    "intro": "Manda-os primeiro para um olhar gratuito — sem custo para eles, sem venda da tua parte. A landing page a partir de €500 é o que podes orçamentar tu mesmo; qualquer coisa maior, basta apresentares-me. Os teus 10% aplicam-se nos dois casos.",
     "points": [
+      {
+        "key": "look",
+        "title": "Conheces um negócio afogado em burocracia? Manda-o para um olhar gratuito",
+        "description": "Sem custo para eles, sem venda da tua parte: uma chamada comigo, depois uma página sobre o que pertence ao software, a uma pessoa, e o que não vale a pena construir. Se der em trabalho, os teus 10% aplicam-se."
+      },
       {
         "key": "landing",
         "title": "Landing page + formulário de contacto",
-        "description": "A venda fácil: um site de uma página, limpo e rápido, com formulário de contacto, a partir de €200. Podes orçamentar tu mesmo qualquer valor igual ou superior a €200 — sem precisares de aprovação."
+        "description": "A venda fácil: um site de uma página, limpo e rápido, com formulário de contacto, a partir de €500. Podes orçamentar tu mesmo qualquer valor igual ou superior a €500 — sem precisares de aprovação."
       },
       {
         "key": "bigger",
@@ -108,13 +113,13 @@
       "key": "whatsapp",
       "channel": "WhatsApp",
       "title": "Apresentação rápida por WhatsApp",
-      "body": "Olá! Disseste que precisavas de um site para o negócio — conheço a pessoa certa. O Jamie faz sites limpos e rápidos a partir de €200 e trata de tudo por ti. Queres que vos apresente? Aqui fica a página dele: {link}"
+      "body": "Olá! Disseste que a burocracia te comia a semana — conheço a pessoa certa. O Jamie dá um olhar gratuito à forma como trabalhas e diz-te o que vale a pena construir (e o que não vale); sites simples começam em €500 e ele trata de tudo. Queres que vos apresente? Aqui fica a página dele: {link}"
     },
     {
       "key": "email",
       "channel": "Email",
       "title": "Apresentação calorosa por email",
-      "body": "Olá [nome],\n\nA seguir ao que disseste sobre precisares de um site — trabalho com o Jamie Nisbet, um engenheiro de software perto de Lisboa que faz sites rápidos e profissionais e trata de tudo. Sites de uma página começam em €200; projetos maiores são orçamentados à medida.\n\nPodes saber mais e contactá-lo aqui: {link}\n\nFico feliz por vos apresentar diretamente — é só dizeres."
+      "body": "Olá [nome],\n\nA seguir ao que disseste sobre a burocracia — trabalho com o Jamie Nisbet, um engenheiro de software perto de Lisboa. Começa com um olhar gratuito à forma como um negócio funciona e depois constrói o que faz sentido a preço fixo. Sites de uma página começam em €500; projetos maiores são orçamentados à medida.\n\nPodes saber mais e contactá-lo aqui: {link}\n\nFico feliz por vos apresentar diretamente — é só dizeres."
     },
     {
       "key": "inperson",
@@ -146,7 +151,7 @@
   "objections": [
     {
       "objection": "“É demasiado caro.”",
-      "answer": "Um site de uma página começa em €200, uma vez, e funciona durante anos. Compara isso com os clientes que um negócio perde sem site — ou com um site avariado. Se €200 ainda for demais, provavelmente não é a altura certa, e não há problema nenhum."
+      "answer": "Um site de uma página começa em €500, uma vez, e funciona durante anos. Compara isso com os clientes que um negócio perde sem site — ou com um site avariado. Se €500 ainda for demais, o olhar gratuito não custa nada e diz se um site é sequer o primeiro passo certo."
     },
     {
       "objection": "“Eu faço sozinho no Wix.”",
@@ -169,7 +174,7 @@
     {
       "key": "landing",
       "name": "Landing page + formulário de contacto",
-      "price": "a partir de €200",
+      "price": "a partir de €500",
       "blurb": "A primeira venda fácil — uma página limpa e rápida que cumpre o seu papel.",
       "includes": [
         "Carrega rápido, fica bem no telemóvel",
@@ -177,7 +182,7 @@
         "O logótipo, as cores e os textos deles, configurados como deve ser",
         "No ar, no domínio deles, pronto a partilhar"
       ],
-      "sellerNote": "Orçamenta tu mesmo a partir de €200 — sem precisar de aprovação."
+      "sellerNote": "Orçamenta tu mesmo a partir de €500 — sem precisar de aprovação."
     },
     {
       "key": "multipage",
@@ -216,8 +221,8 @@
   "earningExamples": [
     {
       "work": "Site de uma página + formulário de contacto",
-      "invoice": "€200",
-      "youEarn": "€20"
+      "invoice": "€500",
+      "youEarn": "€50"
     },
     {
       "work": "Site de pequeno negócio, algumas páginas",
@@ -241,7 +246,7 @@
     },
     {
       "q": "O que posso orçamentar sozinho?",
-      "a": "Landing pages com formulário de contacto, a €200 ou mais — orçamenta essas à vontade. Qualquer coisa mais complexa (várias páginas, uma aplicação, IA, integrações), basta apresentares-me e eu orçamento."
+      "a": "Landing pages com formulário de contacto, a €500 ou mais — orçamenta essas à vontade. Qualquer coisa mais complexa (várias páginas, uma aplicação, IA, integrações), basta apresentares-me e eu orçamento. E o olhar gratuito podes sempre oferecer: não lhes custa nada."
     },
     {
       "q": "Tenho de perceber de tecnologia?",
@@ -291,7 +296,7 @@
     "submitting": "A enviar…",
     "budgetOptions": {
       "Not sure yet": "Ainda não sei",
-      "~€200 — landing page": "~€200 — landing page",
+      "~€500 — landing page": "~€500 — landing page",
       "€500–€1,000": "€500–€1.000",
       "€1,000–€5,000": "€1.000–€5.000",
       "€5,000+": "€5.000+"
@@ -338,8 +343,8 @@
     "stepsTitle": "Como funciona",
     "steps": [
       {
-        "title": "Falamos",
-        "description": "Dez minutos sobre o que precisa e para quem é."
+        "title": "Primeiro, um olhar gratuito",
+        "description": "Uma chamada curta, depois uma página sobre a forma como trabalha: o que podia correr sozinho, o que precisa de uma pessoa, o que merece um assistente, o que não construir. Gratuito."
       },
       {
         "title": "Defino e dou o preço",

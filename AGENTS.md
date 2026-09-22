@@ -50,7 +50,7 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 | Deployment, Vercel Root Directories, build skipping | [`websites/README.md`](websites/README.md) § Deployment |
 | CI, DB migrations | [`.github/workflows/`](.github/workflows/) |
 | Plan or track engineering work on **this** repo | stubs in [`.icm/intake/`](.icm/intake/) — epics + triage, identity is the path — contract in [its README](.icm/intake/README.md) |
-| Customer questionnaires / onboarding forms (questions only — answers live in Neon) | [`.icm/onboarding/`](.icm/onboarding/) for house forms; a client's own `.icm/onboarding/` for theirs |
+| Customer questionnaires / onboarding forms (questions only — answers live in Neon) | the house forms live in **icm-board**, `workspaces/sell/references/forms/` (the deal workspace owns them); a client's own `.icm/onboarding/` in their delivery repo for theirs |
 | Daily business todos / compliance deadlines | the dashboard's **Needs you** feed at `/` — its Overdue section (`biz.tasks` + `biz.compliance_dates`) |
 | How repos are structured · the ticket/project/lens contracts · `/project` `/day` `/icm-check` | the **`icm-board`** repo — not here |
 

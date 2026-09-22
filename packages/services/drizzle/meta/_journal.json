@@ -169,6 +169,13 @@
       "when": 1788188056463,
       "tag": "0023_flag_pool_web_presence_unknown",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790089073786,
+      "tag": "0024_deal_slug_and_support",
+      "breakpoints": true
     }
   ]
 }

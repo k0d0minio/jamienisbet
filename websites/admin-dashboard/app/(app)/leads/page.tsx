@@ -29,6 +29,7 @@ import { ClientActions } from "@/components/client-actions"
 import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { DealBadges } from "@/components/deal-badges"
+import { DealStageChip } from "@/components/deal-stage-chip"
 import { LeadRow } from "@/components/lead-row"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
@@ -49,10 +50,17 @@ import {
   wakeLine,
   whoLabel,
 } from "@/lib/leads"
+import { dealStages } from "@/lib/deals"
 import { formatMoney } from "@/lib/money"
 
 export const metadata: Metadata = { title: "Leads" }
-export const dynamic = "force-dynamic"
+// No `dynamic = "force-dynamic"` here any more (2026-09-22). Awaiting
+// `searchParams` already makes this request-time, and the export cost the deal
+// folder reads their cache: force-dynamic sets `fetchCache: "force-no-store"`
+// across the segment, which overrides the 60-second revalidate on every
+// GitHub read in `lib/deals.ts` — see the header of `lib/tickets.ts` for how
+// that once 403'd the board. Neon is read through drizzle, not fetch, and is
+// live either way.
 
 // Every lead and client in a single inset grouped list, longest-waiting first
 // (the sort is done in the query).
@@ -240,6 +248,13 @@ function totals(rows: Client[]) {
       pipeline += cash.valueMinor
     }
   }
+  // The support line beside a one-off ("one-off + support") is recurring
+  // revenue too, once the engagement is on — counted here, not as pipeline.
+  for (const row of rows) {
+    if (isActiveClient(row) && row.dealType !== "barter" && row.supportMinor > 0) {
+      monthly += row.supportMinor
+    }
+  }
   return { pipeline, monthly, inKind }
 }
 
@@ -283,6 +298,9 @@ export default async function LeadsPage({
     : "all"
 
   const { now, rows, error } = await loadLeads(archived)
+  // Where each deal folder stands, for the rows that name one — one tree read
+  // of icm-board plus one DEAL.md per slug, cached a minute (lib/deals.ts).
+  const stages = await dealStages(rows.map((row) => row.dealSlug))
 
   // One read, split in two: the cold pool on one side, everything that is an
   // actual relationship on the other. Only the side this view is about is ever
@@ -636,11 +654,16 @@ export default async function LeadsPage({
                               the term the figure above already named. A
                               prospect has no deal to badge. */}
                           {rowCold ? null : (
-                            <DealBadges
-                              client={row}
-                              omit={figure?.kind}
-                              className="mt-1"
-                            />
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              {/* Where the deal folder says the engagement
+                                  stands — read from icm-board, beside the
+                                  rung this row carries (D24). */}
+                              {(() => {
+                                const stage = row.dealSlug ? stages.get(row.dealSlug) : undefined
+                                return stage ? <DealStageChip stage={stage} /> : null
+                              })()}
+                              <DealBadges client={row} omit={figure?.kind} />
+                            </div>
                           )}
                         </ViewTransitionLink>
 

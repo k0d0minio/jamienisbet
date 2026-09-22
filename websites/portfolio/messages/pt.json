@@ -26,18 +26,18 @@
   },
   "hero": {
     "title": "Recupere o seu tempo. Eu construo o software que trata da azáfama por si.",
-    "intro": "Sou o Jamie — um engenheiro sénior a trabalhar diretamente consigo. Crio sites, automação e IA que lhe tiram a parte administrativa de cima e continuam a trabalhar à medida que cresce.",
-    "startProject": "Iniciar um projeto",
-    "seeWork": "Ver trabalho"
+    "intro": "Sou o Jamie — um engenheiro sénior a trabalhar diretamente consigo. Cada projeto começa com um olhar gratuito sobre a forma como trabalha hoje. Sem discurso de venda, sem fatura.",
+    "seeWork": "Ver trabalho",
+    "freeLook": "Pedir um olhar gratuito"
   },
   "problems": {
     "eyebrow": "Em que posso ajudar?",
     "title": "Comece pelo que o está a atrasar.",
     "intro": "A maioria das pessoas procura-me com um de três problemas. Diga-me qual se parece consigo — mostro-lhe o que faria a respeito.",
     "coversLabel": "Isto abrange",
-    "cta": "Iniciar este projeto",
+    "cta": "Pedir um olhar gratuito",
     "aiAsideLead": "Não tem a certeza se a IA vale a pena para si?",
-    "aiAsideLink": "Pergunte-me — serei franco.",
+    "aiAsideLink": "Peça um olhar gratuito — digo-lhe o que pertence ao software, o que pertence a uma pessoa, e o que não vale a pena construir.",
     "items": {
       "busywork": {
         "title": "Tire-me a azáfama de cima",
@@ -59,16 +59,16 @@
     "intro": "Três passos entre a sua primeira mensagem e um resultado que funciona.",
     "steps": [
       {
-        "title": "Conversamos",
-        "description": "Diz-me o que está a tentar fazer, por palavras simples. Faço algumas perguntas e digo-lhe honestamente se sou a pessoa certa para ajudar."
+        "title": "Olhar, depois separar",
+        "description": "Uma chamada, depois uma página sobre a forma como trabalha: o que podia correr sozinho, o que precisa de uma pessoa, o que merece um assistente, e o que não construir."
       },
       {
-        "title": "Recebe um preço fixo",
-        "description": "Um âmbito claro e um preço claro antes de qualquer coisa começar — normalmente com opções, para escolher o que cabe no seu orçamento. Sem rubricas escondidas."
+        "title": "Construir o que faz sentido",
+        "description": "Âmbito fixo, preço fixo, três opções à escolha — e a pessoa na chamada é a pessoa que constrói."
       },
       {
-        "title": "Eu construo",
-        "description": "Lida com a pessoa que escreve o código, por isso as decisões são rápidas. Mantém-se a par, e o trabalho final é seu para guardar — sem dependências."
+        "title": "Entregar, com regras",
+        "description": "O código, as contas e o repositório são seus — com a sua própria forma de trabalhar lá dentro, para que a sua equipa ou qualquer programador possa continuar."
       }
     ]
   },
@@ -82,7 +82,7 @@
       },
       {
         "q": "Quanto vai custar?",
-        "a": "A minha tarifa habitual é de €120/hora, mas a maioria do trabalho é apresentada como preço fixo para o âmbito — com opções — para que saiba o valor antes de começarmos."
+        "a": "A maioria do trabalho é um preço fixo para o âmbito, com três opções para escolher o que cabe. Começa com um olhar gratuito e, para sistemas maiores ou mais confusos, um pequeno diagnóstico pago primeiro — descontado na construção."
       },
       {
         "q": "E se quiser alterações mais tarde?",
@@ -187,10 +187,7 @@
   "contact": {
     "eyebrow": "Contacto",
     "title": "Vamos falar sobre o seu projeto.",
-    "intro": "Diga-me o que está a tentar fazer. Respondo no prazo de um ou dois dias com algumas perguntas ou, se fizer sentido, um caminho a seguir. Sem pressões de venda.",
-    "rateLead": "A minha tarifa habitual é de",
-    "rateAmount": "€120/hora",
-    "rateTrail": ", normalmente apresentada como preço fixo para o âmbito — com opções, para escolher o que lhe convém."
+    "intro": "Diga-me o que está a tentar fazer. Respondo no prazo de um ou dois dias com algumas perguntas ou, se fizer sentido, um caminho a seguir. Sem pressões de venda."
   },
   "form": {
     "name": "Nome",
@@ -248,6 +245,10 @@
         {
           "title": "Entregue, não só demonstrado",
           "description": "Acessível, rápido, testado e observável em produção. Otimizo para o que ainda estará a funcionar daqui a um ano, não para o que faz boa demonstração para a semana."
+        },
+        {
+          "title": "Um método que consegue ler",
+          "description": "Construído sobre o Model Workspace Protocol (Van Clief & McDermott, 2026): o repositório carrega as suas próprias etapas, pontos de validação e registos em ficheiros de texto, para que o processo seja auditável e seu."
         }
       ]
     }
@@ -281,5 +282,31 @@
   },
   "og": {
     "headline": "Funcionalidades de IA e software que são entregues — e que compensam."
+  },
+  "start": {
+    "metaTitle": "Pedir um olhar gratuito",
+    "metaDescription": "Oito perguntas curtas, depois uma chamada. Recebe uma página sobre a forma como trabalha — o que pertence ao software, o que pertence a uma pessoa, e o que não vale a pena construir. Gratuito, sem discurso de venda.",
+    "eyebrow": "O olhar gratuito",
+    "title": "Diga-me como trabalha. Eu digo-lhe por onde começar.",
+    "intro": "Oito perguntas curtas para que a nossa primeira chamada comece onde está. Depois da chamada recebe uma página — o que vi, a que parte pertence cada pedaço do trabalho, três coisas que faria primeiro, e como começaria. Gratuito, e nada tem ainda um preço.",
+    "identityTitle": "Como o contactar",
+    "name": "O seu nome",
+    "email": "E-mail",
+    "phone": "Telefone ou WhatsApp",
+    "phoneHint": "Opcional — se preferir que lhe ligue.",
+    "questionsTitle": "Sobre o negócio",
+    "submit": "Enviar — e marcar a chamada",
+    "submitting": "A enviar…",
+    "successTitle": "Obrigado — recebido.",
+    "successBody": "Vou ler com atenção e respondo num dia ou dois com algumas horas para a chamada. A página vem depois, e é gratuita.",
+    "unavailableTitle": "O formulário não está a carregar neste momento.",
+    "unavailableBody": "Escreva-me antes — umas linhas sobre o negócio e sobre o que lhe come a semana chegam para começar.",
+    "errors": {
+      "name": "Diga-me o seu nome, por favor.",
+      "email": "Um e-mail para eu poder responder.",
+      "emailInvalid": "Esse e-mail não parece correto.",
+      "fixFields": "Algumas respostas precisam de um olhar.",
+      "failed": "Algo correu mal no envio. Tente outra vez, ou escreva-me diretamente."
+    }
   }
 }

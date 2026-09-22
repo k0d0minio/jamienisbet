@@ -339,17 +339,18 @@ Prospection used to happen over email, which meant the answers lived in an inbox
 the lead. The **Forms** card on a profile fixes that: pick a questionnaire, hit **Send form**,
 and paste the link it gives you into an email you write yourself.
 
-- **Questions are content, answers are business state.** The questionnaires are markdown files
-  in [`.icm/onboarding/`](../../.icm/onboarding/) (format documented in that folder's README),
-  parsed by [`lib/onboarding.ts`](lib/onboarding.ts) into the snapshot type shared with the
-  portfolio. The answers land in Neon (`biz.form_links`), which stays the record.
+- **Questions are content, answers are business state.** The house questionnaires are markdown
+  files in **icm-board** — `workspaces/sell/references/forms/` (the deal workspace owns them
+  since 2026-09-22; the grammar is in that folder's README) — parsed by the shared
+  `parseOnboardingForm` in `@jamie-nisbet/services` into the snapshot type the portfolio also
+  renders. The answers land in Neon (`biz.form_links`), which stays the record.
 - **The library is two repos, scoped per lead.** The picker offers the house questionnaires
-  from this repo *plus* any in the lead's own connected delivery repo (`clients.github_repo`,
-  the same roster the Tickets board uses) — read over the GitHub API, sorted first, and
-  preselected. A form written for one client only ever appears on that client's profile; a
-  repo with no `.icm/onboarding/` contributes nothing and raises nothing. Forms are identified
-  by repo *and* slug, so two repos can both have a `project-intake.md`, and the snapshot's
-  `sourceRepo` records which was sent.
+  from icm-board *plus* any in the lead's own connected delivery repo (`clients.github_repo`,
+  the same roster the Tickets board uses; its folder is `.icm/onboarding/`) — both read over the
+  GitHub API, the client's sorted first and preselected. A form written for one client only ever
+  appears on that client's profile; a repo with no questionnaire folder contributes nothing and
+  raises nothing. Forms are identified by repo *and* slug, so a client repo can carry its own
+  `intake-diagnostic.md`, and the snapshot's `sourceRepo` + `sourcePath` record which was sent.
 - **Publishing is a snapshot.** "Send form" parses the file *at click time* and freezes the
   result onto the link row, so editing a question later never reinterprets answers already
   collected — and never changes what a form sitting in someone's inbox shows them.
@@ -362,17 +363,20 @@ and paste the link it gives you into an email you write yourself.
   takes its answers with it, so it asks first.
 - A questionnaire that doesn't parse is reported by name in the card — with what is wrong with
   it — instead of quietly vanishing from the picker, and nothing is inserted.
-- **Write to repo closes the loop.** An answered form with a connected delivery repo gains a
-  **Write to repo** button: the answers are rendered to readable markdown and committed to the
-  client's repo as `.icm/docs/form-<slug>-<YYYY-MM-DD>.md`, so a session working there reads the
-  client's own words instead of writing tickets from memory. Deliberate, never automatic; the
-  file is a rendered copy (it says so in its header) and an existing file is never overwritten —
-  a same-day rewrite lands as `-2`, `-3`, ….
+- **Snapshot to the deal folder closes the loop.** An answered form on a row that names a deal
+  folder (`clients.deal_slug`) gains a **Snapshot to deal folder** button: the answers are
+  rendered to readable markdown and committed to **icm-board** as
+  `workspaces/deals/<deal_slug>/<engagement>/answers/<form-slug>.md` (or the client folder's
+  `answers/` when `DEAL.md` names no live engagement), one commit, message
+  `Deal: <slug> — <form-slug> answers`, with a provenance header naming the `form_links` row.
+  Immutable and provenance-stamped — the one kind of copy icm-board's one-home-per-fact rule
+  allows (D24); an existing file is never overwritten, and the button refuses plainly when the
+  row has no `deal_slug`. The GitHub token needs Contents: write on `k0d0minio/icm-board` for it.
 
-The public page lives on the portfolio (`/f/[token]`) because that app already has the brand
-chrome and a server action writing to `biz.clients`; nothing customer-facing is served from the
-dashboard. `.icm/onboarding/` is traced into the deployment by
-[`next.config.ts`](next.config.ts), with a read-only GitHub fallback if that ever misses.
+The public pages live on the portfolio (`/f/[token]` for a sent link, `/start` for the free-look
+intake) because that app already has the brand chrome and a server action writing to
+`biz.clients`; nothing customer-facing is served from the dashboard. Nothing is traced into the
+deployment any more: the house forms are read from icm-board over the GitHub API.
 
 ## Tickets
 

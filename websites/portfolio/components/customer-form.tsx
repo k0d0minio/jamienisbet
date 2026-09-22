@@ -78,7 +78,10 @@ function YesNo({
   )
 }
 
-function Question({
+/** One question of a snapshot, rendered by type. Exported for the public
+ *  `/start` intake form, which asks the same questions off the same snapshot
+ *  shape — so the two forms can never render a `select` two different ways. */
+export function Question({
   field,
   index,
   error,
