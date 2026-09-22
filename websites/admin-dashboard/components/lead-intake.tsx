@@ -5,6 +5,17 @@ import type { Client } from "@jamie-nisbet/services"
 
 import { formatDateTime, formatServiceId } from "@/lib/format"
 
+// The referral form's budget bands moved with the floor (€200 → €500 on
+// 2026-09-22). Rows stored before then keep the old string in Neon — provenance
+// is read-only — and it is mapped here, on display, so the row still reads as
+// the band it meant.
+const LEGACY_BUDGET_LABELS: Record<string, string> = {
+  "~€200 — landing page": "~€200 — landing page (pre-2026-09-22 band; now ~€500)",
+}
+function budgetLabel(value: string | null): string | null {
+  return value === null ? null : (LEGACY_BUDGET_LABELS[value] ?? value)
+}
+
 // How a lead came in: read once, then never again. So it is one folded row at
 // the foot of the Person segment — no header, no section of its own. The
 // provenance is on the page, it just isn't between you and the rest of it.
@@ -67,7 +78,7 @@ export function LeadIntake({ client }: { client: Client }) {
               )}
             </Detail>
           ) : null}
-          <Detail label="Budget indicated">{client.budget}</Detail>
+          <Detail label="Budget indicated">{budgetLabel(client.budget)}</Detail>
           <Detail label="Preferred call time">
             <Mono value={formatDateTime(client.preferredCallTime)} />
           </Detail>

@@ -52,7 +52,7 @@
       {
         "key": "pay",
         "title": "The client pays",
-        "description": "The customer pays my invoice for the work. Simple landing pages start at €200; bigger builds are quoted to fit."
+        "description": "The customer pays my invoice for the work. Simple landing pages start at €500; bigger builds are quoted to fit."
       },
       {
         "key": "payout",
@@ -64,12 +64,17 @@
   "whatYouSell": {
     "eyebrow": "What you sell",
     "title": "Pitch the simple thing. Hand me the rest.",
-    "intro": "Landing pages you can quote yourself, from €200. Anything bigger, just introduce me — you still earn your 10%.",
+    "intro": "Send them for a free look first — no cost to them, no selling by you. A landing page from €500 is the thing you can quote yourself; anything bigger, just introduce me. Your 10% applies either way.",
     "points": [
+      {
+        "key": "look",
+        "title": "Know a business drowning in admin? Send them for a free look",
+        "description": "No cost to them, no sell from you: a call with me, then one page on what belongs to software, what belongs to a person, and what isn't worth building. If it turns into work, your 10% applies."
+      },
       {
         "key": "landing",
         "title": "Landing page + contact form",
-        "description": "The easy sell: a clean, fast one-page site with a contact form, from €200. You can quote anything at or above €200 yourself — no approval needed."
+        "description": "The easy sell: a clean, fast one-page site with a contact form, from €500. You can quote anything at or above €500 yourself — no approval needed."
       },
       {
         "key": "bigger",
@@ -108,13 +113,13 @@
       "key": "whatsapp",
       "channel": "WhatsApp",
       "title": "Quick WhatsApp intro",
-      "body": "Hey! You mentioned needing a website for the business — I know the right person. Jamie builds clean, fast sites from €200 and handles the whole thing for you. Want me to introduce you? Here's his page: {link}"
+      "body": "Hey! You mentioned the admin was eating your week — I know the right person. Jamie takes a free look at how you work and tells you what's worth building (and what isn't); simple sites start at €500 and he handles the whole thing. Want me to introduce you? Here's his page: {link}"
     },
     {
       "key": "email",
       "channel": "Email",
       "title": "Warm email introduction",
-      "body": "Hi [name],\n\nFollowing up on what you said about needing a website — I work with Jamie Nisbet, a software engineer near Lisbon who builds fast, professional sites and looks after the whole thing. One-page sites start at €200; bigger builds are quoted to fit.\n\nYou can read more and reach him here: {link}\n\nHappy to introduce you directly — just say the word."
+      "body": "Hi [name],\n\nFollowing up on what you said about the admin — I work with Jamie Nisbet, a software engineer near Lisbon. He starts with a free look at how a business runs, then builds what makes sense at a fixed price. One-page sites start at €500; bigger builds are quoted to fit.\n\nYou can read more and reach him here: {link}\n\nHappy to introduce you directly — just say the word."
     },
     {
       "key": "inperson",
@@ -146,7 +151,7 @@
   "objections": [
     {
       "objection": "“It's too expensive.”",
-      "answer": "A one-page site starts at €200, once, and works for years. Set that against the customers a business loses with no site — or a broken one. If €200 is still too much, it's probably not the right time, and that's fine."
+      "answer": "A one-page site starts at €500, once, and works for years. Set that against the customers a business loses with no site — or a broken one. If €500 is still too much, the free look costs nothing and says whether a site is even the right first step."
     },
     {
       "objection": "“I'll just use Wix myself.”",
@@ -169,7 +174,7 @@
     {
       "key": "landing",
       "name": "Landing page + contact form",
-      "price": "from €200",
+      "price": "from €500",
       "blurb": "The easy first sell — one clean, fast page that does its job.",
       "includes": [
         "Loads fast, looks right on a phone",
@@ -177,7 +182,7 @@
         "Their logo, colours, and words, set up properly",
         "Live on their domain, ready to share"
       ],
-      "sellerNote": "Quote this yourself at €200 or more — no approval needed."
+      "sellerNote": "Quote this yourself at €500 or more — no approval needed."
     },
     {
       "key": "multipage",
@@ -216,8 +221,8 @@
   "earningExamples": [
     {
       "work": "One-page site + contact form",
-      "invoice": "€200",
-      "youEarn": "€20"
+      "invoice": "€500",
+      "youEarn": "€50"
     },
     {
       "work": "Small business site, a few pages",
@@ -241,7 +246,7 @@
     },
     {
       "q": "What can I quote myself?",
-      "a": "Landing pages with a contact form, at €200 or more — quote those freely. Anything more involved (multiple pages, an app, AI, integrations), just introduce me and I'll quote it."
+      "a": "Landing pages with a contact form, at €500 or more — quote those freely. Anything more involved (multiple pages, an app, AI, integrations), just introduce me and I'll quote it. And the free look you can always offer: it costs them nothing."
     },
     {
       "q": "Do I have to understand the tech?",
@@ -291,7 +296,7 @@
     "submitting": "Sending…",
     "budgetOptions": {
       "Not sure yet": "Not sure yet",
-      "~€200 — landing page": "~€200 — landing page",
+      "~€500 — landing page": "~€500 — landing page",
       "€500–€1,000": "€500–€1,000",
       "€1,000–€5,000": "€1,000–€5,000",
       "€5,000+": "€5,000+"
@@ -338,8 +343,8 @@
     "stepsTitle": "How it works",
     "steps": [
       {
-        "title": "We talk",
-        "description": "Ten minutes on what you need and who it's for."
+        "title": "A free look first",
+        "description": "A short call, then one page on how you work: what could run itself, what needs a person, what's worth an assistant, what not to build. Free."
       },
       {
         "title": "I scope and price it",

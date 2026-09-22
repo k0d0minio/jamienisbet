@@ -52,7 +52,7 @@
       {
         "key": "pay",
         "title": "Le client paie",
-        "description": "Le client paie ma facture pour le travail. Les landing pages simples démarrent à 200 € ; les projets plus importants sont devisés sur mesure."
+        "description": "Le client paie ma facture pour le travail. Les landing pages simples démarrent à 500 € ; les projets plus importants sont devisés sur mesure."
       },
       {
         "key": "payout",
@@ -64,12 +64,17 @@
   "whatYouSell": {
     "eyebrow": "Ce que tu vends",
     "title": "Vends le simple. Le reste, passe-le-moi.",
-    "intro": "Des landing pages que tu peux deviser toi-même, à partir de 200 €. Pour tout ce qui est plus gros, présente-moi — tu gagnes toujours tes 10 %.",
+    "intro": "Envoie-les d'abord pour un regard gratuit — sans coût pour eux, sans vente de ta part. La landing page à partir de 500 € est ce que tu peux deviser toi-même ; pour tout ce qui est plus gros, présente-moi. Tes 10 % s'appliquent dans les deux cas.",
     "points": [
+      {
+        "key": "look",
+        "title": "Tu connais une activité noyée dans l'administratif ? Envoie-la pour un regard gratuit",
+        "description": "Sans coût pour eux, sans vente de ta part : un appel avec moi, puis une page sur ce qui relève du logiciel, d'une personne, et ce qui ne vaut pas la peine d'être construit. Si ça devient du travail, tes 10 % s'appliquent."
+      },
       {
         "key": "landing",
         "title": "Landing page + formulaire de contact",
-        "description": "La vente facile : un site d'une page, propre et rapide, avec un formulaire de contact, à partir de 200 €. Tu peux deviser toi-même n'importe quel montant à partir de 200 € — sans validation."
+        "description": "La vente facile : un site d'une page, propre et rapide, avec un formulaire de contact, à partir de 500 €. Tu peux deviser toi-même n'importe quel montant à partir de 500 € — sans validation."
       },
       {
         "key": "bigger",
@@ -108,13 +113,13 @@
       "key": "whatsapp",
       "channel": "WhatsApp",
       "title": "Mise en relation rapide par WhatsApp",
-      "body": "Salut ! Tu disais avoir besoin d'un site pour ton activité — je connais la bonne personne. Jamie fait des sites propres et rapides à partir de 200 € et s'occupe de tout pour toi. Tu veux que je te le présente ? Voici sa page : {link}"
+      "body": "Salut ! Tu disais que l'administratif te mangeait la semaine — je connais la bonne personne. Jamie jette un regard gratuit sur ta façon de travailler et te dit ce qui vaut la peine d'être construit (et ce qui ne l'est pas) ; les sites simples démarrent à 500 € et il s'occupe de tout. Tu veux que je te le présente ? Voici sa page : {link}"
     },
     {
       "key": "email",
       "channel": "Email",
       "title": "Mise en relation chaleureuse par email",
-      "body": "Bonjour [nom],\n\nPour faire suite à ce que tu disais sur ton besoin d'un site — je travaille avec Jamie Nisbet, un ingénieur logiciel près de Lisbonne qui réalise des sites rapides et professionnels et s'occupe de tout. Les sites d'une page démarrent à 200 € ; les projets plus importants sont devisés sur mesure.\n\nTu peux en savoir plus et le contacter ici : {link}\n\nJe te le présente volontiers directement — tu n'as qu'un mot à dire."
+      "body": "Bonjour [nom],\n\nPour faire suite à ce que tu disais sur l'administratif — je travaille avec Jamie Nisbet, un ingénieur logiciel près de Lisbonne. Il commence par un regard gratuit sur la façon dont une activité tourne, puis construit ce qui a du sens à prix fixe. Les sites d'une page démarrent à 500 € ; les projets plus importants sont devisés sur mesure.\n\nTu peux en savoir plus et le contacter ici : {link}\n\nJe te le présente volontiers directement — tu n'as qu'un mot à dire."
     },
     {
       "key": "inperson",
@@ -146,7 +151,7 @@
   "objections": [
     {
       "objection": "« C'est trop cher. »",
-      "answer": "Un site d'une page démarre à 200 €, une seule fois, et fonctionne pendant des années. Compare ça aux clients qu'une activité perd sans site — ou avec un site cassé. Si 200 € reste trop, ce n'est sans doute pas le bon moment, et c'est très bien comme ça."
+      "answer": "Un site d'une page démarre à 500 €, une seule fois, et fonctionne pendant des années. Compare ça aux clients qu'une activité perd sans site — ou avec un site cassé. Si 500 € reste trop, le regard gratuit ne coûte rien et dit si un site est même la bonne première étape."
     },
     {
       "objection": "« Je le ferai moi-même sur Wix. »",
@@ -169,7 +174,7 @@
     {
       "key": "landing",
       "name": "Landing page + formulaire de contact",
-      "price": "à partir de 200 €",
+      "price": "à partir de 500 €",
       "blurb": "La première vente facile — une page propre et rapide qui fait son travail.",
       "includes": [
         "Se charge vite, s'affiche bien sur un téléphone",
@@ -177,7 +182,7 @@
         "Leur logo, leurs couleurs et leurs textes, mis en place comme il faut",
         "En ligne sur leur domaine, prêt à partager"
       ],
-      "sellerNote": "Devise-la toi-même à 200 € ou plus — sans validation."
+      "sellerNote": "Devise-la toi-même à 500 € ou plus — sans validation."
     },
     {
       "key": "multipage",
@@ -216,8 +221,8 @@
   "earningExamples": [
     {
       "work": "Site d'une page + formulaire de contact",
-      "invoice": "200 €",
-      "youEarn": "20 €"
+      "invoice": "500 €",
+      "youEarn": "50 €"
     },
     {
       "work": "Site de petite entreprise, quelques pages",
@@ -241,7 +246,7 @@
     },
     {
       "q": "Que puis-je deviser moi-même ?",
-      "a": "Les landing pages avec formulaire de contact, à 200 € ou plus — devise-les librement. Pour tout ce qui est plus complexe (plusieurs pages, une application, de l'IA, des intégrations), présente-moi simplement et je m'en charge."
+      "a": "Les landing pages avec formulaire de contact, à 500 € ou plus — devise-les librement. Pour tout ce qui est plus complexe (plusieurs pages, une application, de l'IA, des intégrations), présente-moi simplement et je m'en charge. Et le regard gratuit, tu peux toujours le proposer : il ne leur coûte rien."
     },
     {
       "q": "Dois-je comprendre la technique ?",
@@ -291,7 +296,7 @@
     "submitting": "Envoi…",
     "budgetOptions": {
       "Not sure yet": "Pas encore sûr",
-      "~€200 — landing page": "~200 € — landing page",
+      "~€500 — landing page": "~500 € — landing page",
       "€500–€1,000": "500 €–1 000 €",
       "€1,000–€5,000": "1 000 €–5 000 €",
       "€5,000+": "5 000 €+"
@@ -338,8 +343,8 @@
     "stepsTitle": "Comment ça marche",
     "steps": [
       {
-        "title": "On échange",
-        "description": "Dix minutes sur ce dont vous avez besoin et pour qui."
+        "title": "Un regard gratuit d'abord",
+        "description": "Un court appel, puis une page sur votre façon de travailler : ce qui pourrait tourner tout seul, ce qui a besoin d'une personne, ce qui mérite un assistant, ce qu'il ne faut pas construire. Gratuit."
       },
       {
         "title": "Je cadre et je chiffre",
