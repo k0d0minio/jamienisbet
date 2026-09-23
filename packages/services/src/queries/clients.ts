@@ -664,7 +664,6 @@ export type ClientProfilePatch = Partial<
     | "commissionBps"
     | "equityBps"
     | "supportMinor"
-    | "dealSlug"
     | "workStartedAt"
   >
 >

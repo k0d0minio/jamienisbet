@@ -50,7 +50,7 @@ import {
   wakeLine,
   whoLabel,
 } from "@/lib/leads"
-import { dealStages } from "@/lib/deals"
+import { dealFolderSlug, dealStages } from "@/lib/deals"
 import { formatMoney } from "@/lib/money"
 
 export const metadata: Metadata = { title: "Leads" }
@@ -298,9 +298,10 @@ export default async function LeadsPage({
     : "all"
 
   const { now, rows, error } = await loadLeads(archived)
-  // Where each deal folder stands, for the rows that name one — one tree read
-  // of icm-board plus one DEAL.md per slug, cached a minute (lib/deals.ts).
-  const stages = await dealStages(rows.map((row) => row.dealSlug))
+  // Where each deal folder stands, for the rows with a repo (the folder is
+  // named after it, D28) — one tree read of icm-board plus one DEAL.md per
+  // folder, cached a minute (lib/deals.ts).
+  const stages = await dealStages(rows.map((row) => dealFolderSlug(row.githubRepo)))
 
   // One read, split in two: the cold pool on one side, everything that is an
   // actual relationship on the other. Only the side this view is about is ever
@@ -659,7 +660,8 @@ export default async function LeadsPage({
                                   stands — read from icm-board, beside the
                                   rung this row carries (D24). */}
                               {(() => {
-                                const stage = row.dealSlug ? stages.get(row.dealSlug) : undefined
+                                const slug = dealFolderSlug(row.githubRepo)
+                                const stage = slug ? stages.get(slug) : undefined
                                 return stage ? <DealStageChip stage={stage} /> : null
                               })()}
                               <DealBadges client={row} omit={figure?.kind} />

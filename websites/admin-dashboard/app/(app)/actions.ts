@@ -84,7 +84,7 @@ import {
 import { ensureStripeCustomer, pushClientToStripe } from "@/lib/clients-stripe"
 import { renderFormAnswersMarkdown } from "@/lib/form-markdown"
 import { scaffoldIcmBaseline } from "@/lib/icm-scaffold"
-import { DEALS_PATH, DEALS_REPO, readDealFolder } from "@/lib/deals"
+import { DEALS_PATH, DEALS_REPO, dealFolderSlug, readDealFolder } from "@/lib/deals"
 import { loadOnboardingForm } from "@/lib/onboarding"
 import { parseAmountToMinor } from "@/lib/money"
 import { parsePercentToBps } from "@/lib/percent"
@@ -298,22 +298,6 @@ export async function saveDealTerms(id: string, formData: FormData) {
   if (formData.has("support")) {
     const raw = value("support")
     patch.supportMinor = raw === null ? 0 : (parseAmountToMinor(raw) ?? 0)
-  }
-
-  // Which folder under icm-board's `workspaces/deals/` this relationship's
-  // documents live in. A slug and nothing else — it is joined to a path and a
-  // GitHub URL downstream — and the column's UNIQUE constraint is what says
-  // "one folder is one relationship"; a duplicate throws here, and the card
-  // reports that it couldn't save.
-  if (formData.has("dealSlug")) {
-    const raw = value("dealSlug")
-    if (raw !== null && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(raw)) {
-      throw new Error("A deal folder is lower-case letters, digits and single hyphens.")
-    }
-    if (raw !== null && raw.length > 80) {
-      throw new Error("A deal folder name is at most 80 characters.")
-    }
-    patch.dealSlug = raw
   }
 
   const updated = await updateClient(id, patch)
@@ -1622,7 +1606,7 @@ export type WriteFormResult = { ok: boolean; message: string }
  * per fact): render a completed link's answers to markdown and commit them
  * into **icm-board**, in the relationship's own folder —
  *
- *     workspaces/deals/<deal_slug>/<engagement>/answers/<form-slug>.md
+ *     workspaces/deals/<repo name>/<engagement>/answers/<form-slug>.md
  *
  * or the client folder's `answers/` when `DEAL.md` names no live engagement.
  * One commit straight to main, message `Deal: <slug> — <form-slug> answers`,
@@ -1635,8 +1619,9 @@ export type WriteFormResult = { ok: boolean; message: string }
  * `<form-slug>-<completed date>.md` once, and after that it refuses and says
  * so — a third copy is a question for the folder, not the button.
  *
- * Refuses plainly when the row has no `deal_slug`: without the folder there is
- * nowhere the copy belongs. The token needs Contents: write on icm-board.
+ * The folder is named after the delivery repo (icm-board D28), so it refuses
+ * plainly when the row has no `github_repo`: without the repo there is no
+ * folder the copy belongs to. The token needs Contents: write on icm-board.
  */
 export async function writeFormAnswersToRepo(
   linkId: string,
@@ -1644,11 +1629,12 @@ export async function writeFormAnswersToRepo(
 ): Promise<WriteFormResult> {
   const client = await getClient(clientId)
   if (!client) return { ok: false, message: "That lead no longer exists." }
-  if (!client.dealSlug) {
+  const dealSlug = dealFolderSlug(client.githubRepo)
+  if (!dealSlug) {
     return {
       ok: false,
       message:
-        "No deal folder on this row — set one in the Deal card (it must exist under workspaces/deals/ in icm-board) first.",
+        "No delivery repo on this row — the deal folder is named after the repo, so connect or create the repo first.",
     }
   }
 
@@ -1660,21 +1646,21 @@ export async function writeFormAnswersToRepo(
     return { ok: false, message: "This form hasn't been answered yet." }
   }
 
-  const folder = await readDealFolder(client.dealSlug)
+  const folder = await readDealFolder(dealSlug)
   if (!folder) {
     return { ok: false, message: "GITHUB_TOKEN isn't set on this deployment, so icm-board can't be read or written." }
   }
   if (folder.error) return { ok: false, message: folder.error }
 
   const dir = folder.engagement
-    ? `${DEALS_PATH}/${client.dealSlug}/${folder.engagement}/answers`
-    : `${DEALS_PATH}/${client.dealSlug}/answers`
+    ? `${DEALS_PATH}/${dealSlug}/${folder.engagement}/answers`
+    : `${DEALS_PATH}/${dealSlug}/answers`
   const markdown = renderFormAnswersMarkdown(link, {
-    dealSlug: client.dealSlug,
+    dealSlug,
     engagement: folder.engagement,
     clientId: client.id,
   })
-  const message = `Deal: ${client.dealSlug} — ${link.formSlug} answers`
+  const message = `Deal: ${dealSlug} — ${link.formSlug} answers`
   const dated = link.completedAt.toISOString().slice(0, 10)
 
   for (const path of [`${dir}/${link.formSlug}.md`, `${dir}/${link.formSlug}-${dated}.md`]) {

@@ -157,7 +157,7 @@ export function FormLinks({
   clientId,
   clientName,
   clientEmail,
-  dealSlug,
+  dealFolder,
   links,
   forms,
   formErrors,
@@ -166,8 +166,9 @@ export function FormLinks({
   clientName: string
   /** The lead's address, or null — gates the mail draft among the ways to send. */
   clientEmail: string | null
-  /** The row's deal folder in icm-board, or null — gates the answers snapshot. */
-  dealSlug: string | null
+  /** The row's deal folder in icm-board — named after its repo (D28) — or null
+   *  while it has none; gates the answers snapshot. */
+  dealFolder: string | null
   links: FormLink[]
   forms: FormChoiceView[]
   formErrors: string[]
@@ -236,7 +237,7 @@ export function FormLinks({
                 <AnsweredBody
                   link={link}
                   clientId={clientId}
-                  hasDealFolder={dealSlug !== null}
+                  hasDealFolder={dealFolder !== null}
                 />
               ) : (
                 <PendingBody

@@ -56,7 +56,7 @@ import {
   isLeadSegmentKey,
   type LeadSegmentKey,
 } from "@/lib/lead-segments"
-import { dealBadge, readDealFolder } from "@/lib/deals"
+import { dealBadge, dealFolderSlug, readDealFolder } from "@/lib/deals"
 import { dealFigure } from "@/lib/leads"
 import { listOnboardingForms } from "@/lib/onboarding"
 import type { SuppressedChannels } from "@/lib/suppression"
@@ -114,9 +114,10 @@ async function loadLead(id: string) {
       // four channels, because every handoff on this page — the action discs,
       // the contact rows — has to know before it draws itself.
       suppressionsForClient(client),
-      // The deal folder in icm-board, when the row names one — the words
-      // beside the state (D24). Null when there is no slug or no token.
-      readDealFolder(client.dealSlug),
+      // The deal folder in icm-board — the words beside the state (D24). It is
+      // named after the delivery repo (D28), so null until a repo is connected,
+      // or when there is no token.
+      readDealFolder(dealFolderSlug(client.githubRepo)),
     ])
 
   // Every todo here is this lead's, so the rows carry no name and no lead
@@ -436,8 +437,6 @@ export default async function LeadDetailPage({
             <LeadDealCard
               client={{
                 id: client.id,
-                name: client.name,
-                dealSlug: client.dealSlug,
                 valueMinor: client.valueMinor,
                 billingType: client.billingType,
                 dealType: client.dealType,
@@ -446,16 +445,15 @@ export default async function LeadDetailPage({
                 equityBps: client.equityBps,
                 supportMinor: client.supportMinor,
               }}
-              // The folder name follows the repo name's rule, with hyphens:
-              // `clientSlug` gives snake_case for GitHub, deal folders are
-              // kebab-case (workspaces/deals/README.md).
-              proposedSlug={clientSlug(client.name).replace(/_/g, "-")}
+              // The folder is named after the repo (D28) — nothing to propose
+              // or set; the card only says which folder that is.
+              dealFolder={dealFolderSlug(client.githubRepo)}
               suggestion={suggestion}
             />
 
             {/* The words beside the state: what the deal folder in icm-board
                 says, read live, with the badge when it and the rung cannot
-                both be true (D24). Only when the row names a folder. */}
+                both be true (D24). Only once the row has a repo (D28). */}
             {dealFolder ? (
               <LeadDealFolder
                 folder={dealFolder}
@@ -559,7 +557,7 @@ export default async function LeadDetailPage({
               clientId={client.id}
               clientName={client.name}
               clientEmail={client.email}
-              dealSlug={client.dealSlug}
+              dealFolder={dealFolderSlug(client.githubRepo)}
               links={formLinks}
               forms={formLibrary.forms}
               formErrors={formLibrary.errors}

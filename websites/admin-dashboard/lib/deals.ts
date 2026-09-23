@@ -1,8 +1,9 @@
 import "server-only"
 
 // The dashboard's read-only line to the deal workspace in icm-board
-// (`workspaces/deals/<deal_slug>/…`, icm-board decisions D24–D25). One home per
-// fact: business *state* is the Neon row, the *documents* live in that folder,
+// (`workspaces/deals/<repo name>/…`, icm-board decisions D24–D25 and D28). One
+// home per fact: business *state* is the Neon row, the *documents* live in that
+// folder — named after the row's delivery repo, so nothing has to be stored —
 // and this module only ever reads — the stage a deal is at (positional: the
 // highest `NN-` artefact in the live engagement), the agreement's header, the
 // Drive link — so the profile can show them beside the rung and say when the two
@@ -33,6 +34,15 @@ const API = "https://api.github.com"
 const TREE_REVALIDATE_SECONDS = 60
 const BLOB_REVALIDATE_SECONDS = 60 * 60 * 24 * 30
 export const DEALS_CACHE_TAG = "icm-board-deals"
+
+/** The deal folder is named after the delivery repo (icm-board D28): the
+ *  `name` half of `github_repo`'s "owner/name". Null when the row has no repo
+ *  yet — the folder can only be found once the repo is connected or created. */
+export function dealFolderSlug(githubRepo: string | null | undefined): string | null {
+  if (!githubRepo) return null
+  const name = githubRepo.split("/").pop()?.trim().toLowerCase() ?? ""
+  return name === "" ? null : name
+}
 
 /** The eight stages of one engagement, by their `NN-` prefix. */
 export const STAGE_NAMES: Record<string, string> = {
@@ -199,7 +209,7 @@ async function readFolder(tree: TreeEntry[], slug: string): Promise<DealFolder> 
     (e) => e.type === "blob" && e.path === `${DEALS_PATH}/${slug}/DEAL.md`
   )
   if (!dealEntry) {
-    return { ...base, error: `No ${DEALS_PATH}/${slug}/DEAL.md in ${DEALS_REPO} — set deal_slug to an existing folder, or open the deal with /client.` }
+    return { ...base, error: `No ${DEALS_PATH}/${slug}/DEAL.md in ${DEALS_REPO} — the folder is named after the repo (D28): open the deal with /client in icm-board, or connect the right repo.` }
   }
   const deal = await readBlob(dealEntry.sha)
   if (deal === null) return { ...base, error: "DEAL.md could not be read from GitHub." }

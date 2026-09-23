@@ -57,13 +57,9 @@ import { bpsToPercentInput, formatBps, parsePercentToBps } from "@/lib/percent"
 
 /** The deal columns this card reads and writes, plus the row it writes them
  *  back to. Billing and deal type arrive as the plain strings the Client row
- *  carries; narrowing them is the model's job, not this card's. `name` is
- *  only here to propose a deal folder slug; `dealSlug` is which folder under
- *  icm-board's `workspaces/deals/` this relationship's documents live in. */
+ *  carries; narrowing them is the model's job, not this card's. */
 export type DealDetails = DealTerms & {
   id: string
-  name: string
-  dealSlug: string | null
 }
 
 /** What the deal folder's agreement says the money is, when the folder has
@@ -79,7 +75,7 @@ export type AgreementSuggestion = {
 /** Which term is being edited. Cash and a swap share one editor because they
  *  share one figure in the model — they are two readings of `valueMinor`, so
  *  at most one of them is ever a term and one editor writes both. */
-type TermKey = "fee" | "equity" | "commission" | "support" | "folder" | "agreement"
+type TermKey = "fee" | "equity" | "commission" | "support" | "agreement"
 
 /** How the fee is paid. `billingType` and `dealType` are two columns, but they
  *  answer one question a person actually asks of a fee, so the control asks it
@@ -459,78 +455,6 @@ function SupportEditor({
   )
 }
 
-/** A folder name is a slug: lower-case, digits, single hyphens, ≤ 80. The
- *  action enforces the same rule; this just tells you before you post. */
-const DEAL_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-
-/** The deal folder — which `workspaces/deals/<slug>/` in icm-board holds this
- *  relationship's documents. Proposed from the name the same way the delivery
- *  repo's name is (`clientSlug`, with hyphens where the repo takes
- *  underscores); Jamie confirms. The dashboard never creates the folder —
- *  `/client <name>` in icm-board does — it only records which one this row is. */
-function FolderEditor({
-  client,
-  proposed,
-  pending,
-  onCancel,
-  onCommit,
-}: {
-  client: DealDetails
-  proposed: string
-  pending: boolean
-  onCancel: () => void
-  onCommit: (formData: FormData) => void
-}) {
-  const [slug, setSlug] = useState(client.dealSlug ?? proposed)
-  const [error, setError] = useState<string | null>(null)
-
-  function submit() {
-    const trimmed = slug.trim()
-    if (trimmed !== "" && (!DEAL_SLUG.test(trimmed) || trimmed.length > 80)) {
-      setError("Lower-case letters, digits and single hyphens — like alix-hahusseau.")
-      return
-    }
-    setError(null)
-    const formData = new FormData()
-    formData.set("dealSlug", trimmed)
-    onCommit(formData)
-  }
-
-  function remove() {
-    const formData = new FormData()
-    formData.set("dealSlug", "")
-    onCommit(formData)
-  }
-
-  return (
-    <TermEditor
-      title="Deal folder"
-      removable={client.dealSlug !== null}
-      pending={pending}
-      onCancel={onCancel}
-      onRemove={remove}
-      onSubmit={submit}
-    >
-      <AppField
-        label="Folder under workspaces/deals/"
-        hint="The folder in icm-board that holds this relationship's documents. One folder is one relationship — the name must be unused."
-        error={error}
-      >
-        <AppInput
-          value={slug}
-          onChange={(event) => setSlug(event.target.value)}
-          autoComplete="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          enterKeyHint="done"
-          placeholder={proposed}
-          className="font-mono"
-          autoFocus
-        />
-      </AppField>
-    </TermEditor>
-  )
-}
 
 /** "Use these": the agreement's figures from the deal folder, prefilled into
  *  one editor so the row can be brought in line with the paper in a tap and a
@@ -604,13 +528,14 @@ function AgreementEditor({
 
 export function LeadDealCard({
   client,
-  proposedSlug,
+  dealFolder,
   suggestion = null,
 }: {
   client: DealDetails
-  /** What the folder would be called if it followed the name — `clientSlug`
-   *  with hyphens. Computed on the server so the card carries no slug logic. */
-  proposedSlug: string
+  /** Which `workspaces/deals/<slug>/` in icm-board holds this relationship's
+   *  documents: the delivery repo's name (icm-board D28), or null until a repo
+   *  is connected. Read-only here — nothing to set, nothing to propose. */
+  dealFolder: string | null
   /** The folder's agreement, when it has one and it disagrees with the row. */
   suggestion?: AgreementSuggestion | null
 }) {
@@ -858,29 +783,20 @@ export function LeadDealCard({
       ) : null}
 
       {/* Where the words live. Always a row, even unset: a relationship with
-          no folder is a fact worth seeing, and the way to fix it is the tap. */}
-      {editing === "folder" ? (
-        <FolderEditor
-          client={client}
-          proposed={proposedSlug}
-          pending={pending}
-          onCancel={cancel}
-          onCommit={commit}
-        />
-      ) : (
-        <TermRow
-          icon={<FolderGit2 />}
-          label="Deal folder"
-          onEdit={() => openEditor("folder")}
-          value={
-            client.dealSlug ? (
-              <span className="font-mono">{client.dealSlug}</span>
-            ) : (
-              <span className="text-app-label-3">None — propose {proposedSlug}</span>
-            )
-          }
-        />
-      )}
+          no folder is a fact worth seeing. Not editable — the folder is named
+          after the repo (D28), so the way to get one is the repo row above. */}
+      <GroupedRow
+        icon={<FolderGit2 />}
+        label="Deal folder"
+        chevron={false}
+        value={
+          dealFolder ? (
+            <span className="font-mono">{dealFolder}</span>
+          ) : (
+            <span className="text-app-label-3">Named after the repo — connect one</span>
+          )
+        }
+      />
 
       {editing === null && picking ? (
         <>
