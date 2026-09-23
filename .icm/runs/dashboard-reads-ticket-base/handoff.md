@@ -6,13 +6,15 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md`, tick **Spec approved** on
+   https://github.com/k0d0minio/jamienisbet/pull/150.
+2. Then `build dashboard-reads-ticket-base` — executes `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
+- none — the D38 blocker lifted (recorded in icm-board `.icm/project.md`).
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not tick either gate box. Do not change prompts for icm-board or the estate check.
+- Do not edit `AGENTS.md` / `.icm/intake/README.md` here — that is `triage/ticket-rule-wording-d38`.
