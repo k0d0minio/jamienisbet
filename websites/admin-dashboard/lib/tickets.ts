@@ -938,6 +938,15 @@ const MAX_SWEEP_PAGES = 10
  * it is exactly what a collaborator repo used to fail at. `organization_member`
  * stays out, so this is still not every org repo he can merely read.
  *
+ * Sorted by `full_name` rather than `pushed`, and deduplicated on the way out.
+ * Each page is cached on its own hourly clock (`DISCOVERY_REVALIDATE_SECONDS`),
+ * so the pages of one sweep can be read at different times — a `pushed` sort
+ * reorders the whole list on every push in the estate, and a repo that crossed
+ * a page-100 boundary between two page reads showed up on both pages (a
+ * duplicate board group) or on neither (missing for up to an hour). A
+ * full-name sort never reorders on its own, so pages cached an hour apart
+ * still partition the same list the same way.
+ *
  * Read here rather than through `lib/github.ts`'s picker listing for two
  * reasons. It is a board read, so it belongs on the board's cache, tag and
  * concurrency cap — the caching invariants at the top of this file only hold
@@ -954,7 +963,7 @@ async function fetchOwnedRepos(): Promise<{
   const fullNames: string[] = []
   try {
     let path: string | null =
-      "/user/repos?per_page=100&sort=pushed&affiliation=owner,collaborator"
+      "/user/repos?per_page=100&sort=full_name&direction=asc&affiliation=owner,collaborator"
     for (let page = 0; path && page < MAX_SWEEP_PAGES; page++) {
       const res = await gh(
         path,
@@ -967,7 +976,7 @@ async function fetchOwnedRepos(): Promise<{
       const next = res.headers.get("link")?.match(/<([^>]+)>;\s*rel="next"/)
       path = next ? next[1].replace(API, "") : null
     }
-    return { fullNames, error: null }
+    return { fullNames: [...new Set(fullNames)], error: null }
   } catch (err) {
     return {
       fullNames: [],
