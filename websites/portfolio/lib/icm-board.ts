@@ -19,9 +19,8 @@ import { parseOnboardingForm, type FormSnapshot } from "@jamie-nisbet/services"
 // `force-cache` (a revalidate alone caches nothing on a request carrying an
 // Authorization header) on a one-minute clock, tagged.
 
-export const ICM_BOARD_REPO = process.env.ICM_BOARD_REPO || "k0d0minio/icm-board"
-export const INTAKE_FORM_PATH =
-  process.env.ICM_BOARD_INTAKE_FORM || "workspaces/sell/references/forms/intake-diagnostic.md"
+export const ICM_BOARD_REPO = "k0d0minio/icm-board"
+export const INTAKE_FORM_PATH = "workspaces/sell/references/forms/intake-diagnostic.md"
 export const INTAKE_FORM_SLUG = "intake-diagnostic"
 const REVALIDATE_SECONDS = 60
 

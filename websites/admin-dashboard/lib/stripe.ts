@@ -21,8 +21,3 @@ export function getStripe(): Stripe | null {
 export function isStripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY)
 }
-
-/** The public origin, used to build absolute return/redirect URLs. */
-export function siteOrigin(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000"
-}
