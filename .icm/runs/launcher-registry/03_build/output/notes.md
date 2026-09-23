@@ -1,7 +1,7 @@
 # Build notes: launcher-registry
 
 - commits: feat: launcher-registry — extract the session-link registry
-- ci: pending
+- ci: GREEN (cheap tier) on bafa1c2; full gate pending the ready flip
 
 ## What changed
 
@@ -27,3 +27,4 @@
 
 - The maintenance launchers now pass through the 4,500 cap (they had none); all four are far under it (proof shows URLs), and a future over-long literal throws at render instead of emitting a link. That is the spec's decision, not a drift.
 - `build()` references the cap constant rather than `this.maxEncodedPromptChars`, so a target's `build` survives being passed detached.
+- `security-check.sh --branch` reports `BLOCKED 1` on dependency-audit: the 27 pre-existing transitive advisories already parked in `.icm/intake/triage/dependency-advisories-high-critical.md` (this branch touches no manifest). Recorded and resolved in `error.log`; not this run's to fix.
