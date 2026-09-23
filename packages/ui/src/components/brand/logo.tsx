@@ -32,23 +32,28 @@ import {
 
 type LogoSvgProps = Omit<React.ComponentProps<"svg">, "viewBox" | "children">
 
-function Frame({ ink }: { ink: string }) {
-  const inset = LOGO_FRAME_INSET / 2
-  return (
-    <>
-      <path d={LOGO_FRAME_PATH} fillRule="evenodd" fill={ink} />
-      <rect
-        x={inset}
-        y={inset}
-        width={100 - LOGO_FRAME_INSET}
-        height={100 - LOGO_FRAME_INSET}
-        fill="none"
-        stroke={ink}
-        strokeWidth={1}
-        vectorEffect="non-scaling-stroke"
-      />
-    </>
-  )
+const FRAME_INSET = LOGO_FRAME_INSET / 2
+
+// Not a component: Satori (next/og's SVG renderer) only resolves intrinsic
+// elements directly inside <svg> — a custom component tag there fails the
+// build with "Only intrinsic elements are supported inside <svg>". Called as
+// a plain function returning an element array (not wrapped in a Fragment),
+// this places the same two elements without introducing either.
+function frame(ink: string) {
+  return [
+    <path key="frame-fill" d={LOGO_FRAME_PATH} fillRule="evenodd" fill={ink} />,
+    <rect
+      key="frame-ring"
+      x={FRAME_INSET}
+      y={FRAME_INSET}
+      width={100 - LOGO_FRAME_INSET}
+      height={100 - LOGO_FRAME_INSET}
+      fill="none"
+      stroke={ink}
+      strokeWidth={1}
+      vectorEffect="non-scaling-stroke"
+    />,
+  ]
 }
 
 // The letters alone are centred in a square at the width they hold inside the
@@ -88,7 +93,7 @@ function LogoMarkSolid({ className, ...props }: LogoSvgProps) {
       {...props}
     >
       <rect width="100" height="100" fill="var(--logo-tile)" />
-      <Frame ink="var(--logo-ink)" />
+      {frame("var(--logo-ink)")}
       <path d={LOGO_LETTERS_PATH} fill="var(--logo-ink)" />
     </svg>
   )
@@ -126,7 +131,7 @@ function LogoFull({
       {...props}
     >
       {tile && <rect width="100" height="100" fill={paper ?? "var(--logo-tile)"} />}
-      <Frame ink={inkFill} />
+      {frame(inkFill)}
       <path d={LOGO_WORDMARK_PATH} fill={inkFill} />
     </svg>
   )
