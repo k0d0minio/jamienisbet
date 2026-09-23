@@ -416,8 +416,8 @@ with the reason, never dropped in silence.
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
 and nothing is mirrored into the database. Every button is therefore a link or a pre-filled
-Claude Code deep link that a human sends: **Start in Claude Code** / swipe-right on a row or
-batch, **Copy prompt**, and the maintenance launchers — per-repo *triage the backlog* and
+session link that a human sends: **Start in …** (with every registered tool in its menu) /
+swipe-right on a row or batch, **Copy prompt**, and the maintenance launchers — per-repo *triage the backlog* and
 *sweep finished work* (the **Maintenance** row closing each repo's group), per-batch *recut
 this batch* (in the batch sheet), and the board-level *estate check* (the `/icm-check` pass on
 icm-board, in the group that closes the screen). Rows wear the Leads list's gestures: swipe
@@ -427,16 +427,36 @@ moment a full swipe crosses its threshold.
 Those links come in two shapes, both documented by Anthropic, each built by its own target in
 the launcher registry [`lib/launchers/`](lib/launchers/) — `claude-web.ts` and
 `claude-terminal.ts`, each carrying a comment naming its doc, ordered in `index.ts`. A target
-declares what it can carry (repo, mode, model, effort) and a pure `build()`; the board asks the
-registry through thin wrappers in [`lib/tickets.ts`](lib/tickets.ts), never a tool by name, so
-another tool is one file plus one line in `index.ts` — and only once its link shape is
-documented:
+declares what it can carry (repo, mode, model, effort) and a pure `build()`. The board asks the
+registry for a `Launch[]` — one entry per registered target, in `LAUNCH_TARGETS` order, the
+default first, each with its link or the one-line reason it has none — through
+`launchesForTicket` and the maintenance launchers in [`lib/tickets.ts`](lib/tickets.ts), and
+every control in [`components/launch-menu.tsx`](components/launch-menu.tsx) is drawn from that
+list alone. No component names a tool:
 
-| Action | Shape | Doc |
+- an opened ticket's **Start in …** is a split button — the primary half starts the default
+  target, the chevron opens an `AppMenu` of every target with its recommendation beside it;
+- the maintenance rows (triage, sweep), a batch's **Recut this batch** and the board's **Estate
+  check** tap through to the default target and carry the same menu as a trailing `…`;
+- swipe-right on a ticket or a batch starts the default target;
+- a target that can't carry a launch (a prompt past its cap) stays in the menu, dimmed, with
+  its reason — never hidden.
+
+| Target (menu order) | Shape | Doc |
 |---|---|---|
-| **Start in Claude Code**, and every maintenance launcher | `claude.ai/code/new?q=…&repo=…&mode=code` | [universal link](https://support.claude.com/en/articles/14898120-open-the-claude-mobile-app-with-a-link) |
-| **Open in terminal** (quiet, desk-only, on an opened ticket) | `claude-cli://open?repo=…&q=…` | [deep links](https://code.claude.com/docs/en/deep-links) |
+| **Claude Code** — the default: the split button's primary half, a row tap, a swipe | `claude.ai/code/new?q=…&repo=…&mode=code` | [universal link](https://support.claude.com/en/articles/14898120-open-the-claude-mobile-app-with-a-link) |
+| **Claude Code (terminal)** — a menu entry, desk-only | `claude-cli://open?repo=…&q=…` | [deep links](https://code.claude.com/docs/en/deep-links) |
 | **Copy prompt** | the clipboard, for every other surface | — |
+
+**Add a launch target.** Only once the tool documents its link shape — no guessed schemes:
+
+1. Write `lib/launchers/<tool>.ts` exporting a `LaunchTarget`: its `id`, menu `label`,
+   `surface`, what it `supports`, its `modelAliases` (or null), its `maxEncodedPromptChars`
+   (or null), and a pure `build()` that returns null when it can't express a request. Put the
+   doc's URL in the comment above it.
+2. Add it to `LAUNCH_TARGETS` in `lib/launchers/index.ts`. Its position is its place in the
+   menu; the first entry is the default.
+3. Add a row to the table above. Nothing under `components/` or `app/` changes.
 
 The primary link is a *universal* link: on a phone with the Claude app installed the OS hands
 the tap to the app's new-session composer, and everywhere else the same URL opens that form in
@@ -456,9 +476,10 @@ triage lane (chore low, tweak medium, bug high), else high. A prompt body, from 
 the router, is sized by the stub alone. Maintenance: triage and sweep balanced · medium, recut and
 estate check deep · high. Each target names the tier in its own vocabulary — for Claude the
 aliases `haiku` / `sonnet` / `opus`, never a dated model ID. Because neither link carries it (the
-table below), the ticket detail shows it beside **Start in Claude Code** ("Recommended Opus ·
-high") to be picked in the composer, and a prompt body — never a verb — opens with one line
-naming it, which counts toward the cap below and is exactly what **Copy prompt** copies.
+table below), the ticket detail shows it beside **Start in …** ("Recommended Opus · high") and
+on each menu entry, to be picked in the composer, and a prompt body — never a verb — opens with
+one line naming it in that target's vocabulary, which counts toward the cap below. **Copy
+prompt** copies the default target's version.
 
 **The cloud environment comes from the claude.ai/code selector, not the link.** No link
 documents one, and there is no URL for the selector: pick the right environment there once (the
@@ -481,7 +502,8 @@ to it.
 A ticket's prompt is unbounded, so both Claude targets stop at 4,500 encoded characters —
 under the 5,000 the terminal scheme documents for `q`, measured on the encoded value, which is
 the conservative reading. A longer prompt drops both links rather than emitting a URL that
-truncates in silence, and the row falls back to **Copy prompt** with a line saying why. House
+truncates in silence: the split button's primary half and both menu entries go dim with a line
+saying why, and **Copy prompt** is the fallback. House
 prose encodes at roughly 1.5x, so that ceiling is about 3,000 characters of an actual ticket.
 The maintenance prompts are authored literals in `lib/tickets.ts`, short by construction, so
 their links never come back empty — a literal edited past the cap throws rather than render a

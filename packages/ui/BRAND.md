@@ -183,6 +183,12 @@ ships its own, and raw values are as banned at an app-tier call site as anywhere
   thumb actually lands on. Two triggers: `field` is the same box as an `AppInput`; `plain`
   is the pull-down menu button — the value in the tint with a chevron, no box — for a
   choice made from inside a list row.
+- `AppMenu` and its parts (`AppMenuTrigger` / `Content` / `Item` / `Label` / `Separator` /
+  `Group`) — the action menu, `AppSelect`'s sibling for "do one of these" rather than "pick a
+  value": the same material, popover elevation and **44px rows**, plus an item `description`
+  (what the action does, or why it can't) and a disabled row that dims and stays in the list
+  — an action a record can't support is disabled, never hidden. The trigger is whatever the
+  call site hands it: the chevron half of a split button, or a row's `accessory`.
 - `Sheet` **detents** — `<SheetContent detents={["medium", "large"]}>` gives a phone sheet
   the native resting heights: drag the handle between them, drag it off the bottom to
   dismiss, tap it to step. Omit the prop and the sheet is what it always was.

@@ -16,15 +16,16 @@ import { BatchRow } from "@/components/batch-row"
 import { BoardRefresh } from "@/components/board-refresh"
 import { BoardTicketRow } from "@/components/board-ticket-row"
 import { Chip } from "@/components/chip"
+import { LaunchMenuAccessory } from "@/components/launch-menu"
 import { RepoMaintenance } from "@/components/repo-maintenance"
 import { TicketDetail } from "@/components/ticket-detail"
 import { TicketPeek } from "@/components/ticket-peek"
+import { launchLinkProps, primaryLaunch } from "@/lib/launchers"
 import {
-  claudeSessionUrl,
-  claudeTerminalUrl,
-  estateCheckSessionUrl,
+  estateCheckLaunches,
+  launchesForTicket,
   listBoard,
-  recutSessionUrl,
+  recutLaunches,
   repoMaintenanceLaunchers,
   type RepoSection,
   type Ticket,
@@ -44,7 +45,7 @@ export const metadata: Metadata = { title: "Tickets" }
 // anything open, each batch a row that opens into its sequenced stubs.
 //
 // This screen is read-only by design — a ticket changes by editing its file in
-// the repo — so every button here is either a link or a Claude Code session
+// the repo — so every button here is either a link or a coding session
 // with a prompt pre-filled, and the human sends it. That sentence used to be
 // the header's subtitle; it is the board's closing footnote now, where a native
 // screen puts the rule that governs the whole list, and the space under the
@@ -115,12 +116,12 @@ function RepoSectionView({ section }: { section: RepoSection }) {
                     // body where it does not — what "Copy next" puts on the
                     // clipboard (D26).
                     prompt: batch.next.pickup,
-                    sessionUrl: claudeSessionUrl(batch.next),
+                    sessionUrl: defaultLaunchUrl(batch.next),
                   }
                 : null
             }
-            recutUrl={
-              batch.kind === "epic" ? recutSessionUrl(repo, batch.slug) : null
+            recut={
+              batch.kind === "epic" ? recutLaunches(repo, batch.slug) : null
             }
           >
             {batch.tickets.map((ticket, stubIndex) => (
@@ -128,12 +129,11 @@ function RepoSectionView({ section }: { section: RepoSection }) {
                 key={ticket.path}
                 first={stubIndex === 0}
                 ticket={ticket}
-                sessionUrl={claudeSessionUrl(ticket)}
+                sessionUrl={defaultLaunchUrl(ticket)}
               >
                 <TicketDetail
                   ticket={ticket}
-                  sessionUrl={claudeSessionUrl(ticket)}
-                  terminalUrl={claudeTerminalUrl(ticket)}
+                  launches={launchesForTicket(ticket)}
                 />
               </BoardTicketRow>
             ))}
@@ -151,18 +151,28 @@ function RepoSectionView({ section }: { section: RepoSection }) {
   )
 }
 
+/** What a tap or a swipe on a ticket starts: the default target's link, or
+ * null when it can't carry this ticket. */
+function defaultLaunchUrl(ticket: Ticket): string | null {
+  return primaryLaunch(launchesForTicket(ticket))?.url ?? null
+}
+
 /** The board's own maintenance, and the rule the whole screen obeys. */
 function BoardGroup() {
+  const launches = estateCheckLaunches()
+  const primary = primaryLaunch(launches)
   return (
     <GroupedSection footer={BOARD_FOOTNOTE}>
       <GroupedRow
         icon={<Activity />}
         label="Estate check"
         description="A consistency pass across every repo"
-        href={estateCheckSessionUrl()}
-        target="_blank"
-        rel="noreferrer"
+        href={primary?.url ?? undefined}
+        {...(primary ? launchLinkProps(primary) : {})}
         chevron={false}
+        accessory={
+          <LaunchMenuAccessory launches={launches} label="Estate check" />
+        }
       />
     </GroupedSection>
   )
@@ -381,8 +391,7 @@ export default async function TicketsPage({
                     >
                       <TicketDetail
                         ticket={ticket}
-                        sessionUrl={claudeSessionUrl(ticket)}
-                        terminalUrl={claudeTerminalUrl(ticket)}
+                        launches={launchesForTicket(ticket)}
                       />
                     </TicketPeek>
                   ))}

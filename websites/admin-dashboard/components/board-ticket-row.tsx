@@ -9,7 +9,7 @@ import { SwipeAction, SwipeRow } from "@/components/swipe-row"
 import { GROUP_DOT, priorityClass } from "@/components/ticket-look"
 import type { Ticket } from "@/lib/tickets"
 
-/** Open a Claude Code session in a new tab from a gesture. Swipes commit on
+/** Open a session in a new tab from a gesture. Swipes commit on
  * pointer-up — still a user gesture, so the popup is normally allowed; when a
  * blocker eats it anyway, say so instead of failing silently. */
 export function openSession(url: string) {
@@ -28,7 +28,7 @@ export async function copyPrompt(prompt: string) {
 
 // One stub inside an open batch sheet: a scan line (sequence, status dot,
 // title, priority) that expands in place to the full ticket, wearing the same
-// gestures as the rest of the board — swipe right to start it in Claude Code,
+// gestures as the rest of the board — swipe right to start it in the default tool,
 // swipe left for copy-prompt and GitHub. The expanded content is the
 // server-rendered TicketDetail, passed through as children; its buttons are
 // the same actions for the mouse the swipes are for the thumb.

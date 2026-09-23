@@ -24,7 +24,9 @@ import {
 } from "@jamie-nisbet/ui"
 
 import { copyPrompt, openSession } from "@/components/board-ticket-row"
+import { LaunchMenuAccessory } from "@/components/launch-menu"
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
+import { launchLinkProps, primaryLaunch, type Launch } from "@/lib/launchers"
 import type { BatchKind } from "@/lib/tickets"
 
 // A batch's serializable summary — lib/tickets' Batch minus the Ticket objects
@@ -71,7 +73,7 @@ function CountDot({
 // One intake batch as a row in its repo's group: name, how far along it is
 // (from the stubs' `N of M` lines), what's next — and the board's gestures.
 // Tap opens the batch's sheet with every stub in sequence; swipe right starts
-// the next stub in Claude Code in one stroke; swipe left reveals copy-next /
+// the next stub in the default tool in one stroke; swipe left reveals copy-next /
 // GitHub / the client. The sheet's rows are server-rendered and passed through
 // as children.
 //
@@ -85,7 +87,7 @@ export function BatchRow({
   repoSlug,
   clientHref,
   next,
-  recutUrl,
+  recut,
   first,
   children,
 }: {
@@ -94,8 +96,9 @@ export function BatchRow({
   /** The lead's profile, when a client row points at this repo. */
   clientHref: string | null
   next: { title: string; prompt: string | null; sessionUrl: string | null } | null
-  /** The batch-level maintenance launcher — epics only. */
-  recutUrl: string | null
+  /** The batch-level maintenance launcher, on every registered target —
+   *  epics only. */
+  recut: Launch[] | null
   /** First row in its group: the group's own edge has already closed it, so it
    *  draws no hairline above itself. */
   first?: boolean
@@ -107,6 +110,8 @@ export function BatchRow({
   // Bound to consts so the narrowing survives into the gesture closures.
   const nextPrompt = next?.prompt ?? null
   const nextSessionUrl = next?.sessionUrl ?? null
+  const recutPrimary = recut ? primaryLaunch(recut) : null
+  const recutUrl = recutPrimary?.url ?? null
 
   // Tray icons read at a glance under a moving thumb, so they set a step
   // larger than a row's own glyphs.
@@ -281,7 +286,7 @@ export function BatchRow({
             <GroupedSection
               footer={
                 recutUrl
-                  ? "A recut opens a Claude Code session that re-grounds the breakdown in the current state of the code. You send it."
+                  ? "A recut opens a session that re-grounds the breakdown in the current state of the code. You send it."
                   : undefined
               }
             >
@@ -292,9 +297,16 @@ export function BatchRow({
                   label="Recut this batch"
                   description="Refresh, resequence, split, retire"
                   href={recutUrl}
-                  target="_blank"
-                  rel="noreferrer"
+                  {...(recutPrimary ? launchLinkProps(recutPrimary) : {})}
                   chevron={false}
+                  accessory={
+                    recut ? (
+                      <LaunchMenuAccessory
+                        launches={recut}
+                        label="Recut this batch"
+                      />
+                    ) : null
+                  }
                 />
               ) : null}
               <GroupedRow
