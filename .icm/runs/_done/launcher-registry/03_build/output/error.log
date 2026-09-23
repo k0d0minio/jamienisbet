@@ -1,0 +1,10 @@
+## 2026-09-23T14:59:17Z security-check.sh — dependency-audit
+scope=branch head=2bc13e8 branch=claude/jolly-lamport-s8y3tb — BLOCKED 1 (redacted trace; the secret itself is never written)
+dependency-audit  pnpm reports 27 high/critical advisor(y|ies) — run: pnpm audit --audit-level=high
+(unresolved until the session adds a `- resolved:` line: remove the secret from the change, have the operator rotate it, re-run the gate, then write what was wrong and what is true now)
+- resolved: Pre-existing, not this branch's — the 27 (25 high + 2 critical, all transitive) are exactly those parked in `.icm/intake/triage/dependency-advisories-high-critical.md`; this branch touches no manifest or lockfile, so per security-audit → Dependency findings the bump stays that stub's, not this diff.
+## 2026-09-23T15:12:30Z security-check.sh — dependency-audit
+scope=branch head=0a271e4 branch=claude/jolly-lamport-s8y3tb — BLOCKED 1 (redacted trace; the secret itself is never written)
+dependency-audit  pnpm reports 27 high/critical advisor(y|ies) — run: pnpm audit --audit-level=high
+(unresolved until the session adds a `- resolved:` line: remove the secret from the change, have the operator rotate it, re-run the gate, then write what was wrong and what is true now)
+- resolved: Pre-existing, not this branch's — Release merged origin/main, which carries #143 (bump-next-audited-deps); `security-check.sh --branch --audit` then read `RESULT: OK`, so no waiver was needed.
