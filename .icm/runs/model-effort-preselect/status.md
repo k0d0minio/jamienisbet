@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 9 — spike recorded, README done; next the base merge and the ready flip
+- step: 12 — flipped ready; full gate on the post-flip head
 - ci: GREEN (cheap tier, 5edd239)
 - blocked: no
 - updated: 2026-09-23
