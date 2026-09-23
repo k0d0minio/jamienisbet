@@ -424,8 +424,13 @@ icm-board, in the group that closes the screen). Rows wear the Leads list's gest
 left for a tray (copy, GitHub, client), swipe right to start the work — with a haptic tick the
 moment a full swipe crosses its threshold.
 
-Those links come in two shapes, built side by side in [`lib/tickets.ts`](lib/tickets.ts) —
-both documented by Anthropic, each carrying a comment naming its doc:
+Those links come in two shapes, both documented by Anthropic, each built by its own target in
+the launcher registry [`lib/launchers/`](lib/launchers/) — `claude-web.ts` and
+`claude-terminal.ts`, each carrying a comment naming its doc, ordered in `index.ts`. A target
+declares what it can carry (repo, mode, model, effort) and a pure `build()`; the board asks the
+registry through thin wrappers in [`lib/tickets.ts`](lib/tickets.ts), never a tool by name, so
+another tool is one file plus one line in `index.ts` — and only once its link shape is
+documented:
 
 | Action | Shape | Doc |
 |---|---|---|
@@ -441,13 +446,14 @@ launcher passes `mode=plan`, because a stub or a maintenance pass is picked up b
 first. The terminal link is its desk-bound twin: it opens a local session in whichever clone
 that machine last ran `claude` in, prompt pre-filled and inert until Enter.
 
-A ticket's prompt is unbounded, so the two ticket builders stop at 4,500 encoded characters —
+A ticket's prompt is unbounded, so both Claude targets stop at 4,500 encoded characters —
 under the 5,000 the terminal scheme documents for `q`, measured on the encoded value, which is
 the conservative reading. A longer prompt drops both links rather than emitting a URL that
 truncates in silence, and the row falls back to **Copy prompt** with a line saying why. House
 prose encodes at roughly 1.5x, so that ceiling is about 3,000 characters of an actual ticket.
-The maintenance prompts are authored literals in `lib/tickets.ts`, short by construction, and
-need no cap.
+The maintenance prompts are authored literals in `lib/tickets.ts`, short by construction, so
+their links never come back empty — a literal edited past the cap throws rather than render a
+missing button.
 
 Uses the same `GITHUB_TOKEN` as the delivery-repo features; unset, the screen shows a "not
 configured" notice.
@@ -639,6 +645,7 @@ components/             # login form, nav, service-worker register, lead + money
                         #   deal-badges.tsx — barter / equity / commission / started, on the row
                         #   work-started-button.tsx — one-tap "the work has begun"
 lib/                    # auth, formatting, stripe client, money, percent, finance reads, github, tickets
+                        #   launchers/ — the session-link registry: one file per tool, index.ts orders them
                         #   leads.ts — the staleness threshold and the row labels the feed and
                         #              the Leads list both read a lead by
                         #   touches.ts / lead-facts.ts — the model's closed vocabularies,
