@@ -11,5 +11,13 @@
   "scripts": {
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint"
+  },
+  "pnpm": {
+    "overrides": {
+      "js-yaml@3": "^3.15.2",
+      "brace-expansion@1": "^1.1.18",
+      "brace-expansion@5": "^5.0.9",
+      "browserslist": "^4.28.7"
+    }
   }
 }

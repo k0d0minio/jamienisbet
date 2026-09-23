@@ -6,13 +6,21 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Push this commit, then `.icm/scripts/ci-status.sh dependency-advisories-high-critical` on the
+   draft head → GREEN.
+2. Run `.icm/scripts/retrospective.sh dependency-advisories-high-critical`, then
+   `.icm/scripts/usage-snapshot.sh dependency-advisories-high-critical chore end` and
+   `.icm/scripts/close-out.sh dependency-advisories-high-critical`.
+3. Push the close-out commit, flip the PR ready, settle the full gate, then STOP and hand PR #142
+   to the operator: smoke, then squash-merge from GitHub.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
+- none
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Tick any gate checkbox — lane PRs carry none; the merge button is the gate.
+- Merge the PR — the operator does that from GitHub after their own smoke.
+- Widen the PR to the 4 remaining moderate advisories — out of this stub's scope
+  (high + critical only).
