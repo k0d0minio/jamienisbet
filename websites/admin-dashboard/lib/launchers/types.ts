@@ -6,8 +6,9 @@
 
 export type LaunchMode = "plan" | "code"
 
-/** Tool-neutral model/effort recommendation. Declared ahead of the rule that
- * fills it (session-launchers stub 2); every target ignores it for now. */
+/** Tool-neutral model/effort recommendation, filled by `./hint.ts`. A target
+ * puts it in its URL only where its `supports` says the link carries it;
+ * otherwise the board shows it beside the button instead. */
 export type LaunchHint = {
   tier: "fast" | "balanced" | "deep"
   effort: "low" | "medium" | "high" | "xhigh" | "max"
@@ -30,6 +31,9 @@ export type LaunchTarget = {
   surface: "web" | "terminal" | "ide"
   /** What this target can carry, so the UI can say why something is missing. */
   supports: { repo: boolean; mode: boolean; model: boolean; effort: boolean }
+  /** This tool's name for each tier — an alias, never a dated model ID, so
+   * it does not rot. Null for a tool with no model choice. */
+  modelAliases: Record<LaunchHint["tier"], string> | null
   /** The ceiling on the encoded prompt, or null when the tool documents none
    * and we have no reason to impose one. */
   maxEncodedPromptChars: number | null

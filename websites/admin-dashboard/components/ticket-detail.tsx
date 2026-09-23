@@ -5,6 +5,7 @@ import { Button } from "@jamie-nisbet/ui"
 
 import { CopyButton } from "@/components/copy-button"
 import { Markdown } from "@/components/markdown"
+import { carriesHint, DEFAULT_TARGET_ID, hintLabel } from "@/lib/launchers"
 import type { Ticket } from "@/lib/tickets"
 
 // One ticket, opened for reading: the actions that matter, the metadata, then
@@ -26,6 +27,12 @@ export function TicketDetail({
   /** The `claude-cli://` twin of `sessionUrl`; null on the same terms. */
   terminalUrl: string | null
 }) {
+  // The link cannot preselect a model or effort (README § Tickets), so the
+  // recommendation is said beside the button, to be picked in the composer.
+  const recommendation =
+    ticket.hint && !carriesHint(DEFAULT_TARGET_ID)
+      ? hintLabel(DEFAULT_TARGET_ID, ticket.hint)
+      : null
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -49,6 +56,14 @@ export function TicketDetail({
                   Start in Claude Code
                 </a>
               </Button>
+            ) : null}
+            {recommendation ? (
+              <span className="text-app-footnote text-app-label-3">
+                Recommended{" "}
+                <span className="font-mono text-app-label-2">
+                  {recommendation}
+                </span>
+              </span>
             ) : null}
             <CopyButton
               value={ticket.pickup}

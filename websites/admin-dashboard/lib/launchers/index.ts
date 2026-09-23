@@ -13,9 +13,15 @@
 
 import { claudeTerminal } from "./claude-terminal"
 import { claudeWeb } from "./claude-web"
-import type { LaunchRequest, LaunchTarget } from "./types"
+import type { LaunchHint, LaunchRequest, LaunchTarget } from "./types"
 
 export type { LaunchHint, LaunchMode, LaunchRequest, LaunchTarget } from "./types"
+export {
+  hintForMaintenance,
+  hintForTicket,
+  type HintSubject,
+  type MaintenanceKind,
+} from "./hint"
 
 /** In menu order; the first is the default. */
 export const LAUNCH_TARGETS: readonly LaunchTarget[] = [claudeWeb, claudeTerminal]
@@ -29,7 +35,41 @@ export function getTarget(id: string): LaunchTarget | null {
 /** The link for `req` on target `targetId`, or null when that target cannot
  * express it. An unknown id is a programming error, not a runtime state. */
 export function launch(targetId: string, req: LaunchRequest): string | null {
+  return targetOrThrow(targetId).build(req)
+}
+
+function targetOrThrow(targetId: string): LaunchTarget {
   const target = getTarget(targetId)
   if (!target) throw new Error(`Unknown launch target: ${targetId}`)
-  return target.build(req)
+  return target
+}
+
+/** True when `targetId`'s link carries the whole recommendation — model and
+ * effort both — so there is nothing left to say beside the button. */
+export function carriesHint(targetId: string): boolean {
+  const { supports } = targetOrThrow(targetId)
+  return supports.model && supports.effort
+}
+
+/** "Opus · high" — the recommendation in `targetId`'s own model vocabulary;
+ * the tier word itself for a tool with no model choice. */
+export function hintLabel(targetId: string, hint: LaunchHint): string {
+  const alias = targetOrThrow(targetId).modelAliases?.[hint.tier] ?? hint.tier
+  return `${alias.charAt(0).toUpperCase()}${alias.slice(1)} · ${hint.effort}`
+}
+
+/**
+ * A prompt body with one line naming the recommendation on top, for a target
+ * whose link cannot carry it — so the session that receives it can see what
+ * was meant even when the composer's pickers were left alone. Applied before
+ * encoding, so it counts against the target's cap like any other character.
+ * Never applied to a `/pipeline` verb: the router reads the first line.
+ */
+export function withHintLine(
+  targetId: string,
+  prompt: string,
+  hint: LaunchHint | null
+): string {
+  if (!hint || carriesHint(targetId)) return prompt
+  return `Recommended: ${hintLabel(targetId, hint)} effort.\n\n${prompt}`
 }
