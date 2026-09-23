@@ -94,9 +94,9 @@ import {
   clientSlug,
   commitRepoFiles,
   createRepo,
-  getRepo,
   isGithubConfigured,
   listAccessibleRepos,
+  lookupRepo,
   type RepoListing,
   type RepoSummary,
 } from "@/lib/github"
@@ -1438,24 +1438,31 @@ export async function suggestedRepoName(id: string): Promise<string> {
   return clientSlug(client?.name ?? "client")
 }
 
+/** Returned rather than thrown: Next redacts server-action exceptions in
+ * production, and why GitHub wouldn't hand the repo over — an invitation not
+ * yet accepted, a token that can't reach that owner — is the whole value of the
+ * message. */
+export type ConnectClientRepoResult = { ok: true } | { ok: false; message: string }
+
 // Connect an existing repo ("owner/name"). Validated against GitHub so we never
 // store a dangling pointer, and the resolved default branch is cached alongside.
-export async function connectClientRepo(id: string, fullName: string) {
+export async function connectClientRepo(
+  id: string,
+  fullName: string
+): Promise<ConnectClientRepoResult> {
   const trimmed = fullName.trim()
   if (!/^[^/\s]+\/[^/\s]+$/.test(trimmed)) {
-    throw new Error('Enter the repo as "owner/name".')
+    return { ok: false, message: 'Enter the repo as "owner/name".' }
   }
-  const repo = await getRepo(trimmed)
-  if (!repo) {
-    throw new Error(
-      "That repo doesn't exist or isn't visible to the configured GitHub token."
-    )
-  }
+  const lookup = await lookupRepo(trimmed)
+  if (lookup.error !== null) return { ok: false, message: lookup.error }
+  const { repo } = lookup
   await setClientRepo(id, {
     githubRepo: repo.fullName,
     githubDefaultBranch: repo.defaultBranch,
   })
   revalidateLead(id)
+  return { ok: true }
 }
 
 export type CreateClientRepoResult = {

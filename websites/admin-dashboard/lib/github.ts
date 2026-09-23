@@ -6,7 +6,9 @@ import "server-only"
 //
 // A Personal Access Token needs `repo` scope (read+write on private repos) to
 // list, create, and read; a fine-grained token needs Contents+Metadata read and
-// Administration write (repo creation). With the token unset every function
+// Administration write (repo creation). A fine-grained token only reaches repos
+// under the one account it was created for, so connecting a repo a client owns
+// and invited Jamie to needs the classic token. With the token unset every function
 // degrades gracefully: reads return null/empty, and the connect/create actions
 // surface a clear "not configured" error rather than throwing opaquely.
 
@@ -98,31 +100,51 @@ function toSummary(r: {
  * spent limit looked like an estate whose repos were broken. */
 export type RepoListing = { repos: RepoSummary[]; error: string | null }
 
+/** How many pages of 100 a repo listing will follow — a runaway guard, not a
+ * budget: the estate is a few dozen repos. */
+const MAX_LISTING_PAGES = 10
+
+/** The `rel="next"` page of a paginated GitHub response, as a path for `gh()`,
+ * or null on the last page. */
+function nextPage(res: Response): string | null {
+  const next = res.headers.get("link")?.match(/<([^>]+)>;\s*rel="next"/)
+  return next ? next[1].replace(API, "") : null
+}
+
 /**
- * Repos the token can administer, most-recently-pushed first — the candidate
- * list for "connect an existing repo". `affiliation=owner` keeps it to repos
- * Jamie owns (not every org repo he can merely read). Unconfigured is a stated
- * absence rather than a failure: no token, no listing, no error to report.
+ * Repos the account can connect, most-recently-pushed first — the candidate
+ * list for "connect an existing repo". `affiliation=owner,collaborator`: the
+ * repos Jamie owns, plus the ones a client created under their own account or
+ * org and invited him to — the client-hosted case, and the reason the picker
+ * exists. `organization_member` stays out, so it is still not every org repo he
+ * can merely read. An invitation that hasn't been accepted grants nothing, so
+ * its repo only appears once it has been. Unconfigured is a stated absence
+ * rather than a failure: no token, no listing, no error to report.
  */
 export async function listAccessibleRepos(): Promise<RepoListing> {
   if (!isGithubConfigured()) return { repos: [], error: null }
+  const repos: RepoSummary[] = []
   try {
-    const res = await gh(
-      "/user/repos?per_page=100&sort=pushed&affiliation=owner"
-    )
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as {
-        message?: string
-      } | null
-      return {
-        repos: [],
-        error: body?.message
-          ? `GitHub returned HTTP ${res.status} — ${body.message}`
-          : `GitHub returned HTTP ${res.status}`,
+    let path: string | null =
+      "/user/repos?per_page=100&sort=pushed&affiliation=owner,collaborator"
+    for (let page = 0; path && page < MAX_LISTING_PAGES; page++) {
+      const res = await gh(path)
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          message?: string
+        } | null
+        return {
+          repos: [],
+          error: body?.message
+            ? `GitHub returned HTTP ${res.status} — ${body.message}`
+            : `GitHub returned HTTP ${res.status}`,
+        }
       }
+      const rows = (await res.json()) as Parameters<typeof toSummary>[0][]
+      repos.push(...rows.map(toSummary))
+      path = nextPage(res)
     }
-    const rows = (await res.json()) as Parameters<typeof toSummary>[0][]
-    return { repos: rows.map(toSummary), error: null }
+    return { repos, error: null }
   } catch (err) {
     return {
       repos: [],
@@ -131,8 +153,16 @@ export async function listAccessibleRepos(): Promise<RepoListing> {
   }
 }
 
+/** One repo read by "owner/name": its summary, or a sentence saying why the
+ * token couldn't have it. The sentence is the point — "not visible" alone
+ * doesn't say which of four different fixes is needed. */
+export type RepoLookup =
+  | { repo: RepoSummary; error: null }
+  | { repo: null; error: string }
+
 /** Look up one repo by "owner/name". Returns its summary, or null when it
- * doesn't exist / isn't visible to the token (used to validate a connect). */
+ * doesn't exist / isn't visible to the token. `lookupRepo` is the variant that
+ * says which, for the connect flow where the reason is what's needed. */
 export async function getRepo(fullName: string): Promise<RepoSummary | null> {
   if (!isGithubConfigured()) return null
   try {
@@ -142,6 +172,111 @@ export async function getRepo(fullName: string): Promise<RepoSummary | null> {
   } catch {
     return null
   }
+}
+
+/**
+ * Look up one repo by "owner/name" and, when the token can't have it, work out
+ * why. GitHub answers a repo the token can't see with the same 404 it gives one
+ * that doesn't exist, so the 404 is followed by two cheap reads that tell the
+ * usual causes apart:
+ *
+ *   - **A pending invitation.** A collaborator invite grants nothing until it
+ *     is accepted, and `/user/repository_invitations` lists the ones waiting.
+ *   - **A fine-grained token.** It is bound to one resource owner, so it can't
+ *     reach a repo another user owns even when Jamie is a collaborator on it.
+ *     Told apart by its `github_pat_` prefix — the value itself is never read
+ *     further, logged, or returned.
+ *
+ * A 403 is the org refusing the token (SAML SSO, or a PAT policy), and GitHub's
+ * own message already says which.
+ */
+export async function lookupRepo(fullName: string): Promise<RepoLookup> {
+  if (!isGithubConfigured()) {
+    return { repo: null, error: "GitHub is not configured in this environment." }
+  }
+  try {
+    const res = await gh(`/repos/${fullName}`)
+    if (res.ok) {
+      return {
+        repo: toSummary((await res.json()) as Parameters<typeof toSummary>[0]),
+        error: null,
+      }
+    }
+    const body = (await res.json().catch(() => null)) as {
+      message?: string
+    } | null
+    const owner = fullName.split("/")[0]
+    if (res.status === 403 && res.headers.get("x-github-sso")) {
+      return {
+        repo: null,
+        error: `${owner} enforces single sign-on, and the GitHub token isn't authorised for it. Authorise the token for ${owner} on github.com, then connect again.`,
+      }
+    }
+    if (res.status === 403) {
+      return {
+        repo: null,
+        error: body?.message
+          ? `GitHub refused the token for ${fullName}: ${body.message}`
+          : `GitHub refused the token for ${fullName} (HTTP 403).`,
+      }
+    }
+    if (res.status !== 404) {
+      return {
+        repo: null,
+        error: body?.message
+          ? `GitHub returned HTTP ${res.status} for ${fullName}: ${body.message}`
+          : `GitHub returned HTTP ${res.status} for ${fullName}.`,
+      }
+    }
+    return { repo: null, error: await explainNotFound(fullName) }
+  } catch (err) {
+    return {
+      repo: null,
+      error: `Couldn't reach GitHub: ${err instanceof Error ? err.message : "network error"}.`,
+    }
+  }
+}
+
+/** Why a repo came back 404 — see `lookupRepo`. Each probe is best-effort: a
+ * probe that fails just falls through to the next, and the last answer is the
+ * plain one. */
+async function explainNotFound(fullName: string): Promise<string> {
+  const wanted = fullName.toLowerCase()
+  const owner = fullName.split("/")[0]
+
+  try {
+    const res = await gh("/user/repository_invitations?per_page=100")
+    if (res.ok) {
+      const invites = (await res.json()) as {
+        html_url?: string
+        repository?: { full_name?: string }
+      }[]
+      const invite = invites.find(
+        (i) => i.repository?.full_name?.toLowerCase() === wanted
+      )
+      if (invite) {
+        return `There's an invitation to ${fullName} waiting to be accepted — accept it on GitHub${invite.html_url ? ` (${invite.html_url})` : ""}, then connect again.`
+      }
+    }
+  } catch {
+    // Unanswered — fall through to the token check.
+  }
+
+  if (token()?.startsWith("github_pat_")) {
+    let login: string | null = null
+    try {
+      const res = await gh("/user")
+      if (res.ok) login = ((await res.json()) as { login?: string }).login ?? null
+    } catch {
+      // Unanswered — the message below doesn't need the login.
+    }
+    if (login && login.toLowerCase() === owner.toLowerCase()) {
+      return `The GitHub token is a fine-grained token that hasn't been given ${fullName}. Add it to the token's repository access, then connect again.`
+    }
+    return `The GitHub token is a fine-grained token, and those only reach repos under one account — it can't see repos owned by ${owner}. Use a classic token with repo scope to connect repos you were invited to.`
+  }
+
+  return `${fullName} doesn't exist, or the GitHub account isn't a collaborator on it. Check the name and that the invitation was accepted.`
 }
 
 /**

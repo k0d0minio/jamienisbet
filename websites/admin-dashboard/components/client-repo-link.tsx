@@ -157,7 +157,8 @@ function ConnectExisting({ id }: { id: string }) {
             hapticTick()
             startTransition(async () => {
               try {
-                await connectClientRepo(id, value)
+                const result = await connectClientRepo(id, value)
+                if (!result.ok) setError(result.message)
               } catch (err) {
                 setError(
                   err instanceof Error ? err.message : "Could not connect."
