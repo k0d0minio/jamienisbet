@@ -26,14 +26,23 @@
 # asked for: the code-reads check skips them, because no manifest can supply them.
 #
 # Verbs:
-#   audit [--changed]     names only. Per key and per surface it is scoped to: declared-but-missing
+#   audit [--changed] [--twice]
+#                         names only. Per key and per surface it is scoped to: declared-but-missing
 #                         and present-but-undeclared on Vercel (per project, per target), on GitHub,
 #                         locally, in required_env; plus every `process.env.X` the tree reads (and
 #                         turbo.json globalEnv) that no .env.example declares. `--changed` limits
 #                         it to keys this branch added — Build's pre-push check and Release's stop
 #                         class 3. A Vercel variable of type `sensitive` is reported as present,
 #                         not pullable — never as missing. Read-only in the strong sense: GET only,
-#                         the CLI never run, nothing written.  RESULT: OK | GAPS n
+#                         the CLI never run, nothing written. Deterministic by construction: every
+#                         Vercel list is read to its last page, rows are sorted within their
+#                         section, and a surface that could not be READ this run (a rate limit, a
+#                         5xx, a timeout — after lib/vercel.sh's retries) is one [UNKNOWN] row with
+#                         its own count, never a run of missing-key gaps. `--twice` is the
+#                         regression check: the audit runs twice and the two outputs are diffed —
+#                         identical → the second run's report, else the diff and RESULT: UNSTABLE.
+#                         RESULT: OK | GAPS n | UNKNOWN n (gaps first; unknowns ride in its
+#                         parenthesis) | UNSTABLE (--twice only)
 #   init                  seeds each project's .env.example with Vercel's key NAMES, `# TODO: note`
 #                         placeholders and `[targets]` from Vercel's own scoping. Never overwrites,
 #                         reorders or writes a value.  RESULT: SEEDED n | UNCHANGED
@@ -127,7 +136,7 @@ has_token() { local t="$1" x; for x in ${1//,/ }; do [ "$x" = "$2" ] && return 0
 
 # --- GitHub names (secrets + variables) — read once, names only ------------------------------------------
 
-gh_names=""; gh_note=""
+gh_names=""; gh_note=""; gh_unknown=0
 load_gh_names() {
   [ -z "$gh_names$gh_note" ] || return 0
   # shellcheck source=lib/gh.sh
@@ -138,8 +147,17 @@ load_gh_names() {
   local r1 r2
   r1="$(gh_api GET "/repos/${repo}/actions/secrets?per_page=100" 2>/dev/null)" || true
   r2="$(gh_api GET "/repos/${repo}/actions/variables?per_page=100" 2>/dev/null)" || true
-  if [ "$(printf '%s' "$r1" | tail -n1)" = "200" ]; then gh_names="$(printf '%s' "$r1" | sed '$d' | jq -r '.secrets[].name')"; else gh_note="GET /actions/secrets answered HTTP $(printf '%s' "$r1" | tail -n1) (a token needs Secrets: read, or admin) — GitHub surfaces not read"; fi
-  if [ "$(printf '%s' "$r2" | tail -n1)" = "200" ]; then gh_names="$gh_names"$'\n'"$(printf '%s' "$r2" | sed '$d' | jq -r '.variables[].name')"; fi
+  local c1 c2; c1="$(printf '%s' "$r1" | tail -n1)"; c2="$(printf '%s' "$r2" | tail -n1)"
+  # Both lists or neither: a variables read that failed would turn every [ci] variable into a gap.
+  # 401/403/404 is the token's standing permission (a WARN, the same every run); anything else is
+  # this run's weather (UNKNOWN).
+  for c in "$c1" "$c2"; do
+    [ "$c" = "200" ] && continue
+    case "$c" in 401|403|404) gh_note="GET /actions/secrets|variables answered HTTP $c (a token needs Secrets: read and Variables: read, or admin) — GitHub surfaces not read" ;;
+      *) gh_note="GitHub Actions secrets/variables could not be read this run (HTTP ${c:-000}) — re-run"; gh_unknown=1 ;; esac
+    return 0
+  done
+  gh_names="$(printf '%s' "$r1" | sed '$d' | jq -r '.secrets[].name')"$'\n'"$(printf '%s' "$r2" | sed '$d' | jq -r '.variables[].name')"
 }
 
 # --- the process.env reads in the tree -------------------------------------------------------------------
@@ -158,8 +176,14 @@ code_reads() {
 # --- audit ------------------------------------------------------------------------------------------------
 
 cmd_audit() {
-  local changed=0 gaps=0 warns=0
-  while [ $# -gt 0 ]; do case "$1" in --changed) changed=1; shift ;; *) die "audit: unknown flag $1" ;; esac; done
+  local changed=0 twice=0 gaps=0 warns=0 unknowns=0 buf="" args=()
+  while [ $# -gt 0 ]; do case "$1" in --changed) changed=1; args+=("$1"); shift ;; --twice) twice=1; shift ;; *) die "audit: unknown flag $1" ;; esac; done
+  if [ "$twice" -eq 1 ]; then
+    local a b; a="$(mktemp)"; b="$(mktemp)"
+    "$here/env.sh" audit ${args[@]+"${args[@]}"} > "$a" 2>&1; "$here/env.sh" audit ${args[@]+"${args[@]}"} > "$b" 2>&1
+    if diff -u --label "audit run 1" --label "audit run 2" "$a" "$b"; then cat "$b"; rm -f "$a" "$b"; exit 0; fi
+    rm -f "$a" "$b"; echo "RESULT: UNSTABLE (two audits of the same tree differed — the diff above names the rows that moved)"; exit 0
+  fi
   local changed_keys=""
   if [ "$changed" -eq 1 ]; then
     # shellcheck source=lib/changed-files.sh
@@ -180,15 +204,20 @@ cmd_audit() {
     echo "=== env audit — every key, every surface (names only) ==="
   fi
   in_scope() { [ "$changed" -eq 0 ] || printf '%s\n' "$changed_keys" | grep -qx "$1"; }
-  gap()  { echo "  [GAP]  $*"; gaps=$((gaps+1)); }
-  warn() { echo "  [WARN] $*"; warns=$((warns+1)); }
-  info() { echo "  [INFO] $*"; }
-  ok()   { echo "  [OK]   $*"; }
+  # Rows are buffered and printed sorted, section by section, so the report is a function of the
+  # tree and the surfaces — never of the order an API happened to answer in.
+  gap()     { buf="$buf  [GAP]  $*"$'\n'; gaps=$((gaps+1)); }
+  warn()    { buf="$buf  [WARN] $*"$'\n'; warns=$((warns+1)); }
+  unknown() { buf="$buf  [UNKNOWN] $*"$'\n'; unknowns=$((unknowns+1)); }
+  info()    { buf="$buf  [INFO] $*"$'\n'; }
+  ok()      { buf="$buf  [OK]   $*"$'\n'; }
+  flush()   { [ -z "$buf" ] || printf '%s' "$buf" | LC_ALL=C sort; buf=""; }
+  local gh_unknown_row=0
 
   local all_declared=""
   for m in "${MANIFESTS[@]}"; do
     IFS='|' read -r name path file <<<"$m"
-    echo "--- $name ($file)"
+    flush; echo "--- $name ($file)"
     [ -f "$file" ] || { warn "$file does not exist — nothing declared for $name (env.sh init seeds it)"; continue; }
     git check-ignore -q "$file" 2>/dev/null && warn "$file is gitignored — a manifest git cannot see is not a manifest (add !.env.example under the .env* rule)"
     local rows; rows="$(parse_example "$file")"
@@ -196,7 +225,8 @@ cmd_audit() {
     local vercel_rows="" vercel_ok=0
     if [ "$name" != "(root)" ]; then
       if [ -n "$vercel_token" ]; then
-        if vercel_rows="$(vercel_env_list "$name" 2>/dev/null)"; then vercel_ok=1; else warn "Vercel: could not list env for project '$name' (does the team have it? is ${vercel_token_name} scoped to it?)"; fi
+        if vercel_rows="$(vercel_env_list "$name" 2>/dev/null)"; then vercel_ok=1
+        else unknown "Vercel/$name: env could not be read this run (rate limit, 5xx, or a project ${vercel_token_name} cannot see — env-check.sh names which) — its keys are neither present nor missing; re-run"; fi
       else
         warn "Vercel not read: ${vercel_token_name} unset in this environment"
       fi
@@ -218,7 +248,8 @@ cmd_audit() {
       fi
       if has_token "$targets" ci; then
         load_gh_names
-        if [ -n "$gh_note" ]; then warn "$key [ci]: $gh_note"
+        if [ "$gh_unknown" -eq 1 ]; then [ "$gh_unknown_row" -eq 1 ] || { unknown "$gh_note"; gh_unknown_row=1; }
+        elif [ -n "$gh_note" ]; then warn "$key [ci]: $gh_note"
         elif printf '%s\n' "$gh_names" | grep -qx "$key"; then ok "$key [ci] present on GitHub Actions"
         else gap "$key [ci]: not a GitHub Actions secret or variable (printf '%s' \"\$V\" | env.sh add $key --ci --github secret)"; fi
       fi
@@ -240,21 +271,25 @@ cmd_audit() {
     else info "$local_file absent (env.sh pull writes it)"; fi
   done
 
-  echo "--- the pipeline's own required_env"
+  flush; echo "--- the pipeline's own required_env"
   for v in $(project_list '.required_env'); do
     in_scope "$v" || continue
     printf '%s\n' "$all_declared" | grep -qx "$v" && ok "$v declared in a .env.example" || warn "$v (required_env) is not declared in any .env.example — document it there with a [cloud] or [ci] suffix as fits"
   done
-  echo "--- what the code reads"
+  flush; echo "--- what the code reads"
   local reads; reads="$(code_reads)"
   while IFS= read -r k; do
     [ -n "$k" ] || continue
     in_scope "$k" || continue
     printf '%s\n' "$all_declared" | grep -qx "$k" || gap "code reads process.env.$k (or turbo globalEnv) and no .env.example declares it (env.sh doc $k)"
   done <<<"$reads"
+  flush
   [ "$changed" -eq 0 ] || echo "(only the keys this branch added were audited; run without --changed for the whole picture)"
   echo "-------------------------------------------------"
-  if [ "$gaps" -eq 0 ]; then echo "RESULT: OK ($warns warnings)"; else echo "RESULT: GAPS $gaps ($warns warnings)"; fi
+  local unk=""; [ "$unknowns" -eq 0 ] || unk=", $unknowns unknown"
+  if [ "$gaps" -gt 0 ]; then echo "RESULT: GAPS $gaps ($warns warnings$unk)"
+  elif [ "$unknowns" -gt 0 ]; then echo "RESULT: UNKNOWN $unknowns ($warns warnings) — a surface could not be read; not OK until it can"
+  else echo "RESULT: OK ($warns warnings)"; fi
   exit 0
 }
 
@@ -343,8 +378,8 @@ cmd_push_notes() {
     IFS='|' read -r name path file <<<"$m"
     [ -f "$file" ] || continue
     local id; id="$(vercel_project_id "$name")"; [ -n "$id" ] || continue
-    local resp; resp="$(vercel_get "/v9/projects/${id}/env")"; [ "$(printf '%s' "$resp" | tail -n1)" = "200" ] || { echo "  [WARN] $name: could not list env"; continue; }
-    local envs; envs="$(printf '%s' "$resp" | sed '$d' | jq -c '(.envs // [])[] | {id, key, comment: (.comment // "")}')"
+    local envs; envs="$(vercel_get_all "/v9/projects/${id}/env" envs "" '{id, key, comment: (.comment // "")}' 2>/dev/null)" || { echo "  [WARN] $name: could not list env"; continue; }
+    envs="$(printf '%s' "$envs" | jq -c '.[]')"
     while IFS=$'\t' read -r key targets note; do
       [ -n "$key" ] && [ -n "$note" ] && [ "$note" != "TODO: note" ] || continue
       if [ "${#note}" -gt 500 ]; then echo "  [WARN] $key: note is ${#note} characters (Vercel caps at 500) — shorten it in $file; not pushed"; over=$((over+1)); continue; fi
