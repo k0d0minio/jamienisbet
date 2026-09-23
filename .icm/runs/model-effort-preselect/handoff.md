@@ -6,13 +6,14 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: review `02_define/output/spec.md`, tick **Spec approved** on PR #144, then run `build model-effort-preselect`.
+2. Build, pass 2: produce the spike URLs and stop for Jamie's hand test before wiring anything.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
+- The Spec-approved gate (operator). Mid-Build: the spike needs Jamie on desktop browser, iOS/Android app and the terminal handler.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Tick the gate. Wire `model`/`effort`/`environment` into any URL on assumption.
+- Prefix a `/pipeline` verb. Change repo encoding in either target.

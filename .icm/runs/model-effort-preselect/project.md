@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Repo preselection is byte-identical: `repo=owner%2Fname` on web, literal slash on terminal (breakdown decision 4).
+- Nothing lands in a URL until Jamie's hand-tested spike marks it honoured (decision 3); `environment` included.
+- Verb pick-ups are never modified — the prompt-line prefix is for prompt bodies only.
+- Model names are aliases (`haiku`/`sonnet`/`opus`), never dated IDs.
+- No new stub fields; no `biz.*` change; no new env vars.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- within budget — Define read the stub, breakdown, `lib/launchers/*`, the launch wrappers in `lib/tickets.ts` and README § Tickets.
