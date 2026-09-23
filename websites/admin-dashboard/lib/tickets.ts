@@ -44,7 +44,8 @@ import "server-only"
 // `_done/` is never fetched.
 //
 // Reuses the delivery-repo `GITHUB_TOKEN`; a fine-grained token needs Contents
-// read on the connected repos. Every fetch carries a revalidate — one of the
+// read on the connected repos, and can't reach a repo another account owns at
+// all — client-hosted repos need the classic token. Every fetch carries a revalidate — one of the
 // three above — because the board is a glanceable list where "up to a minute
 // behind main" is the right trade against hammering the API on every phone
 // refresh. Every fetch is also tagged with the same tag whatever its
@@ -123,8 +124,8 @@ export const BOARD_CACHE_TAG = "tickets"
 // sweep fails, and every repo a client row points at is here because a
 // connected repo is onboard the moment its first ticket lands — it must not
 // have to wait out an hourly clock to appear. Sustentus lives under its own
-// org — outside `affiliation=owner`, so the sweep would never find it — and is
-// added explicitly: its `.icm/` is exempt from the estate *tooling*, but its
+// org — outside `affiliation=owner,collaborator`, so the sweep would never find
+// it — and is added explicitly: its `.icm/` is exempt from the estate *tooling*, but its
 // stubs are the very shape this parser speaks, and seeing the whole estate on
 // one board is the point (icm-board decision D13).
 const HOUSE_REPOS = ["k0d0minio/jamienisbet", "k0d0minio/icm-board"] as const
@@ -700,10 +701,23 @@ async function fetchRepoTickets(
       `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
       "application/vnd.github+json"
     )
-    // 404: no access or no commits — either way, nothing to show, not an error
-    // (a repo is onboard the moment its first ticket lands). 409: empty repo.
-    if (res.status === 404 || res.status === 409)
-      return { tickets: [], error: null }
+    // 409: an empty repo — nothing to show yet, not an error (a repo is
+    // onboard the moment its first ticket lands).
+    if (res.status === 409) return { tickets: [], error: null }
+    // 404: the token can't see the repo. Only a pinned repo gets here — the
+    // swept ones were just listed by the same token — so it is a connected
+    // client's repo, or a house one, the board would otherwise drop without a
+    // word. That silence is how a client-hosted repo read as having no tickets.
+    if (res.status === 404) {
+      return {
+        tickets: [],
+        error: {
+          repo,
+          message:
+            "The GitHub token can't see this repo. A fine-grained token only reaches repos under one account — a repo a client invited you to needs a classic token with repo scope, and an invitation has to be accepted first.",
+        },
+      }
+    }
     if (!res.ok) {
       return {
         tickets: [],
@@ -899,13 +913,24 @@ function rank(t: Ticket): number {
 
 // --- the roster ------------------------------------------------------------
 // Two tiers. The pinned repos above are read every render. Everything else the
-// token owns goes through discovery on the hourly clock: one small request
-// each, asking only whether the repo has an `.icm/intake/` to read. Most of
-// the estate does not and never will, and the answer to that question does not
-// change between two renders a minute apart.
+// token owns or collaborates on goes through discovery on the hourly clock: one
+// small request each, asking only whether the repo has an `.icm/intake/` to
+// read. Most of the estate does not and never will, and the answer to that
+// question does not change between two renders a minute apart.
+
+/** How many pages of 100 the sweep will follow — a runaway guard, not a
+ * budget: the estate is a few dozen repos. */
+const MAX_SWEEP_PAGES = 10
 
 /**
- * Every repo the token owns, most-recently-pushed first.
+ * Every repo the token owns or was invited to as a collaborator,
+ * most-recently-pushed first.
+ *
+ * `collaborator` is what brings a client-hosted repo onto the board: one a
+ * client created under their own account or org and invited Jamie to. Without
+ * it such a repo only appeared once a client row pointed at it — and connecting
+ * it is exactly what a collaborator repo used to fail at. `organization_member`
+ * stays out, so this is still not every org repo he can merely read.
  *
  * Read here rather than through `lib/github.ts`'s picker listing for two
  * reasons. It is a board read, so it belongs on the board's cache, tag and
@@ -920,15 +945,23 @@ async function fetchOwnedRepos(): Promise<{
   fullNames: string[]
   error: string | null
 }> {
+  const fullNames: string[] = []
   try {
-    const res = await gh(
-      "/user/repos?per_page=100&sort=pushed&affiliation=owner",
-      "application/vnd.github+json",
-      DISCOVERY_REVALIDATE_SECONDS
-    )
-    if (!res.ok) return { fullNames: [], error: await githubFailure(res) }
-    const rows = (await res.json()) as { full_name: string }[]
-    return { fullNames: rows.map((r) => r.full_name), error: null }
+    let path: string | null =
+      "/user/repos?per_page=100&sort=pushed&affiliation=owner,collaborator"
+    for (let page = 0; path && page < MAX_SWEEP_PAGES; page++) {
+      const res = await gh(
+        path,
+        "application/vnd.github+json",
+        DISCOVERY_REVALIDATE_SECONDS
+      )
+      if (!res.ok) return { fullNames: [], error: await githubFailure(res) }
+      const rows = (await res.json()) as { full_name: string }[]
+      fullNames.push(...rows.map((r) => r.full_name))
+      const next = res.headers.get("link")?.match(/<([^>]+)>;\s*rel="next"/)
+      path = next ? next[1].replace(API, "") : null
+    }
+    return { fullNames, error: null }
   } catch (err) {
     return {
       fullNames: [],
@@ -982,7 +1015,7 @@ async function probeIntake(fullName: string): Promise<IntakeProbe> {
 }
 
 type Roster = {
-  /** Everything the board will show: the pinned tier, plus the owned repos
+  /** Everything the board will show: the pinned tier, plus the swept repos
    * discovery found an intake in. */
   repos: TicketRepo[]
   /** Repos discovery couldn't get an answer for. They stay in the roster and

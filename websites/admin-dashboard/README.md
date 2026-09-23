@@ -333,6 +333,21 @@ the row (`clients.github_repo`) so the dashboard always knows where a customer's
 Needs `GITHUB_TOKEN` (see [`.env.example`](.env.example)); with it unset the sheet shows a "not
 configured" note and the rest of the admin is unaffected.
 
+The picker suggests every repo the account **owns or collaborates on**
+(`affiliation=owner,collaborator` — not every org repo it can merely read), so a repo a client
+created under their own account or org and invited Jamie to is connectable. Two things have to
+hold for one:
+
+- **The invitation is accepted.** A pending invite grants nothing; connecting says so and links
+  the invitation.
+- **The token is a classic PAT with `repo` scope.** A fine-grained token is bound to one resource
+  owner, so it can't see a repo another account owns even when Jamie is a collaborator on it;
+  connecting says so rather than calling the repo missing. A client org that enforces SAML SSO
+  also needs the token authorised for that org on github.com.
+
+The Tickets board reads through the same token, so the same rule decides whether a client-hosted
+repo's tickets show up there.
+
 ### Forms — questionnaires sent to a lead
 
 Prospection used to happen over email, which meant the answers lived in an inbox rather than on
@@ -394,8 +409,9 @@ tickets ride as **Triage** and **Backlog** pseudo-batches. Tapping a batch opens
 sheet (a dialog on desktop) with the stubs in sequence, each expanding to the full rendered
 ticket. The screen's name sets large and hands off to the compact bar on scroll, where the
 refresh button lives; under it, what the board adds up to is a glance row of mono figures. The
-repo roster comes from the database plus every owner repo the token sees; each ticket links
-back to its client.
+repo roster comes from the database plus every repo the token owns or collaborates on; each
+ticket links back to its client. A connected repo the token can't see is named on the board
+with the reason, never dropped in silence.
 
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
