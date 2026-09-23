@@ -14,3 +14,11 @@ decision made mid-run has one home.
 
 - <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
   make is a spec gap: say so in `notes.md` → Notes for Release>
+
+## Revised 2026-09-23 (operator, after smoke)
+
+- The terminal link opened nothing. Copy becomes the default action everywhere (ticket split
+  button, row taps, swipe-right); every tool link moves into the menu.
+- The standalone Copy button merges into the split button's primary half.
+- The terminal target stays in the menu, disabled ("Not working yet"), via a registry-level
+  parked field; a triage bug stub carries the fix.

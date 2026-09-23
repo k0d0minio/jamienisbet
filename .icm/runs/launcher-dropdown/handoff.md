@@ -6,16 +6,18 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: smoke the admin preview (jamie-nisbet) on a phone and a laptop — an opened
-   ticket's split button and its menu, a maintenance row's `…` inside its sheet, a batch's
-   Recut row, the Estate check row, and a swipe-right. Then tick **Ready to merge** on PR #145.
-2. Then `release launcher-dropdown`.
+1. Operator: read the revised `02_define/output/spec.md` (copy-first, terminal parked), re-tick
+   **Spec approved** on PR #145.
+2. Then `build launcher-dropdown` — the registry, `AppMenu` and the menus already landed; the
+   rework is: a `parked` field on `LaunchTarget` (terminal parked), the split button's primary
+   half becomes Copy (standalone Copy removed), row taps and swipe-right copy, the triage stub,
+   README.
 
 ## Blockers
 
-- The Ready-to-merge tick (operator).
+- The Spec-approved re-tick (operator).
 
 ## Do not
 
 - Tick either gate checkbox.
-- Add a launch target in this run — each is its own triage stub.
+- Fix the terminal target in this run — the triage stub carries it.
