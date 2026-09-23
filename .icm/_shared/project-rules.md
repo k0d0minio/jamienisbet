@@ -112,3 +112,6 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
   if it predates the branch, park/point at that stub per `security-audit/SKILL.md` → Dependency
   findings rather than widening the PR into a dependency bump. (`security-check/dependency-audit`,
   first seen: strip-unused-env-vars)
+
+<!-- Retrospective Learned Rule [2026-09-23] -->
+- nothing under `<svg>` in `@jamie-nisbet/ui`'s brand components (or anything rendered through `next/og`'s `ImageResponse`) may be a custom React component — Satori requires intrinsic elements only inside `<svg>`. Share sub-markup as a plain function returning an element array/fragment, called directly, never as a JSX component tag. (`build error (vercel build log, dpl_ndxtrhhnsspemeqnhycsagicnrf, bld_fnnd`, seen 1× — bump-next-audited-deps; .claude/skills, .github, packages/app-shell, packages/ui)
