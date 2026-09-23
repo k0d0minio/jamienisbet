@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Every emitted URL byte-identical (breakdown decision 4); repo preselection untouched.
+- No component or `app/` file changes; exported names/signatures in `lib/tickets.ts` unchanged.
+- `LaunchHint` declared, ignored — model/effort is stub 2, the dropdown is stub 3.
+- Never run build/lint/typecheck locally — CI is the source of truth.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Within budget: the stub, the breakdown, targeted reads of `lib/tickets.ts` (§ Claude deep
+  links, § Maintenance launchers), `README.md` § Tickets, and a grep for the export consumers.

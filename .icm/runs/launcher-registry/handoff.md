@@ -6,13 +6,14 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md`, then tick **Spec approved** on PR #140.
+2. Then `build launcher-registry` — executes `plan.md` pass by pass on this branch.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
+- The Spec approved gate (operator).
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Tick the gate on the operator's behalf; start Build before it is ticked.
+- Touch any file under `components/` or `app/`, or wire model/effort (stub 2) or the dropdown (stub 3).
