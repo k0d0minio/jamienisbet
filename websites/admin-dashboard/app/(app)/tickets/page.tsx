@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Activity, GitBranch, TriangleAlert } from "lucide-react"
 
 import {
+  Badge,
   GlanceFigure,
   GlanceRow,
   GroupedBlock,
@@ -57,7 +58,8 @@ export const metadata: Metadata = { title: "Tickets" }
 const BOARD_FOOTNOTE = (
   <>
     Each repo&apos;s <span className="font-mono">.icm/intake/</span>, read from
-    main. A ticket changes by editing its file in the repo, not here — and every
+    its ticket base branch — the UAT branch where the repo declares one, badged
+    on its header, else main. A ticket changes by editing its file in the repo, not here — and every
     launcher on this board hands you a prompt to send yourself.
   </>
 )
@@ -74,6 +76,18 @@ function RepoSectionView({ section }: { section: RepoSection }) {
           <span className="truncate font-mono font-medium text-app-label-2">
             {repo.slug}
           </span>
+          {/* Which branch these tickets were read from, when it isn't the
+              default one — a UAT repo's ticket base branch (D38). A branch
+              name is a machine identifier, so it sets in mono. */}
+          {repo.ticketRef ? (
+            <Badge
+              variant="outline"
+              className="shrink-0 self-center rounded-full px-2 font-mono"
+              title={`Read from the ${repo.ticketRef} branch`}
+            >
+              {repo.ticketRef}
+            </Badge>
+          ) : null}
           {repo.clientId ? (
             <Link
               href={`/leads/${repo.clientId}`}
