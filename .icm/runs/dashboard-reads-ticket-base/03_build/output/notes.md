@@ -1,7 +1,7 @@
 # Build notes: dashboard-reads-ticket-base
 
 - commits: feat: dashboard-reads-ticket-base — read each repo's ticket base branch
-- ci: GREEN on 5be9b19 (cheap tier); full gate on the post-flip head
+- ci: GREEN on 8f2d3e9 (full gate, ready)
 
 ## What changed
 
@@ -28,7 +28,7 @@
 - [x] Prompts: only icm-board's say "commit straight to main"; others name the base and pr-conventions
 - [x] `project.json` read on `DISCOVERY_REVALIDATE_SECONDS` (hourly)
 - [x] README → Tickets updated
-- [ ] CI green — pending
+- [x] CI green — full gate GREEN on 8f2d3e9
 
 ## Notes for Release
 

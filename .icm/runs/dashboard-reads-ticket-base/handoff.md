@@ -6,15 +6,19 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: read `02_define/output/spec.md`, tick **Spec approved** on
-   https://github.com/k0d0minio/jamienisbet/pull/150.
-2. Then `build dashboard-reads-ticket-base` — executes `plan.md` pass by pass.
+1. Operator: smoke the admin-dashboard preview
+   (https://jamie-nisbet-git-claude-stoic-keller-9fetdt-kodominio.vercel.app → Tickets):
+   berceo/agorasim headers show a `uat` badge and a stub finished on `uat` is gone; jamienisbet
+   and icm-board show no badge; "Open on GitHub" on a berceo stub opens `blob/uat/…`; berceo's
+   *Triage the backlog* prompt names `uat` and pr-conventions; icm-board's still says main.
+2. Tick **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/150, then
+   `release dashboard-reads-ticket-base`.
 
 ## Blockers
 
-- none — the D38 blocker lifted (recorded in icm-board `.icm/project.md`).
+- none — full gate GREEN on 8f2d3e9.
 
 ## Do not
 
-- Do not tick either gate box. Do not change prompts for icm-board or the estate check.
-- Do not edit `AGENTS.md` / `.icm/intake/README.md` here — that is `triage/ticket-rule-wording-d38`.
+- Do not tick either gate box. Do not edit `AGENTS.md` / `.icm/intake/README.md` in this run —
+  that is `triage/ticket-rule-wording-d38`.
