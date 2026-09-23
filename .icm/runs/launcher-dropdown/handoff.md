@@ -6,13 +6,15 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md`, tick **Spec approved** on PR #145.
+2. Then `build launcher-dropdown` — follow `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
+- The Spec-approved tick (operator).
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Tick either gate checkbox.
+- Change any launch URL for the default target, the hint rule, the prompt cap, or `mode`/`repo`.
+- Add a new tool target — each is its own triage stub.

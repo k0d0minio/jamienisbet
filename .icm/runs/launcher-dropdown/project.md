@@ -13,9 +13,13 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Default-target URLs byte-identical to today's (breakdown decisions 4 and 6).
+- No component names a launch tool; menus iterate `LAUNCH_TARGETS` only.
+- `AppMenu` lives in `packages/ui` (operator's call, 2026-09-23) — no menu primitive in the app.
+- List-row launchers (triage, sweep, recut, estate check) get the menu too (operator's call).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `lib/launchers/*`, the launch parts of `lib/tickets.ts`, `ticket-detail.tsx`,
+  the tickets page and `BRAND.md` § AppSelect to confirm the consumers and that no menu
+  primitive exists.
