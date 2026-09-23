@@ -38,3 +38,13 @@
   styling) though the repo's tickets are shown — the message says so; worth a look.
 - `ticketRef` is set by mutating the per-request roster objects (built fresh in `loadRoster()`
   per `readEstate` call), including the fallback reset in `fetchRepoTickets`.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on d05ccbe (ci-status.sh, full gate) — re-read after the close-out push
+- reviews: code medium · security security-check.sh --branch --audit: OK · /security-review n/a — no auth, payments, PII or route policy touched · /production-readiness n/a — no DB, auth, payments or env vars · readiness env.sh audit --changed: OK
+- parked: ticket-base-fallback-note-styling.md (the review's one finding — fallback note styled as unreadable)
+- migrations: skip — none of this run's own
+- learned: skip — no error.log
+- docs: no docs tree — websites/admin-dashboard/README.md → Tickets updated in Build · announce: internal
