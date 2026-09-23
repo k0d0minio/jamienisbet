@@ -1,5 +1,6 @@
 # Stub: Form controls are still sized for a mouse
 
+- lane: tweak
 - feature-slug: app-tier-form-controls
 - sequence: found during native-polish-sweep (8 of 8)
 - depends-on: app-tier-foundations

@@ -1,5 +1,6 @@
 # Stub: Six primitives in the design system have no consumer
 
+- lane: chore
 - feature-slug: prune-unused-ui-primitives
 - sequence: found during native-polish-sweep (8 of 8)
 - depends-on: —

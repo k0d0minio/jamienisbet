@@ -1,5 +1,6 @@
 # Stub: Stop the board reading the whole estate to draw five rows
 
+- lane: chore
 - feature-slug: board-read-cost
 - priority: P2
 - size: M

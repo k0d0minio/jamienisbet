@@ -1,0 +1,110 @@
+{
+  "name": "jamienisbet",
+  "complexity": "standard",
+  "docs_path": "",
+  "required_env": [
+    "GH_TOKEN"
+  ],
+  "required_checks": [
+    "Typecheck + lint",
+    "Build portfolio",
+    "Build sellers-site",
+    "Build admin-dashboard"
+  ],
+  "personas": [
+    "visitor",
+    "operator",
+    "affiliate"
+  ],
+  "runs_archive": ".icm/runs/_done",
+  "intake_archive": ".icm/intake/_done",
+  "deploy": {
+    "platform": "vercel",
+    "team_slug": "kodominio",
+    "token_env": "VERCEL_TOKEN_KODOMINIO",
+    "projects": [
+      {
+        "name": "portfolio",
+        "path": "websites/portfolio",
+        "status_context": "Vercel – portfolio",
+        "class": "product",
+        "production_url": "https://www.jamienisbet.com",
+        "health_endpoint": "https://www.jamienisbet.com/en"
+      },
+      {
+        "name": "jamie-nisbet",
+        "path": "websites/admin-dashboard",
+        "status_context": "Vercel – jamie-nisbet",
+        "class": "product",
+        "production_url": "https://app.jamienisbet.com",
+        "health_endpoint": "https://app.jamienisbet.com/login"
+      },
+      {
+        "name": "client-referrals",
+        "path": "websites/sellers-site",
+        "status_context": "Vercel – client-referrals",
+        "class": "quiet",
+        "production_url": "https://sell.jamienisbet.com",
+        "health_endpoint": "https://sell.jamienisbet.com/en"
+      }
+    ]
+  },
+  "uat": {
+    "branch": "",
+    "url": ""
+  },
+  "reporting": {
+    "announce_from": "session",
+    "announce": [
+      "github-release"
+    ],
+    "alert": [],
+    "economics": [],
+    "channels": {
+      "github-release": {
+        "tag_prefix": "release/"
+      },
+      "slack": {
+        "token_env": "SLACK_BOT_TOKEN",
+        "announce_channel_env": "SLACK_ANNOUNCE_CHANNEL_ID",
+        "alert_channel_env": "SLACK_ALERTS_CHANNEL_ID"
+      },
+      "email": {
+        "api_key_env": "RESEND_API_KEY",
+        "from_env": "REPORT_EMAIL_FROM",
+        "to_env": "REPORT_EMAIL_TO"
+      }
+    }
+  },
+  "migrations": {
+    "path": "packages/services/drizzle",
+    "reversible": false,
+    "stamp": "millis",
+    "tool": "drizzle",
+    "out_of_order": false
+  },
+  "database": {
+    "url_env": "DATABASE_URL",
+    "isolation": "none",
+    "image": "postgres:16",
+    "name": "app",
+    "provider": "",
+    "neon": {
+      "project_id": "",
+      "api_key_env": "NEON_API_KEY",
+      "production_branch": "main",
+      "previews": "none",
+      "uat_branch": ""
+    }
+  },
+  "security": {
+    "audit_command": ""
+  },
+  "support": {
+    "tier": "none",
+    "failsafe_page": "",
+    "monitoring": {
+      "sentry_dsn_env": "SENTRY_DSN"
+    }
+  }
+}

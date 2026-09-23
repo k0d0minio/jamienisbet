@@ -1,5 +1,6 @@
 # Stub: `createClientRepo` scaffolds `.icm/` only — a new repo is born without root rails
 
+- lane: tweak
 - feature-slug: scaffold-root-rails
 - sequence: found during the estate AGENTS.md rollout (icm-board epic `opencode-sidecar`,
   stub `estate-rollout`), 2026-08-30
