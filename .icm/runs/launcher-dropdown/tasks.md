@@ -5,7 +5,7 @@ a human checkbox, never a script's. The definition of done is seeded from the sp
 acceptance criteria when the run is opened; the queue is Build's own, one line per commit-sized
 step, so a resuming session can pick up the first unticked line.
 
-## Definition of done
+## Definition of done (revised 2026-09-23)
 
 - [x] No file under `websites/admin-dashboard/components/` or `app/` names a launch tool — no
 - [x] An opened ticket shows a split button: the primary half reads "Start in Claude Code" (`Start in ${label}` of the default target) and
@@ -27,3 +27,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] README § Tickets: target table + "Add a launch target" recipe
 - [x] Epic archived to `.icm/intake/_done/session-launchers/`
 - [x] CI GREEN (cheap tier), ready flip, full gate GREEN
+- [x] Revision: `parked` field + terminal parked, copy-first split button / rows / swipes, triage stub, README

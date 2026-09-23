@@ -40,6 +40,10 @@ export type LaunchTarget = {
   /** Pure. Null when this request cannot be expressed — e.g. the prompt is
    * past `maxEncodedPromptChars`. */
   build(req: LaunchRequest): string | null
+  /** Set while a target is known not to work: the one line the menu shows on
+   * its dimmed entry. A parked target stays listed but emits no link; delete
+   * the field to bring it back. */
+  parked?: string
 }
 
 /** The prompt URL-encoded, or null when it is past `max`. `encodeURIComponent`,

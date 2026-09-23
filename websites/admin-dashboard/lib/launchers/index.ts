@@ -9,7 +9,8 @@
 // is neither documented nor versioned — the request to document it was closed
 // *not planned* — so it could change under us without notice.
 //
-// Adding a tool: one file beside these, one line in `LAUNCH_TARGETS`.
+// Adding a tool: one file beside these, one line in `LAUNCH_TARGETS`. Parking
+// one that doesn't work yet: its `parked` field.
 
 import { claudeTerminal } from "./claude-terminal"
 import { claudeWeb } from "./claude-web"
@@ -75,8 +76,8 @@ export function withHintLine(
 }
 
 /**
- * One way to start a launch, as the UI draws it: a menu entry, or the primary
- * half of the split button when it is the default target. Plain data, so it
+ * One way to start a launch, as the UI draws it: a menu entry beside the copy
+ * that is every control's default action. Plain data, so it
  * crosses from a server component into the client menus as is — and the only
  * shape a component ever sees, which is what keeps every component free of a
  * tool's name.
@@ -109,18 +110,21 @@ export type LaunchInput = Omit<LaunchRequest, "hint"> & {
 export const PROMPT_TOO_LONG = "Too long for a link — copy it into a new session"
 
 /** Every registered target, in menu order, for one launch. The default target
- * is first (`LAUNCH_TARGETS` says so). */
+ * is first (`LAUNCH_TARGETS` says so). A parked target is listed with its
+ * reason and no link. */
 export function launchesFor(input: LaunchInput): Launch[] {
   return LAUNCH_TARGETS.map((target) => {
     const prompt = input.hintLine
       ? withHintLine(target.id, input.prompt, input.hint)
       : input.prompt
-    const url = target.build({
-      repoFullName: input.repoFullName,
-      prompt,
-      mode: input.mode,
-      hint: input.hint ?? undefined,
-    })
+    const url = target.parked
+      ? null
+      : target.build({
+          repoFullName: input.repoFullName,
+          prompt,
+          mode: input.mode,
+          hint: input.hint ?? undefined,
+        })
     return {
       targetId: target.id,
       label: target.label,
@@ -130,13 +134,13 @@ export function launchesFor(input: LaunchInput): Launch[] {
         input.hint && !carriesHint(target.id)
           ? hintLabel(target.id, input.hint)
           : null,
-      unavailableReason: url === null ? PROMPT_TOO_LONG : null,
+      unavailableReason: target.parked ?? (url === null ? PROMPT_TOO_LONG : null),
     }
   })
 }
 
-/** The default target's entry — what a tap on a row, a swipe, or the split
- * button's primary half starts. */
+/** The default target's entry — the vocabulary the copied text's
+ * recommendation line is written in, and the hint said beside a ticket. */
 export function primaryLaunch(launches: readonly Launch[]): Launch | null {
   return (
     launches.find((l) => l.targetId === DEFAULT_TARGET_ID) ?? launches[0] ?? null

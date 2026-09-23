@@ -1,6 +1,6 @@
 # Build notes: launcher-dropdown
 
-- commits: feat: launcher-dropdown — tool menu from the launcher registry
+- commits: feat: launcher-dropdown — tool menu from the launcher registry · feat: launcher-dropdown — copy-first, terminal parked
 - ci: GREEN (full gate) on 5bc0d9a
 
 ## What changed
@@ -28,20 +28,35 @@
 - `README.md` § Tickets: target table, how the controls read the list, "Add a launch target".
 - `.icm/intake/session-launchers/` → `.icm/intake/_done/session-launchers/` (last stub).
 
+## Revision rework (2026-09-23, after the operator's smoke: terminal link opened nothing)
+
+- `lib/launchers/types.ts` + `claude-terminal.ts`: optional `parked` field on `LaunchTarget`;
+  the terminal target is parked "Not working yet". `launchesFor` lists a parked target with its
+  reason and no link.
+- `lib/tickets.ts`: maintenance / recut / estate-check return a `LaunchSet` — the prompt to copy
+  (default target's vocabulary) plus the `Launch[]`; the past-cap guard now checks every target.
+- `components/launch-menu.tsx`: `CopySplitButton` (primary half copies, chevron menu) replaces
+  `LaunchButton`; `CopyLaunchRow` (tap copies, trailing `…` menu) replaces the link rows.
+- `ticket-detail.tsx`: one split button — the standalone Copy button is gone.
+- `board-ticket-row.tsx`, `batch-row.tsx`: swipe-right copies (ticket pick-up / next stub's);
+  `openSession` removed.
+- `.icm/intake/triage/claude-terminal-link-opens-nothing.md`: the parked fix, lane bug.
+- README § Tickets: copy-first, target table with a State column, parking in the recipe.
+
 ## Acceptance criteria status
 
-- [x] No component/app file names a launch tool — `grep -rni 'claude\|terminal'` over
-      `components/` and `app/(app)/tickets` is empty; the wrappers are gone.
-- [x] Split button, primary "Start in {label}" = "Start in Claude Code", same URL.
-- [x] Chevron menu lists both targets in registry order with "Recommended …" per entry; terminal
-      link folded in.
-- [x] Past the cap: every entry disabled with "Too long for a link — copy it into a new
-      session", primary half disabled, the reason beside it, Copy prompt unchanged.
-- [x] Triage, sweep, recut, estate check tap the default and carry the menu.
-- [x] Swipes unchanged (default entry's URL).
-- [x] Menus and lists iterate `LAUNCH_TARGETS`; no per-target branch outside `lib/launchers/`
-      (the only surface-dependent choice, new tab vs in place, lives in `launchLinkProps`).
+- [x] No component/app file names a launch tool (grep over `components/` and the tickets route
+      is empty).
+- [x] One split button; primary half "Copy prompt" / "Copy pick-up" copies `ticket.pickup`.
+- [x] Chevron menu: Claude Code (same URL, with its recommendation), Claude Code (terminal)
+      disabled "Not working yet", no link.
+- [x] Parking is one field in `claude-terminal.ts`.
+- [x] Past the cap: entries disabled with the reason; Copy unaffected.
+- [x] Triage, sweep, recut, estate check copy on tap with a toast, and carry the menu.
+- [x] Swipe-right copies on ticket and batch rows; no tab opens.
+- [x] Menus iterate `LAUNCH_TARGETS`; no per-target branch outside `lib/launchers/`.
 - [x] `AppMenu` exported and documented.
+- [x] Triage bug stub parked.
 - [x] README updated.
 - [x] Epic archived.
 - [ ] CI green — see the ci line.
@@ -50,6 +65,7 @@
 
 - `packages/ui` gained a component; the portfolio/sellers-site builds re-run but nothing there
   consumes it.
-- A Radix menu opens inside two Sheets (the batch sheet, the maintenance sheet) — worth a look in
-  the preview on a phone: the menu should open over the sheet and Escape should close the menu
-  first, not the sheet.
+- A Radix menu opens inside two Sheets (the batch sheet, the maintenance sheet): the menu should
+  open over the sheet and Escape should close the menu first.
+- The swipe-left trays still carry their own Copy — now the same action as swipe-right. Left as
+  is (spec: out of scope).

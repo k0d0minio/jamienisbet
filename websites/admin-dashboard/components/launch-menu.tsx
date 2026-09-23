@@ -1,6 +1,7 @@
 "use client"
 
-import { ChevronDown, Ellipsis, ExternalLink } from "lucide-react"
+import { useState, useTransition } from "react"
+import { ChevronDown, Ellipsis } from "lucide-react"
 
 import {
   AppMenu,
@@ -9,23 +10,28 @@ import {
   AppMenuLabel,
   AppMenuTrigger,
   Button,
+  GroupedRow,
   cn,
 } from "@jamie-nisbet/ui"
 
-import { launchLinkProps, primaryLaunch, type Launch } from "@/lib/launchers"
+import { copyToClipboard } from "@/lib/clipboard"
+import { launchLinkProps, type Launch } from "@/lib/launchers"
 
-// The board's launch controls, drawn from a `Launch[]` and nothing else — one
-// entry per registered target, in the registry's order, the default first. No
-// component here (or anywhere that uses these) names a tool: adding one is a
-// file in `lib/launchers/` and a line in its registry, and it shows up in
-// every menu on its own.
+// The board's launch controls. Every one of them copies on its default action
+// — a tool link is never the default until it is proven, and the clipboard
+// works on every surface — and offers the tools in a menu drawn from a
+// `Launch[]` and nothing else: one entry per registered target, in the
+// registry's order. No component here (or anywhere that uses these) names a
+// tool: adding one is a file in `lib/launchers/` and a line in its registry,
+// and parking one is a field in its file.
 
-/** Every target as a menu row. One that can't express this launch stays in
- * the list, dimmed, with its reason as the second line — never hidden. */
+/** Every target as a menu row. One that can't express this launch — parked,
+ * or a prompt past its cap — stays in the list, dimmed, with its reason as
+ * the second line; never hidden. */
 function LaunchMenuContent({ launches }: { launches: Launch[] }) {
   return (
     <AppMenuContent align="end">
-      <AppMenuLabel>Start in</AppMenuLabel>
+      <AppMenuLabel>Open in</AppMenuLabel>
       {launches.map((launch) =>
         launch.url ? (
           <AppMenuItem
@@ -53,81 +59,112 @@ function LaunchMenuContent({ launches }: { launches: Launch[] }) {
 
 /**
  * The opened ticket's one real action, as a split button: the primary half
- * starts the default target, the chevron lists every target. When the default
- * can't carry the launch the primary half stays, disabled — the caller says
- * why beside it — and the menu shows the same reason on each row it applies to.
+ * copies what the board sends for this ticket, the chevron lists every tool
+ * it could open in instead.
  */
-export function LaunchButton({ launches }: { launches: Launch[] }) {
-  const primary = primaryLaunch(launches)
-  if (!primary) return null
+export function CopySplitButton({
+  value,
+  label,
+  what,
+  launches,
+}: {
+  value: string
+  /** "Copy prompt", "Copy pick-up". */
+  label: string
+  /** What landed on the clipboard, for the toast. */
+  what: string
+  launches: Launch[]
+}) {
+  const [copied, setCopied] = useState(false)
+  const [, startTransition] = useTransition()
+
+  async function onCopy() {
+    if (!(await copyToClipboard(value, what))) return
+    setCopied(true)
+    // A transient flourish, kept out of the queue a server action would use.
+    setTimeout(() => startTransition(() => setCopied(false)), 1500)
+  }
 
   return (
     <div className="inline-flex items-stretch">
-      {primary.url ? (
-        <Button
-          asChild
-          size="sm"
-          className="rounded-r-none text-app-footnote"
-        >
-          <a href={primary.url} {...launchLinkProps(primary)}>
-            <ExternalLink aria-hidden />
-            Start in {primary.label}
-          </a>
-        </Button>
-      ) : (
-        <Button size="sm" disabled className="rounded-r-none text-app-footnote">
-          <ExternalLink aria-hidden />
-          Start in {primary.label}
-        </Button>
-      )}
-      <AppMenu>
-        <AppMenuTrigger asChild>
-          {/* A hairline in the button's own foreground splits the two halves,
-              the way a native split button draws its seam. */}
-          <Button
-            size="icon-sm"
-            aria-label="Start in another tool"
-            className="rounded-l-none border-l border-primary-foreground/25"
-          >
-            <ChevronDown aria-hidden />
-          </Button>
-        </AppMenuTrigger>
-        <LaunchMenuContent launches={launches} />
-      </AppMenu>
+      <Button
+        type="button"
+        size="sm"
+        className={cn(
+          "text-app-footnote",
+          launches.length > 0 && "rounded-r-none"
+        )}
+        onClick={onCopy}
+      >
+        {copied ? "Copied" : label}
+      </Button>
+      {launches.length > 0 ? (
+        <AppMenu>
+          <AppMenuTrigger asChild>
+            {/* A hairline in the button's own foreground splits the two
+                halves, the way a native split button draws its seam. */}
+            <Button
+              type="button"
+              size="icon-sm"
+              aria-label="Open in a tool"
+              className="rounded-l-none border-l border-primary-foreground/25"
+            >
+              <ChevronDown aria-hidden />
+            </Button>
+          </AppMenuTrigger>
+          <LaunchMenuContent launches={launches} />
+        </AppMenu>
+      ) : null}
     </div>
   )
 }
 
 /**
- * The same menu as a grouped row's trailing accessory: the row itself still
- * taps through to the default target, and this is the second target of the
- * row, one 44px control at its end.
+ * A grouped row whose tap copies a prompt, with the tools as a trailing `…`
+ * menu — the maintenance, recut and estate-check launchers. The row and the
+ * menu are separate targets, so the menu never copies and the row never
+ * opens a tool.
  */
-export function LaunchMenuAccessory({
-  launches,
+export function CopyLaunchRow({
+  icon,
   label,
-  className,
+  description,
+  variant,
+  prompt,
+  launches,
 }: {
-  launches: Launch[]
-  /** What the row launches, for the control's accessible name. */
+  icon: React.ReactNode
   label: string
-  className?: string
+  description?: string
+  variant?: "default" | "tint"
+  prompt: string
+  launches: Launch[]
 }) {
-  if (launches.length === 0) return null
   return (
-    <AppMenu>
-      <AppMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={`${label} — start in another tool`}
-          className={cn("text-app-label-3", className)}
-        >
-          <Ellipsis aria-hidden />
-        </Button>
-      </AppMenuTrigger>
-      <LaunchMenuContent launches={launches} />
-    </AppMenu>
+    <GroupedRow
+      icon={icon}
+      label={label}
+      description={description}
+      variant={variant}
+      onClick={() => void copyToClipboard(prompt, "Prompt")}
+      accessory={
+        launches.length > 0 ? (
+          <AppMenu>
+            <AppMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${label} — open in a tool`}
+                className="text-app-label-3"
+              >
+                <Ellipsis aria-hidden />
+              </Button>
+            </AppMenuTrigger>
+            <LaunchMenuContent launches={launches} />
+          </AppMenu>
+        ) : undefined
+      }
+    />
   )
 }

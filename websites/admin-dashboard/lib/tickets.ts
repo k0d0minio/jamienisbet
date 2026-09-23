@@ -83,7 +83,7 @@ import {
   hintForMaintenance,
   hintForTicket,
   launchesFor,
-  primaryLaunch,
+  PROMPT_TOO_LONG,
   withHintLine,
   type Launch,
   type LaunchHint,
@@ -252,31 +252,40 @@ export function launchesForTicket(ticket: Ticket): Launch[] {
   })
 }
 
+/** What a maintenance control copies on tap, and the tools its menu offers. */
+export type LaunchSet = {
+  /** The prompt with the recommendation line on top, in the default target's
+   * vocabulary — the same text a ticket's Copy gives. */
+  prompt: string
+  /** Every registered target; the default first. */
+  launches: Launch[]
+}
+
 /**
- * The launches for one of this file's own launcher prompts — triage, sweep,
- * recut, estate check. Those prompts are authored literals a few hundred
- * characters long, so unlike a ticket's they cannot outgrow a URL at runtime:
- * the default target always has a link here. A missing one means a literal
- * was edited past the cap, which is a bug to fix, not a state to render.
- * The recommendation line rides on top where a link cannot carry it, and
- * counts toward that target's cap like the rest.
+ * One of this file's own launcher prompts — triage, sweep, recut, estate
+ * check. Those prompts are authored literals a few hundred characters long,
+ * so unlike a ticket's they cannot outgrow a URL at runtime: a target that
+ * reports one past its cap means a literal was edited too long, which is a bug
+ * to fix, not a state to render. The recommendation line rides on top where a
+ * link cannot carry it, and counts toward that target's cap like the rest.
  */
 function authoredLaunches(
   repoFullName: string,
   kind: MaintenanceKind,
   prompt: string
-): Launch[] {
+): LaunchSet {
+  const hint = hintForMaintenance(kind)
   const launches = launchesFor({
     repoFullName,
     prompt,
     mode: "code",
-    hint: hintForMaintenance(kind),
+    hint,
     hintLine: true,
   })
-  if (!primaryLaunch(launches)?.url) {
+  if (launches.some((l) => l.unavailableReason === PROMPT_TOO_LONG)) {
     throw new Error("Authored launcher prompt is past the cap")
   }
-  return launches
+  return { prompt: withHintLine(DEFAULT_TARGET_ID, prompt, hint), launches }
 }
 
 function isConfigured(): boolean {
@@ -1368,18 +1377,17 @@ export async function listStrip(): Promise<{
 
 // ---------------------------------------------------------------------------
 // Maintenance launchers — the board's "button tied to a script" surface, kept
-// inside the read-only contract: each one is a session link on every
-// registered tool, with the maintenance prompt pre-filled, and a human sends
-// it. Prompts follow the intake README's rules and stand alone in a fresh
-// session at the repo root.
+// inside the read-only contract: each one copies its maintenance prompt, and
+// offers it pre-filled on every registered tool; a human sends it. Prompts
+// follow the intake README's rules and stand alone in a fresh session at the
+// repo root.
 
 export type MaintenanceLauncher = {
   key: string
   title: string
   /** One line under the title saying what the session will actually do. */
   hint: string
-  /** Every registered target; the default first. */
-  launches: Launch[]
+  launch: LaunchSet
 }
 
 export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[] {
@@ -1388,7 +1396,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       key: "triage",
       title: "Triage the backlog",
       hint: "Batch related one-offs into epics, tighten what stays",
-      launches: authoredLaunches(
+      launch: authoredLaunches(
         repo.fullName,
         "triage",
         "Read .icm/intake/README.md for this repo's ticket contract, then triage .icm/intake/triage/: where a real batch has formed, group the related one-off stubs into a sequenced epic folder (a breakdown.md beside sequenced stubs); tighten titles and priorities on what stays; move anything already done to the matching _done/ folder. Ticket-only changes commit straight to main."
@@ -1398,7 +1406,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       key: "sweep",
       title: "Sweep finished work",
       hint: "Move done stubs and merged runs to _done/",
-      launches: authoredLaunches(
+      launch: authoredLaunches(
         repo.fullName,
         "sweep",
         "Read .icm/intake/README.md for this repo's ticket contract, then sweep for finished work: check the open stubs in .icm/intake/ and the run folders in .icm/runs/ against what has actually merged, and git mv anything finished into the matching _done/ folder. Verify against the code and PR history before moving anything — when unsure, leave it open. Ticket-only changes commit straight to main."
@@ -1409,7 +1417,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
 
 /** Lives on an epic's sheet: re-ground the batch in the current state of the
  * code — refresh, resequence, split, or retire its remaining stubs. */
-export function recutLaunches(repo: TicketRepo, batchSlug: string): Launch[] {
+export function recutLaunches(repo: TicketRepo, batchSlug: string): LaunchSet {
   return authoredLaunches(
     repo.fullName,
     "recut",
@@ -1418,7 +1426,7 @@ export function recutLaunches(repo: TicketRepo, batchSlug: string): Launch[] {
 }
 
 /** One board-level button: the estate consistency pass, run where it lives. */
-export function estateCheckLaunches(): Launch[] {
+export function estateCheckLaunches(): LaunchSet {
   return authoredLaunches(
     TODAY_REPO,
     "estate-check",

@@ -1,7 +1,6 @@
 import Link from "next/link"
 
-import { CopyButton } from "@/components/copy-button"
-import { LaunchButton } from "@/components/launch-menu"
+import { CopySplitButton } from "@/components/launch-menu"
 import { Markdown } from "@/components/markdown"
 import { primaryLaunch, type Launch } from "@/lib/launchers"
 import type { Ticket } from "@/lib/tickets"
@@ -25,10 +24,10 @@ export function TicketDetail({
   launches: Launch[]
 }) {
   const primary = primaryLaunch(launches)
-  // Where the default target's link cannot preselect a model or effort
-  // (README § Tickets), the recommendation is said beside the button, to be
-  // picked in the composer. The menu says the same per target.
-  const recommendation = primary?.url ? primary.hint : null
+  // No link can preselect a model or effort (README § Tickets), so the
+  // recommendation is said beside the button, to be picked wherever the
+  // prompt is pasted. The menu says the same per target.
+  const recommendation = primary?.hint ?? null
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -40,30 +39,22 @@ export function TicketDetail({
           </span>
         ) : (
           <>
-            {/* The board's one real action: a new session with the prompt
-                already pasted and the repo already picked, on the default
-                tool — and every other registered tool one chevron away. Copy
-                stays beside it for every other surface a prompt goes to, and
-                it is the whole fallback when a prompt is too long to ride in
-                a URL. */}
-            <LaunchButton launches={launches} />
+            {/* The board's one real action: copy exactly what goes to a
+                session — a clipboard works on every surface and every tool,
+                and has no length cap — with every registered tool one chevron
+                away, a prompt pre-filled in each that can take it. */}
+            <CopySplitButton
+              value={ticket.pickup}
+              label={ticket.pickupKind === "verb" ? "Copy pick-up" : "Copy prompt"}
+              what={ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"}
+              launches={launches}
+            />
             {recommendation ? (
               <span className="text-app-footnote text-app-label-3">
                 Recommended{" "}
                 <span className="font-mono text-app-label-2">
                   {recommendation}
                 </span>
-              </span>
-            ) : null}
-            <CopyButton
-              value={ticket.pickup}
-              label={ticket.pickupKind === "verb" ? "Copy pick-up" : "Copy prompt"}
-              what={ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"}
-              className="text-app-footnote"
-            />
-            {primary?.unavailableReason ? (
-              <span className="text-app-footnote text-app-label-3">
-                {primary.unavailableReason}.
               </span>
             ) : null}
           </>

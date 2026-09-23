@@ -43,6 +43,9 @@ export const CLAUDE_MODEL_ALIASES = {
  * request's is dropped — and no model or effort, so the hint is too.
  */
 export const claudeTerminal: LaunchTarget = {
+  // Parked 2026-09-23: tapped from the board it opened nothing (triage stub
+  // `claude-terminal-link-opens-nothing`). Delete this line once it does.
+  parked: "Not working yet",
   id: "claude-terminal",
   label: "Claude Code (terminal)",
   surface: "terminal",

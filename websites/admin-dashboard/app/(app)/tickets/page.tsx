@@ -16,11 +16,10 @@ import { BatchRow } from "@/components/batch-row"
 import { BoardRefresh } from "@/components/board-refresh"
 import { BoardTicketRow } from "@/components/board-ticket-row"
 import { Chip } from "@/components/chip"
-import { LaunchMenuAccessory } from "@/components/launch-menu"
+import { CopyLaunchRow } from "@/components/launch-menu"
 import { RepoMaintenance } from "@/components/repo-maintenance"
 import { TicketDetail } from "@/components/ticket-detail"
 import { TicketPeek } from "@/components/ticket-peek"
-import { launchLinkProps, primaryLaunch } from "@/lib/launchers"
 import {
   estateCheckLaunches,
   launchesForTicket,
@@ -45,8 +44,8 @@ export const metadata: Metadata = { title: "Tickets" }
 // anything open, each batch a row that opens into its sequenced stubs.
 //
 // This screen is read-only by design — a ticket changes by editing its file in
-// the repo — so every button here is either a link or a coding session
-// with a prompt pre-filled, and the human sends it. That sentence used to be
+// the repo — so every button here is either a link or a prompt to copy (or
+// open, pre-filled, in a coding tool), and the human sends it. That sentence used to be
 // the header's subtitle; it is the board's closing footnote now, where a native
 // screen puts the rule that governs the whole list, and the space under the
 // title went to the three figures the board actually adds up to.
@@ -59,7 +58,7 @@ const BOARD_FOOTNOTE = (
   <>
     Each repo&apos;s <span className="font-mono">.icm/intake/</span>, read from
     main. A ticket changes by editing its file in the repo, not here — and every
-    launcher on this board opens a session you send yourself.
+    launcher on this board hands you a prompt to send yourself.
   </>
 )
 
@@ -116,7 +115,6 @@ function RepoSectionView({ section }: { section: RepoSection }) {
                     // body where it does not — what "Copy next" puts on the
                     // clipboard (D26).
                     prompt: batch.next.pickup,
-                    sessionUrl: defaultLaunchUrl(batch.next),
                   }
                 : null
             }
@@ -129,7 +127,6 @@ function RepoSectionView({ section }: { section: RepoSection }) {
                 key={ticket.path}
                 first={stubIndex === 0}
                 ticket={ticket}
-                sessionUrl={defaultLaunchUrl(ticket)}
               >
                 <TicketDetail
                   ticket={ticket}
@@ -151,28 +148,17 @@ function RepoSectionView({ section }: { section: RepoSection }) {
   )
 }
 
-/** What a tap or a swipe on a ticket starts: the default target's link, or
- * null when it can't carry this ticket. */
-function defaultLaunchUrl(ticket: Ticket): string | null {
-  return primaryLaunch(launchesForTicket(ticket))?.url ?? null
-}
-
 /** The board's own maintenance, and the rule the whole screen obeys. */
 function BoardGroup() {
-  const launches = estateCheckLaunches()
-  const primary = primaryLaunch(launches)
+  const launch = estateCheckLaunches()
   return (
     <GroupedSection footer={BOARD_FOOTNOTE}>
-      <GroupedRow
+      <CopyLaunchRow
         icon={<Activity />}
         label="Estate check"
         description="A consistency pass across every repo"
-        href={primary?.url ?? undefined}
-        {...(primary ? launchLinkProps(primary) : {})}
-        chevron={false}
-        accessory={
-          <LaunchMenuAccessory launches={launches} label="Estate check" />
-        }
+        prompt={launch.prompt}
+        launches={launch.launches}
       />
     </GroupedSection>
   )
