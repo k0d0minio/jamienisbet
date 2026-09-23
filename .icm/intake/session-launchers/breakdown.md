@@ -44,12 +44,17 @@
    URL the board emits today is identical after it.
 5. **Other tools are future triage stubs**, each citing that tool's own documented link
    shape before it is added. No guessed URL schemes.
+6. **Launch in `code`, never `plan`** (added 2026-09-23). Every launcher moves from
+   `mode=plan` to `mode=code` — carried by stub 2, since it already changes the link's
+   parameters. Stub 1 stays byte-identical. The cloud **environment** has no documented
+   link parameter: it comes from the claude.ai/code selector or the org default, and stub 2
+   records that rather than guessing one.
 
 ## Build order
 
 1. `launcher-registry` — extract the registry and move both Claude links and every
    launcher onto it. No behaviour change. **The foundation.**
-2. `model-effort-preselect` — depends on 1. Spike the parameters, add the derivation
+2. `model-effort-preselect` — depends on 1. Switch to `mode=code`; spike the parameters, add the derivation
    rule, wire what is confirmed, surface the rest.
 3. `launcher-dropdown` — depends on 1 and 2. Turn "Start in Claude Code" into a split
    button whose menu lists the registered targets.

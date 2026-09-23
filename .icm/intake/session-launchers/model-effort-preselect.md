@@ -56,15 +56,45 @@ Starting table (one constant, tune freely; `size` values in the estate include
   pick-up is a prompt body (not a `/pipeline` verb — never touch a verb), prepend one
   short line naming the recommendation, counted against the 4,500 cap.
 
+### 4. Launch in `code` mode, never `plan` (Jamie, 2026-09-23)
+
+Every launcher passes `mode=plan` today (`lib/tickets.ts` wrappers, `mode: "plan"`). Jamie
+never wants a board session to start in plan mode: switch every launcher — ticket rows,
+batches, maintenance, recut, estate check — to `mode: "code"`. `code` is a documented value
+of the universal link's `mode` (support.claude.com/en/articles/14898120: "Pre-selects the
+session mode. Accepts `plan` or `code`."); send it explicitly rather than dropping the
+param, so the session never inherits a sticky plan pick. The terminal target carries no
+`mode` and is unaffected. Update the README § Tickets lines that say "Every launcher passes
+`mode=plan`".
+
+Observed on production by Jamie (2026-09-23), for the spike to confirm: the repo **is**
+preselected; the `mode=plan` value did not visibly take effect; the model did not appear
+preselected.
+
+### 5. Environment — not a link parameter (record, don't wire)
+
+The cloud environment is **not** carried by any documented link. The universal link
+documents `q`/`prompt`, `repo`, `branch`, `mode` only, and the cloud-environments doc says
+of claude.ai/code: sessions "use the environment shown in the selector. An organization
+default set by an Owner fills the selection when you haven't picked one" — "There's no
+settings page or direct URL for the selector" (code.claude.com/docs/en/cloud-environments,
+§ The Default environment). So the board cannot preselect it; the fix is operator-side:
+pick the right environment once in the claude.ai/code selector (the pick sticks), or set it
+as the org default at claude.ai/admin-settings/claude-code. Add `environment` to the spike's
+"try the obvious spellings" list alongside `model`/`effort` for completeness, but wire it
+only if it is observed to be honoured — and say in the README § Tickets that the
+environment comes from the selector, not the link.
+
 ## Prompt
 
-In this repo, make the admin dashboard's session links preselect a model and effort
-where the link supports it, and show the recommendation where it doesn't. Read this stub
+In this repo, make the admin dashboard's session links launch in `code` mode (never
+`plan`), preselect a model and effort where the link supports it, and show the
+recommendation where it doesn't. Read this stub
 first — `.icm/intake/session-launchers/model-effort-preselect.md` — then
 `.icm/intake/session-launchers/breakdown.md`, then `websites/admin-dashboard/lib/launchers/`
 (built by the `launcher-registry` stub; confirm it has merged before starting).
 
-1. Run the spike in the stub. You can't tap a phone from a cloud session, so for any
+1. Run the spike in the stub (model, effort, and environment — § 5). You can't tap a phone from a cloud session, so for any
    surface you can't test yourself, stop and ask Jamie to test the exact URLs you
    produce and report back. Don't wire anything on an assumption.
 2. Add `lib/launchers/hint.ts` with the derivation table from the stub, and the
@@ -74,7 +104,8 @@ first — `.icm/intake/session-launchers/model-effort-preselect.md` — then
 4. Surface the recommendation on the ticket detail and batch sheet next to the start
    button; apply the one-line prompt prefix only to prompt bodies, never to a pipeline
    verb, and keep the 4,500 cap honest. Follow `.claude/skills/design-dna/SKILL.md`.
-5. Record the spike table in `websites/admin-dashboard/README.md` § Tickets, marked as
+5. Switch every launcher to `mode: "code"` (§ 4) and update the README's `mode=plan` lines.
+6. Record the spike table in `websites/admin-dashboard/README.md` § Tickets, marked as
    verified by hand on its date.
 
 Don't run build/lint/typecheck locally — CI is the source of truth. Ship on a `claude/`
