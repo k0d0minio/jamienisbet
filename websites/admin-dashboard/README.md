@@ -434,7 +434,7 @@ documented:
 
 | Action | Shape | Doc |
 |---|---|---|
-| **Start in Claude Code**, and every maintenance launcher | `claude.ai/code/new?q=…&repo=…&mode=plan` | [universal link](https://support.claude.com/en/articles/14898120-open-the-claude-mobile-app-with-a-link) |
+| **Start in Claude Code**, and every maintenance launcher | `claude.ai/code/new?q=…&repo=…&mode=code` | [universal link](https://support.claude.com/en/articles/14898120-open-the-claude-mobile-app-with-a-link) |
 | **Open in terminal** (quiet, desk-only, on an opened ticket) | `claude-cli://open?repo=…&q=…` | [deep links](https://code.claude.com/docs/en/deep-links) |
 | **Copy prompt** | the clipboard, for every other surface | — |
 
@@ -442,9 +442,41 @@ The primary link is a *universal* link: on a phone with the Claude app installed
 the tap to the app's new-session composer, and everywhere else the same URL opens that form in
 the browser — which is why it replaced the older undocumented
 `claude.ai/code?prompt=…&repositories=…` shape on a screen built to be read one-handed. Every
-launcher passes `mode=plan`, because a stub or a maintenance pass is picked up by planning
-first. The terminal link is its desk-bound twin: it opens a local session in whichever clone
+launcher passes `mode=code` — explicitly, not by omission, so a board session never inherits a
+sticky plan pick (the article documents `plan` and `code`; see the table below for what the
+composer actually did with it). The terminal link is its desk-bound twin: it opens a local session in whichever clone
 that machine last ran `claude` in, prompt pre-filled and inert until Enter.
+
+**Model and effort are recommended, not preselected.** One rule in
+[`lib/launchers/hint.ts`](lib/launchers/hint.ts) derives a tool-neutral tier and effort from what
+a ticket already carries — never from a line anyone writes. A `/pipeline` verb follows the
+pipeline's own tiering (`new` opens Define on the deep tier; `build`, `release` and every lane
+run on the balanced tier), with the effort from the stub's `size` (S medium, M high, L xhigh) or
+triage lane (chore low, tweak medium, bug high), else high. A prompt body, from a repo without
+the router, is sized by the stub alone. Maintenance: triage and sweep balanced · medium, recut and
+estate check deep · high. Each target names the tier in its own vocabulary — for Claude the
+aliases `haiku` / `sonnet` / `opus`, never a dated model ID. Because neither link carries it (the
+table below), the ticket detail shows it beside **Start in Claude Code** ("Recommended Opus ·
+high") to be picked in the composer, and a prompt body — never a verb — opens with one line
+naming it, which counts toward the cap below and is exactly what **Copy prompt** copies.
+
+**The cloud environment comes from the claude.ai/code selector, not the link.** No link
+documents one, and there is no URL for the selector: pick the right environment there once (the
+pick sticks), or set the organization default at claude.ai/admin-settings/claude-code.
+
+What the links were seen to do — **verified by hand on 2026-09-23, not documented**; a parameter
+is wired only once it reads *honoured* here:
+
+| Parameter tried on `claude.ai/code/new` | Result |
+|---|---|
+| `repo=owner%2Fname` | honoured — the right repository is picked |
+| `mode=code` (documented) | not reflected in the composer — still sent, as documented |
+| `model=haiku`, `model=claude-haiku-4-5` | ignored — not wired |
+| `effort=low`, `reasoning_effort=low` | ignored — not wired |
+| `environment=<name>` | ignored — not wired |
+
+The terminal scheme documents none of these either, and nothing beyond `repo` and `q` is sent
+to it.
 
 A ticket's prompt is unbounded, so both Claude targets stop at 4,500 encoded characters —
 under the 5,000 the terminal scheme documents for `q`, measured on the encoded value, which is
