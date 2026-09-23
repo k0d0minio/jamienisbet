@@ -18,7 +18,12 @@
 # an optional `[targets]` suffix on the block's last comment line scopes it. The three Vercel
 # tokens keep their meaning (production, preview, development; none = all three) and two more are
 # additive: `[ci]` — the key must exist as a GitHub Actions secret or variable — and `[cloud]` —
-# the key must be set in the Claude cloud environment panel. Values NEVER appear in the file.
+# the key must be set in the Claude cloud environment panel. A fourth, `[optional]`, declares an
+# override the code reads with a default in hand: documented, required on no surface, so its
+# absence from Vercel is never a gap (combine it with targets to say where it goes WHEN set).
+# Values NEVER appear in the file. Names the platform sets itself (`NODE_ENV`, `CI`, Vercel's
+# system variables — `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_OIDC_TOKEN`, `VERCEL_GIT_*` …) are never
+# asked for: the code-reads check skips them, because no manifest can supply them.
 #
 # Verbs:
 #   audit [--changed]     names only. Per key and per surface it is scoped to: declared-but-missing
@@ -52,7 +57,7 @@
 #                         suffix. No value on stdin → it prints the exact commands for the human
 #                         and RESULT: SKIP (no value on stdin). It never prints the value, never
 #                         echoes stdin, and runs with tracing off.  RESULT: ADDED <where> | SKIP
-#   doc KEY [--targets …] [--ci] [--cloud] [--note "…"]
+#   doc KEY [--targets …] [--ci] [--cloud] [--optional] [--note "…"]
 #                         prints the .env.example block a new key needs and the audit lines it
 #                         would clear — the documenting half for a session that must create
 #                         nothing. Documenting a variable means its key, its note and the surfaces
@@ -109,12 +114,12 @@ parse_example() {
       print key "\t" t "\t" n; note=""; next }
     { note="" }' "$1"
 }
-# vercel_targets_of <targets-csv> → the Vercel targets a key is scoped to (csv), "" when ci/cloud only
+# vercel_targets_of <targets-csv> → the Vercel targets a key is scoped to (csv), "" when ci/cloud/optional only
 vercel_targets_of() {
   local t="$1" out="" x
   [ -n "$t" ] || { printf 'production,preview,development'; return; }
   for x in ${t//,/ }; do case "$x" in production|preview|development) out="${out:+$out,}$x" ;; esac; done
-  local non=""; for x in ${t//,/ }; do case "$x" in ci|cloud) non=1 ;; esac; done
+  local non=""; for x in ${t//,/ }; do case "$x" in ci|cloud|optional) non=1 ;; esac; done
   if [ -z "$out" ] && [ -z "$non" ]; then out="production,preview,development"; fi
   printf '%s' "$out"
 }
@@ -139,12 +144,15 @@ load_gh_names() {
 
 # --- the process.env reads in the tree -------------------------------------------------------------------
 
+# Names the platform provides at build and run time — never a manifest's to declare (Node, CI
+# runners, Next.js, and Vercel's system environment variables, with their NEXT_PUBLIC_ mirrors).
+PLATFORM_NAMES='^(NODE_ENV|CI|VERCEL|NEXT_RUNTIME|NEXT_PHASE|(NEXT_PUBLIC_)?VERCEL_(ENV|TARGET_ENV|URL|BRANCH_URL|PROJECT_PRODUCTION_URL|REGION|DEPLOYMENT_ID|PROJECT_ID|OIDC_TOKEN|SKEW_PROTECTION_ENABLED|AUTOMATION_BYPASS_SECRET|GIT_[A-Z_]+))$'
 code_reads() {
   { grep -rhoE 'process\.env\.[A-Z][A-Z0-9_]*' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' --include='*.cjs' \
       --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist --exclude-dir=build --exclude-dir=.git --exclude-dir=.icm --exclude-dir=.turbo . 2>/dev/null \
       | sed 's/^process\.env\.//'
     [ -f turbo.json ] && jq -r '(.globalEnv // [])[]' turbo.json 2>/dev/null
-  } | sort -u
+  } | grep -vE "$PLATFORM_NAMES" | sort -u
 }
 
 # --- audit ------------------------------------------------------------------------------------------------
@@ -201,7 +209,8 @@ cmd_audit() {
       if [ -n "$vt" ] && [ "$vercel_ok" -eq 1 ]; then
         local have; have="$(printf '%s\n' "$vercel_rows" | awk -F'\t' -v k="$key" '$1==k {print $3}' | tr ',' '\n' | grep -v '^$' | sort -u | paste -sd',' -)"
         local kind; kind="$(printf '%s\n' "$vercel_rows" | awk -F'\t' -v k="$key" '$1==k {print $2; exit}')"
-        if [ -z "$have" ]; then gap "$key: declared for [$vt], missing on Vercel/$name (add the value in Vercel, or env.sh add $key --targets $vt)"
+        if [ -z "$have" ] && has_token "$targets" optional; then info "$key [optional]: not set on Vercel/$name — the code's default applies"
+        elif [ -z "$have" ]; then gap "$key: declared for [$vt], missing on Vercel/$name (add the value in Vercel, or env.sh add $key --targets $vt)"
         else
           local miss=""; for t in ${vt//,/ }; do printf '%s' ",$have," | grep -q ",$t," || miss="${miss:+$miss,}$t"; done
           if [ -n "$miss" ]; then gap "$key: declared for [$vt] but Vercel/$name has it only for [$have] — missing $miss"; else ok "$key on Vercel/$name [$have]$( [ "$kind" = sensitive ] && echo ' — sensitive: present, not pullable')"; fi
@@ -355,8 +364,8 @@ cmd_push_notes() {
 
 # --- add / doc ---------------------------------------------------------------------------------------------
 
-parse_key_flags() { # sets key targets sensitive gh_kind ci cloud note
-  key=""; targets=""; sensitive=0; gh_kind=""; ci=0; cloud=0; note=""
+parse_key_flags() { # sets key targets sensitive gh_kind ci cloud optional note
+  key=""; targets=""; sensitive=0; gh_kind=""; ci=0; cloud=0; optional=0; note=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --targets)   targets="${2:-}"; shift 2 ;;
@@ -364,32 +373,34 @@ parse_key_flags() { # sets key targets sensitive gh_kind ci cloud note
       --github)    gh_kind="${2:-}"; ci=1; shift 2 ;;
       --ci)        ci=1; shift ;;
       --cloud)     cloud=1; shift ;;
+      --optional)  optional=1; shift ;;
       --note)      note="${2:-}"; shift 2 ;;
       --*)         die "$verb: unknown flag $1" ;;
       *)           [ -z "$key" ] && key="$1" || die "$verb: unexpected argument $1"; shift ;;
     esac
   done
-  [ -n "$key" ] || die "usage: env.sh $verb KEY [--targets production,preview,development] [--sensitive] [--github secret|variable] [--ci] [--cloud] [--note \"…\"]"
+  [ -n "$key" ] || die "usage: env.sh $verb KEY [--targets production,preview,development] [--sensitive] [--github secret|variable] [--ci] [--cloud] [--optional] [--note \"…\"]"
   [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || die "not a variable name: $key"
   case "$gh_kind" in ""|secret|variable) : ;; *) die "--github must be secret|variable" ;; esac
   [ "$ci" -eq 0 ] || [ -n "$gh_kind" ] || gh_kind="secret"
   for t in ${targets//,/ }; do case "$t" in production|preview|development) : ;; *) die "--targets: unknown target $t" ;; esac; done
 }
-suffix_for() { # targets ci cloud → csv suffix or ""
-  local s="$1"; [ "$2" -eq 1 ] && s="${s:+$s,}ci"; [ "$3" -eq 1 ] && s="${s:+$s,}cloud"; printf '%s' "$s"
+suffix_for() { # targets ci cloud [optional] → csv suffix or ""
+  local s="$1"; [ "$2" -eq 1 ] && s="${s:+$s,}ci"; [ "$3" -eq 1 ] && s="${s:+$s,}cloud"; [ "${4:-0}" -eq 1 ] && s="${s:+$s,}optional"; printf '%s' "$s"
 }
 example_block() { # key note suffix
   echo "# ${2:-TODO: note}${3:+  [$3]}"; echo "${1}="
 }
 cmd_doc() {
   parse_key_flags "$@"
-  local suffix; suffix="$(suffix_for "$targets" "$ci" "$cloud")"
+  local suffix; suffix="$(suffix_for "$targets" "$ci" "$cloud" "$optional")"
   echo "=== .env.example block for $key (append to ${MANIFESTS[0]##*|}; a monorepo appends it to the app's own) ==="
   echo; example_block "$key" "$note" "$suffix"; echo
   echo "=== the audit lines this clears, once the value exists where the suffix says ==="
   local vt; vt="$(vercel_targets_of "$suffix")"
   [ -z "$vt" ] || echo "  Vercel: $key on [$vt] for every project in deploy.projects — dashboard, or: printf '%s' \"\$V\" | .icm/scripts/env.sh add $key --targets $vt"
   [ "$ci" -eq 0 ]    || echo "  GitHub Actions: $key as a ${gh_kind:-secret} — printf '%s' \"\$V\" | .icm/scripts/env.sh add $key --ci --github ${gh_kind:-secret}"
+  [ "$optional" -eq 0 ] || echo "  optional: absent everywhere is fine — the code's default applies; the targets (if any) say where it goes when set"
   [ "$cloud" -eq 0 ] || echo "  Claude cloud panel: set $key in the environment's variables (claude.ai/code → the environment) — by hand, nothing can write it"
   echo "  code: process.env.$key is declared once the block above is committed"
   echo "The value stays with the human — nothing here asks for it."
