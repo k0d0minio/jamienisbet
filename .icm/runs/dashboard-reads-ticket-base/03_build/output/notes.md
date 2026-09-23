@@ -1,7 +1,7 @@
 # Build notes: dashboard-reads-ticket-base
 
 - commits: feat: dashboard-reads-ticket-base — read each repo's ticket base branch
-- ci: pending (cheap tier on the draft head)
+- ci: GREEN on 5be9b19 (cheap tier); full gate on the post-flip head
 
 ## What changed
 
