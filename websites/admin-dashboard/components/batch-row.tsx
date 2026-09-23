@@ -5,7 +5,6 @@ import { useState } from "react"
 import {
   ChevronRight,
   Copy,
-  ExternalLink,
   GitBranch,
   Scissors,
   UserRound,
@@ -23,9 +22,10 @@ import {
   cn,
 } from "@jamie-nisbet/ui"
 
-import { copyPrompt, openSession } from "@/components/board-ticket-row"
+import { copyPrompt } from "@/components/board-ticket-row"
+import { CopyLaunchRow } from "@/components/launch-menu"
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
-import type { BatchKind } from "@/lib/tickets"
+import type { BatchKind, LaunchSet } from "@/lib/tickets"
 
 // A batch's serializable summary — lib/tickets' Batch minus the Ticket objects
 // (those render server-side and arrive as children).
@@ -71,7 +71,7 @@ function CountDot({
 // One intake batch as a row in its repo's group: name, how far along it is
 // (from the stubs' `N of M` lines), what's next — and the board's gestures.
 // Tap opens the batch's sheet with every stub in sequence; swipe right starts
-// the next stub in Claude Code in one stroke; swipe left reveals copy-next /
+// copies the next stub's pick-up in one stroke; swipe left reveals copy-next /
 // GitHub / the client. The sheet's rows are server-rendered and passed through
 // as children.
 //
@@ -85,7 +85,7 @@ export function BatchRow({
   repoSlug,
   clientHref,
   next,
-  recutUrl,
+  recut,
   first,
   children,
 }: {
@@ -93,9 +93,9 @@ export function BatchRow({
   repoSlug: string
   /** The lead's profile, when a client row points at this repo. */
   clientHref: string | null
-  next: { title: string; prompt: string | null; sessionUrl: string | null } | null
+  next: { title: string; prompt: string | null } | null
   /** The batch-level maintenance launcher — epics only. */
-  recutUrl: string | null
+  recut: LaunchSet | null
   /** First row in its group: the group's own edge has already closed it, so it
    *  draws no hairline above itself. */
   first?: boolean
@@ -106,7 +106,6 @@ export function BatchRow({
 
   // Bound to consts so the narrowing survives into the gesture closures.
   const nextPrompt = next?.prompt ?? null
-  const nextSessionUrl = next?.sessionUrl ?? null
 
   // Tray icons read at a glance under a moving thumb, so they set a step
   // larger than a row's own glyphs.
@@ -153,14 +152,14 @@ export function BatchRow({
       <SwipeRow
         actions={actions}
         commit={
-          nextSessionUrl
+          nextPrompt
             ? {
-                label: "Start next",
-                icon: <ExternalLink className="size-6" aria-hidden />,
+                label: "Copy next",
+                icon: <Copy className="size-6" aria-hidden />,
                 // The leading full swipe takes the tint, the way the native one
                 // does — the app's own affirmative action, not a semantic state.
                 className: "bg-app-tint text-primary-foreground",
-                onCommit: () => openSession(nextSessionUrl),
+                onCommit: () => copyPrompt(nextPrompt),
               }
             : undefined
         }
@@ -280,21 +279,19 @@ export function BatchRow({
                 the thumb that would rather tap than aim. */}
             <GroupedSection
               footer={
-                recutUrl
-                  ? "A recut opens a Claude Code session that re-grounds the breakdown in the current state of the code. You send it."
+                recut
+                  ? "A recut copies a prompt for a session that re-grounds the breakdown in the current state of the code. You send it."
                   : undefined
               }
             >
-              {recutUrl ? (
-                <GroupedRow
+              {recut ? (
+                <CopyLaunchRow
                   icon={<Scissors />}
                   variant="tint"
                   label="Recut this batch"
                   description="Refresh, resequence, split, retire"
-                  href={recutUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  chevron={false}
+                  prompt={recut.prompt}
+                  launches={recut.launches}
                 />
               ) : null}
               <GroupedRow

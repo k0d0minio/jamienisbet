@@ -1,11 +1,8 @@
 import Link from "next/link"
-import { ExternalLink, Terminal } from "lucide-react"
 
-import { Button } from "@jamie-nisbet/ui"
-
-import { CopyButton } from "@/components/copy-button"
+import { CopySplitButton } from "@/components/launch-menu"
 import { Markdown } from "@/components/markdown"
-import { carriesHint, DEFAULT_TARGET_ID, hintLabel } from "@/lib/launchers"
+import { primaryLaunch, type Launch } from "@/lib/launchers"
 import type { Ticket } from "@/lib/tickets"
 
 // One ticket, opened for reading: the actions that matter, the metadata, then
@@ -19,20 +16,18 @@ import type { Ticket } from "@/lib/tickets"
 // so a ticket read on a phone sets at the same sizes as the rows around it.
 export function TicketDetail({
   ticket,
-  sessionUrl,
-  terminalUrl,
+  launches,
 }: {
   ticket: Ticket
-  sessionUrl: string | null
-  /** The `claude-cli://` twin of `sessionUrl`; null on the same terms. */
-  terminalUrl: string | null
+  /** Every registered target for this ticket, the default first
+   * (`launchesForTicket`). */
+  launches: Launch[]
 }) {
-  // The link cannot preselect a model or effort (README § Tickets), so the
-  // recommendation is said beside the button, to be picked in the composer.
-  const recommendation =
-    ticket.hint && !carriesHint(DEFAULT_TARGET_ID)
-      ? hintLabel(DEFAULT_TARGET_ID, ticket.hint)
-      : null
+  const primary = primaryLaunch(launches)
+  // No link can preselect a model or effort (README § Tickets), so the
+  // recommendation is said beside the button, to be picked wherever the
+  // prompt is pasted. The menu says the same per target.
+  const recommendation = primary?.hint ?? null
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -44,54 +39,22 @@ export function TicketDetail({
           </span>
         ) : (
           <>
-            {/* The board's one real action: a new Claude Code session with
-                the prompt already pasted and the repo already picked. Copy
-                stays beside it for every other surface a prompt goes to — and
-                it is the whole fallback when a prompt is too long to ride in
-                a URL. */}
-            {sessionUrl ? (
-              <Button asChild size="sm" className="text-app-footnote">
-                <a href={sessionUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink aria-hidden />
-                  Start in Claude Code
-                </a>
-              </Button>
-            ) : null}
+            {/* The board's one real action: copy exactly what goes to a
+                session — a clipboard works on every surface and every tool,
+                and has no length cap — with every registered tool one chevron
+                away, a prompt pre-filled in each that can take it. */}
+            <CopySplitButton
+              value={ticket.pickup}
+              label={ticket.pickupKind === "verb" ? "Copy pick-up" : "Copy prompt"}
+              what={ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"}
+              launches={launches}
+            />
             {recommendation ? (
               <span className="text-app-footnote text-app-label-3">
                 Recommended{" "}
                 <span className="font-mono text-app-label-2">
                   {recommendation}
                 </span>
-              </span>
-            ) : null}
-            <CopyButton
-              value={ticket.pickup}
-              label={ticket.pickupKind === "verb" ? "Copy pick-up" : "Copy prompt"}
-              what={ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"}
-              className="text-app-footnote"
-            />
-            {/* The desk-bound twin of the same tap: a local terminal session
-                in whichever clone this machine last ran `claude` in. Quiet,
-                and last — on a phone (the primary surface here) there is no
-                handler to catch it, so it must never sit between the two
-                actions that do work there. */}
-            {terminalUrl ? (
-              <Button
-                asChild
-                size="sm"
-                variant="ghost"
-                className="text-app-footnote"
-              >
-                <a href={terminalUrl}>
-                  <Terminal aria-hidden />
-                  Open in terminal
-                </a>
-              </Button>
-            ) : null}
-            {!sessionUrl ? (
-              <span className="text-app-footnote text-app-label-3">
-                This prompt is too long for a link — copy it into a new session.
               </span>
             ) : null}
           </>

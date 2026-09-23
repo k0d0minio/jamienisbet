@@ -1,21 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronRight, Copy, ExternalLink, GitBranch } from "lucide-react"
+import { ChevronRight, Copy, GitBranch } from "lucide-react"
 
 import { cn, toast } from "@jamie-nisbet/ui"
 
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
 import { GROUP_DOT, priorityClass } from "@/components/ticket-look"
 import type { Ticket } from "@/lib/tickets"
-
-/** Open a Claude Code session in a new tab from a gesture. Swipes commit on
- * pointer-up — still a user gesture, so the popup is normally allowed; when a
- * blocker eats it anyway, say so instead of failing silently. */
-export function openSession(url: string) {
-  const opened = window.open(url, "_blank", "noopener")
-  if (!opened) toast.error("Couldn't open a new tab — use the row's buttons")
-}
 
 export async function copyPrompt(prompt: string) {
   try {
@@ -28,7 +20,7 @@ export async function copyPrompt(prompt: string) {
 
 // One stub inside an open batch sheet: a scan line (sequence, status dot,
 // title, priority) that expands in place to the full ticket, wearing the same
-// gestures as the rest of the board — swipe right to start it in Claude Code,
+// gestures as the rest of the board — swipe right to copy what it sends,
 // swipe left for copy-prompt and GitHub. The expanded content is the
 // server-rendered TicketDetail, passed through as children; its buttons are
 // the same actions for the mouse the swipes are for the thumb.
@@ -37,12 +29,10 @@ export async function copyPrompt(prompt: string) {
 // no border, the group's slab owning the corners and clipping the tray to them.
 export function BoardTicketRow({
   ticket,
-  sessionUrl,
   first,
   children,
 }: {
   ticket: Ticket
-  sessionUrl: string | null
   /** First row in the sheet's group — the slab's own edge closes it, so it
    *  draws no hairline above itself. */
   first?: boolean
@@ -88,14 +78,15 @@ export function BoardTicketRow({
       <SwipeRow
         actions={actions}
         commit={
-          sessionUrl
+          prompt
             ? {
-                label: "Start",
-                icon: <ExternalLink className="size-6" aria-hidden />,
-                // The leading full swipe takes the tint, as it does everywhere
-                // else in the app.
+                // Copy, like the opened ticket's button: no tool link is the
+                // default until it is proven. The leading full swipe takes the
+                // tint, as it does everywhere else in the app.
+                label: "Copy",
+                icon: <Copy className="size-6" aria-hidden />,
                 className: "bg-app-tint text-primary-foreground",
-                onCommit: () => openSession(sessionUrl),
+                onCommit: () => copyPrompt(prompt),
               }
             : undefined
         }

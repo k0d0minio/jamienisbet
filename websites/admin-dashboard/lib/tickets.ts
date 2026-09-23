@@ -82,8 +82,10 @@ import {
   DEFAULT_TARGET_ID,
   hintForMaintenance,
   hintForTicket,
-  launch,
+  launchesFor,
+  PROMPT_TOO_LONG,
   withHintLine,
+  type Launch,
   type LaunchHint,
   type MaintenanceKind,
 } from "@/lib/launchers"
@@ -210,6 +212,9 @@ export type Ticket = {
    * is nothing to send (a legacy ticket with no prompt, a lane run in flight).
    */
   pickup: string | null
+  /** `pickup` before the recommendation line was put on top — what each
+   * launch target re-hints in its own vocabulary (`launchesForTicket`). */
+  pickupBody: string | null
   pickupKind: "verb" | "prompt" | null
   /** The model/effort this pick-up is recommended to run on (lib/launchers/
    * hint.ts) — derived from the ticket, never written in it. Null when there
@@ -225,60 +230,62 @@ export type TicketFetchError = { repo: TicketRepo; message: string }
 // ---------------------------------------------------------------------------
 // Session links. Every launcher on this board is built by the launcher
 // registry (`lib/launchers/`) — one file per tool, each naming the doc its URL
-// shape comes from. These wrappers keep the board's call sites unchanged;
-// every one of them launches in `code` mode, sent explicitly so a session
-// never inherits a sticky plan pick from the composer.
+// shape comes from — and handed to the UI as a `Launch[]`, one entry per
+// registered target in menu order, so no component ever names a tool. Every
+// one of them launches in `code` mode, sent explicitly so a session never
+// inherits a sticky plan pick from the composer.
 
-/** A ticket's session link on one target — null when the ticket has no
- * prompt, or the target cannot carry it (past its cap). A verb is a few dozen
- * characters and never hits the cap; a prompt body still can. */
-function ticketLaunchUrl(targetId: string, ticket: Ticket): string | null {
-  if (!ticket.pickup) return null
-  return launch(targetId, {
+/**
+ * A ticket on every registered target: the default first, each with its URL
+ * or why it can't carry this one (a prompt body past its cap). A verb is a few
+ * dozen characters and never hits the cap. Empty when there is nothing to
+ * pick up.
+ */
+export function launchesForTicket(ticket: Ticket): Launch[] {
+  if (!ticket.pickupBody) return []
+  return launchesFor({
     repoFullName: ticket.repo.fullName,
-    prompt: ticket.pickup,
+    prompt: ticket.pickupBody,
     mode: "code",
-    hint: ticket.hint ?? undefined,
+    hint: ticket.hint,
+    hintLine: ticket.pickupKind === "prompt",
   })
 }
 
-/**
- * One tap on a ticket goes from "this is the pick" to a session already
- * holding its prompt. Null when the ticket has no prompt, or the prompt is
- * past the target's cap.
- */
-export function claudeSessionUrl(ticket: Ticket): string | null {
-  return ticketLaunchUrl("claude-web", ticket)
-}
-
-/** The terminal twin of `claudeSessionUrl`, null on the same terms. */
-export function claudeTerminalUrl(ticket: Ticket): string | null {
-  return ticketLaunchUrl("claude-terminal", ticket)
+/** What a maintenance control copies on tap, and the tools its menu offers. */
+export type LaunchSet = {
+  /** The prompt with the recommendation line on top, in the default target's
+   * vocabulary — the same text a ticket's Copy gives. */
+  prompt: string
+  /** Every registered target; the default first. */
+  launches: Launch[]
 }
 
 /**
- * A session link for one of this file's own launcher prompts — triage, sweep,
- * recut, estate check. Those prompts are authored literals a few hundred
- * characters long, so unlike a ticket's they cannot outgrow a URL at runtime:
- * this returns a string, and its callers stay total. A null here means a
- * literal was edited past the cap, which is a bug to fix, not a state to render.
- * The recommendation line rides on top where the link cannot carry it, and
- * counts toward that cap like the rest.
+ * One of this file's own launcher prompts — triage, sweep, recut, estate
+ * check. Those prompts are authored literals a few hundred characters long,
+ * so unlike a ticket's they cannot outgrow a URL at runtime: a target that
+ * reports one past its cap means a literal was edited too long, which is a bug
+ * to fix, not a state to render. The recommendation line rides on top where a
+ * link cannot carry it, and counts toward that target's cap like the rest.
  */
-function authoredPromptUrl(
+function authoredLaunches(
   repoFullName: string,
   kind: MaintenanceKind,
   prompt: string
-): string {
+): LaunchSet {
   const hint = hintForMaintenance(kind)
-  const url = launch(DEFAULT_TARGET_ID, {
+  const launches = launchesFor({
     repoFullName,
-    prompt: withHintLine(DEFAULT_TARGET_ID, prompt, hint),
+    prompt,
     mode: "code",
     hint,
+    hintLine: true,
   })
-  if (url === null) throw new Error("Authored launcher prompt is past the cap")
-  return url
+  if (launches.some((l) => l.unavailableReason === PROMPT_TOO_LONG)) {
+    throw new Error("Authored launcher prompt is past the cap")
+  }
+  return { prompt: withHintLine(DEFAULT_TARGET_ID, prompt, hint), launches }
 }
 
 function isConfigured(): boolean {
@@ -501,6 +508,14 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
 // prompt body rather than a verb the router would refuse.
 const LANES = new Set(["bug", "tweak", "chore", "hotfix", "handover"])
 
+type PickupSubject = {
+  kind: "stub" | "legacy" | "run"
+  epic?: string | null
+  slug: string
+  lane?: string | null
+  runStage?: "build" | "release" | "lane" | null
+}
+
 /**
  * What the board sends for one ticket (icm-board decision D26). The verb where
  * the repo carries the router; the `## Prompt` body where it does not, or
@@ -510,13 +525,16 @@ const LANES = new Set(["bug", "tweak", "chore", "hotfix", "handover"])
  */
 function pickupFor(
   repo: TicketRepo,
-  ticket: {
-    kind: "stub" | "legacy" | "run"
-    epic?: string | null
-    slug: string
-    lane?: string | null
-    runStage?: "build" | "release" | "lane" | null
-  },
+  ticket: PickupSubject,
+  prompt: string | null
+): Pick<Ticket, "pickup" | "pickupBody" | "pickupKind"> {
+  const { pickup, pickupKind } = pickupOnly(repo, ticket, prompt)
+  return { pickup, pickupBody: pickup, pickupKind }
+}
+
+function pickupOnly(
+  repo: TicketRepo,
+  ticket: PickupSubject,
   prompt: string | null
 ): { pickup: string | null; pickupKind: Ticket["pickupKind"] } {
   if (repo.pipeline) {
@@ -638,6 +656,7 @@ function parseLegacy(
     // Decided per repo once the roster is known — `fetchRepoTickets` fills
     // these in with `pickupFor` after the parse.
     pickup: null,
+    pickupBody: null,
     pickupKind: null,
     hint: null,
     body: readingBody(lines),
@@ -1358,16 +1377,17 @@ export async function listStrip(): Promise<{
 
 // ---------------------------------------------------------------------------
 // Maintenance launchers — the board's "button tied to a script" surface, kept
-// inside the read-only contract: each one is a Claude Code session link with
-// the maintenance prompt pre-filled, and a human sends it. Prompts follow the
-// intake README's rules and stand alone in a fresh session at the repo root.
+// inside the read-only contract: each one copies its maintenance prompt, and
+// offers it pre-filled on every registered tool; a human sends it. Prompts
+// follow the intake README's rules and stand alone in a fresh session at the
+// repo root.
 
 export type MaintenanceLauncher = {
   key: string
   title: string
   /** One line under the title saying what the session will actually do. */
   hint: string
-  url: string
+  launch: LaunchSet
 }
 
 export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[] {
@@ -1376,7 +1396,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       key: "triage",
       title: "Triage the backlog",
       hint: "Batch related one-offs into epics, tighten what stays",
-      url: authoredPromptUrl(
+      launch: authoredLaunches(
         repo.fullName,
         "triage",
         "Read .icm/intake/README.md for this repo's ticket contract, then triage .icm/intake/triage/: where a real batch has formed, group the related one-off stubs into a sequenced epic folder (a breakdown.md beside sequenced stubs); tighten titles and priorities on what stays; move anything already done to the matching _done/ folder. Ticket-only changes commit straight to main."
@@ -1386,7 +1406,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       key: "sweep",
       title: "Sweep finished work",
       hint: "Move done stubs and merged runs to _done/",
-      url: authoredPromptUrl(
+      launch: authoredLaunches(
         repo.fullName,
         "sweep",
         "Read .icm/intake/README.md for this repo's ticket contract, then sweep for finished work: check the open stubs in .icm/intake/ and the run folders in .icm/runs/ against what has actually merged, and git mv anything finished into the matching _done/ folder. Verify against the code and PR history before moving anything — when unsure, leave it open. Ticket-only changes commit straight to main."
@@ -1397,8 +1417,8 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
 
 /** Lives on an epic's sheet: re-ground the batch in the current state of the
  * code — refresh, resequence, split, or retire its remaining stubs. */
-export function recutSessionUrl(repo: TicketRepo, batchSlug: string): string {
-  return authoredPromptUrl(
+export function recutLaunches(repo: TicketRepo, batchSlug: string): LaunchSet {
+  return authoredLaunches(
     repo.fullName,
     "recut",
     `Read .icm/intake/${batchSlug}/breakdown.md and every stub beside it, compare them against the current state of the code, and recut the batch: refresh stale stubs, resequence what remains, split anything too big, and move anything already done to _done/. Keep the breakdown honest — it should describe the work as it stands today. Ticket-only changes commit straight to main.`
@@ -1406,8 +1426,8 @@ export function recutSessionUrl(repo: TicketRepo, batchSlug: string): string {
 }
 
 /** One board-level button: the estate consistency pass, run where it lives. */
-export function estateCheckSessionUrl(): string {
-  return authoredPromptUrl(
+export function estateCheckLaunches(): LaunchSet {
+  return authoredLaunches(
     TODAY_REPO,
     "estate-check",
     "Run the /icm-check pass across the estate and report what has drifted — intake shape, runs hygiene, today.md pointing at real stubs. Propose fixes as tickets in the offending repos rather than fixing anything silently."

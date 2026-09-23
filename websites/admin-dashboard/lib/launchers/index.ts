@@ -9,7 +9,8 @@
 // is neither documented nor versioned — the request to document it was closed
 // *not planned* — so it could change under us without notice.
 //
-// Adding a tool: one file beside these, one line in `LAUNCH_TARGETS`.
+// Adding a tool: one file beside these, one line in `LAUNCH_TARGETS`. Parking
+// one that doesn't work yet: its `parked` field.
 
 import { claudeTerminal } from "./claude-terminal"
 import { claudeWeb } from "./claude-web"
@@ -72,4 +73,84 @@ export function withHintLine(
 ): string {
   if (!hint || carriesHint(targetId)) return prompt
   return `Recommended: ${hintLabel(targetId, hint)} effort.\n\n${prompt}`
+}
+
+/**
+ * One way to start a launch, as the UI draws it: a menu entry beside the copy
+ * that is every control's default action. Plain data, so it
+ * crosses from a server component into the client menus as is — and the only
+ * shape a component ever sees, which is what keeps every component free of a
+ * tool's name.
+ */
+export type Launch = {
+  targetId: string
+  /** The registry's menu text, e.g. "Claude Code". */
+  label: string
+  surface: LaunchTarget["surface"]
+  /** Null exactly when `unavailableReason` is set. */
+  url: string | null
+  /** "Opus · high" — the recommendation in this target's vocabulary, shown
+   * beside it because its link can't carry it. Null when there is none, or
+   * the link already carries it. */
+  hint: string | null
+  /** One line saying why this target can't express the launch. */
+  unavailableReason: string | null
+}
+
+/** What the board asks for; `prompt` is the raw pick-up, before any
+ * recommendation line. */
+export type LaunchInput = Omit<LaunchRequest, "hint"> & {
+  hint: LaunchHint | null
+  /** Put the recommendation on top of the prompt, in each target's own
+   * vocabulary, where its link can't carry it. Never for a `/pipeline` verb:
+   * the router reads the first line. */
+  hintLine: boolean
+}
+
+export const PROMPT_TOO_LONG = "Too long for a link — copy it into a new session"
+
+/** Every registered target, in menu order, for one launch. The default target
+ * is first (`LAUNCH_TARGETS` says so). A parked target is listed with its
+ * reason and no link. */
+export function launchesFor(input: LaunchInput): Launch[] {
+  return LAUNCH_TARGETS.map((target) => {
+    const prompt = input.hintLine
+      ? withHintLine(target.id, input.prompt, input.hint)
+      : input.prompt
+    const url = target.parked
+      ? null
+      : target.build({
+          repoFullName: input.repoFullName,
+          prompt,
+          mode: input.mode,
+          hint: input.hint ?? undefined,
+        })
+    return {
+      targetId: target.id,
+      label: target.label,
+      surface: target.surface,
+      url,
+      hint:
+        input.hint && !carriesHint(target.id)
+          ? hintLabel(target.id, input.hint)
+          : null,
+      unavailableReason: target.parked ?? (url === null ? PROMPT_TOO_LONG : null),
+    }
+  })
+}
+
+/** The default target's entry — the vocabulary the copied text's
+ * recommendation line is written in, and the hint said beside a ticket. */
+export function primaryLaunch(launches: readonly Launch[]): Launch | null {
+  return (
+    launches.find((l) => l.targetId === DEFAULT_TARGET_ID) ?? launches[0] ?? null
+  )
+}
+
+/** A new tab for a web target; a custom scheme (a terminal, an IDE) is handed
+ * to the OS in place, where a new tab would only leave a blank one behind. */
+export function launchLinkProps(
+  entry: Launch
+): { target?: "_blank"; rel?: "noreferrer" } {
+  return entry.surface === "web" ? { target: "_blank", rel: "noreferrer" } : {}
 }

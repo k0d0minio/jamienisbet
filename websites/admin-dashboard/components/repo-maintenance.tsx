@@ -1,6 +1,6 @@
 "use client"
 
-import { ExternalLink, GitBranch, Wrench } from "lucide-react"
+import { Copy, GitBranch, Wrench } from "lucide-react"
 
 import {
   GroupedRow,
@@ -13,11 +13,13 @@ import {
   SheetTrigger,
 } from "@jamie-nisbet/ui"
 
+import { CopyLaunchRow } from "@/components/launch-menu"
 import type { MaintenanceLauncher } from "@/lib/tickets"
 
 // A repo section's last row: the housekeeping a repo's intake needs, in a sheet
-// of launchers — each one a Claude Code session link with the prompt pre-filled
-// (triage the backlog, sweep finished work). The board never writes; a human
+// of launchers (triage the backlog, sweep finished work): a tap copies the
+// prompt, and the row's trailing menu opens it pre-filled in any registered
+// tool. The board never writes; a human
 // sends every session. Launchers arrive serialized from the server so the
 // prompt copy lives in lib/tickets with the rest of the contract knowledge.
 //
@@ -52,22 +54,19 @@ export function RepoMaintenance({
             Maintenance · <span className="font-mono">{repoSlug}</span>
           </SheetTitle>
           <SheetDescription>
-            Each opens a Claude Code session with the prompt filled in — you
-            send it.
+            Each copies a prompt for a session — you send it.
           </SheetDescription>
         </SheetHeader>
 
         <GroupedSection footer="The board itself never writes. Nothing here changes a ticket until you send the session and it commits.">
           {launchers.map((launcher) => (
-            <GroupedRow
+            <CopyLaunchRow
               key={launcher.key}
-              icon={<ExternalLink />}
+              icon={<Copy />}
               label={launcher.title}
               description={launcher.hint}
-              href={launcher.url}
-              target="_blank"
-              rel="noreferrer"
-              chevron={false}
+              prompt={launcher.launch.prompt}
+              launches={launcher.launch.launches}
             />
           ))}
           <GroupedRow
