@@ -24,7 +24,7 @@ export type LaunchRequest = {
 }
 
 export type LaunchTarget = {
-  /** "claude-web", "claude-terminal"; later "codex-web", "opencode", … */
+  /** "claude-web"; later "codex-web", "opencode", … */
   id: string
   /** Menu text, e.g. "Claude Code". */
   label: string

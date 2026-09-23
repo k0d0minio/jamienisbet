@@ -424,19 +424,23 @@ icm-board, in the group that closes the screen). Rows wear the Leads list's gest
 left for a tray (copy, GitHub, client), swipe right to copy what it sends — with a haptic tick the
 moment a full swipe crosses its threshold.
 
-Those links come in two shapes, both documented by Anthropic, each built by its own target in
-the launcher registry [`lib/launchers/`](lib/launchers/) — `claude-web.ts` and
-`claude-terminal.ts`, each carrying a comment naming its doc, ordered in `index.ts`. A target
-declares what it can carry (repo, mode, model, effort) and a pure `build()`. The board asks the
-registry for a `Launch[]` — one entry per registered target, in `LAUNCH_TARGETS` order, the
-default first, each with its link or the one-line reason it has none — through
-`launchesForTicket` and the maintenance launchers in [`lib/tickets.ts`](lib/tickets.ts), and
-every control in [`components/launch-menu.tsx`](components/launch-menu.tsx) is drawn from that
-list alone. No component names a tool.
+That link is documented by Anthropic, built by the one target in the launcher registry
+[`lib/launchers/`](lib/launchers/) — `claude-web.ts`, carrying a comment naming its doc, ordered
+in `index.ts`. A target declares what it can carry (repo, mode, model, effort) and a pure
+`build()`. The board asks the registry for a `Launch[]` — one entry per registered target, in
+`LAUNCH_TARGETS` order, the default first, each with its link or the one-line reason it has
+none — through `launchesForTicket` and the maintenance launchers in
+[`lib/tickets.ts`](lib/tickets.ts), and every control in
+[`components/launch-menu.tsx`](components/launch-menu.tsx) is drawn from that list alone. No
+component names a tool.
 
-**Copy is the default action everywhere** (decided 2026-09-23, after the terminal link opened
-nothing in a smoke test): no tool link is the default until it is proven, and the clipboard
-works on every surface, with every tool, at any length.
+**Copy is the default action everywhere** (decided 2026-09-23): no tool link is the default
+until it is proven, and the clipboard works on every surface, with every tool, at any length. A
+`claude-cli://` terminal target was tried and dropped the same day — it opened nothing in a
+smoke test, and root-causing it turned out to depend on the operator's own machine (Claude Code
+CLI's local URL-scheme registration, then GNOME/Brave's MIME cache, then a corrupted
+`~/.local/share/applications` permission bit) rather than on anything this repo controls; see
+triage stub `claude-terminal-link-opens-nothing` (archived).
 
 - an opened ticket's **Copy prompt** (or **Copy pick-up**) is a split button — the primary half
   copies, the chevron opens an `AppMenu` of every target with its recommendation beside it;
@@ -449,7 +453,6 @@ works on every surface, with every tool, at any length.
 | Target (menu order) | Shape | Doc | State |
 |---|---|---|---|
 | **Claude Code** | `claude.ai/code/new?q=…&repo=…&mode=code` | [universal link](https://support.claude.com/en/articles/14898120-open-the-claude-mobile-app-with-a-link) | live |
-| **Claude Code (terminal)** — desk-only | `claude-cli://open?repo=…&q=…` | [deep links](https://code.claude.com/docs/en/deep-links) | **parked** — "Not working yet"; tapped from the board it opened nothing (triage stub `claude-terminal-link-opens-nothing`) |
 
 What gets copied is the default target's text: the pick-up verb as is, or a prompt body with
 the recommendation line on top in that target's vocabulary.
