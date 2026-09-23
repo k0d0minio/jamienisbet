@@ -26,10 +26,12 @@ Tickets are **stubs** and never live alone:
   `- size:`, `- blocked: <reason>` (external blockage — remove the line when it lifts),
   `- sources:` (cite the evidence).
 
-**The `## Prompt` is the pick-up contract.** It must stand alone pasted into a fresh
-Claude session at the repo root — the board's "Copy prompt" sends _only_ that section.
-Write it cold, and have it tell the session to read the stub file for the rest.
-(Repos running the `/pipeline` spine may omit it — `/pipeline new` does the picking up.)
+**The `## Prompt` is the brief Define reads, and it is always required.** It must stand
+alone pasted into a fresh agent session at the repo root. Write it cold, and have it tell
+the session to read the stub file for the rest. What the board's "Copy prompt" sends is
+the pick-up verb where the repo carries the `/pipeline` router (`/pipeline new
+<epic>/<slug>`, or the lane verb for a triage stub) and the `## Prompt` body where it does
+not — the prompt is the brief either way.
 
 ## Status is positional
 
@@ -47,6 +49,10 @@ Write it cold, and have it tell the session to read the stub file for the rest.
 
 - Any plan, backlog or task list becomes stubs here — **never a loose `TODO.md` or
   `BACKLOG.md`**. Cutting what's left is part of ending any session.
-- The board reads `main` via the GitHub API — a stub exists once pushed.
+- The board reads each repo's **ticket base branch** — the UAT branch where
+  `.icm/project.json` declares one, else `main` (`lib/project.sh → pipeline_base_branch`)
+  — so a stub exists once its PR merges there. Outside a run, every ticket change is a
+  **ticket PR** the session merges at once (`pr-conventions` → The ticket PR); inside a run
+  it rides the run's PR. icm-board alone commits its tickets straight to `main`.
 - Legacy flat `PREFIX-NNN` tickets (pre-2026-08-28) are left as they are — migrating a
   repo is `/project`'s judgment work, not a side effect of another task.

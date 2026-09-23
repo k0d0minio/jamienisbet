@@ -42,6 +42,9 @@
 - name: "type:handover"
   color: "0e8a16"
   description: "The deal's last lane — accounts, env doc, setup.sh OK, the record into the deal folder"
+- name: "type:tickets"
+  color: "ededed"
+  description: "Ticket PR — .icm/intake (and a Scope front) only, merged at once into the ticket base branch (D38)"
 
 # --- Complexity — mirrors the spec header, and sets Release's code-review effort ------------------
 - name: "complexity:trivial"
