@@ -12,7 +12,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `lib/launchers/hint.ts` exports `hintForTicket` and the maintenance hints, driven by one constant that reproduces the tables above for verb pick-ups, prompt-body pick-ups and maintenance launchers.
 - [x] `S`/`small`, `M`/`medium`, `L`/`large` (any case) resolve to the same hint; a missing or unknown size resolves to `high` effort.
 - [x] The Claude targets map `fast/balanced/deep` to `haiku/sonnet/opus` aliases; no dated model ID appears in the launcher code.
-- [x] The spike's per-surface × per-parameter table (model, effort, environment; honoured / ignored / breaks) is in README § Tickets with its date, marked verified by hand; each target's `supports.model` / `supports.effort` matches that table.
+- [ ] The spike's per-surface × per-parameter table (model, effort, environment; honoured / ignored / breaks) is in README § Tickets with its date, marked verified by hand; each target's `supports.model` / `supports.effort` matches that table.
 - [x] A parameter not marked honoured never appears in any emitted URL; `environment` is not wired unless observed honoured.
 - [x] The ticket detail and batch sheet show the recommendation (model alias · effort) next to **Start in Claude Code** whenever the default target does not carry it in the URL.
 - [x] For a prompt-body pick-up, the prompt sent starts with one line naming the recommendation; a `/pipeline` verb pick-up is sent unchanged.

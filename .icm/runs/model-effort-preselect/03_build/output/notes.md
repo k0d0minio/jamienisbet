@@ -1,7 +1,7 @@
 # Build notes: model-effort-preselect
 
 - commits: 98dc850 feat (code mode, hint rule, recommendation), + README/spike commit
-- ci: GREEN on 5edd239 (cheap tier, draft); full gate settled after the ready flip
+- ci: GREEN on 5ad76db — full gate (ready), admin-dashboard + portfolio previews built
 
 ## What changed
 
@@ -21,7 +21,7 @@
 - [x] `hintForTicket` + maintenance hints from one constant (`HINT_RULES`).
 - [x] Size normalisation (`normaliseSize`); missing/unknown size → high effort on both tables.
 - [x] `CLAUDE_MODEL_ALIASES` — aliases only.
-- [x] Spike table in README § Tickets, dated 2026-09-23, flagged verified by hand; `supports.model/effort` false on both, matching it.
+- [ ] Spike table in README § Tickets, dated 2026-09-23, flagged verified by hand; `supports.model/effort` false on both, matching it — **partly**: the table is per parameter, not per surface, because the result was reported as one sentence for all surfaces (D-5). Left unticked on the PR; the operator decides whether that is enough.
 - [x] No un-honoured parameter in any URL; `environment` not wired.
 - [x] Recommendation beside Start on the ticket detail, which is what the batch sheet renders (D-3).
 - [x] Prompt bodies open with `Recommended: Opus · high effort.`; verbs untouched (`withLaunchHint` checks `pickupKind === "prompt"`).
