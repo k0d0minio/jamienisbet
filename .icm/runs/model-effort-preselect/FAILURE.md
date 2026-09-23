@@ -13,12 +13,12 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-23 — the hand test came back without the per-surface split the spec asked for
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: acceptance criterion 6 asked for a surface × parameter table; the operator's report was one sentence covering every surface, so the README table is per parameter and the criterion shipped unticked (accepted by the Ready-to-merge tick).
+- why: Build's request listed the URLs by surface but asked for a free-form reply, so nothing forced the per-surface shape.
+- fixed by: recorded as decisions.md D-5; the README table claims no surface split it does not have.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- When a criterion needs an operator's hand test, ask for the result in the criterion's exact shape (e.g. one line per surface × parameter), not a free-form reply.

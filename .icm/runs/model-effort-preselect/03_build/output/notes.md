@@ -33,3 +33,13 @@
 - The spike was reported as one sentence, per parameter rather than per surface (D-5); the table does not claim more than that.
 - `mode=code` was not seen to take effect, but is sent because it is the documented value (D-4).
 - The prompt-line prefix now also rides on the maintenance prompts (triage, sweep, recut, estate check) — they are prompt bodies, and the spec's rule is "prompt bodies, never verbs".
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised (criterion 6 left unticked: the spike table is per parameter, not per surface — D-5; the operator ticked the gate with that stated)
+- ci: GREEN on 568634a (ci-status.sh, full gate); re-read after the last push
+- reviews: code medium — no findings in this run's diff · security security-check.sh --branch --audit: OK · /security-review n/a — no auth, payments, PII or route policy touched · /production-readiness n/a — no DB, auth, payments or env vars · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (FAILURE.md adds 1 rule through close-out)
+- docs: websites/admin-dashboard/README.md § Tickets (in Build) · announce: public

@@ -6,8 +6,7 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: smoke the admin-dashboard preview on PR #144 — open a ticket on Tickets: Start in Claude Code opens with `mode=code`, "Recommended <model> · <effort>" sits beside it, a prompt-body ticket's "Sends" line opens with the `Recommended:` line, a `/pipeline` verb is unchanged.
-2. Tick **Ready to merge** on PR #144, then `release model-effort-preselect`.
+1. Merged and archived; nothing to pick up. The epic's next stub is `session-launchers/launcher-dropdown`.
 
 ## Blockers
 
@@ -15,5 +14,4 @@ stops, so nothing is carried in anyone's head.
 
 ## Do not
 
-- Wire `model`, `effort` or `environment` into a URL — the 2026-09-23 hand test found them ignored (decisions.md D-1).
-- Prefix a `/pipeline` verb. Tick a gate.
+- Wire `model`, `effort` or `environment` into a URL without a new hand test that reads *honoured* (decisions.md D-1).
