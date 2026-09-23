@@ -13,5 +13,5 @@
   `CLAUDE_MODEL_ALIASES`/`CLAUDE_PROMPT_MAX_ENCODED_CHARS` constants into `claude-web.ts` (the
   only remaining target), and updated `types.ts`'s `id` comment. `README.md` § Tickets: removed
   the terminal row from the target table and recorded why it was tried and dropped.
-- changelog: entry added (menu entry removed is user-visible)
+- changelog: announce: none (repo has no changelog page; README § Tickets records the removal)
 - learned: none
