@@ -69,3 +69,13 @@
   open over the sheet and Escape should close the menu first.
 - The swipe-left trays still carry their own Copy — now the same action as swipe-right. Left as
   is (spec: out of scope).
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 294b304 (ci-status.sh, full gate); re-read after the last push
+- reviews: code medium — no findings · security security-check.sh --branch --audit: OK · /security-review n/a — no auth, payments, PII or route policy touched · /production-readiness n/a — no DB, auth, payments or env vars · readiness env.sh audit --changed: OK
+- parked: claude-terminal-link-opens-nothing.md (in Build, per the revised spec)
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (FAILURE.md adds 1 rule through close-out)
+- docs: websites/admin-dashboard/README.md § Tickets, packages/ui/BRAND.md (in Build) · announce: public

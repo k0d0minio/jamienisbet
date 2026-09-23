@@ -6,17 +6,13 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: smoke the admin preview (jamie-nisbet) — an opened ticket's Copy split button and
-   its menu (web live, terminal dimmed "Not working yet"), a maintenance row inside its sheet
-   (tap copies, `…` opens the menu), Recut, Estate check, swipe-right on a ticket and a batch.
-   Then tick **Ready to merge** on PR #145.
-2. Then `release launcher-dropdown`.
+1. Merged and archived; nothing to pick up. The terminal target's fix is
+   `.icm/intake/triage/claude-terminal-link-opens-nothing.md` (bug lane).
 
 ## Blockers
 
-- The Ready-to-merge tick (operator).
+- none
 
 ## Do not
 
-- Tick either gate checkbox.
-- Fix the terminal target here — `triage/claude-terminal-link-opens-nothing.md` carries it.
+- Re-open this run.

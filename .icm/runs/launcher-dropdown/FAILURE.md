@@ -13,12 +13,17 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-23 — the terminal launch link shipped live without ever being tried
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Build made "Claude Code (terminal)" a live menu entry (and the old UI had it as
+  a link); the operator's smoke found it opened nothing. The spec was revised to copy-first with
+  the terminal target parked, costing a revise and a second Build pass.
+- why: the target's link shape was documented, and documented was treated as working — nobody
+  had tapped a `claude-cli://` link from the board (browser tab or installed PWA) before it was
+  made reachable.
+- fixed by: the `parked` field on `LaunchTarget` and copy as every control's default action;
+  `triage/claude-terminal-link-opens-nothing.md` carries the fix.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- A launch target (or any custom URL scheme) is added `parked` until the operator has tapped its link from the board itself — browser tab and installed PWA — and reported that it opened; a documented link shape is not proof it works.
