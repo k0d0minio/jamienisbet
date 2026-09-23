@@ -363,15 +363,16 @@ and paste the link it gives you into an email you write yourself.
   takes its answers with it, so it asks first.
 - A questionnaire that doesn't parse is reported by name in the card — with what is wrong with
   it — instead of quietly vanishing from the picker, and nothing is inserted.
-- **Snapshot to the deal folder closes the loop.** An answered form on a row that names a deal
-  folder (`clients.deal_slug`) gains a **Snapshot to deal folder** button: the answers are
-  rendered to readable markdown and committed to **icm-board** as
-  `workspaces/deals/<deal_slug>/<engagement>/answers/<form-slug>.md` (or the client folder's
+- **Snapshot to the deal folder closes the loop.** An answered form on a row with a delivery
+  repo gains a **Snapshot to deal folder** button — the deal folder is named after the repo
+  (icm-board D28, nothing to set): the answers are rendered to readable markdown and
+  committed to **icm-board** as
+  `workspaces/deals/<repo name>/<engagement>/answers/<form-slug>.md` (or the client folder's
   `answers/` when `DEAL.md` names no live engagement), one commit, message
   `Deal: <slug> — <form-slug> answers`, with a provenance header naming the `form_links` row.
   Immutable and provenance-stamped — the one kind of copy icm-board's one-home-per-fact rule
   allows (D24); an existing file is never overwritten, and the button refuses plainly when the
-  row has no `deal_slug`. The GitHub token needs Contents: write on `k0d0minio/icm-board` for it.
+  row has no `github_repo`. The GitHub token needs Contents: write on `k0d0minio/icm-board` for it.
 
 The public pages live on the portfolio (`/f/[token]` for a sent link, `/start` for the free-look
 intake) because that app already has the brand chrome and a server action writing to

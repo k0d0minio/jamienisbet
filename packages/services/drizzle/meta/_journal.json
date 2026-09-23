@@ -176,6 +176,13 @@
       "when": 1790089073786,
       "tag": "0024_deal_slug_and_support",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790154333363,
+      "tag": "0025_drop_deal_slug",
+      "breakpoints": true
     }
   ]
 }

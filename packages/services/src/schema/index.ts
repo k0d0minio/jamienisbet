@@ -181,15 +181,12 @@ export const clients = biz.table("clients", {
   githubRepo: varchar("github_repo", { length: 200 }),
   githubDefaultBranch: varchar("github_default_branch", { length: 100 }),
 
-  // ---- Deal folder -----------------------------------------------------------
-  // Which folder under icm-board's `workspaces/deals/` holds this relationship's
-  // words and documents — the intake verdict, the look, the quote, the proposal,
-  // the agreement, the form-answer snapshots. One home per fact (icm-board
-  // decision D24): the *state* is this row, the *documents* are that folder, and
-  // the dashboard reads the folder live and never writes state from it. Null =
-  // no deal folder (a relationship that predates the workspace, or one that
-  // never opened one). Unique when set: one folder, one relationship.
-  dealSlug: varchar("deal_slug", { length: 80 }).unique(),
+  // The deal folder — which folder under icm-board's `workspaces/deals/` holds
+  // this relationship's words and documents — is *named after the repo*
+  // (icm-board decision D28, 2026-09-23): `workspaces/deals/<repo name>/`,
+  // derived from `github_repo` by `lib/deals.ts`'s `dealFolderSlug`. It was a
+  // column of its own (`deal_slug`, migration 0024) for one day; the same fact
+  // in two homes was the mirror D24 forbids, so 0025 dropped it.
 
   // ---- Activity ------------------------------------------------------------
   // When Jamie last worked this relationship — set by status changes and profile
