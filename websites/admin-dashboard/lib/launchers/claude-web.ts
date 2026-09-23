@@ -1,4 +1,7 @@
-import { CLAUDE_PROMPT_MAX_ENCODED_CHARS } from "./claude-terminal"
+import {
+  CLAUDE_MODEL_ALIASES,
+  CLAUDE_PROMPT_MAX_ENCODED_CHARS,
+} from "./claude-terminal"
 import { encodePrompt, type LaunchTarget } from "./types"
 
 /**
@@ -9,10 +12,14 @@ import { encodePrompt, type LaunchTarget } from "./types"
  * the whole reason to prefer it: the board is a phone-first screen.
  *
  * Params are `q` (prompt), `repo` (one `owner/name`), and optional `branch`
- * (requires `repo`) and `mode`. Every launcher on the board passes
- * `mode=plan`: a stub or a maintenance pass is picked up by planning first,
- * not by editing. `repo` is encoded to `owner%2Fname`, as the article's own
- * example writes it.
+ * (requires `repo`) and `mode` (`plan` or `code`). Every launcher on the
+ * board passes `mode=code`, explicitly rather than by omission, so a session
+ * never inherits a sticky plan pick from the composer. `repo` is encoded to
+ * `owner%2Fname`, as the article's own example writes it.
+ *
+ * No model or effort parameter is documented, and none is wired: the board
+ * shows its recommendation beside the button instead (README § Tickets has
+ * the hand-verified table of what the link was seen to honour).
  *
  * The article documents no cap on `q`, so this inherits the terminal
  * scheme's (see `CLAUDE_PROMPT_MAX_ENCODED_CHARS`).
@@ -22,6 +29,7 @@ export const claudeWeb: LaunchTarget = {
   label: "Claude Code",
   surface: "web",
   supports: { repo: true, mode: true, model: false, effort: false },
+  modelAliases: CLAUDE_MODEL_ALIASES,
   maxEncodedPromptChars: CLAUDE_PROMPT_MAX_ENCODED_CHARS,
   build(req) {
     const q = encodePrompt(req.prompt, CLAUDE_PROMPT_MAX_ENCODED_CHARS)

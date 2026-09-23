@@ -78,7 +78,15 @@ import { cache } from "react"
 
 import { listClientRepos } from "@jamie-nisbet/services"
 
-import { launch } from "@/lib/launchers"
+import {
+  DEFAULT_TARGET_ID,
+  hintForMaintenance,
+  hintForTicket,
+  launch,
+  withHintLine,
+  type LaunchHint,
+  type MaintenanceKind,
+} from "@/lib/launchers"
 
 const API = "https://api.github.com"
 
@@ -203,6 +211,11 @@ export type Ticket = {
    */
   pickup: string | null
   pickupKind: "verb" | "prompt" | null
+  /** The model/effort this pick-up is recommended to run on (lib/launchers/
+   * hint.ts) — derived from the ticket, never written in it. Null when there
+   * is nothing to pick up. Where a prompt body is sent and the link cannot
+   * carry the recommendation, `pickup` already opens with a line naming it. */
+  hint: LaunchHint | null
   /** The ticket markdown minus its header block, rendered on the board. */
   body: string
 }
@@ -213,8 +226,8 @@ export type TicketFetchError = { repo: TicketRepo; message: string }
 // Session links. Every launcher on this board is built by the launcher
 // registry (`lib/launchers/`) — one file per tool, each naming the doc its URL
 // shape comes from. These wrappers keep the board's call sites unchanged;
-// every one of them launches in `plan` mode: a stub or a maintenance pass is
-// picked up by planning first, not by editing.
+// every one of them launches in `code` mode, sent explicitly so a session
+// never inherits a sticky plan pick from the composer.
 
 /** A ticket's session link on one target — null when the ticket has no
  * prompt, or the target cannot carry it (past its cap). A verb is a few dozen
@@ -224,7 +237,8 @@ function ticketLaunchUrl(targetId: string, ticket: Ticket): string | null {
   return launch(targetId, {
     repoFullName: ticket.repo.fullName,
     prompt: ticket.pickup,
-    mode: "plan",
+    mode: "code",
+    hint: ticket.hint ?? undefined,
   })
 }
 
@@ -248,9 +262,21 @@ export function claudeTerminalUrl(ticket: Ticket): string | null {
  * characters long, so unlike a ticket's they cannot outgrow a URL at runtime:
  * this returns a string, and its callers stay total. A null here means a
  * literal was edited past the cap, which is a bug to fix, not a state to render.
+ * The recommendation line rides on top where the link cannot carry it, and
+ * counts toward that cap like the rest.
  */
-function authoredPromptUrl(repoFullName: string, prompt: string): string {
-  const url = launch("claude-web", { repoFullName, prompt, mode: "plan" })
+function authoredPromptUrl(
+  repoFullName: string,
+  kind: MaintenanceKind,
+  prompt: string
+): string {
+  const hint = hintForMaintenance(kind)
+  const url = launch(DEFAULT_TARGET_ID, {
+    repoFullName,
+    prompt: withHintLine(DEFAULT_TARGET_ID, prompt, hint),
+    mode: "code",
+    hint,
+  })
   if (url === null) throw new Error("Authored launcher prompt is past the cap")
   return url
 }
@@ -515,6 +541,21 @@ function pickupFor(
   return prompt ? { pickup: prompt, pickupKind: "prompt" } : { pickup: null, pickupKind: null }
 }
 
+/**
+ * The recommendation, and — for a prompt body only — the line that names it
+ * on top of what is sent, so Copy prompt and the link carry the same text and
+ * the cap is measured on what actually goes out. A verb is left untouched:
+ * the router reads it whole.
+ */
+function withLaunchHint(ticket: Ticket): Ticket {
+  const hint = hintForTicket(ticket)
+  const pickup =
+    ticket.pickupKind === "prompt" && ticket.pickup
+      ? withHintLine(DEFAULT_TARGET_ID, ticket.pickup, hint)
+      : ticket.pickup
+  return { ...ticket, hint, pickup }
+}
+
 /** A pick-up prompt for stubs that don't carry one (sustentus's, mostly), so
  * the one-tap session link works estate-wide. */
 function synthesizedPrompt(repo: TicketRepo, path: string): string {
@@ -598,6 +639,7 @@ function parseLegacy(
     // these in with `pickupFor` after the parse.
     pickup: null,
     pickupKind: null,
+    hint: null,
     body: readingBody(lines),
   }
 }
@@ -776,6 +818,7 @@ async function fetchRepoTickets(
         meta,
         prompt,
         ...pickupFor(repo, { kind: "stub", epic: s.epic, slug: s.slug, lane: s.lane }, prompt),
+        hint: null,
         body: s.body,
       }
     })
@@ -800,6 +843,7 @@ async function fetchRepoTickets(
         ],
         prompt: null,
         ...pickupFor(repo, { kind: "run", slug, runStage }, null),
+        hint: null,
         body: "",
       })
     }
@@ -809,7 +853,7 @@ async function fetchRepoTickets(
         .filter((t): t is Ticket => t !== null)
         .map((t) => ({ ...t, ...pickupFor(repo, { kind: "legacy", slug: t.id }, t.prompt) }))
     )
-    return { tickets, error: null }
+    return { tickets: tickets.map(withLaunchHint), error: null }
   } catch (err) {
     return {
       tickets: [],
@@ -1334,6 +1378,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       hint: "Batch related one-offs into epics, tighten what stays",
       url: authoredPromptUrl(
         repo.fullName,
+        "triage",
         "Read .icm/intake/README.md for this repo's ticket contract, then triage .icm/intake/triage/: where a real batch has formed, group the related one-off stubs into a sequenced epic folder (a breakdown.md beside sequenced stubs); tighten titles and priorities on what stays; move anything already done to the matching _done/ folder. Ticket-only changes commit straight to main."
       ),
     },
@@ -1343,6 +1388,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       hint: "Move done stubs and merged runs to _done/",
       url: authoredPromptUrl(
         repo.fullName,
+        "sweep",
         "Read .icm/intake/README.md for this repo's ticket contract, then sweep for finished work: check the open stubs in .icm/intake/ and the run folders in .icm/runs/ against what has actually merged, and git mv anything finished into the matching _done/ folder. Verify against the code and PR history before moving anything — when unsure, leave it open. Ticket-only changes commit straight to main."
       ),
     },
@@ -1354,6 +1400,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
 export function recutSessionUrl(repo: TicketRepo, batchSlug: string): string {
   return authoredPromptUrl(
     repo.fullName,
+    "recut",
     `Read .icm/intake/${batchSlug}/breakdown.md and every stub beside it, compare them against the current state of the code, and recut the batch: refresh stale stubs, resequence what remains, split anything too big, and move anything already done to _done/. Keep the breakdown honest — it should describe the work as it stands today. Ticket-only changes commit straight to main.`
   )
 }
@@ -1362,6 +1409,7 @@ export function recutSessionUrl(repo: TicketRepo, batchSlug: string): string {
 export function estateCheckSessionUrl(): string {
   return authoredPromptUrl(
     TODAY_REPO,
+    "estate-check",
     "Run the /icm-check pass across the estate and report what has drifted — intake shape, runs hygiene, today.md pointing at real stubs. Propose fixes as tickets in the offending repos rather than fixing anything silently."
   )
 }

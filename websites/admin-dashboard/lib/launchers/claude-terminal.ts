@@ -22,6 +22,14 @@ import { encodePrompt, type LaunchTarget } from "./types"
  */
 export const CLAUDE_PROMPT_MAX_ENCODED_CHARS = 4500
 
+/** Claude's name for each tier, shared by both Claude targets. Aliases, not
+ * dated model IDs: `opus` keeps meaning the current Opus. */
+export const CLAUDE_MODEL_ALIASES = {
+  fast: "haiku",
+  balanced: "sonnet",
+  deep: "opus",
+} as const
+
 /**
  * The terminal twin — the documented `claude-cli://` scheme
  * (code.claude.com/docs/en/deep-links). Opens a local Claude Code session in
@@ -32,13 +40,14 @@ export const CLAUDE_PROMPT_MAX_ENCODED_CHARS = 4500
  *
  * `repo` keeps its literal slash, as the doc's example writes it; only `q` is
  * documented as needing encoding. The scheme documents no `mode`, so the
- * request's is dropped.
+ * request's is dropped — and no model or effort, so the hint is too.
  */
 export const claudeTerminal: LaunchTarget = {
   id: "claude-terminal",
   label: "Claude Code (terminal)",
   surface: "terminal",
   supports: { repo: true, mode: false, model: false, effort: false },
+  modelAliases: CLAUDE_MODEL_ALIASES,
   maxEncodedPromptChars: CLAUDE_PROMPT_MAX_ENCODED_CHARS,
   build(req) {
     const q = encodePrompt(req.prompt, CLAUDE_PROMPT_MAX_ENCODED_CHARS)
