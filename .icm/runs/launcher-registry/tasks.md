@@ -14,7 +14,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] No file under `websites/admin-dashboard/components/` or `websites/admin-dashboard/app/` changes.
 - [x] The doc-citing comments (universal-link article, deep-links doc, the cap's rationale) survive in the target files, not rewritten.
 - [x] `websites/admin-dashboard/README.md` § Tickets names `lib/launchers/` as where the link builders live.
-- [ ] CI is green (typecheck, lint, build) on the PR head.
+- [x] CI is green (typecheck, lint, build) on the PR head.
 
 ## Queue
 
@@ -23,4 +23,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `lib/tickets.ts` — five exports re-implemented over `launch()`
 - [x] Proof: 15 URLs byte-identical before/after
 - [x] `README.md` § Tickets + the `lib/` tree line
-- [ ] Settle CI, flip ready, settle the full gate
+- [x] Settle CI, flip ready, settle the full gate

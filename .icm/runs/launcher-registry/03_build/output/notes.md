@@ -1,7 +1,7 @@
 # Build notes: launcher-registry
 
-- commits: feat: launcher-registry — extract the session-link registry
-- ci: GREEN (cheap tier) on bafa1c2; full gate pending the ready flip
+- commits: bafa1c2 feat: launcher-registry — extract the session-link registry · 2bc13e8 merge origin/main · 4cb751c chore: build notes
+- ci: GREEN on 4cb751c (full gate, ready) — Typecheck + lint, three app builds, previews jamie-nisbet + portfolio
 
 ## What changed
 
@@ -21,7 +21,7 @@
 - [x] No file under `components/` or `app/` changed.
 - [x] Doc-citing comments moved; the one sentence that stopped being true ("Takes the prompt already encoded…") was dropped, the cap comment's "both ticket builders" now reads "both Claude targets".
 - [x] README § Tickets names `lib/launchers/`.
-- [ ] CI green — pending.
+- [x] CI green — full gate on 4cb751c.
 
 ## Notes for Release
 
