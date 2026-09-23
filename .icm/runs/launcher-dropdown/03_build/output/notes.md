@@ -1,7 +1,7 @@
 # Build notes: launcher-dropdown
 
 - commits: feat: launcher-dropdown — tool menu from the launcher registry · feat: launcher-dropdown — copy-first, terminal parked
-- ci: GREEN (full gate) on 5bc0d9a
+- ci: GREEN (full gate) on aaa5c79
 
 ## What changed
 
@@ -59,7 +59,7 @@
 - [x] Triage bug stub parked.
 - [x] README updated.
 - [x] Epic archived.
-- [ ] CI green — see the ci line.
+- [x] CI green — see the ci line.
 
 ## Notes for Release
 
