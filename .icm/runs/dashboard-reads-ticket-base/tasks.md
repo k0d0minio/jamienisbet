@@ -19,4 +19,9 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Ticket ref per repo — `probeTicketRef` + `TicketRepo.ticketRef`, set in `loadRoster()` (lib/tickets.ts)
+- [x] Tree read, blob/tree/run links at `repoRef(repo)`; declared-branch 404 → default branch + `fallback` banner entry (lib/tickets.ts)
+- [x] Branch badge on the repo group header; board footnote (app/(app)/tickets/page.tsx)
+- [x] Home feed keeps fallback repos out of "Couldn't read" (app/(app)/page.tsx)
+- [x] Triage/sweep/recut prompts land a D38 ticket PR; icm-board unchanged (`ticketLanding`, lib/tickets.ts)
+- [x] README → Tickets (websites/admin-dashboard/README.md)

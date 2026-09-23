@@ -399,7 +399,7 @@ deployment any more: the house forms are read from icm-board over the GitHub API
 The estate's engineering backlog in one place, read **batch-first**. Every active repo keeps
 its work items as markdown in `.icm/intake/` — the estate-wide standard (canonical spec:
 `_system/contracts/TICKETS.md` in the `icm-board` repo) — and [`lib/tickets.ts`](lib/tickets.ts)
-reads those folders from `main` via the GitHub API (60-second revalidate, tag-busted by the
+reads those folders from each repo's **ticket base branch** via the GitHub API (60-second revalidate, tag-busted by the
 board's refresh button) and folds them into `listBoard()`: a **now** group (today's picks from
 icm-board's `today.md`, runs in flight from `.icm/runs/`, blocked stubs), then one inset
 grouped list per repo — urgency-ordered — whose intake batches are its rows. Each epic folder
@@ -413,6 +413,18 @@ repo roster comes from the database plus every repo the token owns or collaborat
 ticket links back to its client. A connected repo the token can't see is named on the board
 with the reason, never dropped in silence.
 
+**Which branch a repo is read from** (icm-board decision D38). A repo's ticket state has one
+home, its ticket base branch: `uat.branch` where the repo's `.icm/project.json` declares one,
+else the default branch. On a UAT repo a run's close-out moves its stub to `_done/` inside a
+PR that merges into `uat`, and `main` only sees the move at promotion — reading `main` showed
+finished work as open for a whole batch. So the board reads `project.json` from the default
+branch once an hour per repo (the discovery clock, like the intake and router probes) and takes
+the tree, the runs in flight and every "Open on GitHub" link from that branch. A repo read from
+a branch other than its default wears a mono badge with the branch's name on its group header.
+A declared branch that isn't there is read from the default branch instead and named under
+**Couldn't be read** with that caveat — never silently. A repo with no `project.json`, no `uat`
+block, or an empty branch reads exactly as before. icm-board is exempt: it has no UAT branch.
+
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
 and nothing is mirrored into the database. Every button therefore copies a prompt, or opens a
@@ -420,7 +432,10 @@ tool with it pre-filled, and a human sends it: **Copy prompt** (with every regis
 its menu) / swipe-right on a row or batch, and the maintenance launchers — per-repo *triage the backlog* and
 *sweep finished work* (the **Maintenance** row closing each repo's group), per-batch *recut
 this batch* (in the batch sheet), and the board-level *estate check* (the `/icm-check` pass on
-icm-board, in the group that closes the screen). Rows wear the Leads list's gestures: swipe
+icm-board, in the group that closes the screen). The triage, sweep and recut prompts end by
+telling the session to land its ticket changes as a ticket PR into the repo's ticket base
+branch, pointing at the `pr-conventions` skill for the shape (D38); icm-board's still commit
+straight to `main`. Rows wear the Leads list's gestures: swipe
 left for a tray (copy, GitHub, client), swipe right to copy what it sends — with a haptic tick the
 moment a full swipe crosses its threshold.
 

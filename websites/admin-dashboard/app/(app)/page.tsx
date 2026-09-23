@@ -355,7 +355,12 @@ async function loadTickets(): Promise<TicketReads> {
       }
     }
     if (board.dbError) return { strip: [], note: null }
-    const unreachable = board.errors.map((e) => e.repo.slug)
+    // A repo read from its default branch because its declared ticket base
+    // branch is missing is still in the list — the board names that caveat,
+    // the feed doesn't count it as unread.
+    const unreachable = board.errors
+      .filter((e) => !e.fallback)
+      .map((e) => e.repo.slug)
     // Two different absences, and the feed says which. A named repo that
     // couldn't be read is a gap in a known list; a failed roster call means
     // the list itself is short, and reading that as "no tickets" is what the

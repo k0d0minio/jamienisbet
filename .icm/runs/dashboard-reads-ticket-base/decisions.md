@@ -8,9 +8,14 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — no scope; the rule is icm-board D38 (ticket base branch, ticket PR, icm-board exempt)
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-1 (Define, operator) — a declared UAT branch that can't be read falls back to the default
+  branch and is named on the board, never silently.
+- D-2 (Define, operator) — the maintenance prompts point at `pr-conventions` → "The ticket PR"
+  rather than spelling the shape out.
+- D-3 (Build) — a non-UAT repo's prompt names `main` as its ticket base branch (D38: "else
+  `main`"); a fallback repo's prompt names `main` too, since the declared branch isn't there to
+  PR into. The home feed does not list a fallback repo as unread — its tickets are shown.
