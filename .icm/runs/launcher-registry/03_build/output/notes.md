@@ -28,3 +28,13 @@
 - The maintenance launchers now pass through the 4,500 cap (they had none); all four are far under it (proof shows URLs), and a future over-long literal throws at render instead of emitting a link. That is the spec's decision, not a drift.
 - `build()` references the cap constant rather than `this.maxEncodedPromptChars`, so a target's `build` survives being passed detached.
 - `security-check.sh --branch` reports `BLOCKED 1` on dependency-audit: the 27 pre-existing transitive advisories already parked in `.icm/intake/triage/dependency-advisories-high-critical.md` (this branch touches no manifest). Recorded and resolved in `error.log`; not this run's to fix.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 0a271e4 before the record (ci-status.sh); re-read on the final head below the close-out
+- reviews: code medium (/code-review — no finding in this diff; one pre-existing finding from #137 parked) · security security-check.sh --branch --audit: OK after merging origin/main (#143 cleared the 27 advisories; the first read was BLOCKED on them, no waiver used) + /security-review n/a — no auth, payments, PII or route policy touched · readiness env.sh audit --changed: OK
+- parked: owned-repos-sweep-page-cache-drift.md
+- migrations: skip — none of this run's own
+- learned: none (retrospective: the one error class is already a rule)
+- docs: websites/admin-dashboard/README.md § Tickets (updated in Build; no docs tree) · announce: internal
