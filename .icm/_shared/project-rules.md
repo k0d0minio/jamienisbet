@@ -117,3 +117,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - nothing under `<svg>` in `@jamie-nisbet/ui`'s brand components (or anything rendered through `next/og`'s `ImageResponse`) may be a custom React component — Satori requires intrinsic elements only inside `<svg>`. Share sub-markup as a plain function returning an element array/fragment, called directly, never as a JSX component tag. (`build error (vercel build log, dpl_ndxtrhhnsspemeqnhycsagicnrf, bld_fnnd`, seen 1× — bump-next-audited-deps; .claude/skills, .github, packages/app-shell, packages/ui)
 <!-- Retrospective Learned Rule [2026-09-23] -->
 - When a criterion needs an operator's hand test, ask for the result in the criterion's exact shape (e.g. one line per surface × parameter), not a free-form reply. (`FAILURE.md` — model-effort-preselect)
+<!-- Retrospective Learned Rule [2026-09-23] -->
+- A launch target (or any custom URL scheme) is added `parked` until the operator has tapped its link from the board itself — browser tab and installed PWA — and reported that it opened; a documented link shape is not proof it works. (`FAILURE.md` — launcher-dropdown)
