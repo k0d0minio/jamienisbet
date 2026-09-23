@@ -1,7 +1,7 @@
 # Build notes: launcher-dropdown
 
 - commits: feat: launcher-dropdown — tool menu from the launcher registry
-- ci: GREEN (cheap tier) on 0676c55; full gate — see status.md
+- ci: GREEN (full gate) on 5bc0d9a
 
 ## What changed
 

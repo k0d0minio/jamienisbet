@@ -6,15 +6,16 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: read `02_define/output/spec.md`, tick **Spec approved** on PR #145.
-2. Then `build launcher-dropdown` — follow `plan.md` pass by pass.
+1. Operator: smoke the admin preview (jamie-nisbet) on a phone and a laptop — an opened
+   ticket's split button and its menu, a maintenance row's `…` inside its sheet, a batch's
+   Recut row, the Estate check row, and a swipe-right. Then tick **Ready to merge** on PR #145.
+2. Then `release launcher-dropdown`.
 
 ## Blockers
 
-- The Spec-approved tick (operator).
+- The Ready-to-merge tick (operator).
 
 ## Do not
 
 - Tick either gate checkbox.
-- Change any launch URL for the default target, the hint rule, the prompt cap, or `mode`/`repo`.
-- Add a new tool target — each is its own triage stub.
+- Add a launch target in this run — each is its own triage stub.

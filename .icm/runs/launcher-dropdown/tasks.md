@@ -17,7 +17,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `AppMenu` is exported from `packages/ui`, uses the tier's material, popover elevation and
 - [x] `websites/admin-dashboard/README.md` § Tickets carries the updated link table and the
 - [x] The stub is archived and, as the epic's last stub, `.icm/intake/session-launchers/` is moved
-- [ ] CI's required checks are green.
+- [x] CI's required checks are green.
 
 ## Queue
 
@@ -26,4 +26,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `components/launch-menu.tsx` (split button + row accessory); `ticket-detail`, `batch-row`, `repo-maintenance`, tickets page rewired
 - [x] README § Tickets: target table + "Add a launch target" recipe
 - [x] Epic archived to `.icm/intake/_done/session-launchers/`
-- [ ] CI GREEN (cheap tier), ready flip, full gate GREEN
+- [x] CI GREEN (cheap tier), ready flip, full gate GREEN
