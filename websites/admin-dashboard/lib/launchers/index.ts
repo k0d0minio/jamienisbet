@@ -12,7 +12,6 @@
 // Adding a tool: one file beside these, one line in `LAUNCH_TARGETS`. Parking
 // one that doesn't work yet: its `parked` field.
 
-import { claudeTerminal } from "./claude-terminal"
 import { claudeWeb } from "./claude-web"
 import type { LaunchHint, LaunchRequest, LaunchTarget } from "./types"
 
@@ -25,7 +24,7 @@ export {
 } from "./hint"
 
 /** In menu order; the first is the default. */
-export const LAUNCH_TARGETS: readonly LaunchTarget[] = [claudeWeb, claudeTerminal]
+export const LAUNCH_TARGETS: readonly LaunchTarget[] = [claudeWeb]
 
 export const DEFAULT_TARGET_ID = "claude-web"
 
