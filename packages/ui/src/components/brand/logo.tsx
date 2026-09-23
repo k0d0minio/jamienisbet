@@ -32,23 +32,28 @@ import {
 
 type LogoSvgProps = Omit<React.ComponentProps<"svg">, "viewBox" | "children">
 
+// A plain helper, not a component: called directly (`{Frame({ ink })}`) so its
+// two elements land as direct `<path>`/`<rect>` children of the enclosing
+// `<svg>` rather than behind a component or Fragment boundary. Satori's OG
+// renderer (next/og, Next 16.3+) only resolves intrinsic elements nested
+// inside an `<svg>` — a custom component there fails prerendering with
+// "Only intrinsic elements are supported inside <svg>".
 function Frame({ ink }: { ink: string }) {
   const inset = LOGO_FRAME_INSET / 2
-  return (
-    <>
-      <path d={LOGO_FRAME_PATH} fillRule="evenodd" fill={ink} />
-      <rect
-        x={inset}
-        y={inset}
-        width={100 - LOGO_FRAME_INSET}
-        height={100 - LOGO_FRAME_INSET}
-        fill="none"
-        stroke={ink}
-        strokeWidth={1}
-        vectorEffect="non-scaling-stroke"
-      />
-    </>
-  )
+  return [
+    <path key="frame-path" d={LOGO_FRAME_PATH} fillRule="evenodd" fill={ink} />,
+    <rect
+      key="frame-rect"
+      x={inset}
+      y={inset}
+      width={100 - LOGO_FRAME_INSET}
+      height={100 - LOGO_FRAME_INSET}
+      fill="none"
+      stroke={ink}
+      strokeWidth={1}
+      vectorEffect="non-scaling-stroke"
+    />,
+  ]
 }
 
 // The letters alone are centred in a square at the width they hold inside the
@@ -88,7 +93,7 @@ function LogoMarkSolid({ className, ...props }: LogoSvgProps) {
       {...props}
     >
       <rect width="100" height="100" fill="var(--logo-tile)" />
-      <Frame ink="var(--logo-ink)" />
+      {Frame({ ink: "var(--logo-ink)" })}
       <path d={LOGO_LETTERS_PATH} fill="var(--logo-ink)" />
     </svg>
   )
@@ -126,7 +131,7 @@ function LogoFull({
       {...props}
     >
       {tile && <rect width="100" height="100" fill={paper ?? "var(--logo-tile)"} />}
-      <Frame ink={inkFill} />
+      {Frame({ ink: inkFill })}
       <path d={LOGO_WORDMARK_PATH} fill={inkFill} />
     </svg>
   )
