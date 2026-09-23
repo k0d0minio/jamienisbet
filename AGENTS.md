@@ -62,8 +62,10 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
   `.icm/intake/` — never a loose `TODO.md`/`BACKLOG.md`. Identity is the path
   (`<epic>/<slug>`) and status is positional: done is a `git mv` to `_done/`, never a
   field. Today lives estate-wide in icm-board's `.icm/today.md` (≤10 entries), not in
-  ticket files. Ticket-only commits go straight to `main`; everything else through a PR
-  on a `claude/` branch.
+  ticket files. Ticket-only changes land as a ticket PR into the ticket base branch
+  (`main` here — no `uat` declared), shape and merge rule in
+  [`pr-conventions`](.claude/skills/pr-conventions/SKILL.md) → The ticket PR; everything
+  else through a PR on a `claude/` branch.
 - **No outbound action without review.** Invoices are raised as drafts; finalizing and
   emailing is a separate, deliberate click. Outreach email is composed and sent by a human.
 - **CI is the source of truth.** Never run `build`/`lint`/`typecheck` locally; push and

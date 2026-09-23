@@ -36,7 +36,8 @@ seeded file documents itself, and
 - **Status is positional** — where a file sits is its state; `git mv` to `_done/` is
   "done". Nothing is deleted; dropped work carries a `> Dropped: <reason, date>` line.
 - **Planning lives here** — never a loose `TODO.md` or `BACKLOG.md` at the root.
-- **The board reads `main`** — an unpushed stub does not exist.
+- **The board reads the ticket base branch** (`main` here) — an unmerged stub does not
+  exist; ticket changes land there as a ticket PR (`pr-conventions` → The ticket PR).
 - **The pipeline is changed at its source** — a file `MANIFEST` marks `T`, or a canonical
   `.claude/` asset, is icm-board's: a request to change one is a template change request
   (`_shared/template-change.md` — a prompt for icm-board, parked as a triage stub), never an
