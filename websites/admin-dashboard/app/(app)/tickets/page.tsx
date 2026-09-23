@@ -253,6 +253,14 @@ export default async function TicketsPage({
   const countFor = (slug?: string): number =>
     slug ? tickets.filter((t) => t.repo.slug === slug).length : tickets.length
 
+  // A `fallback` entry isn't a repo the board couldn't read — its tickets are
+  // right below it, read from the default branch instead of the declared
+  // ticket base branch. Splitting it out of "Couldn't be read" is the point of
+  // this: that heading and its destructive row styling mean the repo itself is
+  // unreadable, which this repo isn't.
+  const unreadableErrors = errors.filter((e) => !e.fallback)
+  const fallbackNotices = errors.filter((e) => e.fallback)
+
   // The roster is every owner repo; only repos with something on the board get
   // a chip, so the rail doesn't drown in empty client stubs.
   const chipRepos = repos.filter((repo) => countFor(repo.slug) > 0)
@@ -341,7 +349,7 @@ export default async function TicketsPage({
                   broken repos. Under it, each repo that couldn't be reached is
                   named with what GitHub said, and the rest of the board
                   stands. */}
-              {rosterError || errors.length > 0 ? (
+              {rosterError || unreadableErrors.length > 0 ? (
                 <GroupedSection header="Couldn't be read">
                   {rosterError ? (
                     <>
@@ -358,7 +366,7 @@ export default async function TicketsPage({
                       </GroupedBlock>
                     </>
                   ) : null}
-                  {errors.map((error) => (
+                  {unreadableErrors.map((error) => (
                     <Fragment key={error.repo.fullName}>
                       <GroupedRow
                         icon={<TriangleAlert />}
@@ -372,6 +380,26 @@ export default async function TicketsPage({
                           truncated on a phone, and half an error message is
                           worse than none. */}
                       <GroupedBlock>{error.message}</GroupedBlock>
+                    </Fragment>
+                  ))}
+                </GroupedSection>
+              ) : null}
+
+              {/* A caveat, not an error: the repo's tickets are read below,
+                  just from its default branch rather than the ticket base
+                  branch it declares — quiet enough not to read as broken. */}
+              {fallbackNotices.length > 0 ? (
+                <GroupedSection header="Reading from the default branch">
+                  {fallbackNotices.map((notice) => (
+                    <Fragment key={notice.repo.fullName}>
+                      <GroupedRow
+                        icon={<GitBranch />}
+                        label={
+                          <span className="font-mono">{notice.repo.slug}</span>
+                        }
+                        chevron={false}
+                      />
+                      <GroupedBlock>{notice.message}</GroupedBlock>
                     </Fragment>
                   ))}
                 </GroupedSection>
