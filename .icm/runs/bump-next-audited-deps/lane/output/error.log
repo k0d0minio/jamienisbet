@@ -1,0 +1,25 @@
+## 2026-09-23 — Vercel – portfolio (ci-status.sh RED, head 221bf25)
+
+Build error (Vercel build log, dpl_8DXTRhH6sspEmeQ19hycsAgiC7RF, bld_fn839d5ix):
+
+    Error occurred prerendering page "/en/opengraph-image". Read more: https://nextjs.org/docs/messages/prerender-error
+    Error: Only intrinsic elements are supported inside <svg>
+    Error occurred prerendering page "/fr/opengraph-image" ...
+    Error occurred prerendering page "/pt/opengraph-image" ...
+    Export encountered an error on /[locale]/opengraph-image/route: /en/opengraph-image, exiting the build.
+    Error: Command "pnpm run build" exited with 1
+
+`websites/portfolio/app/[locale]/opengraph-image.tsx` renders `<LogoFull>`
+(`packages/ui/src/components/brand/logo.tsx`), which rendered its shared frame markup through a
+`Frame` custom component nested inside an `<svg>`. Satori (`next/og`'s SVG renderer) only resolves
+intrinsic (lowercase) elements as direct descendants of `<svg>` — a custom component tag there is a
+hard build error. This was silent on `next@16.2.9`; `next@16.3.6` bundles a stricter/different
+Satori that enforces it.
+
+- resolved: replaced the `Frame` component with a plain function `frame(ink)` returning an array of
+  `<path>`/`<rect>` elements, called as `{frame(ink)}` (not `<Frame ink={ink} />`) at both call
+  sites in `logo.tsx` — same markup, no custom element type in the tree.
+- rule: nothing under `<svg>` in `@jamie-nisbet/ui`'s brand components (or anything rendered through
+  `next/og`'s `ImageResponse`) may be a custom React component — Satori requires intrinsic elements
+  only inside `<svg>`. Share sub-markup as a plain function returning an element array/fragment,
+  called directly, never as a JSX component tag.

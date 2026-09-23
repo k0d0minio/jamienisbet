@@ -20,6 +20,12 @@
     `^5.0.7` — two unrelated minimatch major lines each pull their own vulnerable
     `brace-expansion`).
   - `pnpm-lock.yaml` regenerated with `pnpm install` (not hand-edited).
-- rollback: revert this PR's commit. No schema/runtime change — pure dependency-version bump, so a
-  revert simply restores the prior (vulnerable) lockfile state.
-- learned: none.
+  - `packages/ui/src/components/brand/logo.tsx`: the `next` bump broke the portfolio's
+    `opengraph-image` prerender (Satori: "Only intrinsic elements are supported inside `<svg>`") —
+    the shared frame markup was a `Frame` custom component nested inside `<svg>`, which `next`
+    16.2.9's bundled Satori tolerated and 16.3.6's does not. Replaced it with a plain function
+    returning an element array, called directly (`{frame(ink)}`) instead of as a JSX component tag
+    — same markup, no visual change. See `lane/output/error.log`.
+- rollback: revert this PR's commit. No schema/runtime change — pure dependency-version bump plus a
+  same-output structural fix, so a revert simply restores the prior (vulnerable) lockfile state.
+- learned: 1 (see `lane/output/error.log` — `- rule:`).
