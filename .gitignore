@@ -15,6 +15,7 @@ build/
 # OS / editor
 .DS_Store
 *.log
+!.icm/runs/**/error.log
 .idea/
 .vercel
 .env*

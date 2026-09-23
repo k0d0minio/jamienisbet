@@ -27,7 +27,7 @@ import "server-only"
 // the client-repo scaffold (`lib/icm-scaffold.ts`); Contents: read on
 // `k0d0minio/icm-board` is enough for everything here.
 
-export const DEALS_REPO = process.env.ICM_BOARD_REPO || "k0d0minio/icm-board"
+export const DEALS_REPO = "k0d0minio/icm-board"
 export const DEALS_PATH = "workspaces/deals"
 
 const API = "https://api.github.com"

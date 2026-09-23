@@ -26,15 +26,26 @@
   unset in this environment` (this session has no Vercel credential), not gaps; the "what the code
   reads" section is empty, i.e. no code still reads a key that was removed, and no undeclared
   `process.env` read was introduced.
+- change: `.gitignore`: the blanket `*.log` rule was silently swallowing every run's
+  `lane/output/error.log` / `03_build/output/error.log` — confirmed no `error.log` has ever been
+  committed in this repo's history (`git log --all --diff-filter=A -- '*/output/error.log'`:
+  empty), which is also why this run's own `retrospective.sh` read "archive: 0 error.log(s) read".
+  Added `!.icm/runs/**/error.log` so the pipeline's own audit trail (this run's included) actually
+  reaches the archive, as `_shared/ci.md`/`retrospective.sh` assume. Off-ticket, but needed so this
+  lane's own record survives its close-out.
 - rollback: revert the commit — every change here is a pure removal/constant-inlining with no
   schema or data effect; nothing to migrate.
-- learned: none
-- security: `security-check.sh strip-unused-env-vars --branch` first returned `BLOCKED 1` —
+- learned: 1 rule appended to `_shared/project-rules.md` — `--branch`'s dependency-audit is
+  unconditional (runs even when no manifest/lockfile changed) and can BLOCKED on pre-existing
+  advisories unrelated to the branch.
+- security: `security-check.sh strip-unused-env-vars --branch` returns `BLOCKED 1` —
   `dependency-audit`, 27 pre-existing high/critical advisories in transitive deps (browserslist,
-  sharp, js-yaml), unrelated to this branch's diff (no manifest/lockfile touched). Parked as
-  `.icm/intake/triage/dependency-advisories-high-critical.md` per
-  `.icm/skills/security-audit/SKILL.md` → Dependency findings; `error.log` carries the
-  `- resolved:` line. Re-run after parking: `RESULT: OK`.
+  sharp, js-yaml), unrelated to this branch's diff (no manifest/lockfile touched; same count on
+  `origin/main` at bb9caaf). Per `.icm/skills/security-audit/SKILL.md` → Dependency findings, not
+  fixed in this branch: parked as `.icm/intake/triage/dependency-advisories-high-critical.md`,
+  both `error.log` entries carry a `- resolved:` line recording that disposition. The gate cannot
+  be driven to `RESULT: OK` from this branch — it never touches the lockfile the finding lives
+  in — so this note is that resolution, not a re-run.
 
 ## Left for the operator (not run here — outward changes to production config)
 

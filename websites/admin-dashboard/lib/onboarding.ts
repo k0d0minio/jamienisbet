@@ -32,8 +32,8 @@ import {
 // into the cache with `force-cache` + a 60-second revalidate, for the reasons
 // `lib/tickets.ts`'s header spells out.
 
-const HOUSE_REPO = process.env.ONBOARDING_REPO || "k0d0minio/icm-board"
-const HOUSE_FOLDER = process.env.ONBOARDING_FOLDER || "workspaces/sell/references/forms"
+const HOUSE_REPO = "k0d0minio/icm-board"
+const HOUSE_FOLDER = "workspaces/sell/references/forms"
 const CLIENT_FOLDER = ".icm/onboarding"
 const REVALIDATE_SECONDS = 60
 

@@ -1,0 +1,21 @@
+## 2026-09-23T14:33:46Z security-check.sh — dependency-audit
+scope=branch head=bb9caaf branch=claude/dazzling-keller-mk20wl — BLOCKED 1 (redacted trace; the secret itself is never written)
+dependency-audit  pnpm reports 27 high/critical advisor(y|ies) — run: pnpm audit --audit-level=high
+(unresolved until the session adds a `- resolved:` line: remove the secret from the change, have the operator rotate it, re-run the gate, then write what was wrong and what is true now)
+- resolved: not a secret — the `dependency-audit` check, which `--branch` scope always runs.
+  This branch's `touches:` is `.env.example` manifests and plain-constant inlining only, no
+  `package.json`/lockfile change, so the 27 high/critical advisories predate it (confirmed present
+  on `origin/main` at bb9caaf, all in transitive deps: browserslist, sharp, js-yaml). Per
+  `security-audit/SKILL.md` → Dependency findings: parked as
+  `.icm/intake/triage/dependency-advisories-high-critical.md` (lane: chore) rather than widening
+  this PR to a dependency bump; not this ticket's diff.
+
+## 2026-09-23T14:34:50Z security-check.sh — dependency-audit
+scope=branch head=bb9caaf branch=claude/dazzling-keller-mk20wl — BLOCKED 1 (redacted trace; the secret itself is never written)
+dependency-audit  pnpm reports 27 high/critical advisor(y|ies) — run: pnpm audit --audit-level=high
+(unresolved until the session adds a `- resolved:` line: remove the secret from the change, have the operator rotate it, re-run the gate, then write what was wrong and what is true now)
+- resolved: duplicate of the entry above — re-running the gate to confirm it still finds the same
+  pre-existing, unrelated dependency-audit result. Same disposition: not this branch's to fix,
+  parked as `.icm/intake/triage/dependency-advisories-high-critical.md`. No new rule — this is a
+  re-check, not a second finding.
+

@@ -77,9 +77,8 @@ import { commitRepoFiles, type NewRepoFile } from "@/lib/github"
 
 const API = "https://api.github.com"
 
-/** The repo holding the canonical scaffold. Overridable so a fork of the estate
- * can point elsewhere without a code change. */
-const TEMPLATE_REPO = process.env.ICM_TEMPLATE_REPO || "k0d0minio/icm-board"
+/** The repo holding the canonical scaffold. */
+const TEMPLATE_REPO = "k0d0minio/icm-board"
 const TEMPLATE_ROOT = "_system/template"
 
 /** One folder of the template and where its files land in the new repo.

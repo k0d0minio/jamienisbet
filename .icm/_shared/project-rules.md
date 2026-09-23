@@ -102,3 +102,13 @@ wrote in its `FAILURE.md`: what no tool logged — a wrong assumption, a STOP, a
 Each line carries the run it was learned in. Build and the lanes read this section before their
 first edit, with the same standing as the code rules. Edit or delete lines freely — this file is
 the repo's own, never synced — and delete a line that reads as a slip rather than a constraint.*
+
+<!-- Retrospective Learned Rule [2026-09-23] -->
+- `security-check.sh --branch`'s dependency-audit runs unconditionally (unlike `--staged`, which
+  only audits when the change touches a manifest/lockfile) — a lane that touches neither still
+  hits `BLOCKED` on whatever pre-existing high/critical advisories the workspace already carries.
+  Check `.icm/intake/triage/dependency-advisories-high-critical.md` (or run `pnpm audit
+  --audit-level=high` against `origin/main`) before assuming a `--branch` finding is this run's;
+  if it predates the branch, park/point at that stub per `security-audit/SKILL.md` → Dependency
+  findings rather than widening the PR into a dependency bump. (`security-check/dependency-audit`,
+  first seen: strip-unused-env-vars)
