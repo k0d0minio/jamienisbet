@@ -73,3 +73,21 @@
   which closes the view the same way.
 - `lib/launchers/index.ts` still mentions "a batch sheet" in a comment — outside this spec's
   `touches:`, left as is.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on ae15d56 before the reviews; re-read after the last push (see the stop report)
+- reviews: code high — 10 findings: 5 fixed in 408ce5a (rotation-safe scroll lock, In flight
+  today/blocked dots with the server's urgency order kept, edge strip starts under the back bar,
+  pane content keyed per selection, dead `BatchRow.active` removed); 2 parked; 3 declined as
+  nits (the ticket row's hairline differs from the batch row's by design — its padding does not
+  grow at `md`; the correction's JSON round-trip is a stable effect dependency; `parent: {}` is
+  the type's required field) · security security-check.sh --branch --audit: OK · /security-review
+  n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth,
+  payments or env var touched) · readiness env.sh audit --changed: OK
+- parked: board-runs-slug-collides-with-epic.md, board-sections-for-run-only-repos-server-side.md
+- migrations: skip — none of this run's own
+- learned: 2 rule(s) from FAILURE.md, appended by close-out.sh (retrospective.sh: skip — no error.log)
+- docs: websites/admin-dashboard/README.md § Tickets, § Today's tickets and the components map
+  updated · announce: internal
