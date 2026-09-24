@@ -125,3 +125,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In the admin dashboard, never pass `window.history.state` (or any object carrying Next's (`FAILURE.md` — master-detail-shell)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - When one element renders two layouts by breakpoint (a pane from `lg`, a pushed view below), (`FAILURE.md` — master-detail-shell)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- Name the base as `origin/main` in every review or diff range (`/code-review … origin/main...HEAD`, `git diff origin/main...HEAD`): a cloud session's local `main` is never updated by `git fetch origin main`, so `main...HEAD` silently widens the review to commits already merged. (`FAILURE.md` — repo-and-estate-views)
