@@ -8,9 +8,15 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — no `scope.md`; the epic's breakdown decision 3 (the four detail kinds, the estate
+  overview as the foot of level 0 on a phone) is the source.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-1 — An errored repo's view is reached by tapping its row under "Couldn't be read" in the
+  estate overview; it gets no list section, row or chip. Operator, Define 2026-09-24.
+- D-2 — An errored repo's view shows everything a repo view does (client, the error in full,
+  triage/sweep launchers, Open on GitHub); only the figures are omitted, being zero. Operator,
+  Define 2026-09-24.
+- D-3 — The overview's Blocked group is exactly the Blocked figure's set (same repo filter);
+  rows carry the blocked reason and no swipe. Define's technical call.
