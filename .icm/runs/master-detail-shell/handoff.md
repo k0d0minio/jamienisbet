@@ -6,18 +6,17 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator reads `02_define/output/spec.md`, ticks **Spec approved** on PR #158, then runs
+   `/pipeline build master-detail-shell`.
+2. Build executes `plan.md` pass by pass (selection model first, then the shell).
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of
+  https://github.com/k0d0minio/jamienisbet/pull/158
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the Spec approved tick; never tick it yourself.
+- Do not touch `lib/tickets.ts` or launcher URL shapes.
+- Do not open a second PR for this run or re-run `new-run.sh`.

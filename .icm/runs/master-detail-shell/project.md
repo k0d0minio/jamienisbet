@@ -13,9 +13,17 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- `lib/tickets.ts` untouched: cache header, `force-cache`, clocks, concurrency cap, link and
+  launcher building; `readBoard()`'s payload shape unchanged.
+- No `dynamic = "force-dynamic"` on any route reading the board; the board stays read-only.
+- Stub 1's refresh, on-return re-read and "as of" stamp keep working with a selection open.
+- Selection is URL state only (`t` / `b` / `r`, one at a time; `repo` independent), written by
+  `useBoardParams` via the History API — never a `<Link>` navigation on the board.
+- Pane contents are placeholders carrying today's content; stubs 3–5 own their redesign.
+- Breakdown decisions: `.icm/intake/tickets-master-detail/breakdown.md` (1, 2, 3, 6, 8).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define: `use-board-params.ts`, parts of `lib/tickets.ts` (board types, run tickets),
+  `TodaysTickets` and greps of the board components — to settle runs' new home and the URL
+  keys.
