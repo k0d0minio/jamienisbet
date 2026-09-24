@@ -1,7 +1,7 @@
 # Build notes: epic-view
 
 - commits: 4b16c08 (breakdown read), ca99f0d (epic view + phone level 1), then run files
-- ci: pending — settled by `ci-status.sh epic-view` below
+- ci: GREEN on 4f0579d (full gate, ready) — cheap tier GREEN on 4b02c9d
 
 ## What changed
 
@@ -46,7 +46,7 @@
       between a batch and its ticket, so the list's scroll is never reset (unchanged mechanism).
 - [x] No `force-dynamic`; every new read goes through `gh()`/`fetchBlob`; header updated.
 - [ ] Preview checked on phone + desktop, light + dark — the operator's smoke.
-- [ ] CI green — settled below.
+- [x] CI green — full gate GREEN on 4f0579d.
 
 ## Notes for Release
 

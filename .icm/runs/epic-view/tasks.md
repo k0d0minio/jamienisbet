@@ -19,11 +19,11 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Back from a ticket opened from phone level 1 returns to that level 1 with its scroll
 - [x] `lib/tickets.ts` still carries no `dynamic = "force-dynamic"` on any board route, every new
 - [ ] The Vercel preview is checked on a phone and a desktop in light and dark mode, on an epic
-- [ ] CI green: Typecheck + lint and Build admin-dashboard.
+- [x] CI green: Typecheck + lint and Build admin-dashboard.
 
 ## Queue
 
 - [x] `lib/tickets.ts` — read `breakdown.md` by blob SHA, `Batch.breakdown`, `next.id` (4b16c08)
 - [x] `components/` — the epic view, phone level 1 as that view, `pane` retired (ca99f0d)
-- [ ] CI GREEN on the draft head (cheap tier), then merge `origin/main`, flip ready, push
-- [ ] Full gate GREEN with the admin-dashboard preview
+- [x] CI GREEN on the draft head (cheap tier), then merge `origin/main`, flip ready, push
+- [x] Full gate GREEN with the admin-dashboard preview (4f0579d)
