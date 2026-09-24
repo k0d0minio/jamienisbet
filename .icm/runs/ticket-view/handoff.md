@@ -6,16 +6,18 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator reads `02_define/output/spec.md`; to change it: `revise ticket-view "<what>"`.
-2. Operator ticks **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/161, then
-   runs `/pipeline build ticket-view` — Build follows `plan.md`.
+1. Operator smokes the `jamie-nisbet` preview of PR #161 on a phone (375 px), light and dark:
+   a blocked ticket, a ticket with depends-on, a long ticket with a table and a code block, the
+   Prompt fold.
+2. Operator ticks **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/161, then
+   runs `/pipeline release ticket-view`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of PR #161.
+- blocked on operator: smoke the preview and tick **Ready to merge** on PR #161.
 
 ## Do not
 
-- Do not tick any gate box; do not start Build before the tick.
+- Do not tick any gate box.
 - Do not touch the epic / repo / overview views or keyboard nav — later stubs of this epic.
 - Do not subscribe to PR activity (`_shared/github.md` → PR events).
