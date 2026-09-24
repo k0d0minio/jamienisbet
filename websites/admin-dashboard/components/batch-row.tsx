@@ -7,7 +7,6 @@ import { Meter, cn } from "@jamie-nisbet/ui"
 
 import { copyPrompt } from "@/components/board-ticket-row"
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
-import { ACTIVE_ROW } from "@/components/ticket-look"
 import type { ListBatch } from "@/components/board-model"
 
 /** The hairline between rows, inset the way a native list insets it. It rides
@@ -108,7 +107,6 @@ export function BatchRow({
   batch,
   clientHref,
   first,
-  active,
   onSelect,
 }: {
   batch: ListBatch
@@ -117,8 +115,6 @@ export function BatchRow({
   /** First row in its group: the group's own edge has already closed it, so it
    *  draws no hairline above itself. */
   first?: boolean
-  /** The pane is showing this batch. */
-  active?: boolean
   onSelect: () => void
 }) {
   const router = useRouter()
@@ -132,7 +128,6 @@ export function BatchRow({
     <button
       type="button"
       onClick={onSelect}
-      aria-current={active ? "true" : undefined}
       className={cn(
         // The fill is what hides the swipe tray behind the row.
         "relative flex min-h-app-touch w-full flex-col justify-center gap-1.5",
@@ -140,7 +135,6 @@ export function BatchRow({
         // Wider row from `md`: the same row, more air, the way an iPad grows a
         // phone list.
         "md:px-5 md:py-3.5",
-        active && ACTIVE_ROW,
         !first && ROW_HAIRLINE
       )}
     >

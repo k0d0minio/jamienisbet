@@ -50,9 +50,13 @@ export const batchKey = (section: ListSection, batch: ListBatch) =>
  *  flight, then the rest — by name within each. Recomputed here only because
  *  a repo whose one open item is a run has no server section to sort. */
 function urgency(section: ListSection): number {
-  if (section.batches.some((b) => b.todayCount > 0)) return 0
-  if (section.batches.some((b) => b.blockedCount > 0)) return 1
-  if (section.batches.some((b) => b.kind === "runs")) return 2
+  // The server ranks a repo on its batches alone — a run picked for today
+  // counts as "a run in flight" there, not as a today-pick — so In flight's
+  // own dots are left out of the rank, or the two orders would disagree.
+  const batches = section.batches.filter((b) => b.kind !== "runs")
+  if (batches.some((b) => b.todayCount > 0)) return 0
+  if (batches.some((b) => b.blockedCount > 0)) return 1
+  if (batches.length < section.batches.length) return 2
   return 3
 }
 
@@ -87,8 +91,10 @@ export function listSections(
       tickets: [...runs].sort((a, b) => a.id.localeCompare(b.id)),
       next: null,
       recut: null,
-      todayCount: 0,
-      blockedCount: 0,
+      // A run can be picked for today (today.md names `runs/<slug>`), and the
+      // row carries that dot the way an epic's row does.
+      todayCount: runs.filter((t) => t.group === "today").length,
+      blockedCount: runs.filter((t) => t.group === "blocked").length,
       p0Count: 0,
     }
   }

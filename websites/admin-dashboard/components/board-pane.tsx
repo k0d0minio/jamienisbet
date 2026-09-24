@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
 
 import { Material, cn } from "@jamie-nisbet/ui"
@@ -60,12 +60,20 @@ export function DetailPane({
   // A pushed view holds the page still under it. Overscroll containment alone
   // only holds while the view is tall enough to scroll; a short one would
   // otherwise hand the drag to the list behind it.
+  // Re-read on every crossing of `lg`: an iPad turned while a view is pushed
+  // changes which reading applies, and the lock has to follow it.
   useEffect(() => {
-    if (!pushed || window.matchMedia(DESKTOP_QUERY).matches) return
+    if (!pushed) return
     const root = document.documentElement
     const previous = root.style.overflow
-    root.style.overflow = "hidden"
+    const desktop = window.matchMedia(DESKTOP_QUERY)
+    const apply = () => {
+      root.style.overflow = desktop.matches ? previous : "hidden"
+    }
+    apply()
+    desktop.addEventListener("change", apply)
     return () => {
+      desktop.removeEventListener("change", apply)
       root.style.overflow = previous
     }
   }, [pushed])
@@ -143,10 +151,11 @@ export function DetailPane({
           </Material>
           {/* The leading edge, where a thumb swipes back. Narrow, and only on
               the pushed view: the list's rows swipe sideways too, and they
-              are never under this. */}
+              are never under this. It starts under the bar, so the back
+              button keeps its whole target. */}
           <div
             aria-hidden
-            className="fixed inset-y-0 left-0 z-20 w-4 touch-none lg:hidden"
+            className="fixed bottom-0 left-0 top-[calc(var(--app-bar-height)_+_env(safe-area-inset-top))] z-20 w-4 touch-none lg:hidden"
             onPointerDown={onEdgeDown}
             onPointerMove={onEdgeMove}
             onPointerUp={onEdgeEnd}
@@ -164,7 +173,10 @@ export function DetailPane({
             <p className="text-app-footnote text-app-label-3">{subtitle}</p>
           ) : null}
         </div>
-        {children}
+        {/* Keyed to what is shown, so a ticket's controls never carry one
+            ticket's state (a "Copied" confirmation, an open menu) into the
+            next. */}
+        <Fragment key={contentKey}>{children}</Fragment>
       </div>
     </div>
   )
