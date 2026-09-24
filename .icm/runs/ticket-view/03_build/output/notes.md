@@ -1,7 +1,7 @@
 # Build notes: ticket-view
 
 - commits: dc8357c feat: ticket-view — summary line, action row, depends-on links, folded Prompt
-- ci: GREEN on dc8357c (draft tier); full gate settled after the ready flip
+- ci: GREEN on dc8357c (draft tier), GREEN on ca2d508 (full gate, previews built)
 
 ## What changed
 
@@ -47,3 +47,6 @@
   `n of m` shows on the summary line and in the table.
 - `.prose` is shared with every rendered markdown in the app; the two added rules only affect
   words/URLs longer than their line.
+- The PR body's acceptance-criteria ticks were not applied by Build: the session's permission
+  layer denied the PR-body edit. The tick state is this file's list above; the operator ticks
+  the seven met criteria on the PR (the 375 px one after the smoke).
