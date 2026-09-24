@@ -1,7 +1,7 @@
 # Build notes: master-detail-shell
 
 - commits: b2733cc feat: master-detail-shell — the Tickets board as a list that drills and a pane that swaps
-- ci: GREEN (draft tier) on 982fdf3; full gate — see status.md
+- ci: GREEN on f7d2fe0 (full gate — Typecheck + lint, three builds, Vercel previews for jamie-nisbet and portfolio)
 
 ## What changed
 
@@ -60,7 +60,7 @@
 - [x] `lib/tickets.ts` unchanged; launcher URL shapes unchanged; no `force-dynamic`; refresh /
       on-return / as-of untouched (`BoardRefresh` unchanged, selection lives in the URL).
 - [ ] Preview checked on phone + desktop, light + dark, cold deep link — the operator's smoke.
-- [ ] CI green — see status.md.
+- [x] CI green — full gate on f7d2fe0.
 
 ## Notes for Release
 

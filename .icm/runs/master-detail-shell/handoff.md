@@ -6,17 +6,20 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator reads `02_define/output/spec.md`, ticks **Spec approved** on PR #158, then runs
-   `/pipeline build master-detail-shell`.
-2. Build executes `plan.md` pass by pass (selection model first, then the shell).
+1. Operator smokes the admin-dashboard preview
+   (https://jamie-nisbet-git-claude-quirky-brown-d1wh6b-kodominio.vercel.app/tickets) on a phone
+   and a desktop, light and dark: drill a batch and back, open a ticket / epic / repo, the phone
+   edge-swipe back, browser back/forward, cold deep links (`?t=`, `?b=`, `?r=`, with `?repo=`),
+   a Needs you "Today's tickets" row, swipes, refresh with a selection open.
+2. Operator ticks **Ready to merge** on PR #158, then `/pipeline release master-detail-shell`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of
+- blocked on operator: smoke the preview and tick **Ready to merge** on
   https://github.com/k0d0minio/jamienisbet/pull/158
 
 ## Do not
 
-- Do not start Build before the Spec approved tick; never tick it yourself.
+- Do not tick Ready to merge yourself; do not merge.
 - Do not touch `lib/tickets.ts` or launcher URL shapes.
-- Do not open a second PR for this run or re-run `new-run.sh`.
+- Do not open a second PR for this run.
