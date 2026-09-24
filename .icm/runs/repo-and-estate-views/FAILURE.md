@@ -21,6 +21,27 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 - fixed by: nothing to fix in the run — the operator ticks **Spec approved** on #162, then
   re-runs `build repo-and-estate-views`.
 
+### 2026-09-24 — Release's first code review read a stale local `main`
+
+- what happened: `/code-review medium main...HEAD` reviewed every commit between the session's
+  local `main` (58424b0, never updated after `git fetch origin main`) and the branch — the
+  pipeline sync and #157/#158 included — and reported a finding in
+  `.claude/hooks/vercel-env-hydrate.sh`, a file this PR does not touch.
+- why: the review range named the local branch rather than `origin/main`; the fetch had only
+  moved the remote-tracking ref.
+- fixed by: re-running the review on `origin/main...HEAD`; the off-ticket finding, verified,
+  parked as `triage/template-change-cloud-env-hydrate-unlinked.md`.
+
+### 2026-09-24 — `main` moved under the run: #164 rewrote the same three files
+
+- what happened: Release step 7(a) conflicted in `page.tsx`, `board-model.ts` and
+  `tickets-board.tsx` — #164 moved run-only sections server-side and deleted `listSections` /
+  `extraMaintenance`, which this run had extended for errored repos.
+- why: a triage chore on the same surface merged while this run was in review; the cut had
+  no way to see it.
+- fixed by: 70d264c — main's files taken, this run's changes re-applied; errored repos' launchers
+  now ride as `unreadableMaintenance`. Reviewed again and CI re-run on the merged head.
+
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- Name the base as `origin/main` in every review or diff range (`/code-review … origin/main...HEAD`, `git diff origin/main...HEAD`): a cloud session's local `main` is never updated by `git fetch origin main`, so `main...HEAD` silently widens the review to commits already merged.

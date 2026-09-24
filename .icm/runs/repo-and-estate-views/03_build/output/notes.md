@@ -49,3 +49,22 @@
   connected in `biz` that the token can't read produces one.
 - The PR body's acceptance-criteria boxes were not ticked by Build: the session's permission
   check refused the PR-body edit. The ticks above are Build's self-check.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 42cb895 (full gate) before the reviews; re-read after the last push (see the stop report)
+- reviews: code medium — no findings on `origin/main...HEAD`, again none on the merged head
+  (70d264c); a first pass on a stale local `main` reviewed already-merged commits and surfaced
+  one off-ticket finding, verified and parked (FAILURE.md) · security security-check.sh
+  --branch --audit: OK · /security-review n/a (no auth, payments, PII or route policy touched) ·
+  /production-readiness n/a (no DB, auth, payments or env var touched) · readiness env.sh audit
+  --changed: OK
+- merge of main: 537fe48 (#164, run-only sections server-side) conflicted in `page.tsx`,
+  `board-model.ts`, `tickets-board.tsx`; resolved in 70d264c — main's files, this run's changes
+  re-applied, errored repos' launchers passed as `unreadableMaintenance`. The operator's smoke
+  predates this merge.
+- parked: template-change-cloud-env-hydrate-unlinked.md
+- migrations: skip — none of this run's own
+- learned: 1 rule from FAILURE.md, appended by close-out.sh (retrospective.sh: skip — no error.log)
+- docs: websites/admin-dashboard/README.md § Tickets (in Build) · announce: internal
