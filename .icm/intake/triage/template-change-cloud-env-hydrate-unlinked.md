@@ -26,6 +26,12 @@ checked, so a session holding only `VERCEL_TOKEN` stops in `vercel_require` — 
 says "else plain VERCEL_TOKEN". And the hook prints only the last line of `env.sh pull`'s output,
 so every `FAILED` line but one is hidden at session start.
 
+
+Found a third time by run `epic-view`'s Release code review (same stale-`main` cause), with one
+more fault in the same path: the early hand-off also skips the hook's `VERCEL_ENV_MAX_AGE`
+freshness check (default 3600 s), so once a pull does work it repeats on every session start and
+resume. The fix should keep that check ahead of the hand-off.
+
 ## Prompt
 
 Template change request — from jamienisbet · 2026-09-24

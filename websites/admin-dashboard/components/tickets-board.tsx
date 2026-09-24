@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react"
 
 import { GroupedBlock, GroupedRow, GroupedSection, cn } from "@jamie-nisbet/ui"
 
-import { BatchLine, BatchRow } from "@/components/batch-row"
+import { BatchRow } from "@/components/batch-row"
 import {
   batchKey,
   boardFigures,
@@ -19,8 +19,12 @@ import {
   type Selection,
 } from "@/components/board-model"
 import { DetailPane } from "@/components/board-pane"
-import { BoardTicketRow } from "@/components/board-ticket-row"
 import {
+  BatchActions,
+  BatchBreakdown,
+  BatchMeter,
+  BatchSummary,
+  BatchTickets,
   BatchView,
   EstateOverview,
   RepoView,
@@ -41,7 +45,9 @@ import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 // pushes the list to level 1: that batch's tickets under a way back to the
 // repos. From `lg` the pane stands beside the list and shows whatever is
 // selected — a ticket, a batch, a repo, or the estate overview when nothing
-// is; below it a selection is pushed full screen over the list (DetailPane).
+// is; below it a ticket or a repo is pushed full screen over the list
+// (DetailPane), and a batch is not pushed at all: level 1 *is* its view there,
+// its tickets first and its actions and breakdown under them.
 //
 // The board is read once, on the server, and handed over as plain data; from
 // then on it lives here. Every selection and the repo filter are URL state
@@ -70,13 +76,6 @@ function EmptyBoard({
       <p className="max-w-xs text-app-footnote text-app-label-3">{children}</p>
     </div>
   )
-}
-
-const LIST_HEADER: Record<ListBatch["kind"], string> = {
-  epic: "Stubs, in sequence",
-  triage: "Tickets, by priority",
-  backlog: "Tickets, by priority",
-  runs: "Runs in flight",
 }
 
 // ---------------------------------------------------------------------------
@@ -149,14 +148,12 @@ function BatchList({
   batch,
   selection,
   onBackToRepos,
-  onOpenBatch,
   onSelectTicket,
 }: {
   section: ListSection
   batch: ListBatch
   selection: Selection
   onBackToRepos: () => void
-  onOpenBatch: () => void
   onSelectTicket: (key: string) => void
 }) {
   const selectedTicket =
@@ -175,35 +172,32 @@ function BatchList({
         <span className="font-mono">{section.repo.slug}</span>
       </button>
 
-      {/* On a phone there is no pane beside the list, so the batch itself is
-          the first row: its scan line, and a tap pushes its view — Copy next,
-          Recut, GitHub. From `lg` the pane is already showing it. */}
-      <GroupedSection className="lg:hidden">
-        <button
-          type="button"
-          onClick={onOpenBatch}
-          className={cn(
-            "flex min-h-app-touch w-full flex-col justify-center gap-1.5 px-4 py-3 text-left",
-            "transition-colors spring-press active:bg-app-press md:px-5 md:py-3.5"
-          )}
-        >
-          <BatchLine batch={batch} />
-        </button>
-      </GroupedSection>
+      {/* On a phone there is no pane beside the list, so level 1 is the
+          batch's view: its title and scan line, then its tickets, then its
+          actions and breakdown. From `lg` the pane beside it shows all of
+          that, and the list keeps to the tickets. */}
+      <div className="flex flex-col gap-3 lg:hidden">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-app-large-title font-bold text-app-label">
+            {batch.title}
+          </h2>
+          <p className="text-app-footnote text-app-label-3">
+            <BatchSummary section={section} batch={batch} />
+          </p>
+        </div>
+        <BatchMeter batch={batch} />
+      </div>
 
-      <GroupedSection header={LIST_HEADER[batch.kind]}>
-        <ul>
-          {batch.tickets.map((ticket, index) => (
-            <BoardTicketRow
-              key={ticket.path}
-              first={index === 0}
-              ticket={ticket}
-              active={selectedTicket === ticketKey(ticket)}
-              onSelect={() => onSelectTicket(ticketKey(ticket))}
-            />
-          ))}
-        </ul>
-      </GroupedSection>
+      <BatchTickets
+        batch={batch}
+        selectedTicket={selectedTicket}
+        onSelectTicket={onSelectTicket}
+      />
+
+      <div className="flex flex-col gap-app-section lg:hidden">
+        <BatchActions batch={batch} />
+        <BatchBreakdown batch={batch} />
+      </div>
     </div>
   )
 }
@@ -241,9 +235,15 @@ export function TicketsBoard({
 
   // A stale or conflicting URL is corrected in place — the view already shows
   // the fallback; this makes the address say so, without a new history entry.
+  // A link from before the batch view became level 1 may still carry the
+  // retired `pane` flag; it means nothing now, so it goes too.
   const fix: BoardQuery | null =
-    correction || filterConflict
-      ? { ...correction, ...(filterConflict ? { repo: null } : {}) }
+    correction || filterConflict || params.stalePane
+      ? {
+          ...correction,
+          ...(filterConflict ? { repo: null } : {}),
+          ...(params.stalePane ? { pane: null } : {}),
+        }
       : null
   const fixKey = fix ? JSON.stringify(fix) : null
   useEffect(() => {
@@ -354,29 +354,18 @@ export function TicketsBoard({
       const { section, batch } = selection
       pane = {
         title: batch.title,
-        subtitle: (
-          <>
-            <span className="font-mono">{section.repo.slug}</span>
-            {" · "}
-            <span className="font-mono tabular-nums">{batch.tickets.length}</span>
-            {batch.kind === "runs" ? " in flight" : " open"}
-            {batch.planned !== null ? (
-              <>
-                {" · "}
-                <span className="font-mono tabular-nums">
-                  {batch.done} of {batch.planned}
-                </span>{" "}
-                done
-              </>
-            ) : null}
-          </>
+        subtitle: <BatchSummary section={section} batch={batch} />,
+        backLabel: section.repo.slug,
+        parent: { b: null },
+        body: (
+          <BatchView
+            batch={batch}
+            selectedTicket={null}
+            onSelectTicket={(key) => navigate({ t: key })}
+          />
         ),
-        backLabel: batch.title,
-        parent: { b: batchKey(section, batch) },
-        body: <BatchView batch={batch} />,
-        // On a phone the batch is list level 1; its view is pushed over that
-        // only when its summary row asked for it.
-        pushed: params.pane,
+        // On a phone the batch is list level 1 itself — never pushed.
+        pushed: false,
       }
       break
     }
@@ -426,9 +415,6 @@ export function TicketsBoard({
             batch={drilled.batch}
             selection={selection}
             onBackToRepos={() => back({ t: null })}
-            onOpenBatch={() =>
-              navigate({ b: batchKey(drilled.section, drilled.batch), pane: "1" })
-            }
             onSelectTicket={(key) => navigate({ t: key })}
           />
         ) : (

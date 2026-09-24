@@ -414,8 +414,11 @@ with the reason, never dropped in silence.
 rail and the repo groups; tapping a batch pushes the list to level 1 — that batch's tickets
 under a "‹ repo" back row — and tapping a repo's header opens the repo. From `lg` the pane
 ([`components/board-pane.tsx`](components/board-pane.tsx)) stands beside the list, pinned under
-the title bar with its own scroll, and shows the selected **ticket**, **batch** (Copy next,
-Recut, GitHub), **repo** or, with nothing selected, the **estate overview**. The repo view sets
+the title bar with its own scroll, and shows the selected **ticket**, **batch**, **repo** or,
+with nothing selected, the **estate overview**. The batch view is the epic's own: its `N of M`
+and `Meter`, **Copy next** (the next stub's own split button — its pick-up, every tool behind
+the chevron), **Recut** (epics), GitHub, its stubs, and the epic's `breakdown.md` rendered (read
+by blob SHA beside the stubs; "No breakdown.md in this epic." where there is none). The repo view sets
 the repo's own figures in mono — Open, Today, Blocked, In flight, a zero left out — then, if
 its GitHub read failed, what GitHub said in full, then its client (or "House repo") and its
 maintenance launchers with Open on GitHub. The estate overview sets the Today / Blocked / Open
@@ -428,17 +431,19 @@ carries its triage and sweep launchers); then the estate check and the board's f
 summary line (status · priority · `n of m` · repo · client, and why it is blocked), then
 **Copy** with its recommendation and **Open on GitHub**, its header fields — a `depends-on`
 slug still on the board selects that ticket — and the body, its `## Prompt` section folded.
-Below `lg` a selection is a full-screen pushed view with a back bar and an edge
-swipe; the overview is the foot of level 0, and a batch's view is pushed from the summary row
-atop its tickets. Every selection is URL state — `?t=<repo>/<ticket id>`, `?b=<repo>/<batch>`
-(`runs` for In flight; `&pane=1` pushes its view on a phone) or `?r=<repo>`, one at a time,
-beside the `?repo=` filter — so a link reopens exactly that view, and one that names something
-since shipped falls back to its batch, or to nothing.
+Below `lg` a ticket or a repo is a full-screen pushed view with a back bar and an edge swipe; a
+batch is not pushed — level 1 *is* its view there, its stubs first and its actions and
+breakdown under them — and the overview is the foot of level 0. Every selection is URL state —
+`?t=<repo>/<ticket id>`, `?b=<repo>/<batch>` (`_runs` for In flight) or `?r=<repo>`, one at a
+time, beside the `?repo=` filter — so a link reopens exactly that view, and one that names
+something since shipped falls back to its batch, or to nothing. An old link still carrying the
+retired `&pane=1` opens the same view and drops the flag.
 
 **Read once, used locally.** `/tickets` reads the board once per visit (`readBoard()` in
 [`lib/tickets.ts`](lib/tickets.ts)) and hands it to a client root
-([`components/tickets-board.tsx`](components/tickets-board.tsx)) as plain data: ticket bodies as
-raw markdown, rendered only when a ticket is opened, and every launcher already built. The repo
+([`components/tickets-board.tsx`](components/tickets-board.tsx)) as plain data: ticket bodies and
+epic breakdowns as raw markdown, rendered only when that ticket or epic is opened, and every
+launcher already built. The repo
 chips filter in memory and every selection is resolved from the URL, written with
 `history.pushState` ([`components/use-board-params.ts`](components/use-board-params.ts)) — so a
 tap is instant, back/forward step through filters and selections, and `/tickets?repo=<slug>`
