@@ -6,19 +6,19 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator re-reads the revised freshness section of `02_define/output/spec.md` (D-3 in
-   `decisions.md`) and re-ticks **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/157.
-2. Then `/pipeline build board-client-state` — no code has been written yet; start at
-   `plan.md` pass 1.
+1. Operator smokes the preview on phone and desktop:
+   https://jamie-nisbet-git-claude-beautiful-fermat-3jzr0j-kodominio.vercel.app/tickets —
+   chip taps (no skeleton, URL `?repo=`), back/forward, open a stub and a Now peek (body
+   renders), every launcher, the "as of" stamp, refresh, and returning after ≥5 min away.
+2. Operator ticks **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/157.
+3. Then `/pipeline release board-client-state`.
 
 ## Blockers
 
-- blocked on operator: re-tick **Spec approved** in the body of https://github.com/k0d0minio/jamienisbet/pull/157
+- blocked on operator: smoke the preview and tick **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/157
 
 ## Do not
 
 - Do not tick either gate checkbox.
-- Do not wire `?t=` to any UI or restructure the layout — that is stub 2 (`master-detail-shell`).
-- Do not change the cache clocks or add `force-dynamic`; the only `lib/tickets.ts` change
-  besides exposing the read time is the position reads' second tag (D-3).
-- Do not build/lint/typecheck locally — CI is the source of truth.
+- Do not wire `?t=` or change the layout — stub 2 (`master-detail-shell`).
+- Do not touch `.icm/scripts/ci-status.sh` here — the fix is a parked template change request.

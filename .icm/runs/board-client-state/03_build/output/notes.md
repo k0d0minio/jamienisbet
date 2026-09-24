@@ -1,7 +1,7 @@
 # Build notes: board-client-state
 
-- commits: b8a6fb4 feat: board-client-state — read the Tickets board once, filter and refresh on the client
-- ci: GREEN on e90bae9 (cheap tier, draft); full gate after the ready flip below
+- commits: b8a6fb4 feat (the change), e90bae9 notes, c30d339 ready
+- ci: GREEN on c30d339 — full gate (ready): Typecheck + lint, Build admin-dashboard/portfolio/sellers-site, Vercel – jamie-nisbet, Vercel – portfolio
 
 ## What changed
 
@@ -47,7 +47,7 @@
 - [x] Cache invariants — `force-cache` untouched, three clocks and the cap untouched, no `dynamic` export on `/tickets` or `/`.
 - [x] `loading.tsx` on first visit only — unchanged file (comment only); refreshes run in transitions.
 - [ ] Looks the same on phone and desktop — preview smoke (operator).
-- [ ] CI green — see `ci` above.
+- [x] CI green — full gate on c30d339.
 
 ## Notes for Release
 
@@ -57,3 +57,6 @@
   server-rendered trees did before); stub 2 retires the strip.
 - Review closely: `BoardRefresh`'s effect (listener lifetime, the quiet transition) and that no
   hydration warning comes from the as-of stamp on the preview.
+- The first full-gate read after the post-flip push settled on the pre-push head (e90bae9);
+  re-read on c30d339 — see `error.log`. Template change parked:
+  `.icm/intake/triage/template-change-ci-status-stale-head.md`.

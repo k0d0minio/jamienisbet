@@ -21,7 +21,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `lib/tickets.ts` still opts every GitHub read into `force-cache`, keeps its three clocks
 - [x] The first visit to `/tickets` still shows `loading.tsx` while the board is read.
 - [ ] The board looks the same as before on phone and desktop (Vercel preview check).
-- [ ] CI green: Typecheck + lint and Build admin-dashboard.
+- [x] CI green: Typecheck + lint and Build admin-dashboard.
 
 ## Queue
 
@@ -30,4 +30,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Pass 3 — client root `components/tickets-board.tsx` + `BoardFigures`; `Chip` a button; `page.tsx` reads once — b8a6fb4
 - [x] Pass 4 — `TicketDetail` client-side, markdown loaded on demand — b8a6fb4
 - [x] Pass 5 — `BoardRefresh`: as-of stamp, quiet re-read on return via `refreshBoardPosition` — b8a6fb4
-- [ ] Pass 6 — CI green on the draft (cheap tier), then ready flip + full gate + previews
+- [x] Pass 6 — cheap tier GREEN (e90bae9), ready flip, full gate GREEN (c30d339)
