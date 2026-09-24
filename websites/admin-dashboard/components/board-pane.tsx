@@ -35,6 +35,7 @@ export function DetailPane({
   backLabel,
   onBack,
   contentKey,
+  scrollerRef,
   children,
 }: {
   /** Below `lg`: the view is pushed over the list. Ignored from `lg`. */
@@ -47,15 +48,19 @@ export function DetailPane({
   /** Changes when the view shows something else, so the pane starts at the
    *  top of the new thing rather than halfway down the last one. */
   contentKey: string
+  /** The pane's own scroller, for the board's keyboard to move focus into —
+   *  focused, it reads with the arrows and Page keys like any scroll view. */
+  scrollerRef?: React.RefObject<HTMLDivElement | null>
   children: React.ReactNode
 }) {
-  const scroller = useRef<HTMLDivElement>(null)
+  const ownScroller = useRef<HTMLDivElement>(null)
+  const scroller = scrollerRef ?? ownScroller
   const [drag, setDrag] = useState(0)
   const gesture = useRef<{ pointerId: number; startX: number } | null>(null)
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 })
-  }, [contentKey])
+  }, [contentKey, scroller])
 
   // A pushed view holds the page still under it. Overscroll containment alone
   // only holds while the view is tall enough to scroll; a short one would
@@ -101,6 +106,11 @@ export function DetailPane({
   return (
     <div
       ref={scroller}
+      // A landmark the keyboard can land in (`Enter` from the list, `Esc` back
+      // out) — focusable by script only, never a Tab stop of its own.
+      role="region"
+      aria-label="Details"
+      tabIndex={-1}
       // A pull inside the view is the view's own scroll, never the page's
       // pull-to-refresh, which listens further up the tree.
       onTouchStart={(e) => e.stopPropagation()}
@@ -122,6 +132,8 @@ export function DetailPane({
         // Desktop: the pane, pinned under the title bar and scrolling on its
         // own. It is always there.
         "lg:sticky lg:inset-auto lg:z-auto lg:flex lg:flex-col lg:overflow-y-auto lg:bg-transparent lg:pb-8",
+        // The keyboard's focus shows as the ring the app's buttons wear.
+        "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 lg:rounded-app-group",
         "lg:top-[calc(var(--app-bar-height)_+_env(safe-area-inset-top))]",
         "lg:max-h-[calc(100dvh_-_var(--app-bar-height)_-_env(safe-area-inset-top))]"
       )}

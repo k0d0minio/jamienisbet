@@ -24,4 +24,9 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Cursor model — `board-model.ts`: `levelZeroRows`, `rowSelection`, `copyTarget`, `githubUrl`
+- [x] Key hook — `use-board-keys.ts`: one document listener, `lg` gate, text-field / overlay / modifier guards
+- [x] Board wiring — `tickets-board.tsx`: level-0 preview cursor, level-1 replace steps, drill/back/commit/clear, `[`/`]`, focus hand-off
+- [x] Copy, GitHub, refresh — `copyToClipboard` path; `requestBoardRefresh` event into `board-refresh.tsx`
+- [x] Semantics — listbox/group/option on both levels (`batch-row.tsx`, `board-ticket-row.tsx`, `board-views.tsx`), pane as a focusable region (`board-pane.tsx`)
+- [x] Key sheet + hint — `board-keys-sheet.tsx`; README paragraph

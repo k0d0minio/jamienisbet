@@ -439,6 +439,21 @@ time, beside the `?repo=` filter — so a link reopens exactly that view, and on
 something since shipped falls back to its batch, or to nothing. An old link still carrying the
 retired `&pane=1` opens the same view and drops the flag.
 
+**The keyboard, from `lg`.** [`components/use-board-keys.ts`](components/use-board-keys.ts)
+drives the board without the mouse; `?` (or the hint at the foot of the list) opens the map.
+`↓`/`↑` or `j`/`k` move a cursor through the list level on screen. At level 0 it walks the repo
+headers and batch rows and the pane *previews* the row under it without touching the URL (a batch
+can't be selected there without drilling); `Enter`, `→` or `l` commits — a batch drills to level
+1, a repo opens and focus moves into the pane. At level 1 the cursor is the selection: each step
+rewrites `?t=` in place (`replaceState`), so back steps through levels, not through every stub
+passed; `Enter` moves focus into the pane, where the arrows and `j`/`k` scroll it. `Esc`, `←` or
+`h` back out a level — pane → list → repos — and at level 0 clear the selection. `c` copies what
+the view's own copy button would (a ticket's pick-up, a batch's Copy next; "Nothing to copy here"
+otherwise), `o` opens it on GitHub, `r` is the refresh button, `[`/`]` step the repo chips (All
+included, wrapping). No key fires while you type, while a menu or sheet is open, or with
+Ctrl/Cmd/Alt held. Each list level is a `listbox` whose `aria-activedescendant` is the cursor row,
+so a screen reader follows the same cursor; below `lg` nothing here applies.
+
 **Read once, used locally.** `/tickets` reads the board once per visit (`readBoard()` in
 [`lib/tickets.ts`](lib/tickets.ts)) and hands it to a client root
 ([`components/tickets-board.tsx`](components/tickets-board.tsx)) as plain data: ticket bodies and

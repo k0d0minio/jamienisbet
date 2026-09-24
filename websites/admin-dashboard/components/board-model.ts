@@ -233,3 +233,76 @@ export function blockedReason(ticket: BoardTicket): string | null {
   const waiting = ticket.meta.find(([key]) => key === "Waiting on")?.[1]
   return waiting ? `Waiting on ${waiting}` : null
 }
+
+// ---------------------------------------------------------------------------
+// The keyboard's view of the list (desktop only — components/use-board-keys.ts).
+
+/** A row list level 0's cursor can rest on: a repo's header, or one of its
+ *  batches. `key` is the row's identity across renders; `query` is what
+ *  selecting it writes, and what the pane previews while the cursor sits on
+ *  it. */
+export type CursorRow = {
+  key: string
+  query: { r: string } | { b: string }
+}
+
+/** Level 0's rows in on-screen order: each section's header, then its
+ *  batches. */
+export function levelZeroRows(sections: ListSection[]): CursorRow[] {
+  return sections.flatMap((section) => [
+    { key: `r:${section.repo.slug}`, query: { r: section.repo.slug } },
+    ...section.batches.map((batch) => {
+      const key = batchKey(section, batch)
+      return { key: `b:${key}`, query: { b: key } }
+    }),
+  ])
+}
+
+/** What a level-0 row selects — the same resolution a URL gets, so a preview
+ *  and a committed selection can't show two different things. */
+export function rowSelection(
+  sections: ListSection[],
+  unreadable: Parameters<typeof resolveSelection>[1],
+  row: CursorRow
+): Selection {
+  const query =
+    "r" in row.query
+      ? { ticket: null, batch: null, repoSelection: row.query.r }
+      : { ticket: null, batch: row.query.b, repoSelection: null }
+  return resolveSelection(sections, unreadable, query).selection
+}
+
+/** What `c` puts on the clipboard for a selection, and what the toast calls
+ *  it — exactly what the view's own copy button would: a ticket's pick-up, a
+ *  batch's Copy next. Null where the view has nothing to copy. */
+export function copyTarget(
+  selection: Selection
+): { value: string; what: string } | null {
+  const ticket =
+    selection.kind === "ticket"
+      ? selection.ticket
+      : selection.kind === "batch" && selection.batch.next
+        ? (selection.batch.tickets.find((t) => t.id === selection.batch.next?.id) ??
+          null)
+        : null
+  if (!ticket?.pickup) return null
+  return {
+    value: ticket.pickup,
+    what: ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt",
+  }
+}
+
+/** Where `o` goes for a selection — the URL its view's "Open on GitHub"
+ *  already uses. Null with nothing selected. */
+export function githubUrl(selection: Selection): string | null {
+  switch (selection.kind) {
+    case "ticket":
+      return selection.ticket.htmlUrl
+    case "batch":
+      return selection.batch.htmlUrl
+    case "repo":
+      return `https://github.com/${selection.focus.repo.fullName}`
+    default:
+      return null
+  }
+}

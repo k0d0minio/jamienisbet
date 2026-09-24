@@ -1,16 +1,21 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react"
 
-import { GroupedBlock, GroupedRow, GroupedSection, cn } from "@jamie-nisbet/ui"
+import { GroupedBlock, GroupedRow, GroupedSection, cn, toast } from "@jamie-nisbet/ui"
 
 import { BatchRow } from "@/components/batch-row"
+import { BoardKeysSheet, Keycap } from "@/components/board-keys-sheet"
 import {
   batchKey,
   boardFigures,
+  copyTarget,
+  githubUrl,
+  levelZeroRows,
   repoFigures,
   resolveSelection,
+  rowSelection,
   selectedRepoSlug,
   ticketKey,
   ticketsInGroup,
@@ -19,6 +24,7 @@ import {
   type Selection,
 } from "@/components/board-model"
 import { DetailPane } from "@/components/board-pane"
+import { requestBoardRefresh } from "@/components/board-refresh"
 import {
   BatchActions,
   BatchBreakdown,
@@ -31,9 +37,15 @@ import {
   TicketView,
 } from "@/components/board-views"
 import { Chip } from "@/components/chip"
-import { ACTIVE_ROW } from "@/components/ticket-look"
+import {
+  ACTIVE_ROW,
+  ACTIVE_ROW_DESKTOP,
+  CURSOR_SCROLL_MARGIN,
+} from "@/components/ticket-look"
 import { TicketSummary } from "@/components/ticket-detail"
+import { useBoardKeys, type BoardKeyIntent } from "@/components/use-board-keys"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
+import { copyToClipboard } from "@/lib/clipboard"
 import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 
 // The estate's work backlog as a master–detail view: a list that drills and a
@@ -57,9 +69,28 @@ import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 // data is the refresh control in the title bar (BoardRefresh); a selection
 // whose ticket went with it falls back to its batch, or to nothing.
 //
+// From `lg` the board also drives from the keyboard (use-board-keys.ts; `?`
+// lists the keys). Each list level is a listbox whose cursor the arrows move.
+// At level 1 the cursor *is* the selection — each step rewrites `?t=` in
+// place, so back steps through levels rather than every row passed. At level
+// 0 a batch can't be selected without drilling (`?b=` is level 1), so there
+// the cursor only previews its row in the pane and writes nothing; `Enter`
+// commits it. The URL always holds the committed selection alone.
+//
 // This screen is read-only by design — a ticket changes by editing its file in
 // the repo — so every button here is either a link or a prompt to copy (or
 // open, pre-filled, in a coding tool), and the human sends it.
+
+/** How far `j`/`k` scroll the pane when it has focus — about the arrow keys'
+ *  own step. */
+const PANE_STEP_PX = 64
+
+/** The listbox's focus ring: the one the app's buttons wear. */
+const LISTBOX_FOCUS =
+  "rounded-app-group outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+
+const levelZeroOptionId = (index: number) => `board-l0-${index}`
+const levelOneOptionId = (index: number) => `board-l1-${index}`
 
 /** A quiet day looks calm, not broken: words on the canvas rather than an empty
  *  slab, which reads as a card that failed to load. */
@@ -83,32 +114,46 @@ function EmptyBoard({
 
 function RepoSectionView({
   section,
-  selection,
+  cursorKey,
+  repoOpen,
+  optionId,
   onSelectRepo,
   onSelectBatch,
 }: {
   section: ListSection
-  selection: Selection
+  /** The level-0 row the cursor is on (`levelZeroRows` keys), if any. */
+  cursorKey: string | null
+  /** The URL has this repo open — highlighted on every width, as before the
+   *  keyboard; the cursor alone highlights only from `lg`. */
+  repoOpen: boolean
+  /** A row's option id in the level-0 listbox, by its key. */
+  optionId: (key: string) => string | undefined
   onSelectRepo: () => void
   onSelectBatch: (batch: ListBatch) => void
 }) {
   const { repo } = section
-  const repoActive =
-    selection.kind === "repo" && selection.focus.repo.slug === repo.slug
+  const repoKey = `r:${repo.slug}`
+  const repoActive = cursorKey === repoKey
   const runs = section.batches.find((b) => b.kind === "runs")?.tickets.length ?? 0
   return (
+    // In the listbox, each repo is a group of options named by its slug.
     <GroupedSection
+      role="group"
+      aria-label={repo.slug}
       header={
         // The header is the repo's row: a tap opens it (its client, its
         // maintenance). A 44px target that still reads as a group's header.
         <button
           type="button"
+          id={optionId(repoKey)}
+          role="option"
+          aria-selected={repoActive}
           onClick={onSelectRepo}
-          aria-current={repoActive ? "true" : undefined}
           className={cn(
             "-mx-2 flex min-h-app-touch w-[calc(100%_+_1rem)] items-center gap-2 rounded-app-control px-2 text-left",
             "transition-colors spring-press active:bg-app-press",
-            repoActive && ACTIVE_ROW
+            CURSOR_SCROLL_MARGIN,
+            repoActive && (repoOpen ? ACTIVE_ROW : ACTIVE_ROW_DESKTOP)
           )}
         >
           {/* A repo slug is a machine identifier, so it sets in mono. */}
@@ -125,16 +170,21 @@ function RepoSectionView({
         </button>
       }
     >
-      <ul>
-        {section.batches.map((batch, index) => (
-          <BatchRow
-            key={batch.slug}
-            first={index === 0}
-            batch={batch}
-            clientHref={repo.clientId ? `/leads/${repo.clientId}` : null}
-            onSelect={() => onSelectBatch(batch)}
-          />
-        ))}
+      <ul role="none">
+        {section.batches.map((batch, index) => {
+          const key = `b:${batchKey(section, batch)}`
+          return (
+            <BatchRow
+              key={batch.slug}
+              first={index === 0}
+              batch={batch}
+              clientHref={repo.clientId ? `/leads/${repo.clientId}` : null}
+              optionId={optionId(key)}
+              cursor={cursorKey === key}
+              onSelect={() => onSelectBatch(batch)}
+            />
+          )
+        })}
       </ul>
     </GroupedSection>
   )
@@ -146,18 +196,21 @@ function RepoSectionView({
 function BatchList({
   section,
   batch,
-  selection,
+  cursorKey,
+  listRef,
   onBackToRepos,
   onSelectTicket,
 }: {
   section: ListSection
   batch: ListBatch
-  selection: Selection
+  /** The ticket the cursor is on — the selected one, or where a keyboard
+   *  drill put it. */
+  cursorKey: string | null
+  listRef: React.RefObject<HTMLDivElement | null>
   onBackToRepos: () => void
   onSelectTicket: (key: string) => void
 }) {
-  const selectedTicket =
-    selection.kind === "ticket" ? ticketKey(selection.ticket) : null
+  const cursorIndex = batch.tickets.findIndex((t) => ticketKey(t) === cursorKey)
   return (
     <div className="flex flex-col gap-4">
       <button
@@ -188,11 +241,24 @@ function BatchList({
         <BatchMeter batch={batch} />
       </div>
 
-      <BatchTickets
-        batch={batch}
-        selectedTicket={selectedTicket}
-        onSelectTicket={onSelectTicket}
-      />
+      {/* Level 1's listbox: the batch's tickets, the back row outside it. */}
+      <div
+        ref={listRef}
+        role="listbox"
+        aria-label={`${batch.title} stubs`}
+        aria-activedescendant={
+          cursorIndex === -1 ? undefined : levelOneOptionId(cursorIndex)
+        }
+        tabIndex={0}
+        className={LISTBOX_FOCUS}
+      >
+        <BatchTickets
+          batch={batch}
+          selectedTicket={cursorKey}
+          onSelectTicket={onSelectTicket}
+          optionId={levelOneOptionId}
+        />
+      </div>
 
       <div className="flex flex-col gap-app-section lg:hidden">
         <BatchActions batch={batch} />
@@ -217,11 +283,8 @@ export function TicketsBoard({
   const params = useBoardParams()
   const { navigate, correct, back } = params
 
-  const { selection, correction } = resolveSelection(
-    sections,
-    { errors, maintenance: unreadableMaintenance },
-    params
-  )
+  const unreadable = { errors, maintenance: unreadableMaintenance }
+  const { selection, correction } = resolveSelection(sections, unreadable, params)
 
   // The filter as the URL states it, if it names a repo on the roster —
   // anything else reads as the whole board, as a stale bookmark should. A
@@ -232,6 +295,14 @@ export function TicketsBoard({
     params.repo && repos.some((r) => r.slug === params.repo) ? params.repo : null
   const filterConflict = named !== null && selectedRepo !== null && named !== selectedRepo
   const repoSlug = filterConflict ? null : named
+
+  const visibleSections = repoSlug
+    ? sections.filter((s) => s.repo.slug === repoSlug)
+    : sections
+
+  // The roster is every owner repo; only repos with something on the board get
+  // a chip, so the rail doesn't drown in empty client stubs.
+  const chipRepos = repos.filter((repo) => (counts[repo.slug] ?? 0) > 0)
 
   // A stale or conflicting URL is corrected in place — the view already shows
   // the fallback; this makes the address say so, without a new history entry.
@@ -255,6 +326,244 @@ export function TicketsBoard({
     selection.kind === "batch" || selection.kind === "ticket" ? selection : null
   const levelKey = drilled ? batchKey(drilled.section, drilled.batch) : null
 
+  // ---- The keyboard's cursor (desktop). -----------------------------------
+
+  // Level 0: the row the cursor rests on, and whether the pane is previewing
+  // it. Not URL state — a preview is not a selection.
+  const [cursor0, setCursor0] = useState<{ key: string; preview: boolean } | null>(
+    null
+  )
+  // Level 1, before a ticket is selected: where a keyboard drill put the
+  // cursor (the batch's first stub). Once a ticket is selected, the cursor is
+  // that ticket.
+  const [cursor1, setCursor1] = useState<{ batch: string; ticket: string } | null>(
+    null
+  )
+  const [keysOpen, setKeysOpen] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
+  const paneRef = useRef<HTMLDivElement>(null)
+  const railRef = useRef<HTMLDivElement>(null)
+
+  const rows0 = levelZeroRows(visibleSections)
+
+  // Backing out of a batch — by key, the back row or the browser's back —
+  // leaves the cursor on the batch just left. Adjusted during render, the
+  // way React has a state follow a value, rather than in an effect a frame
+  // late.
+  const [lastLevelKey, setLastLevelKey] = useState(levelKey)
+  if (lastLevelKey !== levelKey) {
+    setLastLevelKey(levelKey)
+    const left = lastLevelKey === null ? null : `b:${lastLevelKey}`
+    if (levelKey === null && left && rows0.some((row) => row.key === left)) {
+      setCursor0({ key: left, preview: false })
+    }
+  }
+
+  // The level-0 row under the cursor: the one the keyboard put it on, else
+  // the repo the URL has open. Null while drilled, or once a filter hides it.
+  const row0 = drilled
+    ? null
+    : (rows0.find((row) => row.key === cursor0?.key) ??
+      (selection.kind === "repo"
+        ? (rows0.find((row) => row.key === `r:${selection.focus.repo.slug}`) ?? null)
+        : null))
+  const previewing = row0 !== null && cursor0?.key === row0.key && cursor0.preview
+  const preview = previewing ? rowSelection(sections, unreadable, row0) : null
+  // What the pane shows: the preview while there is one, else the selection.
+  const shown: Selection = preview ?? selection
+
+  const level1Cursor = drilled
+    ? selection.kind === "ticket"
+      ? ticketKey(selection.ticket)
+      : cursor1 !== null &&
+          cursor1.batch === levelKey &&
+          drilled.batch.tickets.some((t) => ticketKey(t) === cursor1.ticket)
+        ? cursor1.ticket
+        : null
+    : null
+
+  const optionIds0 = new Map(rows0.map((row, index) => [row.key, levelZeroOptionId(index)]))
+  const activeOption0 = row0 ? optionIds0.get(row0.key) : undefined
+
+  // Where focus goes once the view it lands in has rendered: the list at a
+  // given level (a drill or a back-out changes which listbox exists), or the
+  // pane. Applied after every commit until the right view is on screen — a
+  // back-out through `history.back()` arrives a render or two later.
+  const pendingFocus = useRef<{ to: "list"; level: 0 | 1 } | { to: "pane" } | null>(
+    null
+  )
+  const level = drilled ? 1 : 0
+  useEffect(() => {
+    const pending = pendingFocus.current
+    if (!pending) return
+    if (pending.to === "pane") {
+      pendingFocus.current = null
+      paneRef.current?.focus({ preventScroll: true })
+      return
+    }
+    if (pending.level !== level) return
+    pendingFocus.current = null
+    focusList()
+  })
+
+  /** Focus the list's listbox and bring its cursor row into view. */
+  function focusList() {
+    const list = listRef.current
+    if (!list) return
+    list.focus({ preventScroll: true })
+    const active = list.getAttribute("aria-activedescendant")
+    if (active) document.getElementById(active)?.scrollIntoView({ block: "nearest" })
+  }
+
+  /** Move the level-0 cursor and preview its row. */
+  function moveCursor0(index: number) {
+    const row = rows0[index]
+    setCursor0({ key: row.key, preview: true })
+    listRef.current?.focus({ preventScroll: true })
+    document.getElementById(levelZeroOptionId(index))?.scrollIntoView({ block: "nearest" })
+  }
+
+  function onKey(intent: BoardKeyIntent, event: KeyboardEvent): boolean {
+    const pane = paneRef.current
+    const focused = document.activeElement
+    const inPane = pane !== null && focused !== null && pane.contains(focused)
+
+    // What `c` and `o` act on: the row under the level-0 cursor, else what
+    // the pane shows.
+    const target = row0 ? rowSelection(sections, unreadable, row0) : shown
+
+    switch (intent) {
+      case "down":
+      case "up": {
+        const step = intent === "down" ? 1 : -1
+        if (inPane) {
+          // The focused pane scrolls to its own arrows; `j`/`k`, and arrows
+          // pressed on a control inside it, scroll it by the same step.
+          if (event.key.startsWith("Arrow") && event.target === pane) return false
+          pane.scrollBy({ top: step * PANE_STEP_PX })
+          return true
+        }
+        if (drilled) {
+          const tickets = drilled.batch.tickets
+          if (tickets.length === 0) return true
+          const at = tickets.findIndex((t) => ticketKey(t) === level1Cursor)
+          const next =
+            at === -1 ? 0 : Math.min(Math.max(at + step, 0), tickets.length - 1)
+          const key = ticketKey(tickets[next])
+          const selected =
+            selection.kind === "ticket" ? ticketKey(selection.ticket) : null
+          // In place, not pushed: back steps out of the batch, not back
+          // through every stub passed on the way.
+          if (key !== selected) correct({ t: key })
+          listRef.current?.focus({ preventScroll: true })
+          document
+            .getElementById(levelOneOptionId(next))
+            ?.scrollIntoView({ block: "nearest" })
+          return true
+        }
+        if (rows0.length === 0) return true
+        const at = row0 ? rows0.indexOf(row0) : -1
+        moveCursor0(at === -1 ? 0 : Math.min(Math.max(at + step, 0), rows0.length - 1))
+        return true
+      }
+
+      case "open": {
+        if (inPane) return false
+        if (drilled) {
+          if (selection.kind !== "ticket") {
+            if (!level1Cursor) return true
+            navigate({ t: level1Cursor })
+          }
+          pendingFocus.current = { to: "pane" }
+          return true
+        }
+        if (!row0) return true
+        setCursor0({ key: row0.key, preview: false })
+        if ("b" in row0.query) {
+          const batch = row0.query.b
+          const first = rowSelection(sections, unreadable, row0)
+          const firstTicket =
+            first.kind === "batch" ? first.batch.tickets[0] : undefined
+          setCursor1(firstTicket ? { batch, ticket: ticketKey(firstTicket) } : null)
+          navigate({ b: batch })
+          pendingFocus.current = { to: "list", level: 1 }
+        } else {
+          navigate({ r: row0.query.r })
+          pendingFocus.current = { to: "pane" }
+        }
+        return true
+      }
+
+      case "back": {
+        if (inPane) {
+          focusList()
+          return true
+        }
+        if (drilled) {
+          setCursor1(null)
+          back({ t: null })
+          pendingFocus.current = { to: "list", level: 0 }
+          return true
+        }
+        if (selection.kind === "none" && !previewing) return false
+        if (selection.kind !== "none") navigate({ t: null })
+        setCursor0(row0 ? { key: row0.key, preview: false } : null)
+        focusList()
+        return true
+      }
+
+      case "copy": {
+        const copy = copyTarget(target)
+        if (copy) void copyToClipboard(copy.value, copy.what)
+        else toast("Nothing to copy here")
+        return true
+      }
+
+      case "github": {
+        const url = githubUrl(target)
+        if (!url) return false
+        window.open(url, "_blank", "noopener,noreferrer")
+        return true
+      }
+
+      case "refresh":
+        requestBoardRefresh()
+        return true
+
+      case "prevRepo":
+      case "nextRepo": {
+        if (chipRepos.length === 0) return false
+        const stops = [null, ...chipRepos.map((repo) => repo.slug)]
+        const step = intent === "nextRepo" ? 1 : -1
+        const at = stops.indexOf(repoSlug)
+        const next = stops[(at + step + stops.length) % stops.length]
+        const hides = next !== null && selectedRepo !== null && selectedRepo !== next
+        setFilter(next)
+        // The cursor stays on its row while the new filter still shows it,
+        // else lands on the first row of what the filter shows now.
+        const nextRows = levelZeroRows(
+          next ? sections.filter((s) => s.repo.slug === next) : sections
+        )
+        if (hides || (row0 && !nextRows.some((row) => row.key === row0.key))) {
+          setCursor0(nextRows[0] ? { key: nextRows[0].key, preview: false } : null)
+        }
+        if (hides) pendingFocus.current = { to: "list", level: 0 }
+        requestAnimationFrame(() =>
+          railRef.current
+            ?.querySelector('[aria-pressed="true"]')
+            ?.scrollIntoView({ block: "nearest", inline: "nearest" })
+        )
+        return true
+      }
+
+      case "help":
+        setKeysOpen(true)
+        return true
+    }
+  }
+
+  useBoardKeys(onKey)
+
   // The list scrolls with the page. Level 0 keeps its place while a batch is
   // open, and a batch opens at its top.
   const level0Scroll = useRef(0)
@@ -272,6 +581,13 @@ export function TicketsBoard({
     shownLevel.current = levelKey
     window.scrollTo({ top: levelKey === null ? level0Scroll.current : 0 })
   }, [levelKey])
+
+  function setFilter(slug: string | null) {
+    // A chip that hides the selection clears it — all of it, which `t: null`
+    // does: naming any selection key replaces the whole selection.
+    const hides = slug !== null && selectedRepo !== null && selectedRepo !== slug
+    navigate({ repo: slug, ...(hides ? { t: null } : {}) })
+  }
 
   if (dbError) {
     return (
@@ -298,14 +614,6 @@ export function TicketsBoard({
     )
   }
 
-  const visibleSections = repoSlug
-    ? sections.filter((s) => s.repo.slug === repoSlug)
-    : sections
-
-  // The roster is every owner repo; only repos with something on the board get
-  // a chip, so the rail doesn't drown in empty client stubs.
-  const chipRepos = repos.filter((repo) => (counts[repo.slug] ?? 0) > 0)
-
   const overview = (
     <EstateOverview
       figures={boardFigures(board, repoSlug)}
@@ -316,12 +624,6 @@ export function TicketsBoard({
     />
   )
 
-  function setFilter(slug: string | null) {
-    // A chip that hides the selection clears it.
-    const hides = slug !== null && selectedRepo !== null && selectedRepo !== slug
-    navigate({ repo: slug, ...(hides ? { t: null } : {}) })
-  }
-
   // What the pane shows, and — on a phone — where its back goes.
   let pane: {
     title: React.ReactNode
@@ -331,9 +633,9 @@ export function TicketsBoard({
     body: React.ReactNode
     pushed: boolean
   }
-  switch (selection.kind) {
+  switch (shown.kind) {
     case "ticket": {
-      const { section, batch, ticket } = selection
+      const { section, batch, ticket } = shown
       pane = {
         title: ticket.title,
         subtitle: <TicketSummary ticket={ticket} />,
@@ -351,7 +653,7 @@ export function TicketsBoard({
       break
     }
     case "batch": {
-      const { section, batch } = selection
+      const { section, batch } = shown
       pane = {
         title: batch.title,
         subtitle: <BatchSummary section={section} batch={batch} />,
@@ -370,14 +672,15 @@ export function TicketsBoard({
       break
     }
     case "repo": {
-      const { focus } = selection
+      const { focus } = shown
       pane = {
         title: <span className="font-mono">{focus.repo.slug}</span>,
         subtitle: focus.repo.clientName ?? "House repo",
         backLabel: "Tickets",
         parent: { r: null },
         body: <RepoView focus={focus} figures={repoFigures(board, focus)} />,
-        pushed: true,
+        // A preview is desktop-only (the keyboard's), so it never pushes.
+        pushed: preview === null,
       }
       break
     }
@@ -398,13 +701,13 @@ export function TicketsBoard({
       }
   }
   const paneKey =
-    selection.kind === "none"
+    shown.kind === "none"
       ? "none"
-      : selection.kind === "ticket"
-        ? `t:${ticketKey(selection.ticket)}`
-        : selection.kind === "batch"
-          ? `b:${batchKey(selection.section, selection.batch)}`
-          : `r:${selection.focus.repo.slug}`
+      : shown.kind === "ticket"
+        ? `t:${ticketKey(shown.ticket)}`
+        : shown.kind === "batch"
+          ? `b:${batchKey(shown.section, shown.batch)}`
+          : `r:${shown.focus.repo.slug}`
 
   return (
     <div className="pt-1 pb-2 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start lg:gap-8 xl:grid-cols-[24rem_minmax(0,1fr)]">
@@ -413,7 +716,8 @@ export function TicketsBoard({
           <BatchList
             section={drilled.section}
             batch={drilled.batch}
-            selection={selection}
+            cursorKey={level1Cursor}
+            listRef={listRef}
             onBackToRepos={() => back({ t: null })}
             onSelectTicket={(key) => navigate({ t: key })}
           />
@@ -425,7 +729,10 @@ export function TicketsBoard({
                 on the board there is nothing to filter, and a lone "All 0"
                 chip is a control that does nothing. */}
             {chipRepos.length > 0 ? (
-              <div className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0">
+              <div
+                ref={railRef}
+                className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0"
+              >
                 <Chip onClick={() => setFilter(null)} active={!repoSlug} count={total}>
                   All
                 </Chip>
@@ -464,15 +771,37 @@ export function TicketsBoard({
                   </EmptyBoard>
                 )
               ) : (
-                visibleSections.map((section) => (
-                  <RepoSectionView
-                    key={section.repo.fullName}
-                    section={section}
-                    selection={selection}
-                    onSelectRepo={() => navigate({ r: section.repo.slug })}
-                    onSelectBatch={(batch) => navigate({ b: batchKey(section, batch) })}
-                  />
-                ))
+                // Level 0's listbox: every repo's header and batches.
+                <div
+                  ref={listRef}
+                  role="listbox"
+                  aria-label="Repos and batches"
+                  aria-activedescendant={activeOption0}
+                  tabIndex={0}
+                  className={cn("flex flex-col gap-app-section", LISTBOX_FOCUS)}
+                >
+                  {visibleSections.map((section) => (
+                    <RepoSectionView
+                      key={section.repo.fullName}
+                      section={section}
+                      cursorKey={row0?.key ?? null}
+                      repoOpen={
+                        selection.kind === "repo" &&
+                        selection.focus.repo.slug === section.repo.slug
+                      }
+                      optionId={(key) => optionIds0.get(key)}
+                      onSelectRepo={() => {
+                        setCursor0({ key: `r:${section.repo.slug}`, preview: false })
+                        navigate({ r: section.repo.slug })
+                      }}
+                      onSelectBatch={(batch) => {
+                        const key = batchKey(section, batch)
+                        setCursor0({ key: `b:${key}`, preview: false })
+                        navigate({ b: key })
+                      }}
+                    />
+                  ))}
+                </div>
               )}
 
               {/* On a phone there is no pane to hold the overview, so it is
@@ -481,6 +810,20 @@ export function TicketsBoard({
             </div>
           </>
         )}
+
+        {/* The keyboard map is desktop-only, and so is the one quiet hint
+            that it exists. */}
+        <button
+          type="button"
+          onClick={() => setKeysOpen(true)}
+          className={cn(
+            "hidden min-h-app-touch items-center gap-2 self-start rounded-app-control px-2 -ml-2 lg:flex",
+            "text-app-footnote text-app-label-3 transition-colors spring-press active:bg-app-press"
+          )}
+        >
+          <Keycap>?</Keycap>
+          Keyboard shortcuts
+        </button>
       </div>
 
       <DetailPane
@@ -490,9 +833,12 @@ export function TicketsBoard({
         backLabel={pane.backLabel}
         onBack={() => back(pane.parent)}
         contentKey={paneKey}
+        scrollerRef={paneRef}
       >
         {pane.body}
       </DetailPane>
+
+      <BoardKeysSheet open={keysOpen} onOpenChange={setKeysOpen} />
     </div>
   )
 }

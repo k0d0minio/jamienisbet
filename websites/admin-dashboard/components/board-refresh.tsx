@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useTransition } from "react"
+import { useEffect, useRef, useTransition } from "react"
 import { RefreshCw } from "lucide-react"
 
 import { LogoLoader, cn } from "@jamie-nisbet/ui"
@@ -11,6 +11,19 @@ import { refreshBoard, refreshBoardPosition } from "@/app/(app)/tickets/actions"
 /** How long the app has to have been out of sight before coming back to it
  *  re-reads the board. Under it, a glance away is not worth a request. */
 const RETURN_AFTER_MS = 5 * 60 * 1000
+
+/** The board's `r` key asks the button to refresh through this, rather than
+ *  running a refresh of its own: one refresh, one pending state, whether it
+ *  was tapped or typed. The button lives in the title bar, outside the board,
+ *  so an event is the shortest way across — the same idiom the swipe rows use
+ *  to close one another. */
+const REFRESH_EVENT = "jn:board-refresh"
+
+/** Refresh the board exactly as its title-bar button does. Ignored while a
+ *  refresh is already running. */
+export function requestBoardRefresh() {
+  window.dispatchEvent(new Event(REFRESH_EVENT))
+}
 
 // Europe/Lisbon, the operator's clock, pinned so the server's render and the
 // browser's agree on the stamp whatever the device's own zone is.
@@ -52,6 +65,23 @@ export function BoardRefresh({
       router.refresh()
     })
   }
+
+  // The keyboard's way in (requestBoardRefresh). Read through refs so the
+  // listener, attached once, sees the refresh and its pending state as they
+  // are now.
+  const latest = useRef({ pending, onRefresh })
+  useEffect(() => {
+    latest.current = { pending, onRefresh }
+  })
+  useEffect(() => {
+    // The skeleton has no board to refresh.
+    if (!readAt) return
+    function onRequest() {
+      if (!latest.current.pending) latest.current.onRefresh()
+    }
+    window.addEventListener(REFRESH_EVENT, onRequest)
+    return () => window.removeEventListener(REFRESH_EVENT, onRequest)
+  }, [readAt])
 
   useEffect(() => {
     // The skeleton has no board to keep current.

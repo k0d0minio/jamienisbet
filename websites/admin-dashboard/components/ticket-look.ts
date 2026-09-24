@@ -32,3 +32,13 @@ export function priorityClass(priority: string | null): string {
  *  translucent, and the row's fill is what hides the swipe tray behind it. */
 export const ACTIVE_ROW =
   "bg-[image:linear-gradient(var(--app-fill),var(--app-fill))]"
+
+/** The same fill for the keyboard's level-0 cursor, which only exists from
+ *  `lg` — so a phone never keeps a highlight on the row it came back from. */
+export const ACTIVE_ROW_DESKTOP =
+  "lg:bg-[image:linear-gradient(var(--app-fill),var(--app-fill))]"
+
+/** A row the keyboard's cursor scrolls to stops clear of the sticky title
+ *  bar rather than tucking under it. */
+export const CURSOR_SCROLL_MARGIN =
+  "scroll-mt-[calc(var(--app-bar-height)_+_env(safe-area-inset-top)_+_0.5rem)] scroll-mb-4"
