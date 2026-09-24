@@ -7,7 +7,7 @@ import { GroupedBlock, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
 import { AppScreen } from "@/components/app-screen"
 import { BoardRefresh } from "@/components/board-refresh"
 import { TicketsBoard } from "@/components/tickets-board"
-import { readBoard, repoMaintenanceLaunchers } from "@/lib/tickets"
+import { readBoard } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Tickets" }
 
@@ -50,19 +50,9 @@ export default async function TicketsPage() {
     )
   }
 
-  // A repo whose only open work is a run in flight has no section in the
-  // board, so nothing built its maintenance launchers — and its repo view
-  // needs them. Built here, where lib/tickets can be reached.
-  const sectioned = new Set(board.sections.map((s) => s.repo.fullName))
-  const extraMaintenance = Object.fromEntries(
-    board.strip
-      .filter((t) => t.kind === "run" && !sectioned.has(t.repo.fullName))
-      .map((t) => [t.repo.fullName, repoMaintenanceLaunchers(t.repo)])
-  )
-
   return (
     <AppScreen title="Tickets" actions={<BoardRefresh readAt={board.readAt} />}>
-      <TicketsBoard board={board} extraMaintenance={extraMaintenance} />
+      <TicketsBoard board={board} />
     </AppScreen>
   )
 }
