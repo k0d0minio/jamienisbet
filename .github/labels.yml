@@ -44,7 +44,7 @@
   description: "The deal's last lane — accounts, env doc, setup.sh OK, the record into the deal folder"
 - name: "type:tickets"
   color: "ededed"
-  description: "Ticket PR — .icm/intake (and a Scope front) only, merged at once into the ticket base branch (D38)"
+  description: "Retired (D39 §8) — ticket state goes straight to main, no ticket PR; the label stays, unused"
 
 # --- Complexity — mirrors the spec header, and sets Release's code-review effort ------------------
 - name: "complexity:trivial"
