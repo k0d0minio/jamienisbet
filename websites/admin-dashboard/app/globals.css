@@ -131,6 +131,10 @@
   color: var(--app-label-2);
   font-size: var(--app-text-subhead);
   line-height: var(--leading-relaxed);
+  /* Never wider than the phone: a word longer than the line breaks, and a
+     code block or table scrolls inside its own box (below). */
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 .prose > * + * {
   margin-top: var(--space-3);
@@ -164,6 +168,8 @@
   color: var(--app-tint);
   text-underline-offset: 3px;
   text-decoration: underline;
+  /* A bare URL has no break opportunities of its own. */
+  overflow-wrap: anywhere;
 }
 /* The tier draws focus *inside* a control, because the grouped list and the
    tab pill clip anything outside one (packages/ui/app.css § app-tier). An

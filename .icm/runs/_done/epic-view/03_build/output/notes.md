@@ -75,9 +75,18 @@ accessory slot.
   verified and parked · security security-check.sh --branch --audit: OK · /security-review n/a
   (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth,
   payments or env var touched) · readiness env.sh audit --changed: OK
-- parked: template-change-env-pull-unlinked.md (Release), template-change-sync-rules-multiline.md
-  (Build)
+- parked: template-change-sync-rules-multiline.md (Build); the env-hydrate finding was already
+  parked on `main` — added as evidence to template-change-cloud-env-hydrate-unlinked.md
 - migrations: skip — none of this run's own
-- learned: 1 rule from FAILURE.md, appended by close-out.sh (retrospective.sh: skip — no error.log)
+- learned: none kept — FAILURE.md's rule (review against `origin/main`) duplicated the one
+  `repo-and-estate-views` landed on `main` first; its wording was kept at the merge of `main`
+  (retrospective.sh: skip — no error.log)
+- merge of main: 6 commits (ticket-view, repo-and-estate-views, board-run-sections-server-side,
+  fix-board-runs-slug-collides-with-epic, CI cost floor D43) — conflicts resolved in
+  `lib/tickets.ts` (server-side runs batch gains `breakdown: null`, `assembleBatches` keeps the
+  breakdowns argument), `components/board-model.ts` (main's: client-side runs batch gone),
+  `components/board-views.tsx` (imports unioned, header comment merged), the admin README
+  (main's repo / overview / ticket prose plus the epic view; In flight's URL slug is `_runs`),
+  `_shared/project-rules.md` (main's rule)
 - docs: websites/admin-dashboard/README.md § Tickets (master–detail paragraph: the epic view,
   phone level 1, `pane` retired; read-once paragraph: breakdowns) · announce: internal

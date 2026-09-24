@@ -198,6 +198,10 @@ export type Ticket = {
   group: TicketGroup
   /** "stub" (new shape) | "legacy" (flat PREFIX-NNN) | "run" (.icm/runs/ in flight) */
   kind: "stub" | "legacy" | "run"
+  /** Which stage a run ticket is next for — null for every other kind. The
+   * "Stage" meta line is this, formatted for the detail view; this is the
+   * value a list row switches on. */
+  runStage: "build" | "release" | "lane" | null
   /** Which batch line the ticket files under: the epic folder's name,
    * "triage" for one-offs, "backlog" for legacy flat tickets. Null for runs —
    * they surface on the now-strip, not inside a batch. */
@@ -668,6 +672,7 @@ function parseLegacy(
     title,
     group,
     kind: "legacy",
+    runStage: null,
     batch: "backlog",
     sequence: null,
     sequenceTotal: null,
@@ -878,6 +883,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         title: s.title,
         group,
         kind: "stub",
+        runStage: null,
         batch: s.epic,
         sequence: s.sequence,
         sequenceTotal: s.sequenceTotal,
@@ -900,6 +906,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         title: slug,
         group: "in-flight",
         kind: "run",
+        runStage,
         batch: null,
         sequence: null,
         sequenceTotal: null,
@@ -1158,13 +1165,26 @@ async function loadRoster(): Promise<Roster> {
 
 // ---------------------------------------------------------------------------
 // Batch assembly — the board's shape. A batch is one line item: an epic folder
-// with its stubs in sequence, or one of the two pseudo-batches every repo can
-// carry ("triage" one-offs, "backlog" legacy tickets).
+// with its stubs in sequence, one of the two pseudo-batches every repo can
+// carry ("triage" one-offs, "backlog" legacy tickets), or "runs" — the repo's
+// runs in flight, which file under no epic.
 
-export type BatchKind = "epic" | "triage" | "backlog"
+export type BatchKind = "epic" | "triage" | "backlog" | "runs"
+
+/** The In flight pseudo-batch's slug — reserved so no epic folder can ever
+ *  take it: icm-board's triage cut slugifies a title by collapsing every run
+ *  of non `[a-z0-9]` into one hyphen and trimming the ends, so a leading
+ *  underscore can never survive into a real epic slug. Deliberately NOT
+ *  "runs" — an epic titled just that would otherwise share this slug,
+ *  producing duplicate batch keys and an ambiguous `?b=<repo>/runs` (board-
+ *  model.ts's `RUNS_SLUG` mirrors this value; keep the two in sync). A run
+ *  ticket's own id keeps the unrelated `runs/<slug>` prefix regardless — that
+ *  one can't move, since icm-board's `/day` writes today.md picks against it
+ *  across every repo. */
+const RUNS_BATCH_SLUG = "_runs"
 
 export type Batch = {
-  /** The epic folder's name, or the pseudo-batch's ("triage"/"backlog"). */
+  /** The epic folder's name, or the pseudo-batch's ("triage"/"backlog"/"runs"). */
   slug: string
   kind: BatchKind
   /** Humanized slug — the line item's label. */
@@ -1183,7 +1203,8 @@ export type Batch = {
   /** Open tickets, batch order: sequence for epics, priority for the rest. */
   tickets: Ticket[]
   /** The stub a swipe-right starts: the epic's "next", else the top of the
-   * pile. Null only for an empty batch, which the board never renders. */
+   * pile. Null for an empty batch (which the board never renders) and for
+   * "runs" — a run in flight isn't picked up the way a stub is. */
   next: Ticket | null
   todayCount: number
   blockedCount: number
@@ -1192,9 +1213,11 @@ export type Batch = {
 
 export type RepoSection = {
   repo: TicketRepo
-  /** Epics by name, then triage, then backlog — stable positions. */
+  /** Epics by name, then triage, then backlog, then runs — stable positions. */
   batches: Batch[]
-  /** Open tickets across the section's batches (runs live on the strip). */
+  /** Open tickets across the section's non-run batches — what's still waiting
+   * to be picked up. A run in flight is already picked up, so it isn't
+   * counted here (it has its own "in flight" count on the runs batch). */
   open: number
 }
 
@@ -1232,13 +1255,38 @@ function batchOrder(kind: BatchKind) {
       : rank(a) - rank(b) || a.id.localeCompare(b.id)
 }
 
+/** The "runs" batch: every run in flight, id order — a pile, not a pipeline,
+ * so there is no "next" to pick and nothing planned to be done against. */
+function runsBatch(repo: TicketRepo, runs: Ticket[]): Batch {
+  const ordered = [...runs].sort((a, b) => a.id.localeCompare(b.id))
+  return {
+    slug: RUNS_BATCH_SLUG,
+    kind: "runs",
+    title: "In flight",
+    breakdown: null,
+    htmlUrl: `https://github.com/${repo.fullName}/tree/HEAD/.icm/runs`,
+    planned: null,
+    done: 0,
+    tickets: ordered,
+    next: null,
+    todayCount: ordered.filter((t) => t.group === "today").length,
+    blockedCount: ordered.filter((t) => t.group === "blocked").length,
+    p0Count: 0,
+  }
+}
+
 function assembleBatches(
   repo: TicketRepo,
   tickets: Ticket[],
   breakdowns: Record<string, string>
 ): Batch[] {
   const byBatch = new Map<string, Ticket[]>()
+  const runs: Ticket[] = []
   for (const t of tickets) {
+    if (t.kind === "run") {
+      runs.push(t)
+      continue
+    }
     if (t.batch === null) continue
     const list = byBatch.get(t.batch) ?? []
     list.push(t)
@@ -1274,8 +1322,14 @@ function assembleBatches(
       p0Count: ordered.filter((t) => t.priority === "P0").length,
     })
   }
+  if (runs.length > 0) batches.push(runsBatch(repo, runs))
 
-  const kindOrder: Record<BatchKind, number> = { epic: 0, triage: 1, backlog: 2 }
+  const kindOrder: Record<BatchKind, number> = {
+    epic: 0,
+    triage: 1,
+    backlog: 2,
+    runs: 3,
+  }
   return batches.sort(
     (a, b) => kindOrder[a.kind] - kindOrder[b.kind] || a.slug.localeCompare(b.slug)
   )
@@ -1291,11 +1345,14 @@ function assembleStrip(tickets: Ticket[]): Ticket[] {
 /**
  * Section order is urgency: repos holding a today-pick first, then repos with
  * something blocked, then repos with a run in flight, then the rest by name —
- * the daily glance starts where the action is.
+ * the daily glance starts where the action is. Ranked on the section's
+ * non-run batches alone: a run picked for today counts as "a run in flight"
+ * here, not as a today-pick, or the two tiers would disagree.
  */
 function sectionUrgency(section: RepoSection, hasRun: boolean): number {
-  if (section.batches.some((b) => b.todayCount > 0)) return 0
-  if (section.batches.some((b) => b.blockedCount > 0)) return 1
+  const batches = section.batches.filter((b) => b.kind !== "runs")
+  if (batches.some((b) => b.todayCount > 0)) return 0
+  if (batches.some((b) => b.blockedCount > 0)) return 1
   if (hasRun) return 2
   return 3
 }
@@ -1413,7 +1470,10 @@ export async function listBoard(): Promise<
         section: {
           repo,
           batches,
-          open: batches.reduce((n, b) => n + b.tickets.length, 0),
+          open: batches.reduce(
+            (n, b) => n + (b.kind === "runs" ? 0 : b.tickets.length),
+            0
+          ),
         },
         hasRun: own.some((t) => t.kind === "run"),
       }
