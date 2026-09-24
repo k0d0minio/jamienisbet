@@ -1,25 +1,49 @@
 name: CI
 
-# Light-touch app CI (backlog B5): typecheck + lint every workspace, then a
-# production build of each Next.js app. No database, Stripe, or Resend access
-# is needed — the shared clients are lazy (see packages/services/src/client.ts)
-# and every app builds with an empty environment. No unit-test or
-# pre-commit gates by design.
+# The ONE quality job this repo runs in CI — the estate's cost floor (icm-board decision D43,
+# `.icm/_shared/ci.md` → What CI is for). The repo is private on Jamie's personal pool, and
+# GitHub bills per job rounded up to the minute: the old shape ran FOUR jobs a push (typecheck +
+# lint, then a `next build` of each of three sites) 320 times a month, on drafts and on `main`.
+#
+#   • ADVISORY, by name. The job is `Quality (advisory)`: `ci-status.sh` reports it and never
+#     reds on it. The verdict is each site's Vercel status — Vercel already builds all three,
+#     which is why the build matrix is gone. (Private on GitHub Free: no ruleset can require
+#     anything here anyway.)
+#   • READY HEADS ONLY. A draft owes CI nothing: `lint.sh` / `security-check.sh` over the
+#     changed files are the session's pre-flip check. The `types:` list REPLACES GitHub's
+#     default — `ready_for_review` is named so the flip itself runs it, and the job-level
+#     `if:` keeps a draft's `synchronize` free.
+#   • NEVER ON `main`. The merge commit's proof is Vercel's build of `main`. No `push:` trigger.
+#   • PATH-FILTERED. Nothing waits on this job, so it skips `.icm/**`, markdown and `.github/**`.
+#   • ONE JOB: typecheck + lint of every workspace. No unit-test tier by design (backlog B5);
+#     no database, Stripe or Resend access is needed — the shared clients are lazy.
+#   • SUPERSEDED RUNS ARE CANCELLED. One run per branch; a newer push replaces the one in flight.
+#
+# `db-migrations.yml` is separate and unchanged: it validates the journal on PRs that touch
+# `packages/services/**` and applies it to production on `main`.
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    types: [ready_for_review, synchronize, reopened]
+    paths-ignore:
+      - ".icm/**"
+      - "**/*.md"
+      - ".github/**"
+  workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   check:
-    name: Typecheck + lint
+    name: Quality (advisory)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
 
@@ -38,27 +62,3 @@ jobs:
 
       - name: Lint
         run: pnpm -r lint
-
-  build:
-    name: Build ${{ matrix.app }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        app: [portfolio, sellers-site, admin-dashboard]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-        working-directory: websites/${{ matrix.app }}

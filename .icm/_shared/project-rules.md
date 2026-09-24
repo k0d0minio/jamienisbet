@@ -35,11 +35,22 @@ reads. A contract that says "see `_shared/project-rules.md`" means: the answer i
 
 ## The factory
 
-- **Required CI checks** — `Typecheck + lint`, `Build portfolio`, `Build sellers-site`,
-  `Build admin-dashboard` (workflow `CI`, `.github/workflows/ci.yml`), on every PR and on `main`,
-  no tiering: a draft head and a ready head run the same jobs. `DB migrations`
-  (`db-migrations.yml`) adds `Validate migrations (no DB writes)` on PRs touching
-  `packages/services/**` — path-filtered, so not listed as required.
+- **The verdict** — each affected site's Vercel status (`deploy.projects[].status_context`;
+  `_shared/ci.md` → the cost floor, D43). `required_checks` in `.icm/project.json` is
+  **empty**. Private on GitHub Free: no ruleset exists, so nothing is required by GitHub — the
+  stage contracts and `ci-status.sh` are the gate.
+- **The advisory quality job** — `Quality (advisory)` in `.github/workflows/ci.yml`:
+  `pnpm -r typecheck` · `pnpm -r lint`, one job, on a **ready** head only (`ready_for_review` /
+  `synchronize` / `reopened` with a job-level draft guard), path-filtered out of `.icm/**`,
+  markdown and `.github/**`, never on `main`, **no build matrix** (until 2026-09-24 it built all
+  three sites — 320 four-job runs a month — that Vercel builds anyway). No unit-test tier by
+  design (backlog B5). Reported by `ci-status.sh`, never required: a red run is a finding the
+  stage fixes on the branch. **A draft head owes CI nothing** — `lint.sh` before every push
+  and `security-check.sh` before every commit are the pre-flip check.
+- **Every other workflow, and what each costs** — `DB migrations` (`db-migrations.yml`):
+  `Validate migrations (no DB writes)` on PRs touching `packages/services/**` (path-filtered, so
+  never required), `Apply migrations to production` on push to `main` touching the same — the
+  `DATABASE_URL` secret is why it is CI. Nothing else.
 - **Deploy** — `deploy` in `.icm/project.json`: Vercel team **`kodominio`**, token named
   `VERCEL_TOKEN_KODOMINIO` (the operator's shell). `portfolio` and `jamie-nisbet` (the admin
   dashboard) are `product` — previews on every push. `client-referrals` (the sellers-site) is
