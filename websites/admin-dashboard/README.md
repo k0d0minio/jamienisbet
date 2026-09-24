@@ -415,9 +415,16 @@ rail and the repo groups; tapping a batch pushes the list to level 1 — that ba
 under a "‹ repo" back row — and tapping a repo's header opens the repo. From `lg` the pane
 ([`components/board-pane.tsx`](components/board-pane.tsx)) stands beside the list, pinned under
 the title bar with its own scroll, and shows the selected **ticket**, **batch** (Copy next,
-Recut, GitHub), **repo** (its client, its maintenance launchers) or, with nothing selected, the
-**estate overview** — the Today / Blocked / Open figures, read errors, the estate check and the
-board's footnote. Below `lg` a selection is a full-screen pushed view with a back bar and an edge
+Recut, GitHub), **repo** or, with nothing selected, the **estate overview**. The repo view sets
+the repo's own figures in mono — Open, Today, Blocked, In flight, a zero left out — then, if
+its GitHub read failed, what GitHub said in full, then its client (or "House repo") and its
+maintenance launchers with Open on GitHub. The estate overview sets the Today / Blocked / Open
+figures for the current repo filter; under them a **Blocked** group lists exactly the tickets
+that figure counts, each with its repo and why it is stuck (its `blocked:` line, else the open
+stub it waits on), a tap opening the ticket; then **Couldn't be read** — the roster error
+first, then each unreadable repo with what GitHub said, its row opening that repo's view (a
+repo that couldn't be read has no section in the list, so this is its way in; the view still
+carries its triage and sweep launchers); then the estate check and the board's footnote. Below `lg` a selection is a full-screen pushed view with a back bar and an edge
 swipe; the overview is the foot of level 0, and a batch's view is pushed from the summary row
 atop its tickets. Every selection is URL state — `?t=<repo>/<ticket id>`, `?b=<repo>/<batch>`
 (`runs` for In flight; `&pane=1` pushes its view on a phone) or `?r=<repo>`, one at a time,
