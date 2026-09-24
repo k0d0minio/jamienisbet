@@ -26,3 +26,9 @@ export const GROUP_DOT: Record<TicketGroup, string> = {
 export function priorityClass(priority: string | null): string {
   return priority === "P0" ? "text-destructive font-medium" : "text-app-label-3"
 }
+
+/** A selected row's fill on the board's list. Layered as an image over the
+ *  row's own opaque background rather than replacing it: the tint is
+ *  translucent, and the row's fill is what hides the swipe tray behind it. */
+export const ACTIVE_ROW =
+  "bg-[image:linear-gradient(var(--app-fill),var(--app-fill))]"

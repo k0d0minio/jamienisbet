@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from "react"
 import { ChevronRight, Copy, GitBranch } from "lucide-react"
 
 import { cn, toast } from "@jamie-nisbet/ui"
 
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
-import { GROUP_DOT, priorityClass } from "@/components/ticket-look"
+import { ACTIVE_ROW, GROUP_DOT, priorityClass } from "@/components/ticket-look"
 import type { Ticket } from "@/lib/tickets"
 
 export async function copyPrompt(prompt: string) {
@@ -18,32 +17,40 @@ export async function copyPrompt(prompt: string) {
   }
 }
 
-// One stub inside an open batch sheet: a scan line (sequence, status dot,
-// title, priority) that expands in place to the full ticket, wearing the same
-// gestures as the rest of the board — swipe right to copy what it sends,
-// swipe left for copy-prompt and GitHub. The expanded content is TicketDetail,
-// passed through as children and rendered only while the row is open; its
-// buttons are the same actions for the mouse the swipes are for the thumb.
+/** A run's stage, short: "build next", "lane" — what its row says in the
+ *  column a stub's priority takes. */
+function runStage(ticket: Ticket): string | null {
+  const stage = ticket.meta.find(([key]) => key === "Stage")?.[1] ?? null
+  return stage ? stage.replace(/\s*\(.*\)$/, "") : null
+}
+
+// One ticket on list level 1 — a stub in its batch, or a run in flight: a scan
+// line (sequence, status dot, title, priority) that selects the ticket, wearing
+// the same gestures as the rest of the board — swipe right to copy what it
+// sends, swipe left for copy-prompt and GitHub. The ticket itself opens in the
+// pane, or pushed over the list on a phone.
 //
-// A row in the sheet's group rather than a bordered card of its own: no radius,
-// no border, the group's slab owning the corners and clipping the tray to them.
+// A row in its group rather than a bordered card of its own: no radius, no
+// border, the group's slab owning the corners and clipping the tray to them.
 export function BoardTicketRow({
   ticket,
   first,
-  children,
+  active,
+  onSelect,
 }: {
   ticket: Ticket
-  /** First row in the sheet's group — the slab's own edge closes it, so it
-   *  draws no hairline above itself. */
+  /** First row in its group — the slab's own edge closes it, so it draws no
+   *  hairline above itself. */
   first?: boolean
-  children: React.ReactNode
+  /** The pane is showing this ticket. */
+  active?: boolean
+  onSelect: () => void
 }) {
-  const [open, setOpen] = useState(false)
-
   // What the board sends for this ticket — the pipeline verb where the repo
   // carries the router, the prompt body otherwise (D26). Bound to a const so
   // the narrowing survives into the tray's closure.
   const prompt = ticket.pickup
+  const trailing = ticket.kind === "run" ? runStage(ticket) : ticket.priority
 
   const icon = "size-6" // tray icons read at a glance mid-swipe
 
@@ -67,12 +74,6 @@ export function BoardTicketRow({
     </>
   )
 
-  // The hairline rides inside the moving content, so it travels with the row
-  // rather than cutting across the revealed tray. An open row keeps its own
-  // top line and hands the bottom one to the reading surface below it.
-  const hairline =
-    "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-4 before:h-px before:bg-app-separator"
-
   return (
     <li>
       <SwipeRow
@@ -94,12 +95,17 @@ export function BoardTicketRow({
         <span className="sr-only">{`Swipe for actions on ${ticket.title}`}</span>
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
+          onClick={onSelect}
+          aria-current={active ? "true" : undefined}
           className={cn(
             "relative flex min-h-app-touch w-full items-center gap-3 bg-app-group px-4 py-2.5 text-left",
             "transition-colors spring-press active:bg-app-press",
-            !first && hairline
+            active && ACTIVE_ROW,
+            !first &&
+              // Inset to the padding, not the label column: the sequence is
+              // part of the scan line, and a hairline that skipped it would
+              // cut the number off from its row.
+              "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-4 before:h-px before:bg-app-separator"
           )}
         >
           {/* The sequence number is the batch's whole point — it leads, and it
@@ -111,35 +117,30 @@ export function BoardTicketRow({
             className={cn("size-2.5 shrink-0 rounded-full", GROUP_DOT[ticket.group])}
             aria-hidden
           />
-          <span className="min-w-0 flex-1 truncate text-app-callout font-medium text-app-label">
+          <span
+            className={cn(
+              "min-w-0 flex-1 truncate text-app-callout font-medium text-app-label",
+              // A run's title is its slug — an identifier, so mono.
+              ticket.kind === "run" && "font-mono"
+            )}
+          >
             {ticket.title}
           </span>
-          {ticket.priority ? (
+          {trailing ? (
             <span
               className={cn(
                 "shrink-0 text-app-footnote",
-                priorityClass(ticket.priority)
+                ticket.kind === "run"
+                  ? "font-mono text-app-label-3"
+                  : priorityClass(ticket.priority)
               )}
             >
-              {ticket.priority}
+              {trailing}
             </span>
           ) : null}
-          <ChevronRight
-            className={cn(
-              "size-4 shrink-0 text-app-label-3 transition-transform spring-press",
-              open && "rotate-90"
-            )}
-            aria-hidden
-          />
+          <ChevronRight className="size-4 shrink-0 text-app-label-3" aria-hidden />
         </button>
       </SwipeRow>
-      {/* Outside the SwipeRow so the reading surface holds still under a
-          finger that's still swiping the scan line above it. */}
-      {open ? (
-        <div className={cn("relative bg-app-group px-4 py-4", hairline)}>
-          {children}
-        </div>
-      ) : null}
     </li>
   )
 }
