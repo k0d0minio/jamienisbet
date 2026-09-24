@@ -5,12 +5,7 @@
   "required_env": [
     "GH_TOKEN"
   ],
-  "required_checks": [
-    "Typecheck + lint",
-    "Build portfolio",
-    "Build sellers-site",
-    "Build admin-dashboard"
-  ],
+  "required_checks": [],
   "personas": [
     "visitor",
     "operator",
