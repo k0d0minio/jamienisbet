@@ -13,11 +13,13 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-24 — Build invoked before the Spec approved gate was ticked
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: `build repo-and-estate-views` ran while the PR's **Spec approved** box was
+  still `[ ]`; Build STOPped at its gate check (step 2) before writing any code.
+- why: the operator ran the next verb before ticking the gate on the PR.
+- fixed by: nothing to fix in the run — the operator ticks **Spec approved** on #162, then
+  re-runs `build repo-and-estate-views`.
 
 ## Learned rules
 

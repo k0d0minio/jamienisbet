@@ -9,7 +9,8 @@ stops, so nothing is carried in anyone's head.
 1. Operator: read `02_define/output/spec.md` (or the PR's Spec block); change it with
    `revise repo-and-estate-views "<what>"`.
 2. Operator: tick **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/162.
-3. Then `/pipeline build repo-and-estate-views` — execute `plan.md` pass by pass.
+3. Then `/pipeline build repo-and-estate-views` — execute `plan.md` pass by pass. (A Build run
+   on 2026-09-24 STOPped at its gate check because the box was unticked; nothing was built.)
 
 ## Blockers
 
