@@ -125,3 +125,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In the admin dashboard, never pass `window.history.state` (or any object carrying Next's (`FAILURE.md` — master-detail-shell)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - When one element renders two layouts by breakpoint (a pane from `lg`, a pushed view below), (`FAILURE.md` — master-detail-shell)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- In a cloud session, scope every branch diff and review against `origin/main` after a fetch, never the local `main` ref, which is not kept current. (`FAILURE.md` — epic-view)
