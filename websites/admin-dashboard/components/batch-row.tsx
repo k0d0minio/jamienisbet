@@ -6,6 +6,7 @@ import { ChevronRight, Copy, GitBranch, UserRound } from "lucide-react"
 import { Meter, cn } from "@jamie-nisbet/ui"
 
 import { copyPrompt } from "@/components/board-ticket-row"
+import { ACTIVE_ROW_DESKTOP, CURSOR_SCROLL_MARGIN } from "@/components/ticket-look"
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
 import type { ListBatch } from "@/components/board-model"
 
@@ -107,6 +108,8 @@ export function BatchRow({
   batch,
   clientHref,
   first,
+  optionId,
+  cursor,
   onSelect,
 }: {
   batch: ListBatch
@@ -115,6 +118,11 @@ export function BatchRow({
   /** First row in its group: the group's own edge has already closed it, so it
    *  draws no hairline above itself. */
   first?: boolean
+  /** Set when the row is an option in the list's listbox (level 0): its id,
+   *  for the listbox's `aria-activedescendant`. */
+  optionId?: string
+  /** The keyboard's cursor is on this row — the pane is previewing it. */
+  cursor?: boolean
   onSelect: () => void
 }) {
   const router = useRouter()
@@ -127,6 +135,9 @@ export function BatchRow({
   const row = (
     <button
       type="button"
+      id={optionId}
+      role={optionId ? "option" : undefined}
+      aria-selected={optionId ? Boolean(cursor) : undefined}
       onClick={onSelect}
       className={cn(
         // The fill is what hides the swipe tray behind the row.
@@ -135,7 +146,9 @@ export function BatchRow({
         // Wider row from `md`: the same row, more air, the way an iPad grows a
         // phone list.
         "md:px-5 md:py-3.5",
-        !first && ROW_HAIRLINE
+        !first && ROW_HAIRLINE,
+        cursor && ACTIVE_ROW_DESKTOP,
+        optionId && CURSOR_SCROLL_MARGIN
       )}
     >
       <BatchLine batch={batch} />
@@ -148,14 +161,18 @@ export function BatchRow({
     </button>
   )
 
-  if (batch.kind === "runs") return <li>{row}</li>
+  // Inside the listbox the list item is scaffolding, not a role of its own:
+  // the row's button is the option.
+  const item = optionId ? "none" : undefined
+
+  if (batch.kind === "runs") return <li role={item}>{row}</li>
 
   // Tray icons read at a glance under a moving thumb, so they set a step
   // larger than a row's own glyphs.
   const icon = "size-6"
 
   return (
-    <li>
+    <li role={item}>
       <SwipeRow
         actions={
           <>

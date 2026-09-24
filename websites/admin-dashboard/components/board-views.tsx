@@ -149,21 +149,32 @@ export function BatchTickets({
   batch,
   selectedTicket,
   onSelectTicket,
+  optionId,
 }: {
   batch: ListBatch
-  /** The selected ticket's key (`ticketKey`), if any, for its highlight. */
+  /** The selected ticket's key (`ticketKey`), if any, for its highlight — in
+   *  the list's listbox, the keyboard's cursor. */
   selectedTicket: string | null
   onSelectTicket: (key: string) => void
+  /** Set on the list's own copy, which is the level-1 listbox's content: each
+   *  row's option id, by its index. The pane's copy stays plain rows. */
+  optionId?: (index: number) => string
 }) {
+  const header = LIST_HEADER[batch.kind]
   return (
-    <GroupedSection header={LIST_HEADER[batch.kind]}>
-      <ul>
+    <GroupedSection
+      header={header}
+      role={optionId ? "group" : undefined}
+      aria-label={optionId ? header : undefined}
+    >
+      <ul role={optionId ? "none" : undefined}>
         {batch.tickets.map((ticket, index) => (
           <BoardTicketRow
             key={ticket.path}
             first={index === 0}
             ticket={ticket}
             active={selectedTicket === ticketKey(ticket)}
+            optionId={optionId?.(index)}
             onSelect={() => onSelectTicket(ticketKey(ticket))}
           />
         ))}

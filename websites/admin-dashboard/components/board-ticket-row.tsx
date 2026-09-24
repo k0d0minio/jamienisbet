@@ -5,7 +5,12 @@ import { ChevronRight, Copy, GitBranch } from "lucide-react"
 import { cn, toast } from "@jamie-nisbet/ui"
 
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
-import { ACTIVE_ROW, GROUP_DOT, priorityClass } from "@/components/ticket-look"
+import {
+  ACTIVE_ROW,
+  CURSOR_SCROLL_MARGIN,
+  GROUP_DOT,
+  priorityClass,
+} from "@/components/ticket-look"
 import type { Ticket } from "@/lib/tickets"
 
 export async function copyPrompt(prompt: string) {
@@ -37,14 +42,19 @@ export function BoardTicketRow({
   ticket,
   first,
   active,
+  optionId,
   onSelect,
 }: {
   ticket: Ticket
   /** First row in its group — the slab's own edge closes it, so it draws no
    *  hairline above itself. */
   first?: boolean
-  /** The pane is showing this ticket. */
+  /** The pane is showing this ticket (or, in the list's listbox, the
+   *  keyboard's cursor is on it). */
   active?: boolean
+  /** Set when the row is an option in the list's listbox (level 1): its id,
+   *  for the listbox's `aria-activedescendant`. */
+  optionId?: string
   onSelect: () => void
 }) {
   // What the board sends for this ticket — the pipeline verb where the repo
@@ -81,7 +91,9 @@ export function BoardTicketRow({
   )
 
   return (
-    <li>
+    // Inside the listbox the list item is scaffolding; the button is the
+    // option.
+    <li role={optionId ? "none" : undefined}>
       <SwipeRow
         actions={actions}
         commit={
@@ -101,12 +113,16 @@ export function BoardTicketRow({
         <span className="sr-only">{`Swipe for actions on ${ticket.title}`}</span>
         <button
           type="button"
+          id={optionId}
+          role={optionId ? "option" : undefined}
+          aria-selected={optionId ? Boolean(active) : undefined}
           onClick={onSelect}
-          aria-current={active ? "true" : undefined}
+          aria-current={!optionId && active ? "true" : undefined}
           className={cn(
             "relative flex min-h-app-touch w-full items-center gap-3 bg-app-group px-4 py-2.5 text-left",
             "transition-colors spring-press active:bg-app-press",
             active && ACTIVE_ROW,
+            optionId && CURSOR_SCROLL_MARGIN,
             !first &&
               // Inset to the padding, not the label column: the sequence is
               // part of the scan line, and a hairline that skipped it would
