@@ -5,7 +5,7 @@
 > stands alone in a cloud session). The working knowledge is the `ticket-craft` skill,
 > [`.claude/skills/ticket-craft/SKILL.md`](../../.claude/skills/ticket-craft/SKILL.md);
 > the folder map is [`../CONTEXT.md`](../CONTEXT.md). The admin dashboard's Tickets
-> board reads this folder from each repo's ticket base branch (`main` here).
+> board reads this folder from each repo's `main` (D39).
 
 ## The shape
 
@@ -74,11 +74,10 @@ the `git mv` that closes the stub.
 
 - Any plan, backlog or task list for this repo becomes stubs here — **never a loose
   `TODO.md` or `BACKLOG.md`**. Cutting what is left over is part of ending any session.
-- The board reads each repo's **ticket base branch** via the GitHub API — the UAT
-  branch where `.icm/project.json` declares `uat`, else `main` (`main` here). **An
-  unmerged stub does not exist.** Ticket-only changes land as a ticket PR into that
-  branch — shape and merge rule in
-  [`pr-conventions`](../../.claude/skills/pr-conventions/SKILL.md) → The ticket PR;
+- The board reads each repo's **`main`** via the GitHub API — the one home of ticket
+  state in every repo (D39). **A stub not on `main` does not exist.** Ticket-only
+  changes go straight to `main` by a direct commit — shape in
+  [`pr-conventions`](../../.claude/skills/pr-conventions/SKILL.md) → Ticket commits;
   everything else through a PR on a `claude/` branch.
 - Legacy flat `JN-NNN` tickets (pre-2026-08-28) are left exactly as they are —
   migrating a repo is `/project`'s judgment work, not a side effect of another task.

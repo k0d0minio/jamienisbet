@@ -25,9 +25,9 @@ This folder also carries the pipeline — `project.json`, `stages/`, `lanes/`, `
 handoff, FAILURE — `scripts/run-pack.sh`), `_shared/`, `scripts/`, `skills/` (three-tier
 capability skills a stage loads on a trigger — `skills/README.md`), `raw/` + `processed/`
 for material a client sends, `output/` for the reports the scripts compile
-(`client-status.sh` → `client-status-latest.md`, the client's view), and `uat/` where
-`/setup` declared a persistent client UAT environment (the contract and the batch) — each
-seeded file documents itself, and
+(`client-status.sh` → `client-status-latest.md`, the client's view) — each seeded file
+documents itself (a client UAT environment, where `/setup` declares one, is
+`_shared/promotion.md`), and
 `.claude/skills/pipeline/SKILL.md` routes between them.
 
 ## The rules that travel with this folder
@@ -36,8 +36,9 @@ seeded file documents itself, and
 - **Status is positional** — where a file sits is its state; `git mv` to `_done/` is
   "done". Nothing is deleted; dropped work carries a `> Dropped: <reason, date>` line.
 - **Planning lives here** — never a loose `TODO.md` or `BACKLOG.md` at the root.
-- **The board reads the ticket base branch** (`main` here) — an unmerged stub does not
-  exist; ticket changes land there as a ticket PR (`pr-conventions` → The ticket PR).
+- **The board reads `main`** — the one home of ticket state in every repo (D39). Ticket changes
+  reach it by a direct commit (`pr-conventions`), or inside a run's PR; a stub not on `main`
+  does not exist.
 - **The pipeline is changed at its source** — a file `MANIFEST` marks `T`, or a canonical
   `.claude/` asset, is icm-board's: a request to change one is a template change request
   (`_shared/template-change.md` — a prompt for icm-board, parked as a triage stub), never an
