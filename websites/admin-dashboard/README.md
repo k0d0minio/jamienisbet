@@ -56,8 +56,8 @@ rows.
   **deep-link into Money** and nothing else: per the standing *no outbound
   action without review* rule, finalizing and emailing stays a deliberate click
   there.
-- **Today's tickets** — the board's now-strip (today's picks, runs in flight,
-  blocked stubs), each row deep-linking into Tickets filtered to its repo.
+- **Today's tickets** — today's picks, runs in flight and blocked stubs, each
+  row deep-linking to its own ticket on the Tickets board (`?t=`).
 
 **The rule that shapes every row:** a row either **acts in place** or
 **deep-links**. Nothing in the feed edits something that has a proper home
@@ -400,26 +400,38 @@ The estate's engineering backlog in one place, read **batch-first**. Every activ
 its work items as markdown in `.icm/intake/` — the estate-wide standard (canonical spec:
 `_system/contracts/TICKETS.md` in the `icm-board` repo) — and [`lib/tickets.ts`](lib/tickets.ts)
 reads those folders from each repo's **default branch** via the GitHub API (60-second revalidate, tag-busted by the
-board's refresh button) and folds them into `listBoard()`: a **now** group (today's picks from
-icm-board's `today.md`, runs in flight from `.icm/runs/`, blocked stubs), then one inset
-grouped list per repo — urgency-ordered — whose intake batches are its rows. Each epic folder
-is a batch row showing its progress as a mono `N of M` over the thin `Meter` (from the stubs'
-`sequence: N of M` lines) and its next stub; the `triage/` one-offs and any unmigrated legacy
-tickets ride as **Triage** and **Backlog** pseudo-batches. Tapping a batch opens a detented
-sheet (a dialog on desktop) with the stubs in sequence, each expanding to the full rendered
-ticket. The screen's name sets large and hands off to the compact bar on scroll, where the
-refresh button lives; under it, what the board adds up to is a glance row of mono figures. The
+board's refresh button) and folds them into `listBoard()`: one inset grouped list per repo —
+urgency-ordered — whose intake batches are its rows. Each epic folder is a batch row showing its
+progress as a mono `N of M` over the thin `Meter` (from the stubs' `sequence: N of M` lines) and
+its next stub; the `triage/` one-offs and any unmigrated legacy tickets ride as **Triage** and
+**Backlog** pseudo-batches, and the repo's runs in flight (`.icm/runs/`) as **In flight**. The
 repo roster comes from the database plus every repo the token owns or collaborates on; each
 ticket links back to its client. A connected repo the token can't see is named on the board
 with the reason, never dropped in silence.
+
+**Master–detail.** The board is a list that drills and a pane that swaps
+([`components/tickets-board.tsx`](components/tickets-board.tsx)). List level 0 is the repo chip
+rail and the repo groups; tapping a batch pushes the list to level 1 — that batch's tickets
+under a "‹ repo" back row — and tapping a repo's header opens the repo. From `lg` the pane
+([`components/board-pane.tsx`](components/board-pane.tsx)) stands beside the list, pinned under
+the title bar with its own scroll, and shows the selected **ticket**, **batch** (Copy next,
+Recut, GitHub), **repo** (its client, its maintenance launchers) or, with nothing selected, the
+**estate overview** — the Today / Blocked / Open figures, read errors, the estate check and the
+board's footnote. Below `lg` a selection is a full-screen pushed view with a back bar and an edge
+swipe; the overview is the foot of level 0, and a batch's view is pushed from the summary row
+atop its tickets. Every selection is URL state — `?t=<repo>/<ticket id>`, `?b=<repo>/<batch>`
+(`runs` for In flight; `&pane=1` pushes its view on a phone) or `?r=<repo>`, one at a time,
+beside the `?repo=` filter — so a link reopens exactly that view, and one that names something
+since shipped falls back to its batch, or to nothing.
 
 **Read once, used locally.** `/tickets` reads the board once per visit (`readBoard()` in
 [`lib/tickets.ts`](lib/tickets.ts)) and hands it to a client root
 ([`components/tickets-board.tsx`](components/tickets-board.tsx)) as plain data: ticket bodies as
 raw markdown, rendered only when a ticket is opened, and every launcher already built. The repo
-chips filter in memory and write `?repo=` with `history.pushState`
-([`components/use-board-params.ts`](components/use-board-params.ts)), so a tap is instant,
-back/forward step through filters, and `/tickets?repo=<slug>` still deep-links. New data arrives
+chips filter in memory and every selection is resolved from the URL, written with
+`history.pushState` ([`components/use-board-params.ts`](components/use-board-params.ts)) — so a
+tap is instant, back/forward step through filters and selections, and `/tickets?repo=<slug>`
+still deep-links. New data arrives
 two ways, both swapped in under whatever is open without the loading skeleton: the **refresh
 button** busts every board read (`refreshBoard`), and coming back to the app after **five minutes
 or more** away re-reads quietly, busting only the position reads — the repo trees and
@@ -437,9 +449,9 @@ The board is **read-only by design**: a ticket is created, edited, and finished 
 and nothing is mirrored into the database. Every button therefore copies a prompt, or opens a
 tool with it pre-filled, and a human sends it: **Copy prompt** (with every registered tool in
 its menu) / swipe-right on a row or batch, and the maintenance launchers — per-repo *triage the backlog* and
-*sweep finished work* (the **Maintenance** row closing each repo's group), per-batch *recut
-this batch* (in the batch sheet), and the board-level *estate check* (the `/icm-check` pass on
-icm-board, in the group that closes the screen). The triage, sweep and recut prompts end by
+*sweep finished work* (in the repo's view), per-batch *recut this batch* (in the batch's view),
+and the board-level *estate check* (the `/icm-check` pass on icm-board, in the estate
+overview). The triage, sweep and recut prompts end by
 telling the session its ticket changes commit straight to `main`, pointing at the
 `pr-conventions` skill's "Ticket commits" section for the shape (D39). Rows wear the Leads list's gestures: swipe
 left for a tray (copy, GitHub, client), swipe right to copy what it sends — with a haptic tick the
@@ -726,9 +738,12 @@ components/             # login form, nav, service-worker register, lead + money
                         #                prefilled next step in a client sheet over it
                         #   lead-intake.tsx — how they came in, folded shut until asked for
                         #   tickets-board.tsx — the Tickets board's client root: read once,
-                        #                filtered locally (use-board-params.ts owns its URL)
+                        #                master–detail, selection resolved from the URL
+                        #                (use-board-params.ts owns it; board-model.ts resolves it)
+                        #   board-pane.tsx / board-views.tsx — the pane from `lg`, the pushed
+                        #                view below it, and what it shows
                         #   batch-row.tsx / board-ticket-row.tsx / ticket-detail.tsx
-                        #                — the Tickets board, batch-first
+                        #                — the list's two levels, and a ticket opened
                         #   board-refresh.tsx — the board's refresh button, "as of" stamp and
                         #                quiet re-read on return
                         #   pull-to-refresh.tsx — pull down from the top to re-read everything

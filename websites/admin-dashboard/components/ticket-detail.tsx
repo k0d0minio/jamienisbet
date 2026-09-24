@@ -16,12 +16,12 @@ const Markdown = dynamic(() =>
 
 // One ticket, opened for reading: the actions that matter, the metadata, then
 // the ticket rendered as it was written in the repo. Rendered in the browser,
-// and only once a ticket is actually opened (a batch sheet's expanded row, a
-// now-strip peek) — the board ships each body as its raw markdown, so a
-// ticket nobody opens costs its text and nothing more.
+// and only once a ticket is actually opened (the board's pane, or the view
+// pushed over the list on a phone) — the board ships each body as its raw
+// markdown, so a ticket nobody opens costs its text and nothing more.
 //
 // Deliberately not a grouped list, though it sits in one: it is already inside
-// a group's row or a sheet, and a slab nested in a slab reads as neither. What
+// a group's slab, and a slab nested in a slab reads as neither. What
 // changed here is the type — every step is on the app tier's native scale now,
 // so a ticket read on a phone sets at the same sizes as the rows around it.
 export function TicketDetail({

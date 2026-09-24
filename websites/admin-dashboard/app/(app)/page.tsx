@@ -824,7 +824,8 @@ function MoneyNeedingAction({
 }
 
 // ---------------------------------------------------------------------------
-// Today's tickets — the board's now-strip, deep-linked into Tickets.
+// Today's tickets — today's picks, runs in flight and what's stuck, each
+// deep-linked to its own ticket on the Tickets board.
 
 const TICKET_GROUP_LABEL: Record<string, string> = {
   today: "Today",
@@ -842,7 +843,7 @@ function TodaysTickets({ strip }: { strip: Ticket[] }) {
       footer={
         more > 0 ? (
           <>
-            {more} more on the now-strip —{" "}
+            {more} more on the board —{" "}
             <Link
               href="/tickets"
               className="text-app-tint underline underline-offset-2"
@@ -869,10 +870,12 @@ function TodaysTickets({ strip }: { strip: Ticket[] }) {
             </>
           }
         >
-          {/* Into the board, filtered to the repo this ticket lives in — the
-              board is where a ticket opens, and every launcher on it is a
-              session link a human sends. */}
-          <Link href={`/tickets?repo=${ticket.repo.slug}`} />
+          {/* Straight to the ticket on the board — the board is where a
+              ticket opens, and every launcher on it is a session link a
+              human sends. */}
+          <Link
+            href={`/tickets?${new URLSearchParams({ t: `${ticket.repo.slug}/${ticket.id}` })}`}
+          />
         </GroupedRow>
       ))}
     </GroupedSection>

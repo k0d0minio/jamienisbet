@@ -121,3 +121,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - A launch target (or any custom URL scheme) is added `parked` until the operator has tapped its link from the board itself — browser tab and installed PWA — and reported that it opened; a documented link shape is not proof it works. (`FAILURE.md` — launcher-dropdown)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - A time-revalidated fetch in the admin dashboard is stale-while-revalidate: the first read past its window returns the old value, so any "refresh" or freshness claim must bust a tag (`updateTag`) rather than rely on the clock having lapsed. (`FAILURE.md` — board-client-state)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- In the admin dashboard, never pass `window.history.state` (or any object carrying Next's (`FAILURE.md` — master-detail-shell)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- When one element renders two layouts by breakpoint (a pane from `lg`, a pushed view below), (`FAILURE.md` — master-detail-shell)
