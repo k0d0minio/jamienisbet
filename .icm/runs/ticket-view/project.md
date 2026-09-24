@@ -13,9 +13,15 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- The board stays read-only and loaded once: no new server read, no change to `lib/tickets.ts`
+  parsing or grouping (spec → Out of scope).
+- Selection is client-side URL state through `useBoardParams()` — a dependency link never
+  triggers a navigation round-trip (breakdown decision 1).
+- Brand from `packages/ui` only; the per-turn UI checklist is the `design-dna` skill.
+- Epic, repo and overview views, and keyboard nav, belong to later stubs of this epic.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Read `components/board-views.tsx`, the ticket case of `components/tickets-board.tsx`, the
+  `Ticket` type and stub parsing in `lib/tickets.ts`, and `components/ticket-look.ts` beyond
+  Define's Inputs — to place the summary line and confirm how blocked reasons reach `meta`.
