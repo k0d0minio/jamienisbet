@@ -34,12 +34,13 @@ import "server-only"
 //   • POSITION (a minute) — one recursive git-tree call per repo that actually
 //     has an intake; epic folders and `runs/` come back in the same response.
 //     This is the read that notices a ticket landing or a run opening.
-//   • CONTENT (a month) — ticket bodies read by blob SHA, not by path. A path
-//     read answers "what is in that file now" and has to be re-asked every
-//     minute, so a warm board re-read every open ticket in the estate. A git
-//     blob SHA *is* its content, so `git/blobs/<sha>` can never go stale: the
-//     minute-clock tree read is what notices a file changed, by handing back a
-//     different SHA, and only the files that actually changed are re-read.
+//   • CONTENT (a month) — ticket bodies, and each epic's `breakdown.md`, read
+//     by blob SHA, not by path. A path read answers "what is in that file
+//     now" and has to be re-asked every minute, so a warm board re-read every
+//     open ticket in the estate. A git blob SHA *is* its content, so
+//     `git/blobs/<sha>` can never go stale: the minute-clock tree read is what
+//     notices a file changed, by handing back a different SHA, and only the
+//     files that actually changed are re-read.
 //
 // `_done/` is never fetched.
 //
@@ -717,9 +718,16 @@ async function fetchBlob(repo: TicketRepo, sha: string): Promise<string | null> 
   return res.text()
 }
 
-async function fetchRepoTickets(
-  repo: TicketRepo
-): Promise<{ tickets: Ticket[]; error: TicketFetchError | null }> {
+/** One repo's read: its open items, each epic's breakdown (raw markdown, by
+ * epic folder name — an epic without one, or whose read failed, is absent),
+ * and what went wrong, if anything did. */
+type RepoRead = {
+  tickets: Ticket[]
+  breakdowns: Record<string, string>
+  error: TicketFetchError | null
+}
+
+async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
   try {
     const res = await gh(
       `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
@@ -727,7 +735,7 @@ async function fetchRepoTickets(
     )
     // 409: an empty repo — nothing to show yet, not an error (a repo is
     // onboard the moment its first ticket lands).
-    if (res.status === 409) return { tickets: [], error: null }
+    if (res.status === 409) return { tickets: [], breakdowns: {}, error: null }
     // 404: the token can't see the repo. Only a pinned repo gets here — the
     // swept ones were just listed by the same token — so it is a connected
     // client's repo, or a house one, the board would otherwise drop without a
@@ -735,6 +743,7 @@ async function fetchRepoTickets(
     if (res.status === 404) {
       return {
         tickets: [],
+        breakdowns: {},
         error: {
           repo,
           message:
@@ -745,6 +754,7 @@ async function fetchRepoTickets(
     if (!res.ok) {
       return {
         tickets: [],
+        breakdowns: {},
         error: { repo, message: await githubFailure(res) },
       }
     }
@@ -752,6 +762,7 @@ async function fetchRepoTickets(
 
     const stubPaths: { path: string; epic: string; sha: string }[] = []
     const legacyPaths: { path: string; sha: string }[] = []
+    const breakdownPaths: { epic: string; sha: string }[] = []
     const runSlugs = new Set<string>()
     // Which stage each run in flight is at, read from which outputs exist —
     // the same derivation `project-labels.sh --stage auto` makes: Build's
@@ -784,12 +795,18 @@ async function fetchRepoTickets(
         if (nameLower === "readme.md" || nameLower === "context.md") continue
         legacyPaths.push({ path: entry.path, sha: entry.sha })
       } else if (segments.length === 2) {
-        if (segments[1].toLowerCase() === "breakdown.md") continue
+        // An epic's breakdown rides along with its stubs, by the same blob
+        // SHA and on the same clock. The pseudo-batches never carry one.
+        if (segments[1].toLowerCase() === "breakdown.md") {
+          if (batchKind(segments[0]) === "epic")
+            breakdownPaths.push({ epic: segments[0], sha: entry.sha })
+          continue
+        }
         stubPaths.push({ path: entry.path, epic: segments[0], sha: entry.sha })
       }
     }
 
-    const [stubResults, legacyResults] = await Promise.all([
+    const [stubResults, legacyResults, breakdownResults] = await Promise.all([
       Promise.all(
         stubPaths.map(async ({ path, epic, sha }) => {
           const raw = await fetchBlob(repo, sha)
@@ -804,7 +821,18 @@ async function fetchRepoTickets(
             : parseLegacy(repo, path, blobUrl(repo, path), raw)
         })
       ),
+      // A breakdown that can't be read is left out, as a stub that can't be
+      // is: the epic still stands, it just shows no breakdown.
+      Promise.all(
+        breakdownPaths.map(async ({ epic, sha }) => {
+          const raw = await fetchBlob(repo, sha)
+          return raw === null ? null : ([epic, raw] as const)
+        })
+      ),
     ])
+    const breakdowns = Object.fromEntries(
+      breakdownResults.filter((b): b is readonly [string, string] => b !== null)
+    )
 
     const stubs = stubResults.filter((s): s is Stub => s !== null)
 
@@ -892,10 +920,11 @@ async function fetchRepoTickets(
         .filter((t): t is Ticket => t !== null)
         .map((t) => ({ ...t, ...pickupFor(repo, { kind: "legacy", slug: t.id }, t.prompt) }))
     )
-    return { tickets: tickets.map(withLaunchHint), error: null }
+    return { tickets: tickets.map(withLaunchHint), breakdowns, error: null }
   } catch (err) {
     return {
       tickets: [],
+      breakdowns: {},
       error: {
         repo,
         message: err instanceof Error ? err.message : "network error",
@@ -1140,6 +1169,10 @@ export type Batch = {
   kind: BatchKind
   /** Humanized slug — the line item's label. */
   title: string
+  /** The epic's `breakdown.md`, raw markdown — rendered only when the epic is
+   * opened. Null when the epic has none (or it couldn't be read), and always
+   * for triage and backlog. */
+  breakdown: string | null
   /** The folder on GitHub — the batch's "open the real thing" escape hatch. */
   htmlUrl: string
   /** What the breakdown planned (max `N of M`); null when unsequenced —
@@ -1199,7 +1232,11 @@ function batchOrder(kind: BatchKind) {
       : rank(a) - rank(b) || a.id.localeCompare(b.id)
 }
 
-function assembleBatches(repo: TicketRepo, tickets: Ticket[]): Batch[] {
+function assembleBatches(
+  repo: TicketRepo,
+  tickets: Ticket[],
+  breakdowns: Record<string, string>
+): Batch[] {
   const byBatch = new Map<string, Ticket[]>()
   for (const t of tickets) {
     if (t.batch === null) continue
@@ -1226,6 +1263,7 @@ function assembleBatches(repo: TicketRepo, tickets: Ticket[]): Batch[] {
       slug,
       kind,
       title: batchTitle(kind, slug),
+      breakdown: kind === "epic" ? (breakdowns[slug] ?? null) : null,
       htmlUrl: batchFolderUrl(repo, kind, slug),
       planned,
       done: planned === null ? 0 : planned - ordered.length,
@@ -1269,6 +1307,8 @@ type EstateRead = {
   repos: TicketRepo[]
   /** Every open item (batch tickets and runs) — the chip counts' source. */
   tickets: Ticket[]
+  /** Each repo's epic breakdowns, by repo full name, then epic folder. */
+  breakdowns: Map<string, Record<string, string>>
   errors: TicketFetchError[]
   /** The owner sweep failed, so the roster is the pinned tier alone. */
   rosterError: string | null
@@ -1288,7 +1328,13 @@ type EstateRead = {
  * being no work.
  */
 const readEstate = cache(async (): Promise<EstateRead> => {
-  const empty = { repos: [], tickets: [], errors: [], rosterError: null }
+  const empty = {
+    repos: [],
+    tickets: [],
+    breakdowns: new Map<string, Record<string, string>>(),
+    errors: [],
+    rosterError: null,
+  }
   if (!isConfigured()) {
     return { configured: false, ...empty, dbError: null }
   }
@@ -1310,10 +1356,7 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     Promise.all(
       roster.repos.map((repo) =>
         skip.has(repo.fullName)
-          ? Promise.resolve({
-              tickets: [] as Ticket[],
-              error: null as TicketFetchError | null,
-            })
+          ? Promise.resolve<RepoRead>({ tickets: [], breakdowns: {}, error: null })
           : fetchRepoTickets(repo)
       )
     ),
@@ -1338,6 +1381,9 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     configured: true,
     repos: roster.repos,
     tickets,
+    breakdowns: new Map(
+      roster.repos.map((repo, i) => [repo.fullName, results[i].breakdowns])
+    ),
     errors: [
       ...roster.unreadable,
       ...results
@@ -1357,12 +1403,12 @@ export async function listBoard(): Promise<
   EstateRead & { sections: RepoSection[]; strip: Ticket[] }
 > {
   const read = await readEstate()
-  const { repos, tickets } = read
+  const { repos, tickets, breakdowns } = read
 
   const sections = repos
     .map((repo) => {
       const own = tickets.filter((t) => t.repo.fullName === repo.fullName)
-      const batches = assembleBatches(repo, own)
+      const batches = assembleBatches(repo, own, breakdowns.get(repo.fullName) ?? {})
       return {
         section: {
           repo,
@@ -1478,18 +1524,19 @@ export function estateCheckLaunches(): LaunchSet {
 // The board as plain data — what /tickets hands its client root. The board is
 // read once per visit and every interaction after that (the repo filter,
 // opening a batch, reading a ticket) happens in the browser, so everything the
-// client needs arrives here, serialisable: bodies as raw markdown (rendered
-// only when a ticket is opened), and every launcher already built, because
-// this module is server-only and the client can't call into it.
+// client needs arrives here, serialisable: ticket bodies and epic breakdowns as
+// raw markdown (rendered only when that ticket or epic is opened), and every
+// launcher already built, because this module is server-only and the client
+// can't call into it.
 
 /** A ticket with its launch targets built (`launchesForTicket`). */
 export type BoardTicket = Ticket & { launches: Launch[] }
 
 /** A batch with its tickets ready for the client; `next` is only what a
- * swipe or a row needs — the full ticket is already in `tickets`. */
+ * swipe or a row needs — the full ticket is already in `tickets`, under `id`. */
 export type BoardBatch = Omit<Batch, "tickets" | "next"> & {
   tickets: BoardTicket[]
-  next: { title: string; pickup: string | null } | null
+  next: { id: string; title: string; pickup: string | null } | null
   /** The recut launcher — epics only. */
   recut: LaunchSet | null
 }
@@ -1542,7 +1589,7 @@ export async function readBoard(): Promise<BoardData | null> {
       batches: section.batches.map(({ tickets, next, ...batch }) => ({
         ...batch,
         tickets: tickets.map(boardTicket),
-        next: next ? { title: next.title, pickup: next.pickup } : null,
+        next: next ? { id: next.id, title: next.title, pickup: next.pickup } : null,
         recut:
           batch.kind === "epic" ? recutLaunches(section.repo, batch.slug) : null,
       })),
