@@ -2,6 +2,7 @@
 
 - lane: chore
 - found-by: template-change · 2026-09-24
+- superseded-by: icm-board #85 (e7a99bb)
 - priority: P2
 - size: S
 

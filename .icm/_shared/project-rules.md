@@ -133,9 +133,9 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - A time-revalidated fetch in the admin dashboard is stale-while-revalidate: the first read past its window returns the old value, so any "refresh" or freshness claim must bust a tag (`updateTag`) rather than rely on the clock having lapsed. (`FAILURE.md` — board-client-state)
 <!-- Retrospective Learned Rule [2026-09-24] -->
-- In the admin dashboard, never pass `window.history.state` (or any object carrying Next's (`FAILURE.md` — master-detail-shell)
+- In the admin dashboard, never pass `window.history.state` (or any object carrying Next's `__NA`) to `history.pushState`/`replaceState`: the App Router then treats the call as its own and skips syncing `useSearchParams`, so URL-state views stop re-rendering — pass only your own keys (or `null`). (`FAILURE.md` — master-detail-shell)
 <!-- Retrospective Learned Rule [2026-09-24] -->
-- When one element renders two layouts by breakpoint (a pane from `lg`, a pushed view below), (`FAILURE.md` — master-detail-shell)
+- When one element renders two layouts by breakpoint (a pane from `lg`, a pushed view below), key its content to the selection and make any side effect it applies (a scroll lock, a listener) re-read the breakpoint on change, not once on mount. (`FAILURE.md` — master-detail-shell)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - Name the base as `origin/main` in every review or diff range (`/code-review … origin/main...HEAD`, `git diff origin/main...HEAD`): a cloud session's local `main` is never updated by `git fetch origin main`, so `main...HEAD` silently widens the review to commits already merged. (`FAILURE.md` — repo-and-estate-views)
 <!-- Retrospective Learned Rule [2026-09-24] -->
