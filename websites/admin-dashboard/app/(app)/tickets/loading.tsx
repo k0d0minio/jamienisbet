@@ -5,10 +5,11 @@ import { BoardRefresh } from "@/components/board-refresh"
 import { LoadingLine } from "@/components/loading-line"
 
 // Tickets is a fan-out of GitHub reads — every connected repo's `.icm/intake/`
-// folder, fetched on every visit (`dynamic = "force-dynamic"`). On a phone on
-// mobile data that is a second or two of nothing, so the shape of the board
-// arrives first: the filter rail, the now group, then a repo group of batch
-// rows.
+// folder. On a phone on mobile data a cold read is a second or two of nothing,
+// so the shape of the board arrives first: the filter rail, the now group,
+// then a repo group of batch rows. This is the first load's only: once the
+// board is on screen, filtering happens in the browser and a refresh swaps the
+// data in under it in a transition, so this skeleton never comes back.
 //
 // Sized against page.tsx deliberately — the chips carry the Chip's geometry,
 // the now rows the GroupedRow's, the batch rows the same three lines — so the

@@ -17,24 +17,29 @@ import { cn } from "@jamie-nisbet/ui"
 // cursor (the tier's 44px floor) and never wrapping — the rail scrolls sideways
 // instead, so adding a repo can't push the board further down the screen.
 //
+// A button, not a link: the board filters the data it already holds and
+// writes the choice to the URL itself (`useBoardParams`), so a tap is instant
+// rather than a navigation that re-reads the estate.
+//
 // The selected chip is a slab that has lifted off the canvas — the same recipe
 // the segmented control uses for its chosen segment, and the same reason:
 // weight alone does not carry a selection in the light theme.
 export function Chip({
-  href,
+  onClick,
   active,
   count,
   children,
 }: {
-  href: string
+  onClick: () => void
   active: boolean
   count?: number
   children: React.ReactNode
 }) {
   return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
       className={cn(
         "inline-flex min-h-app-touch shrink-0 items-center gap-1.5 rounded-app-control px-3.5",
         "text-app-footnote whitespace-nowrap transition-colors spring-press",
@@ -55,7 +60,7 @@ export function Chip({
           {count}
         </span>
       ) : null}
-    </Link>
+    </button>
   )
 }
 

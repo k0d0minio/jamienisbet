@@ -131,6 +131,16 @@ const MAX_CONCURRENT_REQUESTS = 8
 /** Cache tag on every GitHub read, so the refresh action can bust them all. */
 export const BOARD_CACHE_TAG = "tickets"
 
+/**
+ * A second tag on the position clock's reads alone — each repo's tree and the
+ * today list — so the board's silent re-read on return can bust "what moved"
+ * without re-reading the estate's shape or a single blob. It has to bust
+ * something: a time-revalidated read past its window is answered with the
+ * stale entry while the refresh happens in the background, so an un-busted
+ * re-read after five minutes away would hand back the board that was left.
+ */
+export const BOARD_POSITION_TAG = "tickets:position"
+
 // The pinned tier of the roster: read every render, never gated behind
 // discovery. The house repos are here so the board stands even when the owner
 // sweep fails, and every repo a client row points at is here because a
@@ -348,8 +358,15 @@ async function gh(
       // cached and the board heals itself once the limit resets.
       cache: "force-cache",
       // Three clocks, one tag: whichever lifetime a read is on, the refresh
-      // control still busts it.
-      next: { revalidate, tags: [BOARD_CACHE_TAG] },
+      // control still busts it. The position clock's reads carry a second
+      // tag, for the re-read on return (BOARD_POSITION_TAG).
+      next: {
+        revalidate,
+        tags:
+          revalidate === REVALIDATE_SECONDS
+            ? [BOARD_CACHE_TAG, BOARD_POSITION_TAG]
+            : [BOARD_CACHE_TAG],
+      },
     })
   } finally {
     release()
@@ -1455,4 +1472,86 @@ export function estateCheckLaunches(): LaunchSet {
     "estate-check",
     "Run the /icm-check pass across the estate and report what has drifted — intake shape, runs hygiene, today.md pointing at real stubs. Propose fixes as tickets in the offending repos rather than fixing anything silently."
   )
+}
+
+// ---------------------------------------------------------------------------
+// The board as plain data — what /tickets hands its client root. The board is
+// read once per visit and every interaction after that (the repo filter,
+// opening a batch, reading a ticket) happens in the browser, so everything the
+// client needs arrives here, serialisable: bodies as raw markdown (rendered
+// only when a ticket is opened), and every launcher already built, because
+// this module is server-only and the client can't call into it.
+
+/** A ticket with its launch targets built (`launchesForTicket`). */
+export type BoardTicket = Ticket & { launches: Launch[] }
+
+/** A batch with its tickets ready for the client; `next` is only what a
+ * swipe or a row needs — the full ticket is already in `tickets`. */
+export type BoardBatch = Omit<Batch, "tickets" | "next"> & {
+  tickets: BoardTicket[]
+  next: { title: string; pickup: string | null } | null
+  /** The recut launcher — epics only. */
+  recut: LaunchSet | null
+}
+
+export type BoardSection = {
+  repo: TicketRepo
+  batches: BoardBatch[]
+  open: number
+  maintenance: MaintenanceLauncher[]
+}
+
+export type BoardData = {
+  repos: TicketRepo[]
+  /** Open items per repo slug, runs included — the chip counts. */
+  counts: Record<string, number>
+  /** Open items across the estate. */
+  total: number
+  sections: BoardSection[]
+  strip: BoardTicket[]
+  errors: TicketFetchError[]
+  rosterError: string | null
+  dbError: string | null
+  estateCheck: LaunchSet
+  /** When this read finished, ISO — the board's "as of". */
+  readAt: string
+}
+
+function boardTicket(ticket: Ticket): BoardTicket {
+  return { ...ticket, launches: launchesForTicket(ticket) }
+}
+
+/** The whole board for the client, or null when GitHub isn't configured. */
+export async function readBoard(): Promise<BoardData | null> {
+  const board = await listBoard()
+  if (!board.configured) return null
+
+  const counts: Record<string, number> = {}
+  for (const ticket of board.tickets) {
+    counts[ticket.repo.slug] = (counts[ticket.repo.slug] ?? 0) + 1
+  }
+
+  return {
+    repos: board.repos,
+    counts,
+    total: board.tickets.length,
+    sections: board.sections.map((section) => ({
+      repo: section.repo,
+      open: section.open,
+      maintenance: repoMaintenanceLaunchers(section.repo),
+      batches: section.batches.map(({ tickets, next, ...batch }) => ({
+        ...batch,
+        tickets: tickets.map(boardTicket),
+        next: next ? { title: next.title, pickup: next.pickup } : null,
+        recut:
+          batch.kind === "epic" ? recutLaunches(section.repo, batch.slug) : null,
+      })),
+    })),
+    strip: board.strip.map(boardTicket),
+    errors: board.errors,
+    rosterError: board.rosterError,
+    dbError: board.dbError,
+    estateCheck: estateCheckLaunches(),
+    readAt: new Date().toISOString(),
+  }
 }
