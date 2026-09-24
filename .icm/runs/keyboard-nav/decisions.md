@@ -8,9 +8,15 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — the epic has no `scope.md`; its breakdown's decisions 1 (every selection has a URL,
+  changed client-side) and 8 (keyboard navigation on desktop is kept) are what this run implements.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-1 — At list level 0 the cursor previews the row in the pane without writing the URL or
+  drilling; `Enter` commits (`?b=` drills, `?r=` focuses the pane). Why: `?b=` is both level 1
+  and the batch view, so a batch can't be selected at level 0 without drilling. Define, operator.
+- D-2 — Arrow steps at level 1 replace the history entry; drill, back-out, repo commit, clear and
+  filter change push. Why: back steps through levels, not every row passed. Define, operator.
+- D-3 — `[`/`]` stop at All then each chip, wrapping at both ends, from any level; a filter that
+  hides the selection clears `t`, `b` and `r`. Define, operator.
