@@ -81,3 +81,28 @@
 Context budget: read `launch-menu.tsx`, `lib/clipboard.ts`, `swipe-row.tsx` (head), `chip.tsx`
 and `packages/ui` `grouped-list.tsx`/`sheet.tsx` beyond the `touches:` paths — to reuse the
 copy/toast path, the chip's pressed state and the sheet's focus hooks rather than fork them.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on db3df80 before the reviews (full gate); re-read after the last push (see the stop
+  report)
+- reviews: code medium (`origin/main...HEAD`) — three findings: (1) `Enter` on an
+  already-selected stub queued a pane focus no re-render applied, and (2) the level-0 cursor kept
+  overriding the URL selection after back/forward or an overview link (so `c`/`o` acted on a
+  batch the pane wasn't showing) — both in-ticket, fixed on this branch (the cursor now records
+  the selection it was set under, `selectionKey`, and is ignored once the URL moves; the no-op
+  `Enter` focuses the pane directly); (3) `[`/`]` untypable on AltGr/Option layouts — conflicts
+  with the spec's modifier rule, parked · security security-check.sh --branch --audit: OK
+  (gitleaks absent — built-in patterns only) · /security-review n/a (no auth, payments, PII or
+  route policy touched) · /production-readiness n/a (no DB, auth, payments or env var touched) ·
+  readiness env.sh audit --changed: OK
+- parked: board-keys-altgr-brackets.md
+- migrations: skip — none of this run's own
+- learned: 1 rule from FAILURE.md (via close-out: client state that overrides the URL must record
+  the selection it was set under) · retrospective.sh: skip — no error.log
+- merge of main: already up to date
+- docs: websites/admin-dashboard/README.md § Tickets (in Build; the review fixes change no
+  documented behaviour) · announce: internal
+- verified by the operator's smoke (Ready to merge); the VoiceOver criterion stays unticked in
+  the PR — its semantics are built, the announcement was never confirmed in-session

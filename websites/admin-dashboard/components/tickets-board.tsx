@@ -17,6 +17,7 @@ import {
   resolveSelection,
   rowSelection,
   selectedRepoSlug,
+  selectionKey,
   ticketKey,
   ticketsInGroup,
   type ListBatch,
@@ -329,10 +330,17 @@ export function TicketsBoard({
   // ---- The keyboard's cursor (desktop). -----------------------------------
 
   // Level 0: the row the cursor rests on, and whether the pane is previewing
-  // it. Not URL state — a preview is not a selection.
-  const [cursor0, setCursor0] = useState<{ key: string; preview: boolean } | null>(
-    null
-  )
+  // it. Not URL state — a preview is not a selection. `at` is the selection
+  // the URL held when the cursor was put there: once the URL moves without
+  // the keyboard (back/forward, a link in the overview) the cursor is stale
+  // and the URL wins.
+  const [cursor0, setCursor0] = useState<{
+    key: string
+    preview: boolean
+    at: string
+  } | null>(null)
+  const urlKey = selectionKey(selection)
+  const live0 = cursor0?.at === urlKey ? cursor0 : null
   // Level 1, before a ticket is selected: where a keyboard drill put the
   // cursor (the batch's first stub). Once a ticket is selected, the cursor is
   // that ticket.
@@ -355,7 +363,7 @@ export function TicketsBoard({
     setLastLevelKey(levelKey)
     const left = lastLevelKey === null ? null : `b:${lastLevelKey}`
     if (levelKey === null && left && rows0.some((row) => row.key === left)) {
-      setCursor0({ key: left, preview: false })
+      setCursor0({ key: left, preview: false, at: urlKey })
     }
   }
 
@@ -363,11 +371,11 @@ export function TicketsBoard({
   // the repo the URL has open. Null while drilled, or once a filter hides it.
   const row0 = drilled
     ? null
-    : (rows0.find((row) => row.key === cursor0?.key) ??
+    : (rows0.find((row) => row.key === live0?.key) ??
       (selection.kind === "repo"
         ? (rows0.find((row) => row.key === `r:${selection.focus.repo.slug}`) ?? null)
         : null))
-  const previewing = row0 !== null && cursor0?.key === row0.key && cursor0.preview
+  const previewing = row0 !== null && live0?.key === row0.key && live0.preview
   const preview = previewing ? rowSelection(sections, unreadable, row0) : null
   // What the pane shows: the preview while there is one, else the selection.
   const shown: Selection = preview ?? selection
@@ -418,7 +426,7 @@ export function TicketsBoard({
   /** Move the level-0 cursor and preview its row. */
   function moveCursor0(index: number) {
     const row = rows0[index]
-    setCursor0({ key: row.key, preview: true })
+    setCursor0({ key: row.key, preview: true, at: urlKey })
     listRef.current?.focus({ preventScroll: true })
     document.getElementById(levelZeroOptionId(index))?.scrollIntoView({ block: "nearest" })
   }
@@ -470,16 +478,20 @@ export function TicketsBoard({
       case "open": {
         if (inPane) return false
         if (drilled) {
-          if (selection.kind !== "ticket") {
-            if (!level1Cursor) return true
-            navigate({ t: level1Cursor })
+          if (selection.kind === "ticket") {
+            // Nothing changes on screen, so nothing re-renders to pick up a
+            // pending focus: move it now.
+            pane?.focus({ preventScroll: true })
+            return true
           }
+          if (!level1Cursor) return true
+          navigate({ t: level1Cursor })
           pendingFocus.current = { to: "pane" }
           return true
         }
         if (!row0) return true
-        setCursor0({ key: row0.key, preview: false })
         if ("b" in row0.query) {
+          setCursor0({ key: row0.key, preview: false, at: row0.key })
           const batch = row0.query.b
           const first = rowSelection(sections, unreadable, row0)
           const firstTicket =
@@ -488,8 +500,12 @@ export function TicketsBoard({
           navigate({ b: batch })
           pendingFocus.current = { to: "list", level: 1 }
         } else {
-          navigate({ r: row0.query.r })
-          pendingFocus.current = { to: "pane" }
+          setCursor0({ key: row0.key, preview: false, at: row0.key })
+          if (urlKey === row0.key) pane?.focus({ preventScroll: true })
+          else {
+            navigate({ r: row0.query.r })
+            pendingFocus.current = { to: "pane" }
+          }
         }
         return true
       }
@@ -507,7 +523,7 @@ export function TicketsBoard({
         }
         if (selection.kind === "none" && !previewing) return false
         if (selection.kind !== "none") navigate({ t: null })
-        setCursor0(row0 ? { key: row0.key, preview: false } : null)
+        setCursor0(row0 ? { key: row0.key, preview: false, at: "none" } : null)
         focusList()
         return true
       }
@@ -545,7 +561,11 @@ export function TicketsBoard({
           next ? sections.filter((s) => s.repo.slug === next) : sections
         )
         if (hides || (row0 && !nextRows.some((row) => row.key === row0.key))) {
-          setCursor0(nextRows[0] ? { key: nextRows[0].key, preview: false } : null)
+          setCursor0(
+            nextRows[0]
+              ? { key: nextRows[0].key, preview: false, at: hides ? "none" : urlKey }
+              : null
+          )
         }
         if (hides) pendingFocus.current = { to: "list", level: 0 }
         requestAnimationFrame(() =>
@@ -700,14 +720,7 @@ export function TicketsBoard({
         pushed: false,
       }
   }
-  const paneKey =
-    shown.kind === "none"
-      ? "none"
-      : shown.kind === "ticket"
-        ? `t:${ticketKey(shown.ticket)}`
-        : shown.kind === "batch"
-          ? `b:${batchKey(shown.section, shown.batch)}`
-          : `r:${shown.focus.repo.slug}`
+  const paneKey = selectionKey(shown)
 
   return (
     <div className="pt-1 pb-2 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start lg:gap-8 xl:grid-cols-[24rem_minmax(0,1fr)]">
@@ -791,12 +804,13 @@ export function TicketsBoard({
                       }
                       optionId={(key) => optionIds0.get(key)}
                       onSelectRepo={() => {
-                        setCursor0({ key: `r:${section.repo.slug}`, preview: false })
+                        const key = `r:${section.repo.slug}`
+                        setCursor0({ key, preview: false, at: key })
                         navigate({ r: section.repo.slug })
                       }}
                       onSelectBatch={(batch) => {
                         const key = batchKey(section, batch)
-                        setCursor0({ key: `b:${key}`, preview: false })
+                        setCursor0({ key: `b:${key}`, preview: false, at: `b:${key}` })
                         navigate({ b: key })
                       }}
                     />

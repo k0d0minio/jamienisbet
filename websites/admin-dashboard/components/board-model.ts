@@ -306,3 +306,19 @@ export function githubUrl(selection: Selection): string | null {
       return null
   }
 }
+
+/** One string per selection — what the pane keys its content on, and what a
+ *  piece of client state set under one selection records, so it can tell
+ *  when the URL has moved on without it. */
+export function selectionKey(selection: Selection): string {
+  switch (selection.kind) {
+    case "ticket":
+      return `t:${ticketKey(selection.ticket)}`
+    case "batch":
+      return `b:${batchKey(selection.section, selection.batch)}`
+    case "repo":
+      return `r:${selection.focus.repo.slug}`
+    default:
+      return "none"
+  }
+}

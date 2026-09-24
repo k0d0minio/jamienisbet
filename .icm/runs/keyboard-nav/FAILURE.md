@@ -13,12 +13,19 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-24 — Release review caught two in-ticket defects in the cursor Build self-checked
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: the level-0 keyboard cursor (client state) kept overriding the URL selection
+  after the URL moved without the keyboard — a Blocked/repo link in the overview, the browser's
+  back/forward — so `c`/`o` acted on a batch the pane wasn't showing; and `Enter` on an
+  already-selected stub queued a pane focus that waited for a re-render nothing triggered.
+- why: Build reasoned about the cursor only along the keyboard's own paths, not every route by
+  which the URL (the board's source of truth) changes; and treated "apply focus after the next
+  render" as always followed by a render.
+- fixed by: the Release fix commit (cursor records the selection it was set under — `at`,
+  compared with `selectionKey` — and is ignored once the URL moves; a no-op Enter focuses the
+  pane directly).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- In the admin dashboard's URL-state screens, any client state that overrides what the URL selects must record the selection it was set under and be ignored once the URL has moved on (back/forward, links), so the URL always wins.
