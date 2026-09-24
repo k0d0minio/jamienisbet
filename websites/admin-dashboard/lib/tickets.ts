@@ -160,12 +160,6 @@ export type TicketRepo = {
    * the board sends the pick-up verb rather than the prompt body (icm-board
    * decision D26). Probed once per repo on the discovery clock. */
   pipeline: boolean
-  /** The repo's ticket base branch when it isn't the default one — `uat.branch`
-   * from `.icm/project.json` on the default branch (icm-board decision D38).
-   * Null means the default branch (`HEAD`), which is every repo without a UAT
-   * branch, and a repo whose declared one couldn't be read. Every ticket read
-   * and every GitHub link the board builds follows it. */
-  ticketRef: string | null
 }
 
 // Board order is workflow order: the day's picks, then what's moving, then
@@ -234,10 +228,6 @@ export type Ticket = {
 export type TicketFetchError = {
   repo: TicketRepo
   message: string
-  /** The repo's tickets are on the board anyway, read from its default
-   * branch because the declared ticket base branch wasn't there — a caveat on
-   * what is shown, not a repo missing from it. */
-  fallback?: true
 }
 
 // ---------------------------------------------------------------------------
@@ -684,17 +674,8 @@ function parseLegacy(
 
 type TreeEntry = { path: string; type: string; sha: string }
 
-/** The ref every read and link for this repo uses: its ticket base branch,
- * else the default branch. Each segment is encoded but the slashes stay, so a
- * branch like `release/uat` still addresses one ref. */
-function repoRef(repo: TicketRepo): string {
-  return repo.ticketRef === null
-    ? "HEAD"
-    : repo.ticketRef.split("/").map(encodeURIComponent).join("/")
-}
-
 function blobUrl(repo: TicketRepo, path: string): string {
-  return `https://github.com/${repo.fullName}/blob/${repoRef(repo)}/${path}`
+  return `https://github.com/${repo.fullName}/blob/HEAD/${path}`
 }
 
 /**
@@ -723,30 +704,13 @@ async function fetchRepoTickets(
   repo: TicketRepo
 ): Promise<{ tickets: Ticket[]; error: TicketFetchError | null }> {
   try {
-    let res = await gh(
-      `/repos/${repo.fullName}/git/trees/${repoRef(repo)}?recursive=1`,
+    const res = await gh(
+      `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
       "application/vnd.github+json"
     )
-    // A declared ticket base branch that isn't there (deleted, renamed, never
-    // pushed): read the default branch instead, and say so — silently showing
-    // the lagging copy is the bug this ref exists to fix. From here on the
-    // repo reads, links and badges as a default-branch repo.
-    let fallback: TicketFetchError | null = null
-    if (res.status === 404 && repo.ticketRef !== null) {
-      fallback = {
-        repo,
-        message: `Declares its ticket base branch as ${repo.ticketRef} in .icm/project.json, but that branch couldn't be found — showing the default branch, where finished work may still read as open.`,
-        fallback: true,
-      }
-      repo.ticketRef = null
-      res = await gh(
-        `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
-        "application/vnd.github+json"
-      )
-    }
     // 409: an empty repo — nothing to show yet, not an error (a repo is
     // onboard the moment its first ticket lands).
-    if (res.status === 409) return { tickets: [], error: fallback }
+    if (res.status === 409) return { tickets: [], error: null }
     // 404: the token can't see the repo. Only a pinned repo gets here — the
     // swept ones were just listed by the same token — so it is a connected
     // client's repo, or a house one, the board would otherwise drop without a
@@ -886,7 +850,7 @@ async function fetchRepoTickets(
       tickets.push({
         repo,
         path: `.icm/runs/${slug}`,
-        htmlUrl: `https://github.com/${repo.fullName}/tree/${repoRef(repo)}/.icm/runs/${slug}`,
+        htmlUrl: `https://github.com/${repo.fullName}/tree/HEAD/.icm/runs/${slug}`,
         id: `runs/${slug}`,
         title: slug,
         group: "in-flight",
@@ -911,7 +875,7 @@ async function fetchRepoTickets(
         .filter((t): t is Ticket => t !== null)
         .map((t) => ({ ...t, ...pickupFor(repo, { kind: "legacy", slug: t.id }, t.prompt) }))
     )
-    return { tickets: tickets.map(withLaunchHint), error: fallback }
+    return { tickets: tickets.map(withLaunchHint), error: null }
   } catch (err) {
     return {
       tickets: [],
@@ -1051,35 +1015,6 @@ async function probeRouter(fullName: string): Promise<boolean> {
   }
 }
 
-/**
- * The repo's ticket base branch, when it declares one: `uat.branch` in
- * `.icm/project.json`, read from the default branch because that is where
- * `/setup` writes it (icm-board decision D38). One request on the discovery
- * clock, like the probes around it. Anything short of a non-empty string —
- * no file, no `uat` block, an empty branch, a file that won't parse, a read
- * that failed — is the default branch, which is what every repo without a UAT
- * branch has always been read from.
- */
-async function probeTicketRef(fullName: string): Promise<string | null> {
-  try {
-    const res = await gh(
-      `/repos/${fullName}/contents/.icm/project.json`,
-      "application/vnd.github.raw+json",
-      DISCOVERY_REVALIDATE_SECONDS
-    )
-    if (!res.ok) return null
-    const project = JSON.parse(await res.text()) as {
-      uat?: { branch?: unknown } | null
-    } | null
-    const branch = project?.uat?.branch
-    return typeof branch === "string" && branch.trim() !== ""
-      ? branch.trim()
-      : null
-  } catch {
-    return null
-  }
-}
-
 async function probeIntake(fullName: string): Promise<IntakeProbe> {
   try {
     const res = await gh(
@@ -1135,7 +1070,6 @@ async function loadRoster(): Promise<Roster> {
       clientId: client?.clientId ?? null,
       clientName: client?.clientName ?? null,
       pipeline: false,
-      ticketRef: null,
     }
   }
 
@@ -1164,21 +1098,12 @@ async function loadRoster(): Promise<Roster> {
     if (probe !== "present") unreadable.push({ repo, message: probe.unknown })
   }
 
-  // The router and ticket-base probes, once per repo on the roster, on the
-  // same hourly clock as discovery — so a repo that gains the pipeline sends
-  // verbs, and one that declares a UAT branch is read from it, within the
-  // hour. icm-board is exempt from the ticket base branch (D38): it has no UAT
-  // branch, and its own board reads `main`.
+  // The router probe, once per repo on the roster, on the same hourly clock
+  // as discovery — so a repo that gains the pipeline sends verbs within the
+  // hour.
   await Promise.all(
     repos.map(async (repo) => {
-      const [pipeline, ticketRef] = await Promise.all([
-        probeRouter(repo.fullName),
-        repo.fullName === TODAY_REPO
-          ? Promise.resolve(null)
-          : probeTicketRef(repo.fullName),
-      ])
-      repo.pipeline = pipeline
-      repo.ticketRef = ticketRef
+      repo.pipeline = await probeRouter(repo.fullName)
     })
   )
 
@@ -1244,7 +1169,7 @@ function batchFolderUrl(repo: TicketRepo, kind: BatchKind, slug: string): string
   // The legacy backlog has no folder of its own — its flat files sit directly
   // in intake/, so the batch points there.
   const folder = kind === "backlog" ? ".icm/intake" : `.icm/intake/${slug}`
-  return `https://github.com/${repo.fullName}/tree/${repoRef(repo)}/${folder}`
+  return `https://github.com/${repo.fullName}/tree/HEAD/${folder}`
 }
 
 /** Batch-internal order: epics read in sequence (unsequenced stubs sink),
@@ -1479,18 +1404,13 @@ export type MaintenanceLauncher = {
 }
 
 /**
- * How a maintenance session lands what it changed (icm-board decision D38).
- * icm-board keeps its direct commits — it has no UAT branch and nothing to
- * drift. Every other repo's ticket state has one home, its ticket base branch,
- * reached only through a ticket PR; the shape and the merge rule live once, in
- * the pr-conventions skill, and the prompt points there rather than restating
- * them.
+ * How a maintenance session lands what it changed (D39 §8): ticket-only
+ * changes commit straight to main, every repo alike — no UAT branch, no
+ * ticket PR. The shape and the merge rule live once, in the pr-conventions
+ * skill, and the prompt points there rather than restating them.
  */
-function ticketLanding(repo: TicketRepo): string {
-  if (repo.fullName === TODAY_REPO)
-    return "Ticket-only changes commit straight to main."
-  const base = repo.ticketRef ?? "main"
-  return `Land ticket-only changes as a ticket PR into ${base} (this repo's ticket base branch) — the shape and the merge rule are in the pr-conventions skill, "The ticket PR".`
+function ticketLanding(): string {
+  return `Ticket-only changes commit straight to main — the shape and the merge rule are in the pr-conventions skill, "Ticket commits".`
 }
 
 export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[] {
@@ -1502,7 +1422,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       launch: authoredLaunches(
         repo.fullName,
         "triage",
-        `Read .icm/intake/README.md for this repo's ticket contract, then triage .icm/intake/triage/: where a real batch has formed, group the related one-off stubs into a sequenced epic folder (a breakdown.md beside sequenced stubs); tighten titles and priorities on what stays; move anything already done to the matching _done/ folder. ${ticketLanding(repo)}`
+        `Read .icm/intake/README.md for this repo's ticket contract, then triage .icm/intake/triage/: where a real batch has formed, group the related one-off stubs into a sequenced epic folder (a breakdown.md beside sequenced stubs); tighten titles and priorities on what stays; move anything already done to the matching _done/ folder. ${ticketLanding()}`
       ),
     },
     {
@@ -1512,7 +1432,7 @@ export function repoMaintenanceLaunchers(repo: TicketRepo): MaintenanceLauncher[
       launch: authoredLaunches(
         repo.fullName,
         "sweep",
-        `Read .icm/intake/README.md for this repo's ticket contract, then sweep for finished work: check the open stubs in .icm/intake/ and the run folders in .icm/runs/ against what has actually merged, and git mv anything finished into the matching _done/ folder. Verify against the code and PR history before moving anything — when unsure, leave it open. ${ticketLanding(repo)}`
+        `Read .icm/intake/README.md for this repo's ticket contract, then sweep for finished work: check the open stubs in .icm/intake/ and the run folders in .icm/runs/ against what has actually merged, and git mv anything finished into the matching _done/ folder. Verify against the code and PR history before moving anything — when unsure, leave it open. ${ticketLanding()}`
       ),
     },
   ]
@@ -1524,7 +1444,7 @@ export function recutLaunches(repo: TicketRepo, batchSlug: string): LaunchSet {
   return authoredLaunches(
     repo.fullName,
     "recut",
-    `Read .icm/intake/${batchSlug}/breakdown.md and every stub beside it, compare them against the current state of the code, and recut the batch: refresh stale stubs, resequence what remains, split anything too big, and move anything already done to _done/. Keep the breakdown honest — it should describe the work as it stands today. ${ticketLanding(repo)}`
+    `Read .icm/intake/${batchSlug}/breakdown.md and every stub beside it, compare them against the current state of the code, and recut the batch: refresh stale stubs, resequence what remains, split anything too big, and move anything already done to _done/. Keep the breakdown honest — it should describe the work as it stands today. ${ticketLanding()}`
   )
 }
 
