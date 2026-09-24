@@ -1,7 +1,7 @@
 # Build notes: keyboard-nav
 
 - commits: feat: keyboard-nav — desktop keyboard map for the Tickets board
-- ci: see status.md (settled by ci-status.sh after the ready flip)
+- ci: GREEN on 53c1ebd — full gate (jamie-nisbet + portfolio previews pass; Quality (advisory) success)
 
 ## What changed
 

@@ -6,15 +6,20 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Once **Spec approved** is ticked on https://github.com/k0d0minio/jamienisbet/pull/166, run
-   `/pipeline build keyboard-nav` and execute `plan.md` pass by pass.
+1. The operator smokes the admin preview on a desktop, keyboard only
+   (https://jamie-nisbet-git-claude-exciting-mendel-k1rcl6-kodominio.vercel.app/tickets) —
+   every criterion in the PR body, plus VoiceOver on the listbox (the one criterion left
+   unticked: its semantics are built, the announcement is unverified).
+2. Once **Ready to merge** is ticked on https://github.com/k0d0minio/jamienisbet/pull/166, run
+   `/pipeline release keyboard-nav`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of PR #166.
+- blocked on operator: smoke the preview and tick **Ready to merge** in the body of PR #166.
 
 ## Do not
 
-- Do not start Build before the Spec-approved tick; do not tick it.
-- Do not touch `lib/tickets.ts` or the phone layout.
+- Do not tick Ready to merge; do not merge before Release.
 - Do not open a second PR — this run's branch is `claude/exciting-mendel-k1rcl6`.
+- Read `03_build/output/notes.md` → Notes for Release before reviewing: three behaviours the
+  spec left implicit were settled there.
