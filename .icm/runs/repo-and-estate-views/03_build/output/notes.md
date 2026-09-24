@@ -1,7 +1,7 @@
 # Build notes: repo-and-estate-views
 
 - commits: feat: repo-and-estate-views — repo view and estate overview
-- ci: pending
+- ci: GREEN on 3f35dfa (cheap tier); full gate pending
 
 ## What changed
 
