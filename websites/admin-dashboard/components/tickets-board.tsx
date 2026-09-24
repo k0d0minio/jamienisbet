@@ -9,8 +9,11 @@ import { BatchLine, BatchRow } from "@/components/batch-row"
 import {
   batchKey,
   boardFigures,
+  repoFigures,
   resolveSelection,
+  selectedRepoSlug,
   ticketKey,
+  ticketsInGroup,
   type ListBatch,
   type ListSection,
   type Selection,
@@ -27,7 +30,7 @@ import { Chip } from "@/components/chip"
 import { ACTIVE_ROW } from "@/components/ticket-look"
 import { TicketSummary } from "@/components/ticket-detail"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
-import type { BoardData } from "@/lib/tickets"
+import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 
 // The estate's work backlog as a master–detail view: a list that drills and a
 // pane that swaps.
@@ -92,7 +95,7 @@ function RepoSectionView({
 }) {
   const { repo } = section
   const repoActive =
-    selection.kind === "repo" && selection.section.repo.slug === repo.slug
+    selection.kind === "repo" && selection.focus.repo.slug === repo.slug
   const runs = section.batches.find((b) => b.kind === "runs")?.tickets.length ?? 0
   return (
     <GroupedSection
@@ -207,18 +210,30 @@ function BatchList({
 
 // ---------------------------------------------------------------------------
 
-export function TicketsBoard({ board }: { board: BoardData }) {
+export function TicketsBoard({
+  board,
+  unreadableMaintenance,
+}: {
+  board: BoardData
+  /** Maintenance launchers for the repos whose read failed, which have no
+   *  section of their own in `board.sections` — keyed by full name. */
+  unreadableMaintenance: Record<string, MaintenanceLauncher[]>
+}) {
   const { repos, counts, total, errors, rosterError, dbError, sections } = board
   const params = useBoardParams()
   const { navigate, correct, back } = params
 
-  const { selection, correction } = resolveSelection(sections, params)
+  const { selection, correction } = resolveSelection(
+    sections,
+    { errors, maintenance: unreadableMaintenance },
+    params
+  )
 
   // The filter as the URL states it, if it names a repo on the roster —
   // anything else reads as the whole board, as a stale bookmark should. A
   // selection in a repo the filter hides wins: the filter is dropped rather
   // than the selection shown against a list that doesn't hold it.
-  const selectedRepo = selection.kind === "none" ? null : selection.section.repo.slug
+  const selectedRepo = selectedRepoSlug(selection)
   const named =
     params.repo && repos.some((r) => r.slug === params.repo) ? params.repo : null
   const filterConflict = named !== null && selectedRepo !== null && named !== selectedRepo
@@ -291,11 +306,13 @@ export function TicketsBoard({ board }: { board: BoardData }) {
   // a chip, so the rail doesn't drown in empty client stubs.
   const chipRepos = repos.filter((repo) => (counts[repo.slug] ?? 0) > 0)
 
-  const figures = boardFigures(board, repoSlug)
   const overview = (
     <EstateOverview
-      figures={figures}
+      figures={boardFigures(board, repoSlug)}
+      blocked={ticketsInGroup(board, "blocked", repoSlug)}
       board={{ errors, rosterError, estateCheck: board.estateCheck }}
+      onSelectTicket={(key) => navigate({ t: key })}
+      onSelectRepo={(slug) => navigate({ r: slug })}
     />
   )
 
@@ -364,13 +381,13 @@ export function TicketsBoard({ board }: { board: BoardData }) {
       break
     }
     case "repo": {
-      const { section } = selection
+      const { focus } = selection
       pane = {
-        title: <span className="font-mono">{section.repo.slug}</span>,
-        subtitle: section.repo.clientName ?? "House repo",
+        title: <span className="font-mono">{focus.repo.slug}</span>,
+        subtitle: focus.repo.clientName ?? "House repo",
         backLabel: "Tickets",
         parent: { r: null },
-        body: <RepoView section={section} />,
+        body: <RepoView focus={focus} figures={repoFigures(board, focus)} />,
         pushed: true,
       }
       break
@@ -398,7 +415,7 @@ export function TicketsBoard({ board }: { board: BoardData }) {
         ? `t:${ticketKey(selection.ticket)}`
         : selection.kind === "batch"
           ? `b:${batchKey(selection.section, selection.batch)}`
-          : `r:${selection.section.repo.slug}`
+          : `r:${selection.focus.repo.slug}`
 
   return (
     <div className="pt-1 pb-2 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start lg:gap-8 xl:grid-cols-[24rem_minmax(0,1fr)]">

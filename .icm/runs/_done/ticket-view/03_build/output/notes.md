@@ -56,8 +56,13 @@
 - gate: Ready to merge ticked — merge authorised
 - ci: GREEN on the head after the last push (ci-status.sh, full gate; re-read after the close-out push)
 - reviews: code medium (/code-review — no finding in this branch's diff; one pre-existing finding in template-owned `.claude/hooks/vercel-env-hydrate.sh` → `env.sh pull`, parked) · security security-check.sh --branch --audit: OK · /security-review n/a — no auth, payments, PII or route policy touched · /production-readiness n/a — no DB, auth, payments or env vars · readiness env.sh audit --changed: OK
-- parked: triage/template-change-env-pull-unlinked.md
+- parked: none new — the env-hook finding was folded into `triage/template-change-cloud-env-hydrate-unlinked.md` (parked by repo-and-estate-views, merged first)
 - migrations: skip — none of this run's own
 - learned: skip — no error.log
 - docs: websites/admin-dashboard/README.md (Tickets → Master–detail: the ticket view's order) · announce: public
 - Context budget: read `.icm/_shared/template-change.md` and the env hook / `env.sh pull` to write the parked template change request.
+- merge of `main` at release (repo-and-estate-views, #162): conflicts in `board-views.tsx`, the
+  admin README and `project-rules.md` resolved on the branch; `TicketSummary` now uses
+  `board-model.ts`'s shared `blockedReason()` (added by #162) instead of a private copy, so the
+  blocked reason reads "Waiting on <dep>" with a capital, the same as the estate overview's
+  Blocked group; the duplicate learned rule on reviewing against `origin/main` kept #162's wording.

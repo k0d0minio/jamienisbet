@@ -7,7 +7,7 @@ import { GroupedBlock, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
 import { AppScreen } from "@/components/app-screen"
 import { BoardRefresh } from "@/components/board-refresh"
 import { TicketsBoard } from "@/components/tickets-board"
-import { readBoard } from "@/lib/tickets"
+import { readBoard, repoMaintenanceLaunchers } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Tickets" }
 
@@ -50,9 +50,21 @@ export default async function TicketsPage() {
     )
   }
 
+  // A repo whose read failed has no tickets, so no section, and nothing built
+  // its maintenance launchers — but its view (opened from its error row) still
+  // carries them: a failed read is usually a rate limit or a token's reach, and
+  // a session can still work in the repo. Built here, where lib/tickets can be
+  // reached.
+  const sectioned = new Set(board.sections.map((s) => s.repo.fullName))
+  const unreadableMaintenance = Object.fromEntries(
+    board.errors
+      .filter((e) => !sectioned.has(e.repo.fullName))
+      .map((e) => [e.repo.fullName, repoMaintenanceLaunchers(e.repo)])
+  )
+
   return (
     <AppScreen title="Tickets" actions={<BoardRefresh readAt={board.readAt} />}>
-      <TicketsBoard board={board} />
+      <TicketsBoard board={board} unreadableMaintenance={unreadableMaintenance} />
     </AppScreen>
   )
 }

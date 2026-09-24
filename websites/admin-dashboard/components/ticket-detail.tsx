@@ -6,10 +6,11 @@ import { ChevronRight } from "lucide-react"
 
 import { cn } from "@jamie-nisbet/ui"
 
+import { blockedReason } from "@/components/board-model"
 import { CopySplitButton } from "@/components/launch-menu"
 import { GROUP_DOT, GROUP_LABELS, priorityClass } from "@/components/ticket-look"
 import { primaryLaunch, type Launch } from "@/lib/launchers"
-import type { Ticket } from "@/lib/tickets"
+import type { BoardTicket, Ticket } from "@/lib/tickets"
 
 // The renderer arrives with the first ticket opened, not with the board: most
 // visits read a handful of tickets or none, and react-markdown is the heaviest
@@ -22,18 +23,6 @@ const Markdown = dynamic(() =>
 // above the fold, so the table below doesn't say it twice.
 const BLOCKED_KEYS = new Set(["Blocked", "Waiting on"])
 
-/** Why a blocked ticket is blocked: its own `blocked:` line, or the open
- *  dependency the board derived. Null when it isn't blocked or gives no
- *  reason (a legacy ticket filed under blocked). */
-function blockedReason(ticket: Ticket): string | null {
-  if (ticket.group !== "blocked") return null
-  const meta = new Map(ticket.meta)
-  const own = meta.get("Blocked")
-  if (own) return own
-  const dep = meta.get("Waiting on")
-  return dep ? `waiting on ${dep}` : null
-}
-
 /**
  * Where a ticket stands, in one line: status · priority · `n of m` · repo ·
  * client, then the reason when it is blocked. The pane sets it under the
@@ -41,8 +30,10 @@ function blockedReason(ticket: Ticket): string | null {
  * separator; the id isn't here — the title and the back label already say
  * which ticket this is, and the pick-up carries it.
  */
-export function TicketSummary({ ticket }: { ticket: Ticket }) {
-  const reason = blockedReason(ticket)
+export function TicketSummary({ ticket }: { ticket: BoardTicket }) {
+  // The estate overview's Blocked group gives the same reason, from the same
+  // rule; a ticket filed under blocked without one says nothing more.
+  const reason = ticket.group === "blocked" ? blockedReason(ticket) : null
   const segments: React.ReactNode[] = [
     <span key="status" className="inline-flex items-center gap-1.5">
       <span
