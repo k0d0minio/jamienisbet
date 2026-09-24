@@ -6,8 +6,8 @@ import { GroupedBlock, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
 
 import { AppScreen } from "@/components/app-screen"
 import { BoardRefresh } from "@/components/board-refresh"
-import { BoardFigures, TicketsBoard } from "@/components/tickets-board"
-import { readBoard } from "@/lib/tickets"
+import { TicketsBoard } from "@/components/tickets-board"
+import { readBoard, repoMaintenanceLaunchers } from "@/lib/tickets"
 
 export const metadata: Metadata = { title: "Tickets" }
 
@@ -18,9 +18,9 @@ export const metadata: Metadata = { title: "Tickets" }
 // estate on every render. See the header of that file.
 
 // The server's whole part in the board: read it once and hand it over as plain
-// data. Filtering, opening a batch and reading a ticket all happen in the
-// browser from there (components/tickets-board.tsx); this page runs again only
-// when the refresh control asks it to.
+// data. Filtering, drilling into a batch and opening a ticket, a batch or a
+// repo all happen in the browser from there (components/tickets-board.tsx);
+// this page runs again only when the refresh control asks it to.
 export default async function TicketsPage() {
   // The board is live state — a read per request, never prerendered.
   await connection()
@@ -50,19 +50,21 @@ export default async function TicketsPage() {
     )
   }
 
+  // A repo whose read failed has no tickets, so no section, and nothing built
+  // its maintenance launchers — but its view (opened from its error row) still
+  // carries them: a failed read is usually a rate limit or a token's reach, and
+  // a session can still work in the repo. Built here, where lib/tickets can be
+  // reached.
+  const sectioned = new Set(board.sections.map((s) => s.repo.fullName))
+  const unreadableMaintenance = Object.fromEntries(
+    board.errors
+      .filter((e) => !sectioned.has(e.repo.fullName))
+      .map((e) => [e.repo.fullName, repoMaintenanceLaunchers(e.repo)])
+  )
+
   return (
-    <AppScreen
-      title="Tickets"
-      masthead={
-        <BoardFigures
-          repoSlugs={board.repos.map((r) => r.slug)}
-          strip={board.strip.map((t) => ({ repo: t.repo.slug, group: t.group }))}
-          open={board.sections.map((s) => ({ repo: s.repo.slug, open: s.open }))}
-        />
-      }
-      actions={<BoardRefresh readAt={board.readAt} />}
-    >
-      <TicketsBoard board={board} />
+    <AppScreen title="Tickets" actions={<BoardRefresh readAt={board.readAt} />}>
+      <TicketsBoard board={board} unreadableMaintenance={unreadableMaintenance} />
     </AppScreen>
   )
 }
