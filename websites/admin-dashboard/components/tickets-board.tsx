@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react"
 
 import { GroupedBlock, GroupedRow, GroupedSection, cn } from "@jamie-nisbet/ui"
@@ -9,7 +9,6 @@ import { BatchLine, BatchRow } from "@/components/batch-row"
 import {
   batchKey,
   boardFigures,
-  listSections,
   repoFigures,
   resolveSelection,
   selectedRepoSlug,
@@ -212,25 +211,20 @@ function BatchList({
 
 export function TicketsBoard({
   board,
-  extraMaintenance,
+  unreadableMaintenance,
 }: {
   board: BoardData
-  /** Maintenance launchers for the repos with no section of their own in
-   *  `board.sections` — those whose only open work is a run, and those whose
-   *  read failed — keyed by full name. */
-  extraMaintenance: Record<string, MaintenanceLauncher[]>
+  /** Maintenance launchers for the repos whose read failed, which have no
+   *  section of their own in `board.sections` — keyed by full name. */
+  unreadableMaintenance: Record<string, MaintenanceLauncher[]>
 }) {
-  const { repos, counts, total, errors, rosterError, dbError } = board
+  const { repos, counts, total, errors, rosterError, dbError, sections } = board
   const params = useBoardParams()
   const { navigate, correct, back } = params
 
-  const sections = useMemo(
-    () => listSections(board, extraMaintenance),
-    [board, extraMaintenance]
-  )
   const { selection, correction } = resolveSelection(
     sections,
-    { errors, maintenance: extraMaintenance },
+    { errors, maintenance: unreadableMaintenance },
     params
   )
 

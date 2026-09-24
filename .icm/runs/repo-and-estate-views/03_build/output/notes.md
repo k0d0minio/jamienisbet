@@ -10,8 +10,9 @@
   section (D-1). `ticketsInGroup` is the one source for the Today/Blocked figures and the
   overview's Blocked rows (D-3); `repoFigures` narrows it to one repo and adds In flight;
   `blockedReason` reads the ticket's `Blocked` meta, else `Waiting on`.
-- `app/(app)/tickets/page.tsx`: `extraMaintenance` also covers errored repos without a section,
-  so their view carries triage/sweep (D-2). `lib/tickets.ts` untouched.
+- `app/(app)/tickets/page.tsx`: builds maintenance launchers for errored repos without a
+  section (D-2), passed as `unreadableMaintenance` (after #164 moved run-only sections to the
+  server, this is the page's only launcher build). `lib/tickets.ts` untouched by this run.
 - `components/board-views.tsx`: `RepoView` renders figures → "Couldn't be read" → client →
   maintenance; `EstateOverview` gains the Blocked group and makes each repo error row open that
   repo's view (the roster row stays static).

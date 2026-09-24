@@ -13,21 +13,12 @@ import type { BoardQuery } from "@/components/use-board-params"
 // The board's shape as the list reads it, and what the URL has selected in it.
 // Pure functions of the board and the query: the board component resolves the
 // selection from the URL on every render, never from a copy of it in state, so
-// the list, the pane and back/forward can't disagree.
-
-/** The In flight pseudo-batch's slug — a run's id is `runs/<slug>`, so a run
- *  resolves to it by the same prefix rule as a stub to its epic. */
-const RUNS_SLUG = "runs"
-
-/** A row on list level 0: a lib batch, or In flight — the runs that belong to
- *  no batch and used to live on the now-strip. */
-export type ListBatch = Omit<BoardBatch, "kind"> & {
-  kind: BoardBatch["kind"] | "runs"
-}
-
-export type ListSection = Omit<BoardSection, "batches"> & {
-  batches: ListBatch[]
-}
+// the list, the pane and back/forward can't disagree. The board itself
+// (`lib/tickets.ts` `readBoard()`) already carries every repo section — runs
+// included, in urgency order, maintenance built — so these are aliases, not a
+// reshaping.
+export type ListBatch = BoardBatch
+export type ListSection = BoardSection
 
 /** A repo as its view shows it. A repo whose read failed has no tickets and so
  *  no section, but it still has a view — its error in full, its client, its
@@ -63,88 +54,6 @@ export function selectedRepoSlug(selection: Selection): string | null {
   if (selection.kind === "none") return null
   if (selection.kind === "repo") return selection.focus.repo.slug
   return selection.section.repo.slug
-}
-
-/** Section order is urgency, as the server orders it (lib/tickets
- *  `sectionUrgency`): a today-pick, then something blocked, then a run in
- *  flight, then the rest — by name within each. Recomputed here only because
- *  a repo whose one open item is a run has no server section to sort. */
-function urgency(section: ListSection): number {
-  // The server ranks a repo on its batches alone — a run picked for today
-  // counts as "a run in flight" there, not as a today-pick — so In flight's
-  // own dots are left out of the rank, or the two orders would disagree.
-  const batches = section.batches.filter((b) => b.kind !== "runs")
-  if (batches.some((b) => b.todayCount > 0)) return 0
-  if (batches.some((b) => b.blockedCount > 0)) return 1
-  if (batches.length < section.batches.length) return 2
-  return 3
-}
-
-/**
- * The server's sections plus an In flight row for every repo with runs —
- * appended after Triage and Backlog, and given a section of its own where a
- * repo has nothing but runs open. `extraMaintenance` carries the maintenance
- * launchers for those run-only repos, which `readBoard()` builds only for the
- * sections it returns.
- */
-export function listSections(
-  board: BoardData,
-  extraMaintenance: Record<string, MaintenanceLauncher[]>
-): ListSection[] {
-  const runsByRepo = new Map<string, BoardTicket[]>()
-  for (const ticket of board.strip) {
-    if (ticket.kind !== "run") continue
-    const list = runsByRepo.get(ticket.repo.fullName) ?? []
-    list.push(ticket)
-    runsByRepo.set(ticket.repo.fullName, list)
-  }
-
-  const runsBatch = (runs: BoardTicket[]): ListBatch => {
-    const repo = runs[0].repo
-    return {
-      slug: RUNS_SLUG,
-      kind: "runs",
-      title: "In flight",
-      htmlUrl: `https://github.com/${repo.fullName}/tree/HEAD/.icm/runs`,
-      planned: null,
-      done: 0,
-      tickets: [...runs].sort((a, b) => a.id.localeCompare(b.id)),
-      next: null,
-      recut: null,
-      // A run can be picked for today (today.md names `runs/<slug>`), and the
-      // row carries that dot the way an epic's row does.
-      todayCount: runs.filter((t) => t.group === "today").length,
-      blockedCount: runs.filter((t) => t.group === "blocked").length,
-      p0Count: 0,
-    }
-  }
-
-  const sections: ListSection[] = board.sections.map((section) => {
-    const runs = runsByRepo.get(section.repo.fullName)
-    runsByRepo.delete(section.repo.fullName)
-    return {
-      ...section,
-      batches: runs ? [...section.batches, runsBatch(runs)] : section.batches,
-    }
-  })
-  for (const [fullName, runs] of runsByRepo) {
-    sections.push({
-      repo: runs[0].repo,
-      batches: [runsBatch(runs)],
-      open: 0,
-      maintenance: extraMaintenance[fullName] ?? [],
-    })
-  }
-
-  return sections
-    .map((section, index) => ({ section, index }))
-    .sort(
-      (a, b) =>
-        urgency(a.section) - urgency(b.section) ||
-        a.section.repo.slug.localeCompare(b.section.repo.slug) ||
-        a.index - b.index
-    )
-    .map(({ section }) => section)
 }
 
 /** `<repo>/<rest>` → its two halves; null when it isn't that shape. */
@@ -268,8 +177,8 @@ export function boardFigures(board: BoardData, repoSlug: string | null): Figure[
     },
     {
       key: "open",
-      // Runs in flight sit in no batch, so this is the backlog: what is
-      // still waiting to be picked up.
+      // A run in flight is already picked up, so `open` excludes it — this is
+      // the backlog: what is still waiting to be picked up.
       value: inView(board.sections, repoSlug).reduce((total, s) => total + s.open, 0),
       label: "Open",
     },
