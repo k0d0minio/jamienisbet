@@ -6,18 +6,13 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator smokes the `jamie-nisbet` preview of PR #161 on a phone (375 px), light and dark:
-   a blocked ticket, a ticket with depends-on, a long ticket with a table and a code block, the
-   Prompt fold.
-2. Operator ticks **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/161, then
-   runs `/pipeline release ticket-view`.
+1. Merged and archived; nothing to pick up. The epic's next stubs (`epic-view`,
+   `repo-and-estate-views`, `keyboard-nav`) start with `new`.
 
 ## Blockers
 
-- blocked on operator: smoke the preview and tick **Ready to merge** on PR #161.
+- none
 
 ## Do not
 
-- Do not tick any gate box.
-- Do not touch the epic / repo / overview views or keyboard nav — later stubs of this epic.
-- Do not subscribe to PR activity (`_shared/github.md` → PR events).
+- Do not reopen or re-run this run.

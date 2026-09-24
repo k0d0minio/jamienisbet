@@ -417,7 +417,10 @@ under a "‹ repo" back row — and tapping a repo's header opens the repo. From
 the title bar with its own scroll, and shows the selected **ticket**, **batch** (Copy next,
 Recut, GitHub), **repo** (its client, its maintenance launchers) or, with nothing selected, the
 **estate overview** — the Today / Blocked / Open figures, read errors, the estate check and the
-board's footnote. Below `lg` a selection is a full-screen pushed view with a back bar and an edge
+board's footnote. A ticket reads phone-first: its title and one summary line (status · priority ·
+`n of m` · repo · client, and why it is blocked), then **Copy** with its recommendation and
+**Open on GitHub**, its header fields — a `depends-on` slug still on the board selects that
+ticket — and the body, its `## Prompt` section folded. Below `lg` a selection is a full-screen pushed view with a back bar and an edge
 swipe; the overview is the foot of level 0, and a batch's view is pushed from the summary row
 atop its tickets. Every selection is URL state — `?t=<repo>/<ticket id>`, `?b=<repo>/<batch>`
 (`runs` for In flight; `&pane=1` pushes its view on a phone) or `?r=<repo>`, one at a time,

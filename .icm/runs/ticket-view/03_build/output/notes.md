@@ -50,3 +50,14 @@
 - The PR body's acceptance-criteria ticks were not applied by Build: the session's permission
   layer denied the PR-body edit. The tick state is this file's list above; the operator ticks
   the seven met criteria on the PR (the 375 px one after the smoke).
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head after the last push (ci-status.sh, full gate; re-read after the close-out push)
+- reviews: code medium (/code-review — no finding in this branch's diff; one pre-existing finding in template-owned `.claude/hooks/vercel-env-hydrate.sh` → `env.sh pull`, parked) · security security-check.sh --branch --audit: OK · /security-review n/a — no auth, payments, PII or route policy touched · /production-readiness n/a — no DB, auth, payments or env vars · readiness env.sh audit --changed: OK
+- parked: triage/template-change-env-pull-unlinked.md
+- migrations: skip — none of this run's own
+- learned: skip — no error.log
+- docs: websites/admin-dashboard/README.md (Tickets → Master–detail: the ticket view's order) · announce: public
+- Context budget: read `.icm/_shared/template-change.md` and the env hook / `env.sh pull` to write the parked template change request.
