@@ -47,8 +47,11 @@ reality disagrees with it — never left describing a plan that was abandoned.
    `suppressHydrationWarning`-free deterministic formatting — the formatter is
    timezone-pinned, so SSR and client agree) beside the refresh button, in the bar's
    material label colour, small. Silent re-read: a `visibilitychange` listener records
-   `hiddenAt`; on visible with `now - hiddenAt ≥ 5 min`, `startTransition(() =>
-   router.refresh())` (no `updateTag`). `router.refresh()` inside a transition keeps client
+   `hiddenAt`; on visible with `now - hiddenAt ≥ 5 min`, a new server action
+   `refreshBoardPosition()` (`updateTag(BOARD_POSITION_TAG)`), then `startTransition(() =>
+   router.refresh())`. In `lib/tickets.ts`, the fetch helper adds `BOARD_POSITION_TAG` to
+   the tags of reads on the `REVALIDATE_SECONDS` (position) clock only — every read keeps
+   `BOARD_CACHE_TAG`, so the manual refresh still busts all three (D-3). `router.refresh()` inside a transition keeps client
    state and does not fall back to `loading.tsx`; verify. If a sheet/peek's ticket vanishes
    after new props land, close it (derive open state from "id still present"). — done when:
    the refresh ACs in the spec hold on the preview.

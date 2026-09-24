@@ -8,9 +8,10 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — no scope.md for this epic; the breakdown's decisions 4 and 7 are the source (`.icm/intake/tickets-master-detail/breakdown.md`).
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-1 — Selection: the URL-state hook reads/writes `repo` and `t`; only `repo` is wired to UI this run (stub 2 wires `t`). Operator, Define.
+- D-2 — "As of HH:MM" is the server `listBoard()` return time, Europe/Lisbon. Operator, Define.
+- D-3 — The silent on-return re-read busts only the position reads (a second cache tag on the repo-tree calls); the manual refresh still busts everything. Operator, Build → spec revised (spec gap: stale-while-revalidate made the un-busted re-read a no-op).

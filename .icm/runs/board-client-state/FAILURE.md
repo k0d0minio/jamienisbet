@@ -13,12 +13,18 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-24 — Define specced a silent re-read that could never see fresh data
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: the approved spec said the on-return re-read "does not bust the tag — it
+  takes whatever the normal cache clocks give". At Build that turned out to make the re-read
+  a no-op: Next's fetch cache answers an expired `revalidate` entry with the stale value and
+  refreshes it in the background, so after ≥5 minutes away the first read re-shows the old
+  board while the "as of" stamp claims a fresh time. Build STOPped before the first edit.
+- why: Define reasoned about the cache clocks as "at most a minute behind" without checking
+  what a read past the window returns (stale-while-revalidate, not a blocking re-fetch).
+- fixed by: `revise` at Build — the position (repo-tree) reads get a second cache tag and the
+  silent re-read busts only that tag (operator's choice, 2026-09-24); Spec approved re-opened.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- A time-revalidated fetch in the admin dashboard is stale-while-revalidate: the first read past its window returns the old value, so any "refresh" or freshness claim must bust a tag (`updateTag`) rather than rely on the clock having lapsed.

@@ -46,16 +46,22 @@ master–detail redesign (stub 2) a proven client-side data layer to sit on.
   (`visibilitychange`) after ≥5 minutes hidden, the board re-reads silently in the
   background — the current board stays on screen, the new data swaps in when it lands, the
   repo filter and any open sheet/expanded ticket are kept (a sheet or ticket whose ticket no
-  longer exists closes). A silent re-read does not bust the tag — it takes whatever the
-  normal cache clocks give. Neither a manual nor a silent refresh ever shows `loading.tsx`;
+  longer exists closes). The silent re-read busts **only the position reads** — the
+  one-minute repo-tree calls, given a second cache tag of their own in `lib/tickets.ts` — so
+  it costs one tree call per repo with an intake (the minute clock's own cost) and fetches
+  only the ticket bodies whose blob SHA changed. Discovery (hourly) and content (by SHA)
+  stay cached; only the manual refresh busts everything. (Busting nothing would not work:
+  Next's fetch cache answers an expired entry with the stale value and refreshes it in the
+  background, so an un-busted re-read after ≥5 minutes away would re-show the board you
+  left.) Neither a manual nor a silent refresh ever shows `loading.tsx`;
   it remains for the first load only. Whether the re-read is `router.refresh()` or a server
   action returning the board is Build's call — the constraint is: state kept, no skeleton,
   no layout jump.
 - **"As of HH:MM".** Small, beside the refresh control: the time the server's `listBoard()`
   returned for the board currently on screen, formatted `HH:MM` in `Europe/Lisbon`. It
-  updates whenever a manual or silent refresh lands. (Within the one-minute position cache
-  it can trail the true fetch by up to a minute; after a manual refresh, which busts the
-  cache, it is exact.)
+  updates whenever a manual or silent refresh lands. (On a first load it can trail the true
+  fetch by up to the one-minute position clock; after a manual or silent refresh, both of
+  which bust the position reads, it is exact.)
 - **Layout unchanged.** Chip rail, now-strip, repo sections, batch sheets, peeks, swipes,
   maintenance rows and the footnote look and behave as they do today — stub 2 redesigns
   them.
@@ -85,12 +91,15 @@ launcher URL shapes.
 - [ ] The refresh button still busts the cache and re-reads; the board stays on screen during
       it (no skeleton), and the filter and any open sheet are kept.
 - [ ] Returning to the tab after ≥5 minutes hidden re-reads the board in the background without
-      a skeleton or layout jump, keeping the filter and open sheet; returning after <5 minutes
-      triggers no re-read.
+      a skeleton or layout jump, keeping the filter and open sheet, and shows what landed on the
+      repos' default branches while away; returning after <5 minutes triggers no re-read.
+- [ ] The silent re-read busts only the position (repo-tree) reads: discovery and blob reads
+      stay cached, and the manual refresh still busts all three.
 - [ ] If a silent or manual refresh removes a ticket whose sheet/peek is open, that view closes
       rather than showing stale content; nothing else changes.
-- [ ] `lib/tickets.ts` still opts every GitHub read into `force-cache`, keeps its concurrency
-      cap, and no route reading the board exports `dynamic = "force-dynamic"`.
+- [ ] `lib/tickets.ts` still opts every GitHub read into `force-cache`, keeps its three clocks
+      and its concurrency cap, and no route reading the board exports
+      `dynamic = "force-dynamic"`.
 - [ ] The first visit to `/tickets` still shows `loading.tsx` while the board is read.
 - [ ] The board looks the same as before on phone and desktop (Vercel preview check).
 - [ ] CI green: Typecheck + lint and Build admin-dashboard.
@@ -104,11 +113,12 @@ launcher URL shapes.
 - Keyboard navigation (stub 6).
 - Search, status or priority facets — the filter is repo only (breakdown decision 4).
 - Any change to cache clocks, discovery, or the parsing in `lib/tickets.ts` beyond exposing
-  the read time.
+  the read time and adding the position reads' second cache tag.
 
 ## Open questions
 
 - none — selection wiring (hook only, `?t=` not wired to UI) and the as-of source (server
-  read time) settled with the operator in Define, 2026-09-24.
+  read time) settled with the operator in Define, 2026-09-24; the silent re-read busting the
+  position reads only settled with the operator at Build, 2026-09-24 (revision).
 
 Context budget: Define read app/(app)/tickets/*, board-refresh.tsx, markdown.tsx and parts of lib/tickets.ts beyond targeted greps, to pin which pieces are server-only.
