@@ -1,7 +1,7 @@
 # Build notes: board-client-state
 
 - commits: b8a6fb4 feat: board-client-state — read the Tickets board once, filter and refresh on the client
-- ci: pending (first read below)
+- ci: GREEN on e90bae9 (cheap tier, draft); full gate after the ready flip below
 
 ## What changed
 
