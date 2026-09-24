@@ -68,8 +68,16 @@ export function BoardRefresh({
       hiddenAt = null
       if (away < RETURN_AFTER_MS) return
       startQuietTransition(async () => {
-        await refreshBoardPosition()
-        router.refresh()
+        // Unasked-for, so it fails quietly: a phone back from a pocket may
+        // not have its network yet, and an error thrown here would reach the
+        // route's error boundary and replace the board you came back to. The
+        // board and its "as of" stay put; the button is one tap away.
+        try {
+          await refreshBoardPosition()
+          router.refresh()
+        } catch {
+          // Nothing to do — see above.
+        }
       })
     }
 
