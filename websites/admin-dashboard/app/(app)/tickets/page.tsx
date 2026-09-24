@@ -4,7 +4,6 @@ import Link from "next/link"
 import { Activity, GitBranch, TriangleAlert } from "lucide-react"
 
 import {
-  Badge,
   GlanceFigure,
   GlanceRow,
   GroupedBlock,
@@ -58,8 +57,7 @@ export const metadata: Metadata = { title: "Tickets" }
 const BOARD_FOOTNOTE = (
   <>
     Each repo&apos;s <span className="font-mono">.icm/intake/</span>, read from
-    its ticket base branch — the UAT branch where the repo declares one, badged
-    on its header, else main. A ticket changes by editing its file in the repo, not here — and every
+    its default branch. A ticket changes by editing its file in the repo, not here — and every
     launcher on this board hands you a prompt to send yourself.
   </>
 )
@@ -76,18 +74,6 @@ function RepoSectionView({ section }: { section: RepoSection }) {
           <span className="truncate font-mono font-medium text-app-label-2">
             {repo.slug}
           </span>
-          {/* Which branch these tickets were read from, when it isn't the
-              default one — a UAT repo's ticket base branch (D38). A branch
-              name is a machine identifier, so it sets in mono. */}
-          {repo.ticketRef ? (
-            <Badge
-              variant="outline"
-              className="shrink-0 self-center rounded-full px-2 font-mono"
-              title={`Read from the ${repo.ticketRef} branch`}
-            >
-              {repo.ticketRef}
-            </Badge>
-          ) : null}
           {repo.clientId ? (
             <Link
               href={`/leads/${repo.clientId}`}
@@ -253,14 +239,6 @@ export default async function TicketsPage({
   const countFor = (slug?: string): number =>
     slug ? tickets.filter((t) => t.repo.slug === slug).length : tickets.length
 
-  // A `fallback` entry isn't a repo the board couldn't read — its tickets are
-  // right below it, read from the default branch instead of the declared
-  // ticket base branch. Splitting it out of "Couldn't be read" is the point of
-  // this: that heading and its destructive row styling mean the repo itself is
-  // unreadable, which this repo isn't.
-  const unreadableErrors = errors.filter((e) => !e.fallback)
-  const fallbackNotices = errors.filter((e) => e.fallback)
-
   // The roster is every owner repo; only repos with something on the board get
   // a chip, so the rail doesn't drown in empty client stubs.
   const chipRepos = repos.filter((repo) => countFor(repo.slug) > 0)
@@ -349,7 +327,7 @@ export default async function TicketsPage({
                   broken repos. Under it, each repo that couldn't be reached is
                   named with what GitHub said, and the rest of the board
                   stands. */}
-              {rosterError || unreadableErrors.length > 0 ? (
+              {rosterError || errors.length > 0 ? (
                 <GroupedSection header="Couldn't be read">
                   {rosterError ? (
                     <>
@@ -366,7 +344,7 @@ export default async function TicketsPage({
                       </GroupedBlock>
                     </>
                   ) : null}
-                  {unreadableErrors.map((error) => (
+                  {errors.map((error) => (
                     <Fragment key={error.repo.fullName}>
                       <GroupedRow
                         icon={<TriangleAlert />}
@@ -380,26 +358,6 @@ export default async function TicketsPage({
                           truncated on a phone, and half an error message is
                           worse than none. */}
                       <GroupedBlock>{error.message}</GroupedBlock>
-                    </Fragment>
-                  ))}
-                </GroupedSection>
-              ) : null}
-
-              {/* A caveat, not an error: the repo's tickets are read below,
-                  just from its default branch rather than the ticket base
-                  branch it declares — quiet enough not to read as broken. */}
-              {fallbackNotices.length > 0 ? (
-                <GroupedSection header="Reading from the default branch">
-                  {fallbackNotices.map((notice) => (
-                    <Fragment key={notice.repo.fullName}>
-                      <GroupedRow
-                        icon={<GitBranch />}
-                        label={
-                          <span className="font-mono">{notice.repo.slug}</span>
-                        }
-                        chevron={false}
-                      />
-                      <GroupedBlock>{notice.message}</GroupedBlock>
                     </Fragment>
                   ))}
                 </GroupedSection>
