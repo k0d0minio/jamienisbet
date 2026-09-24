@@ -13,12 +13,15 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-24 — Release's code review read a diff against a stale local `main`
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: `/code-review` reported a finding in `.claude/hooks/vercel-env-hydrate.sh`, a
+  file this branch never touched; the review's diff included commits already on `origin/main`.
+- why: the cloud checkout's local `main` ref sat at 58424b0 while `origin/main` was at ecf46d0 —
+  nothing in the session had fetched or fast-forwarded it, and the review diffed against it.
+- fixed by: re-reading `git diff origin/main...HEAD` to scope the branch; the off-branch finding
+  was verified and parked as `triage/template-change-env-pull-unlinked.md`.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- In a cloud session, scope every branch diff and review against `origin/main` after a fetch, never the local `main` ref, which is not kept current.

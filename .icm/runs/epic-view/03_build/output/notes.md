@@ -63,3 +63,21 @@
 Context budget: Build read the shell's archived `FAILURE.md` to recover the two truncated learned
 rules, and `packages/ui`'s `grouped-list.tsx` to fit the Copy next row to `GroupedRow`'s
 accessory slot.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 395338d before the reviews (full gate); re-read after the last push (see the stop
+  report)
+- reviews: code medium — no finding in this branch's diff (URL state, history back, launcher
+  data, breakdown and blob reads checked); one finding outside it, in `.claude/hooks/
+  vercel-env-hydrate.sh` already on `main` (the review diffed a stale local `main` — FAILURE.md),
+  verified and parked · security security-check.sh --branch --audit: OK · /security-review n/a
+  (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth,
+  payments or env var touched) · readiness env.sh audit --changed: OK
+- parked: template-change-env-pull-unlinked.md (Release), template-change-sync-rules-multiline.md
+  (Build)
+- migrations: skip — none of this run's own
+- learned: 1 rule from FAILURE.md, appended by close-out.sh (retrospective.sh: skip — no error.log)
+- docs: websites/admin-dashboard/README.md § Tickets (master–detail paragraph: the epic view,
+  phone level 1, `pane` retired; read-once paragraph: breakdowns) · announce: internal
