@@ -85,6 +85,7 @@ export function listSections(
       slug: RUNS_SLUG,
       kind: "runs",
       title: "In flight",
+      breakdown: null,
       htmlUrl: `https://github.com/${repo.fullName}/tree/HEAD/.icm/runs`,
       planned: null,
       done: 0,

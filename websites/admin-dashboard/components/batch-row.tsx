@@ -51,9 +51,9 @@ function batchFigure(batch: ListBatch): string {
   return `${open} open`
 }
 
-/** The name, the figure and the arc — the scan line a batch reads as, on the
- *  list and again atop its own stubs on a phone. */
-export function BatchLine({ batch }: { batch: ListBatch }) {
+/** The name, the figure and the arc — the scan line a batch reads as on the
+ *  list. */
+function BatchLine({ batch }: { batch: ListBatch }) {
   return (
     <>
       <span className="flex w-full items-center gap-2">

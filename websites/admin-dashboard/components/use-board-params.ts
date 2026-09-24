@@ -15,10 +15,11 @@ import { useCallback } from "react"
 // - `repo` — the chip rail's filter.
 // - the selection, exactly one of `t` (a ticket, `<repo>/<ticket id>`), `b` (a
 //   batch — an epic, triage, backlog or `runs` for In flight, `<repo>/<slug>`)
-//   or `r` (a repo). Setting one clears the other two. `pane=1` rides with a
-//   batch on a phone only: the batch's list is level 1 of the list, and the
-//   epic view is pushed over it only when its summary row is tapped. On a
-//   desktop the pane always shows it, and the flag means nothing.
+//   or `r` (a repo). Setting one clears the other two. A batch is level 1 of
+//   the list on a phone and the pane's view on a desktop — one key for both.
+//   `pane`, the flag that once pushed a batch's view over its level 1 on a
+//   phone, is retired: an old link still carrying it is corrected, and any
+//   new selection clears it with the rest.
 //
 // Every entry the board pushes remembers the query it was pushed from, so a
 // back affordance can tell "the previous entry is exactly where I'm going" —
@@ -31,10 +32,11 @@ export type BoardQuery = {
   t?: string | null
   b?: string | null
   r?: string | null
-  pane?: string | null
+  /** Retired — only ever cleared. */
+  pane?: null
 }
 
-const SELECTION_KEYS = ["t", "b", "r", "pane"] as const
+const SELECTION_KEYS = ["t", "b", "r"] as const
 
 /** The history-state key holding the query an entry was pushed from. */
 const PREV_KEY = "jnBoardPrev"
@@ -52,7 +54,12 @@ function canonical(search: string): string {
 function queryFor(next: BoardQuery): string {
   const params = new URLSearchParams(window.location.search)
   const touchesSelection = SELECTION_KEYS.some((key) => key in next)
-  if (touchesSelection) for (const key of SELECTION_KEYS) params.delete(key)
+  if (touchesSelection) {
+    for (const key of SELECTION_KEYS) params.delete(key)
+    // The retired `pane` flag goes with any new selection, but clearing it
+    // alone (`{ pane: null }`) leaves the selection where it is.
+    params.delete("pane")
+  }
   for (const [key, value] of Object.entries(next)) {
     if (value) params.set(key, value)
     else params.delete(key)
@@ -116,7 +123,8 @@ export function useBoardParams() {
     ticket: params.get("t"),
     batch: params.get("b"),
     repoSelection: params.get("r"),
-    pane: params.get("pane") === "1",
+    /** The URL still carries the retired `pane` flag. */
+    stalePane: params.has("pane"),
     navigate,
     correct,
     back,
