@@ -1,7 +1,7 @@
 # Build notes: master-detail-shell
 
 - commits: b2733cc feat: master-detail-shell — the Tickets board as a list that drills and a pane that swaps
-- ci: pending — see status.md
+- ci: GREEN (draft tier) on 982fdf3; full gate — see status.md
 
 ## What changed
 
