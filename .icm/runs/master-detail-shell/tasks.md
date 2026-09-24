@@ -30,4 +30,10 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Selection model + URL keys — `components/use-board-params.ts`, `components/board-model.ts` (b2733cc)
+- [x] The shell — `components/board-pane.tsx` (pane from `lg`, pushed view below it) (b2733cc)
+- [x] The drill list — `components/tickets-board.tsx`, `batch-row.tsx`, `board-ticket-row.tsx` (b2733cc)
+- [x] Pane views — `components/board-views.tsx`, `repo-maintenance.tsx` inline (b2733cc)
+- [x] Retire + home + skeleton — `ticket-peek.tsx` deleted, `app/(app)/page.tsx`, `tickets/loading.tsx` (b2733cc)
+- [ ] Draft-tier CI green, then flip ready and settle the full gate
+- [ ] Preview walk (operator smoke): phone + desktop, light + dark, cold deep links

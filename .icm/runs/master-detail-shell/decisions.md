@@ -24,3 +24,13 @@ decision made mid-run has one home.
 - D-4 — Until stubs 3–5 land, the epic / repo / overview slots carry today's content as is
   (Copy next / Recut / GitHub; client link + maintenance launchers; figures, read errors,
   Estate check, footnote) so nothing reachable today is lost. Define, 2026-09-24.
+- D-5 — A batch's epic view is pushed on a phone by `?b=<repo>/<batch>&pane=1`; `pane` is
+  ignored from `lg`, where the pane always shows the selected batch. The spec made the phone
+  summary row push the view but gave that pushed state no URL; a flag keeps it deep-linkable
+  and on the history stack without a fourth selection key. Build, 2026-09-24 — a spec gap,
+  noted for Release.
+- D-6 — A repo whose only open work is a run has no server section, so the client adds one
+  (In flight row only) and `tickets/page.tsx` builds its maintenance launchers with
+  `repoMaintenanceLaunchers` — `lib/tickets.ts` stays untouched. Section order is recomputed
+  client-side with the server's own urgency key, which reproduces the server order and slots
+  run-only repos in. Build, 2026-09-24.
