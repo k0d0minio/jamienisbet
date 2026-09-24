@@ -27,8 +27,8 @@ import { CopyLaunchRow } from "@/components/launch-menu"
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
 import type { BatchKind, LaunchSet } from "@/lib/tickets"
 
-// A batch's serializable summary — lib/tickets' Batch minus the Ticket objects
-// (those render server-side and arrive as children).
+// A batch's summary — lib/tickets' Batch minus the Ticket objects (the board
+// renders those as the sheet's rows and passes them in as children).
 export type BatchSummary = {
   slug: string
   kind: BatchKind
@@ -72,8 +72,7 @@ function CountDot({
 // (from the stubs' `N of M` lines), what's next — and the board's gestures.
 // Tap opens the batch's sheet with every stub in sequence; swipe right starts
 // copies the next stub's pick-up in one stroke; swipe left reveals copy-next /
-// GitHub / the client. The sheet's rows are server-rendered and passed through
-// as children.
+// GitHub / the client. The sheet's rows are passed through as children.
 //
 // It used to be a bordered card in a two-up grid, which gave the board a
 // different structure from every other screen in the app. It is a row in an

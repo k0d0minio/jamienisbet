@@ -1,14 +1,24 @@
+"use client"
+
+import dynamic from "next/dynamic"
 import Link from "next/link"
 
 import { CopySplitButton } from "@/components/launch-menu"
-import { Markdown } from "@/components/markdown"
 import { primaryLaunch, type Launch } from "@/lib/launchers"
 import type { Ticket } from "@/lib/tickets"
 
+// The renderer arrives with the first ticket opened, not with the board: most
+// visits read a handful of tickets or none, and react-markdown is the heaviest
+// thing a ticket needs.
+const Markdown = dynamic(() =>
+  import("@/components/markdown").then((m) => m.Markdown)
+)
+
 // One ticket, opened for reading: the actions that matter, the metadata, then
-// the ticket rendered as it was written in the repo. Server-rendered and
-// passed into the client shells (a batch sheet's expanded row, a now-strip
-// peek) as children, so react-markdown stays out of the client bundle.
+// the ticket rendered as it was written in the repo. Rendered in the browser,
+// and only once a ticket is actually opened (a batch sheet's expanded row, a
+// now-strip peek) — the board ships each body as its raw markdown, so a
+// ticket nobody opens costs its text and nothing more.
 //
 // Deliberately not a grouped list, though it sits in one: it is already inside
 // a group's row or a sheet, and a slab nested in a slab reads as neither. What

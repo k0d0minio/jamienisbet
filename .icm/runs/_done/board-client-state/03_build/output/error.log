@@ -1,0 +1,4 @@
+## 2026-09-24T15:55:00Z session — ci-status.sh settled GREEN on the pre-push head
+PR #157 (open, merged: false, draft: false) — head e90bae9 — settling the full gate (ready)
+RESULT: GREEN   (local HEAD and origin were c30d339, the post-flip push)
+- resolved: re-ran `ci-status.sh` once the PR head read c30d339; it settled GREEN on the full gate there. After a push, check the head the script names matches `git rev-parse --short HEAD` before trusting its verdict. Template change parked: `.icm/intake/triage/template-change-ci-status-stale-head.md`.

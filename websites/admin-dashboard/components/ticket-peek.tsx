@@ -16,8 +16,8 @@ import type { Ticket } from "@/lib/tickets"
 
 // One line on the now-strip: a today-pick, a run in flight, or a blocked stub,
 // estate-wide. Tap peeks at the full ticket in a sheet — the strip answers
-// "what's moving", the sheet answers "what exactly". The sheet body is the
-// server-rendered TicketDetail, passed as children.
+// "what's moving", the sheet answers "what exactly". The sheet body is
+// TicketDetail, passed as children and rendered only while the sheet is open.
 //
 // It used to be a 176px card in a rail that scrolled sideways, which meant the
 // strip could only ever show three at a time and every title truncated at four

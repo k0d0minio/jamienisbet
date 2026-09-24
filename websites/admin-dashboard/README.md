@@ -413,6 +413,21 @@ repo roster comes from the database plus every repo the token owns or collaborat
 ticket links back to its client. A connected repo the token can't see is named on the board
 with the reason, never dropped in silence.
 
+**Read once, used locally.** `/tickets` reads the board once per visit (`readBoard()` in
+[`lib/tickets.ts`](lib/tickets.ts)) and hands it to a client root
+([`components/tickets-board.tsx`](components/tickets-board.tsx)) as plain data: ticket bodies as
+raw markdown, rendered only when a ticket is opened, and every launcher already built. The repo
+chips filter in memory and write `?repo=` with `history.pushState`
+([`components/use-board-params.ts`](components/use-board-params.ts)), so a tap is instant,
+back/forward step through filters, and `/tickets?repo=<slug>` still deep-links. New data arrives
+two ways, both swapped in under whatever is open without the loading skeleton: the **refresh
+button** busts every board read (`refreshBoard`), and coming back to the app after **five minutes
+or more** away re-reads quietly, busting only the position reads — the repo trees and
+`today.md`, which carry a second tag, `BOARD_POSITION_TAG` — so the estate's shape and every
+unchanged ticket body stay cached. It has to bust something: a read past its revalidate window is
+answered stale while it refreshes in the background. Beside the button, **"as of HH:MM"**
+(Europe/Lisbon) is when the board on screen was read.
+
 **Which branch a repo is read from.** `main` (icm-board decision D39 §8) — a repo's ticket state
 has one home, in icm-board and every client repo alike, and every read, link, and group header
 follows it. No per-repo probe, no badge, no fallback caveat.
@@ -710,8 +725,12 @@ components/             # login form, nav, service-worker register, lead + money
                         #                on the server, two-tap logging and the cadence's
                         #                prefilled next step in a client sheet over it
                         #   lead-intake.tsx — how they came in, folded shut until asked for
+                        #   tickets-board.tsx — the Tickets board's client root: read once,
+                        #                filtered locally (use-board-params.ts owns its URL)
                         #   batch-row.tsx / board-ticket-row.tsx / ticket-detail.tsx
                         #                — the Tickets board, batch-first
+                        #   board-refresh.tsx — the board's refresh button, "as of" stamp and
+                        #                quiet re-read on return
                         #   pull-to-refresh.tsx — pull down from the top to re-read everything
                         #   client-create-form.tsx — add a lead or a customer by hand
                         #   deal-badges.tsx — barter / equity / commission / started, on the row

@@ -119,3 +119,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When a criterion needs an operator's hand test, ask for the result in the criterion's exact shape (e.g. one line per surface × parameter), not a free-form reply. (`FAILURE.md` — model-effort-preselect)
 <!-- Retrospective Learned Rule [2026-09-23] -->
 - A launch target (or any custom URL scheme) is added `parked` until the operator has tapped its link from the board itself — browser tab and installed PWA — and reported that it opened; a documented link shape is not proof it works. (`FAILURE.md` — launcher-dropdown)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- A time-revalidated fetch in the admin dashboard is stale-while-revalidate: the first read past its window returns the old value, so any "refresh" or freshness claim must bust a tag (`updateTag`) rather than rely on the clock having lapsed. (`FAILURE.md` — board-client-state)

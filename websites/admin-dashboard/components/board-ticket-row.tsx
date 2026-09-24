@@ -21,9 +21,9 @@ export async function copyPrompt(prompt: string) {
 // One stub inside an open batch sheet: a scan line (sequence, status dot,
 // title, priority) that expands in place to the full ticket, wearing the same
 // gestures as the rest of the board — swipe right to copy what it sends,
-// swipe left for copy-prompt and GitHub. The expanded content is the
-// server-rendered TicketDetail, passed through as children; its buttons are
-// the same actions for the mouse the swipes are for the thumb.
+// swipe left for copy-prompt and GitHub. The expanded content is TicketDetail,
+// passed through as children and rendered only while the row is open; its
+// buttons are the same actions for the mouse the swipes are for the thumb.
 //
 // A row in the sheet's group rather than a bordered card of its own: no radius,
 // no border, the group's slab owning the corners and clipping the tray to them.

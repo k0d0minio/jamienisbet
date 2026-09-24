@@ -5,7 +5,8 @@ import remarkGfm from "remark-gfm"
 // interface, but syntax is not the *reading* surface — on a phone, `## Prompt`
 // and `- [ ] step` are noise between you and the work. The `.prose` layer in
 // globals.css brands every element with the design-system tokens, sized down
-// for the dashboard's denser type scale. Pure render, no client JS.
+// for the dashboard's denser type scale. Loaded on demand by TicketDetail, in
+// the browser, when a ticket is opened.
 export function Markdown({ children }: { children: string }) {
   return (
     <div className="prose">
