@@ -1,3 +1,4 @@
 ## 2026-09-24T16:52:34Z ci Typecheck + lint, Build admin-dashboard, Build portfolio, Build sellers-site — every job fails before any step
 run 36030278928 (head fb8345c), attempts 1 and 2: each job completed in ~2s, runner_id 0, job logs HTTP 404.
 Same on main (run 36029764782, attempt 2) and PRs #162, #165 — not this branch's code.
+- resolved: GitHub Actions recovered by 16:54Z; the release resumed on a fresh head and CI settled on it — a job that dies in ~2s with no runner and 404 logs across every branch is an Actions outage, not the branch.
