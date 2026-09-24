@@ -17,11 +17,12 @@ export async function copyPrompt(prompt: string) {
   }
 }
 
-/** A run's stage, short: "build next", "lane" — what its row says in the
- *  column a stub's priority takes. */
-function runStage(ticket: Ticket): string | null {
-  const stage = ticket.meta.find(([key]) => key === "Stage")?.[1] ?? null
-  return stage ? stage.replace(/\s*\(.*\)$/, "") : null
+/** A run's stage, short: what its row says in the column a stub's priority
+ *  takes. */
+const RUN_STAGE_LABEL: Record<NonNullable<Ticket["runStage"]>, string> = {
+  build: "build next",
+  release: "release next",
+  lane: "lane",
 }
 
 // One ticket on list level 1 — a stub in its batch, or a run in flight: a scan
@@ -50,7 +51,12 @@ export function BoardTicketRow({
   // carries the router, the prompt body otherwise (D26). Bound to a const so
   // the narrowing survives into the tray's closure.
   const prompt = ticket.pickup
-  const trailing = ticket.kind === "run" ? runStage(ticket) : ticket.priority
+  const trailing =
+    ticket.kind === "run"
+      ? ticket.runStage
+        ? RUN_STAGE_LABEL[ticket.runStage]
+        : null
+      : ticket.priority
 
   const icon = "size-6" // tray icons read at a glance mid-swipe
 

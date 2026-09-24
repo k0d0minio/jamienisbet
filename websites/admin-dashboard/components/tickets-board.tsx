@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react"
 
 import { GroupedBlock, GroupedRow, GroupedSection, cn } from "@jamie-nisbet/ui"
@@ -9,7 +9,6 @@ import { BatchLine, BatchRow } from "@/components/batch-row"
 import {
   batchKey,
   boardFigures,
-  listSections,
   resolveSelection,
   ticketKey,
   type ListBatch,
@@ -28,7 +27,7 @@ import { Chip } from "@/components/chip"
 import { ACTIVE_ROW } from "@/components/ticket-look"
 import { TicketSummary } from "@/components/ticket-detail"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
-import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
+import type { BoardData } from "@/lib/tickets"
 
 // The estate's work backlog as a master–detail view: a list that drills and a
 // pane that swaps.
@@ -208,23 +207,11 @@ function BatchList({
 
 // ---------------------------------------------------------------------------
 
-export function TicketsBoard({
-  board,
-  extraMaintenance,
-}: {
-  board: BoardData
-  /** Maintenance launchers for the repos whose only open work is a run, which
-   *  have no section of their own in `board.sections`. */
-  extraMaintenance: Record<string, MaintenanceLauncher[]>
-}) {
-  const { repos, counts, total, errors, rosterError, dbError } = board
+export function TicketsBoard({ board }: { board: BoardData }) {
+  const { repos, counts, total, errors, rosterError, dbError, sections } = board
   const params = useBoardParams()
   const { navigate, correct, back } = params
 
-  const sections = useMemo(
-    () => listSections(board, extraMaintenance),
-    [board, extraMaintenance]
-  )
   const { selection, correction } = resolveSelection(sections, params)
 
   // The filter as the URL states it, if it names a repo on the roster —
