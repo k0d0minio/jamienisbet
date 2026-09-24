@@ -82,7 +82,15 @@ export function useBoardKeys(
     function onKeyDown(event: KeyboardEvent) {
       if (!desktop.matches) return
       if (event.defaultPrevented || event.isComposing) return
-      if (event.ctrlKey || event.metaKey || event.altKey) return
+      // AltGr (reported as Ctrl+Alt on Windows) and macOS Option are how
+      // some layouts (Portuguese, German, Spanish among them) type `[`,
+      // `]` and `?` themselves — event.key is already the character, so
+      // letting those three through here steals no browser shortcut. Meta
+      // stays blocked always; every other key keeps ignoring Ctrl/Alt.
+      const isAltGrRepoOrHelpKey =
+        event.key === "[" || event.key === "]" || event.key === "?"
+      if (event.metaKey) return
+      if (!isAltGrRepoOrHelpKey && (event.ctrlKey || event.altKey)) return
       // Shift is only ever part of a key here (`?` on most layouts); an
       // arrow or a letter with Shift held is someone else's.
       if (event.shiftKey && event.key !== "?") return

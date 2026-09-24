@@ -451,8 +451,10 @@ passed; `Enter` moves focus into the pane, where the arrows and `j`/`k` scroll i
 the view's own copy button would (a ticket's pick-up, a batch's Copy next; "Nothing to copy here"
 otherwise), `o` opens it on GitHub, `r` is the refresh button, `[`/`]` step the repo chips (All
 included, wrapping). No key fires while you type, while a menu or sheet is open, or with
-Ctrl/Cmd/Alt held. Each list level is a `listbox` whose `aria-activedescendant` is the cursor row,
-so a screen reader follows the same cursor; below `lg` nothing here applies.
+Ctrl/Cmd/Alt held — except `[`, `]` and `?` themselves, which still fire on the AltGr/Option
+layouts (Portuguese, German, Spanish among them) that type those characters that way. Each list
+level is a `listbox` whose `aria-activedescendant` is the cursor row, so a screen reader follows
+the same cursor; below `lg` nothing here applies.
 
 **Read once, used locally.** `/tickets` reads the board once per visit (`readBoard()` in
 [`lib/tickets.ts`](lib/tickets.ts)) and hands it to a client root
