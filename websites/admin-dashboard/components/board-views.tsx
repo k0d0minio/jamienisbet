@@ -37,11 +37,12 @@ import { GROUP_DOT } from "@/components/ticket-look"
 import type { BoardData, BoardTicket, LaunchSet } from "@/lib/tickets"
 
 // What the board's pane shows — one view per kind of selection, plus the
-// estate overview for when there is none. The ticket view is the existing
-// TicketDetail and the batch view carries the retired batch sheet's launchers;
-// their own designs come later in the tickets-master-detail epic (stubs 3–4).
-// The repo view and the overview are where the old board's masthead figures,
-// section-foot maintenance rows and read errors live now.
+// estate overview for when there is none. The ticket view is TicketDetail
+// (its summary line is the pane's subtitle) and the batch view carries the
+// retired batch sheet's launchers; the batch view's own design comes later in
+// the tickets-master-detail epic. The repo view and the overview are where the
+// old board's masthead figures, section-foot maintenance rows and read errors
+// live now.
 
 /** The board's caveat, said once, at the foot of the overview. */
 const BOARD_FOOTNOTE = (
@@ -52,11 +53,33 @@ const BOARD_FOOTNOTE = (
   </>
 )
 
-export function TicketView({ ticket }: { ticket: BoardTicket }) {
+export function TicketView({
+  ticket,
+  batch,
+  onSelectTicket,
+}: {
+  ticket: BoardTicket
+  /** The batch it was opened from — its tickets are what a `depends-on`
+   *  slug can link to. */
+  batch: ListBatch
+  onSelectTicket: (key: string) => void
+}) {
+  // A stub's id is `<epic>/<slug>` and `depends-on` names the bare slug; only
+  // the epic's own open tickets are on the board to link to.
+  const dependencyKeys = new Map(
+    batch.tickets
+      .filter((t) => t.kind === "stub" && t !== ticket)
+      .map((t): [string, string] => [t.id.slice(t.id.lastIndexOf("/") + 1), ticketKey(t)])
+  )
   return (
     <GroupedSection>
       <div className="px-4 py-4">
-        <TicketDetail ticket={ticket} launches={ticket.launches} />
+        <TicketDetail
+          ticket={ticket}
+          launches={ticket.launches}
+          dependencyKeys={dependencyKeys}
+          onSelectTicket={onSelectTicket}
+        />
       </div>
     </GroupedSection>
   )

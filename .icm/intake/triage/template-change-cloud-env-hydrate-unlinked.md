@@ -19,6 +19,13 @@ in jamienisbet `websites/admin-dashboard` is Vercel project `jamie-nisbet` and
 `websites/sellers-site` is `client-referrals`. Either way `.env.local` stays empty in a cloud
 session. Read from the code, not reproduced in a session holding `VERCEL_TOKEN`.
 
+Also found independently by run `ticket-view`'s Release code review (same stale-`main` cause),
+with one more fault in the same path: `env.sh` reads the token from the variable
+`deploy.token_env` names (`VERCEL_TOKEN_KODOMINIO` here), not the `VERCEL_TOKEN` the hook
+checked, so a session holding only `VERCEL_TOKEN` stops in `vercel_require` — the header comment
+says "else plain VERCEL_TOKEN". And the hook prints only the last line of `env.sh pull`'s output,
+so every `FAILED` line but one is hidden at session start.
+
 ## Prompt
 
 Template change request — from jamienisbet · 2026-09-24

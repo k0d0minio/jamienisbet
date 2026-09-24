@@ -27,7 +27,8 @@ import {
   TicketView,
 } from "@/components/board-views"
 import { Chip } from "@/components/chip"
-import { ACTIVE_ROW, GROUP_LABELS } from "@/components/ticket-look"
+import { ACTIVE_ROW } from "@/components/ticket-look"
+import { TicketSummary } from "@/components/ticket-detail"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
 import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 
@@ -335,16 +336,16 @@ export function TicketsBoard({
       const { section, batch, ticket } = selection
       pane = {
         title: ticket.title,
-        subtitle: (
-          <>
-            <span className="font-mono">{section.repo.slug}</span>
-            {` · ${GROUP_LABELS[ticket.group]} · `}
-            <span className="font-mono">{ticket.id}</span>
-          </>
-        ),
+        subtitle: <TicketSummary ticket={ticket} />,
         backLabel: batch.title,
         parent: { b: batchKey(section, batch) },
-        body: <TicketView ticket={ticket} />,
+        body: (
+          <TicketView
+            ticket={ticket}
+            batch={batch}
+            onSelectTicket={(key) => navigate({ t: key })}
+          />
+        ),
         pushed: true,
       }
       break

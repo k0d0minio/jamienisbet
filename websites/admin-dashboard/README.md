@@ -424,7 +424,11 @@ that figure counts, each with its repo and why it is stuck (its `blocked:` line,
 stub it waits on), a tap opening the ticket; then **Couldn't be read** — the roster error
 first, then each unreadable repo with what GitHub said, its row opening that repo's view (a
 repo that couldn't be read has no section in the list, so this is its way in; the view still
-carries its triage and sweep launchers); then the estate check and the board's footnote. Below `lg` a selection is a full-screen pushed view with a back bar and an edge
+carries its triage and sweep launchers); then the estate check and the board's footnote. A ticket reads phone-first: its title and one
+summary line (status · priority · `n of m` · repo · client, and why it is blocked), then
+**Copy** with its recommendation and **Open on GitHub**, its header fields — a `depends-on`
+slug still on the board selects that ticket — and the body, its `## Prompt` section folded.
+Below `lg` a selection is a full-screen pushed view with a back bar and an edge
 swipe; the overview is the foot of level 0, and a batch's view is pushed from the summary row
 atop its tickets. Every selection is URL state — `?t=<repo>/<ticket id>`, `?b=<repo>/<batch>`
 (`runs` for In flight; `&pane=1` pushes its view on a phone) or `?r=<repo>`, one at a time,
