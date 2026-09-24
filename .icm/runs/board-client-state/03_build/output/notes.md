@@ -60,3 +60,13 @@
 - The first full-gate read after the post-flip push settled on the pre-push head (e90bae9);
   re-read on c30d339 — see `error.log`. Template change parked:
   `.icm/intake/triage/template-change-ci-status-stale-head.md`.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 322d885 before the review fix; re-read after the last push (see the stop report)
+- reviews: code medium — 1 finding, fixed in-ticket (06808d3: the quiet re-read on return swallowed no error, so a failed request would have reached the route's error boundary and replaced the board) · security security-check.sh --branch --audit: OK · /production-readiness n/a (no DB, auth, payments or env vars touched) · /security-review n/a (no auth, payments, PII or route policy touched) · readiness env.sh audit --changed: OK
+- parked: template-change-ci-status-stale-head.md (parked in Build — a template change request for icm-board)
+- migrations: skip — none of this run's own
+- learned: none (retrospective.sh: 1 entry, below --min, not flagged) · FAILURE.md carries 1 rule for close-out
+- docs: no docs tree — websites/admin-dashboard/README.md § Tickets and the components map updated in Release · announce: internal
