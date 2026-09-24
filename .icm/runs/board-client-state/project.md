@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- `lib/tickets.ts` cache invariants: `force-cache` on every GitHub read, the concurrency cap,
+  no `dynamic = "force-dynamic"` on any route reading the board.
+- Read-only board; launcher URL shapes unchanged.
+- Visual layout unchanged — stub 2 (`master-detail-shell`) redesigns it; `?t=` is read/written
+  by the URL hook but wired to no UI this run.
+- As-of stamp = server `listBoard()` return time, Europe/Lisbon (operator, Define 2026-09-24).
+- Epic context: `.icm/intake/tickets-master-detail/breakdown.md` (decisions 4, 7).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `app/(app)/tickets/*`, `components/board-refresh.tsx`, `markdown.tsx`, the head of
+  `ticket-detail.tsx` and parts of `lib/tickets.ts` beyond targeted greps, to pin which pieces
+  are `server-only` (launch sets must be precomputed) and how the refresh works today.

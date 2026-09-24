@@ -110,3 +110,5 @@ launcher URL shapes.
 
 - none — selection wiring (hook only, `?t=` not wired to UI) and the as-of source (server
   read time) settled with the operator in Define, 2026-09-24.
+
+Context budget: Define read app/(app)/tickets/*, board-refresh.tsx, markdown.tsx and parts of lib/tickets.ts beyond targeted greps, to pin which pieces are server-only.
