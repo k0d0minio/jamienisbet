@@ -24,4 +24,9 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Model: `RepoFocus`, errored-repo resolution under `?r=`, `repoFigures`, `ticketsInGroup`, `blockedReason` — `components/board-model.ts`
+- [x] Server: maintenance launchers for errored repos without a section — `app/(app)/tickets/page.tsx`
+- [x] Views: repo view (figures, error, client, maintenance) and overview (Blocked group, tappable error rows) — `components/board-views.tsx`
+- [x] Wiring: overview callbacks, repo pane from `RepoFocus` — `components/tickets-board.tsx`
+- [x] README Tickets section — `websites/admin-dashboard/README.md`
+- [ ] Settle CI, merge `main`, flip ready, settle the full gate

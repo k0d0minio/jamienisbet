@@ -50,14 +50,18 @@ export default async function TicketsPage() {
     )
   }
 
-  // A repo whose only open work is a run in flight has no section in the
-  // board, so nothing built its maintenance launchers — and its repo view
-  // needs them. Built here, where lib/tickets can be reached.
+  // Two kinds of repo have a view but no section in the board, so nothing
+  // built their maintenance launchers: one whose only open work is a run in
+  // flight, and one whose read failed (its view opens from its error row).
+  // Built here, where lib/tickets can be reached.
   const sectioned = new Set(board.sections.map((s) => s.repo.fullName))
   const extraMaintenance = Object.fromEntries(
-    board.strip
-      .filter((t) => t.kind === "run" && !sectioned.has(t.repo.fullName))
-      .map((t) => [t.repo.fullName, repoMaintenanceLaunchers(t.repo)])
+    [
+      ...board.strip.filter((t) => t.kind === "run").map((t) => t.repo),
+      ...board.errors.map((e) => e.repo),
+    ]
+      .filter((repo) => !sectioned.has(repo.fullName))
+      .map((repo) => [repo.fullName, repoMaintenanceLaunchers(repo)])
   )
 
   return (

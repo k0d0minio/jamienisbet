@@ -5,6 +5,7 @@ import type {
   BoardTicket,
   MaintenanceLauncher,
   TicketGroup,
+  TicketRepo,
 } from "@/lib/tickets"
 
 import type { BoardQuery } from "@/components/use-board-params"
@@ -28,9 +29,21 @@ export type ListSection = Omit<BoardSection, "batches"> & {
   batches: ListBatch[]
 }
 
+/** A repo as its view shows it. A repo whose read failed has no tickets and so
+ *  no section, but it still has a view — its error in full, its client, its
+ *  maintenance — reached from its row in the estate overview. */
+export type RepoFocus = {
+  repo: TicketRepo
+  /** Its section on list level 0; null for a repo that couldn't be read. */
+  section: ListSection | null
+  /** What GitHub said when this repo's read failed, in full. */
+  error: string | null
+  maintenance: MaintenanceLauncher[]
+}
+
 export type Selection =
   | { kind: "none" }
-  | { kind: "repo"; section: ListSection }
+  | { kind: "repo"; focus: RepoFocus }
   | { kind: "batch"; section: ListSection; batch: ListBatch }
   | {
       kind: "ticket"
@@ -44,6 +57,13 @@ export const ticketKey = (ticket: BoardTicket) =>
 
 export const batchKey = (section: ListSection, batch: ListBatch) =>
   `${section.repo.slug}/${batch.slug}`
+
+/** The repo a selection sits in; null when nothing is selected. */
+export function selectedRepoSlug(selection: Selection): string | null {
+  if (selection.kind === "none") return null
+  if (selection.kind === "repo") return selection.focus.repo.slug
+  return selection.section.repo.slug
+}
 
 /** Section order is urgency, as the server orders it (lib/tickets
  *  `sectionUrgency`): a today-pick, then something blocked, then a run in
@@ -151,6 +171,7 @@ function batchSlugOf(ticketId: string): string {
  */
 export function resolveSelection(
   sections: ListSection[],
+  unreadable: { errors: BoardData["errors"]; maintenance: Record<string, MaintenanceLauncher[]> },
   query: { ticket: string | null; batch: string | null; repoSelection: string | null }
 ): { selection: Selection; correction: BoardQuery | null } {
   const sectionOf = (repoSlug: string) =>
@@ -194,34 +215,90 @@ export function resolveSelection(
 
   if (query.repoSelection) {
     const section = sectionOf(query.repoSelection)
-    if (section) return { selection: { kind: "repo", section }, correction: null }
+    const failed =
+      unreadable.errors.find((e) => e.repo.slug === query.repoSelection) ?? null
+    const repo = section?.repo ?? failed?.repo
+    if (repo) {
+      const focus: RepoFocus = {
+        repo,
+        section,
+        error: failed?.message ?? null,
+        maintenance: section?.maintenance ?? unreadable.maintenance[repo.fullName] ?? [],
+      }
+      return { selection: { kind: "repo", focus }, correction: null }
+    }
     return { selection: { kind: "none" }, correction: { r: null } }
   }
 
   return { selection: { kind: "none" }, correction: null }
 }
 
+export type Figure = { key: string; value: number; label: string }
+
+/** The rows for the repo in view — every repo when there is no filter. */
+function inView<T extends { repo: { slug: string } }>(
+  rows: T[],
+  repoSlug: string | null
+): T[] {
+  return repoSlug ? rows.filter((r) => r.repo.slug === repoSlug) : rows
+}
+
+/** The estate's tickets in one group, for the repo in view, in board order.
+ *  The strip holds every today-pick, run and blocked ticket, so it is the one
+ *  place these are counted — the figures and the overview's Blocked rows read
+ *  the same set and can't drift apart. */
+export function ticketsInGroup(
+  board: BoardData,
+  group: TicketGroup,
+  repoSlug: string | null
+): BoardTicket[] {
+  return inView(board.strip, repoSlug).filter((t) => t.group === group)
+}
+
 /** The masthead figures the estate overview sets, for the repos in view. A
  *  figure of nothing is omitted rather than set as a zero: no blocked stubs is
  *  not news, it is a good day. */
-export function boardFigures(
-  board: BoardData,
-  repoSlug: string | null
-): { key: string; value: number; label: string }[] {
-  const inView = <T extends { repo: { slug: string } }>(rows: T[]) =>
-    repoSlug ? rows.filter((r) => r.repo.slug === repoSlug) : rows
-  const inGroup = (group: TicketGroup): number =>
-    inView(board.strip).filter((t) => t.group === group).length
-
+export function boardFigures(board: BoardData, repoSlug: string | null): Figure[] {
   return [
-    { key: "today", value: inGroup("today"), label: "Today" },
-    { key: "blocked", value: inGroup("blocked"), label: "Blocked" },
+    { key: "today", value: ticketsInGroup(board, "today", repoSlug).length, label: "Today" },
+    {
+      key: "blocked",
+      value: ticketsInGroup(board, "blocked", repoSlug).length,
+      label: "Blocked",
+    },
     {
       key: "open",
       // Runs in flight sit in no batch, so this is the backlog: what is
       // still waiting to be picked up.
-      value: inView(board.sections).reduce((total, s) => total + s.open, 0),
+      value: inView(board.sections, repoSlug).reduce((total, s) => total + s.open, 0),
       label: "Open",
     },
   ].filter((f) => f.value > 0)
+}
+
+/** One repo's figures for its view — the estate's, narrowed to it, plus the
+ *  runs it has in flight. Zeros omitted, as on the overview. */
+export function repoFigures(board: BoardData, focus: RepoFocus): Figure[] {
+  const slug = focus.repo.slug
+  const runs =
+    focus.section?.batches.find((b) => b.kind === "runs")?.tickets.length ?? 0
+  return [
+    { key: "open", value: focus.section?.open ?? 0, label: "Open" },
+    { key: "today", value: ticketsInGroup(board, "today", slug).length, label: "Today" },
+    {
+      key: "blocked",
+      value: ticketsInGroup(board, "blocked", slug).length,
+      label: "Blocked",
+    },
+    { key: "runs", value: runs, label: "In flight" },
+  ].filter((f) => f.value > 0)
+}
+
+/** Why a blocked ticket is stuck, in its own words: the stub's `blocked:`
+ *  line, else the stub ahead of it that is still open. */
+export function blockedReason(ticket: BoardTicket): string | null {
+  const said = ticket.meta.find(([key]) => key === "Blocked")?.[1]
+  if (said) return said
+  const waiting = ticket.meta.find(([key]) => key === "Waiting on")?.[1]
+  return waiting ? `Waiting on ${waiting}` : null
 }
