@@ -1142,8 +1142,17 @@ async function loadRoster(): Promise<Roster> {
 
 export type BatchKind = "epic" | "triage" | "backlog" | "runs"
 
-/** The In flight pseudo-batch's slug. */
-const RUNS_BATCH_SLUG = "runs"
+/** The In flight pseudo-batch's slug — reserved so no epic folder can ever
+ *  take it: icm-board's triage cut slugifies a title by collapsing every run
+ *  of non `[a-z0-9]` into one hyphen and trimming the ends, so a leading
+ *  underscore can never survive into a real epic slug. Deliberately NOT
+ *  "runs" — an epic titled just that would otherwise share this slug,
+ *  producing duplicate batch keys and an ambiguous `?b=<repo>/runs` (board-
+ *  model.ts's `RUNS_SLUG` mirrors this value; keep the two in sync). A run
+ *  ticket's own id keeps the unrelated `runs/<slug>` prefix regardless — that
+ *  one can't move, since icm-board's `/day` writes today.md picks against it
+ *  across every repo. */
+const RUNS_BATCH_SLUG = "_runs"
 
 export type Batch = {
   /** The epic folder's name, or the pseudo-batch's ("triage"/"backlog"/"runs"). */

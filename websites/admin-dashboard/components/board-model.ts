@@ -32,6 +32,23 @@ export type RepoFocus = {
   maintenance: MaintenanceLauncher[]
 }
 
+/** The In flight pseudo-batch's own slug (`lib/tickets.ts`'s
+ *  `RUNS_BATCH_SLUG`) — reserved so no epic folder can ever take it:
+ *  icm-board's triage cut slugifies a title by collapsing every run of non
+ *  `[a-z0-9]` into one hyphen and trimming the ends, so a leading underscore
+ *  can never survive into a real epic slug. Deliberately NOT "runs" — an epic
+ *  titled just that (as this bug proved) would otherwise share a slug with
+ *  this pseudo-batch, producing duplicate React keys and an ambiguous
+ *  `?b=<repo>/runs`. Kept apart from `RUN_TICKET_PREFIX` below, which can't
+ *  move — keep this in sync with `lib/tickets.ts`'s `RUNS_BATCH_SLUG`. */
+const RUNS_SLUG = "_runs"
+
+/** The id prefix a run ticket carries (`lib/tickets.ts`: `runs/<slug>`) —
+ *  unlike `RUNS_SLUG`, this can't be reserved away: icm-board's `/day` writes
+ *  today.md picks against it across every repo, so `batchSlugOf` below
+ *  translates it to `RUNS_SLUG` rather than the id prefix moving. */
+const RUN_TICKET_PREFIX = "runs"
+
 export type Selection =
   | { kind: "none" }
   | { kind: "repo"; focus: RepoFocus }
@@ -65,10 +82,15 @@ function splitKey(value: string): [string, string] | null {
 
 /** The batch a ticket id files under, read off the id itself — `epic/slug`,
  *  `triage/slug`, `runs/slug` — so a ticket that has gone still names the
- *  batch to fall back to. A legacy id has no prefix and lives in the backlog. */
+ *  batch to fall back to. A legacy id has no prefix and lives in the backlog.
+ *  A run's id keeps the `runs/` prefix (see `RUN_TICKET_PREFIX`) even though
+ *  the pseudo-batch's own slug is reserved as `RUNS_SLUG` — translated here
+ *  so a stale run always falls back to In flight by identity, never to an
+ *  epic that happens to share the word "runs". */
 function batchSlugOf(ticketId: string): string {
   const slash = ticketId.indexOf("/")
-  return slash > 0 ? ticketId.slice(0, slash) : "backlog"
+  const prefix = slash > 0 ? ticketId.slice(0, slash) : "backlog"
+  return prefix === RUN_TICKET_PREFIX ? RUNS_SLUG : prefix
 }
 
 /**
