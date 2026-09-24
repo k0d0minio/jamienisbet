@@ -1,7 +1,7 @@
 # Build notes: repo-and-estate-views
 
-- commits: feat: repo-and-estate-views — repo view and estate overview
-- ci: GREEN on 3f35dfa (cheap tier); full gate pending
+- commits: 3f35dfa feat: repo-and-estate-views — repo view and estate overview; chore: ready
+- ci: GREEN — cheap tier on 3f35dfa, full gate (ready) on the post-flip head
 
 ## What changed
 
@@ -37,7 +37,7 @@
 - [x] README updated.
 - [ ] Preview checked on phone and desktop, light and dark, with a read error — the operator's
       smoke.
-- [ ] CI green — pending.
+- [x] CI green — full gate, all four required checks and both previews.
 
 ## Notes for Release
 
@@ -46,3 +46,5 @@
   counts toward Today.
 - Whether the preview has a repo with a read error depends on the roster at smoke time; a repo
   connected in `biz` that the token can't read produces one.
+- The PR body's acceptance-criteria boxes were not ticked by Build: the session's permission
+  check refused the PR-body edit. The ticks above are Build's self-check.

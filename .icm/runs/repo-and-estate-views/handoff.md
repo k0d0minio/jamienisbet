@@ -6,18 +6,19 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: read `02_define/output/spec.md` (or the PR's Spec block); change it with
-   `revise repo-and-estate-views "<what>"`.
-2. Operator: tick **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/162.
-3. Then `/pipeline build repo-and-estate-views` — execute `plan.md` pass by pass. (A Build run
-   on 2026-09-24 STOPped at its gate check because the box was unticked; nothing was built.)
+1. Operator: smoke the admin preview (Vercel – jamie-nisbet, from PR #162's checks) on a phone
+   and a desktop, light and dark: open a repo from its header (figures, client, launchers),
+   tap a Blocked row in the overview, and — where one exists — a "Couldn't be read" repo row.
+2. Operator: tick **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/162.
+3. Then `/pipeline release repo-and-estate-views`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/162
+- blocked on operator: smoke the preview and tick **Ready to merge** on
+  https://github.com/k0d0minio/jamienisbet/pull/162
 
 ## Do not
 
-- Do not start Build before the Spec approved box is ticked; never tick it.
+- Do not tick either gate box.
 - Do not change `lib/tickets.ts` or launcher/maintenance prompt shapes.
 - Do not touch the `ticket-view`, `epic-view` or `keyboard-nav` stubs — other runs own them.
