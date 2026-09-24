@@ -2,8 +2,12 @@
 
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { ChevronRight } from "lucide-react"
+
+import { cn } from "@jamie-nisbet/ui"
 
 import { CopySplitButton } from "@/components/launch-menu"
+import { GROUP_DOT, GROUP_LABELS, priorityClass } from "@/components/ticket-look"
 import { primaryLaunch, type Launch } from "@/lib/launchers"
 import type { Ticket } from "@/lib/tickets"
 
@@ -14,33 +18,163 @@ const Markdown = dynamic(() =>
   import("@/components/markdown").then((m) => m.Markdown)
 )
 
-// One ticket, opened for reading: the actions that matter, the metadata, then
-// the ticket rendered as it was written in the repo. Rendered in the browser,
-// and only once a ticket is actually opened (the board's pane, or the view
-// pushed over the list on a phone) — the board ships each body as its raw
-// markdown, so a ticket nobody opens costs its text and nothing more.
+// The meta rows that say why a ticket is blocked. The summary line says it,
+// above the fold, so the table below doesn't say it twice.
+const BLOCKED_KEYS = new Set(["Blocked", "Waiting on"])
+
+/** Why a blocked ticket is blocked: its own `blocked:` line, or the open
+ *  dependency the board derived. Null when it isn't blocked or gives no
+ *  reason (a legacy ticket filed under blocked). */
+function blockedReason(ticket: Ticket): string | null {
+  if (ticket.group !== "blocked") return null
+  const meta = new Map(ticket.meta)
+  const own = meta.get("Blocked")
+  if (own) return own
+  const dep = meta.get("Waiting on")
+  return dep ? `waiting on ${dep}` : null
+}
+
+/**
+ * Where a ticket stands, in one line: status · priority · `n of m` · repo ·
+ * client, then the reason when it is blocked. The pane sets it under the
+ * ticket's title. Anything the ticket doesn't carry is left out with its
+ * separator; the id isn't here — the title and the back label already say
+ * which ticket this is, and the pick-up carries it.
+ */
+export function TicketSummary({ ticket }: { ticket: Ticket }) {
+  const reason = blockedReason(ticket)
+  const segments: React.ReactNode[] = [
+    <span key="status" className="inline-flex items-center gap-1.5">
+      <span
+        className={cn("size-2 shrink-0 rounded-full", GROUP_DOT[ticket.group])}
+        aria-hidden
+      />
+      {GROUP_LABELS[ticket.group]}
+    </span>,
+  ]
+  if (ticket.priority)
+    segments.push(
+      <span key="priority" className={cn("font-mono", priorityClass(ticket.priority))}>
+        {ticket.priority}
+      </span>
+    )
+  if (ticket.sequence !== null && ticket.sequenceTotal !== null)
+    segments.push(
+      <span key="sequence" className="font-mono tabular-nums">
+        {ticket.sequence} of {ticket.sequenceTotal}
+      </span>
+    )
+  segments.push(
+    <span key="repo" className="font-mono">
+      {ticket.repo.slug}
+    </span>
+  )
+  // The repo is on the board because a client row points at it — the join
+  // back to the big picture is one tap. The house repo belongs to no client;
+  // it just says so.
+  segments.push(
+    ticket.repo.clientId ? (
+      <Link
+        key="client"
+        href={`/leads/${ticket.repo.clientId}`}
+        className="text-app-tint underline underline-offset-2"
+      >
+        {ticket.repo.clientName}
+      </Link>
+    ) : (
+      <span key="client">house</span>
+    )
+  )
+  if (reason)
+    segments.push(
+      <span key="reason" className="text-app-label-2">
+        {reason}
+      </span>
+    )
+
+  // Wraps on a phone, never truncates: a blocked reason is the part you came
+  // to read.
+  return (
+    <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+      {segments.map((segment, i) => (
+        <span key={i} className="inline-flex items-center gap-x-1.5">
+          {i > 0 ? <span aria-hidden>·</span> : null}
+          {segment}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+/** A ticket body split around its `## Prompt` section — heading to the next
+ *  `## ` or the end — ignoring any `## Prompt` inside a fenced block. */
+function splitPrompt(body: string): {
+  before: string
+  prompt: string | null
+  after: string
+} {
+  const lines = body.split("\n")
+  let fence: string | null = null
+  let start = -1
+  let end = lines.length
+  for (let i = 0; i < lines.length; i++) {
+    const marker = lines[i].match(/^\s*(`{3,}|~{3,})/)?.[1]
+    if (marker) {
+      if (fence === null) fence = marker[0]
+      else if (marker[0] === fence) fence = null
+      continue
+    }
+    if (fence !== null) continue
+    if (start === -1) {
+      if (/^##\s+Prompt\s*$/i.test(lines[i])) start = i
+    } else if (/^##\s/.test(lines[i])) {
+      end = i
+      break
+    }
+  }
+  if (start === -1) return { before: body, prompt: null, after: "" }
+  return {
+    before: lines.slice(0, start).join("\n").trim(),
+    prompt: lines.slice(start + 1, end).join("\n").trim(),
+    after: lines.slice(end).join("\n").trim(),
+  }
+}
+
+// One ticket, opened for reading, in the order a phone wants it above the
+// fold: the pane's title and summary line (TicketSummary, set by the board),
+// then the one action, then the ticket's metadata, then the ticket as it was
+// written in the repo. Rendered in the browser, and only once a ticket is
+// actually opened — the board ships each body as its raw markdown, so a
+// ticket nobody opens costs its text and nothing more.
 //
 // Deliberately not a grouped list, though it sits in one: it is already inside
-// a group's slab, and a slab nested in a slab reads as neither. What
-// changed here is the type — every step is on the app tier's native scale now,
-// so a ticket read on a phone sets at the same sizes as the rows around it.
+// a group's slab, and a slab nested in a slab reads as neither.
 export function TicketDetail({
   ticket,
   launches,
+  dependencyKeys,
+  onSelectTicket,
 }: {
   ticket: Ticket
   /** Every registered target for this ticket, the default first
    * (`launchesForTicket`). */
   launches: Launch[]
+  /** Each `depends-on` slug that is a ticket on the board in this epic, to
+   *  the key that selects it. A slug missing here stays plain text. */
+  dependencyKeys: ReadonlyMap<string, string>
+  onSelectTicket: (key: string) => void
 }) {
   const primary = primaryLaunch(launches)
   // No link can preselect a model or effort (README § Tickets), so the
   // recommendation is said beside the button, to be picked wherever the
   // prompt is pasted. The menu says the same per target.
   const recommendation = primary?.hint ?? null
+  const meta = ticket.meta.filter(([key]) => !BLOCKED_KEYS.has(key))
+  const { before, prompt, after } = splitPrompt(ticket.body)
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {!ticket.pickup ? (
           <span className="text-app-footnote text-app-label-3">
             {ticket.kind === "run"
@@ -52,13 +186,15 @@ export function TicketDetail({
             {/* The board's one real action: copy exactly what goes to a
                 session — a clipboard works on every surface and every tool,
                 and has no length cap — with every registered tool one chevron
-                away, a prompt pre-filled in each that can take it. */}
+                away, a prompt pre-filled in each that can take it. The label
+                says which of the two it copies. */}
             <CopySplitButton
               value={ticket.pickup}
               label={ticket.pickupKind === "verb" ? "Copy pick-up" : "Copy prompt"}
               what={ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"}
               launches={launches}
             />
+            {/* Beside the button while there is room, under it when not. */}
             {recommendation ? (
               <span className="text-app-footnote text-app-label-3">
                 Recommended{" "}
@@ -69,60 +205,35 @@ export function TicketDetail({
             ) : null}
           </>
         )}
-        <span className="ml-auto flex items-center gap-3 text-app-footnote">
-          {/* The repo is on the board because a client row points at it — the
-              join back to the big picture is one tap. The house repo belongs
-              to no client; it just says so. */}
-          {ticket.repo.clientId ? (
-            <Link
-              href={`/leads/${ticket.repo.clientId}`}
-              className="text-app-tint underline underline-offset-2"
-            >
-              {ticket.repo.clientName}
-            </Link>
-          ) : (
-            <span className="text-app-label-3">house</span>
-          )}
-          <a
-            href={ticket.htmlUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-app-tint underline underline-offset-2"
-          >
-            Open on GitHub
-          </a>
-        </span>
+        <a
+          href={ticket.htmlUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="ml-auto inline-flex min-h-app-touch items-center text-app-footnote text-app-tint underline underline-offset-2"
+        >
+          Open on GitHub
+        </a>
       </div>
 
-      {/* Exactly what the buttons above send — the pipeline verb where the
-          repo carries the router, the prompt body where it does not (icm-board
-          decision D26). Said on the ticket so there is never a surprise about
-          which one a tap will paste. */}
-      {ticket.pickup ? (
-        <p className="flex flex-wrap items-baseline gap-x-2 text-app-footnote text-app-label-3">
-          <span>Sends</span>
-          <code className="rounded-xs bg-app-press px-1.5 py-0.5 font-mono text-app-caption text-app-label-2 break-all">
-            {ticket.pickupKind === "verb"
-              ? ticket.pickup
-              : `${ticket.pickup.slice(0, 80)}${ticket.pickup.length > 80 ? "…" : ""}`}
-          </code>
-          {ticket.pickupKind === "verb" ? (
-            <span>— the repo carries the /pipeline router</span>
-          ) : (
-            <span>— the prompt body; this repo has no /pipeline router yet</span>
-          )}
-        </p>
-      ) : null}
-
-      {/* The ticket's own header lines — priority, size, depends-on. They are
-          machine-written key/value pairs, so the values set in mono the way
-          every other figure and identifier in the estate does. */}
-      {ticket.meta.length > 0 ? (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-app-footnote">
-          {ticket.meta.map(([key, value]) => (
+      {/* The ticket's own header lines — size, sequence, depends-on, lane.
+          They are machine-written key/value pairs, so the values set in mono
+          the way every other figure and identifier in the estate does. */}
+      {meta.length > 0 ? (
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-app-footnote">
+          {meta.map(([key, value]) => (
             <div key={key} className="contents">
               <dt className="text-app-label-3">{key}</dt>
-              <dd className="font-mono break-words text-app-label-2">{value}</dd>
+              <dd className="font-mono break-words text-app-label-2">
+                {key === "Depends on" ? (
+                  <DependsOn
+                    value={value}
+                    keys={dependencyKeys}
+                    onSelect={onSelectTicket}
+                  />
+                ) : (
+                  value
+                )}
+              </dd>
             </div>
           ))}
         </dl>
@@ -130,8 +241,67 @@ export function TicketDetail({
 
       {/* The ticket, rendered. Markdown is the interface for *writing* a
           ticket; reading one on a phone wants headings and lists, not syntax.
-          The unedited file is one tap away on GitHub. */}
-      {ticket.body ? <Markdown>{ticket.body}</Markdown> : null}
+          The Prompt section is folded where it stands — the button above
+          already carries it. The unedited file is one tap away on GitHub. */}
+      {before ? <Markdown>{before}</Markdown> : null}
+      {prompt !== null ? (
+        <details className="group">
+          <summary className="flex min-h-app-touch cursor-pointer list-none items-center gap-2 text-app-subhead text-app-label-3 transition-colors hover:text-app-label">
+            <ChevronRight
+              className="size-4 shrink-0 transition-transform group-open:rotate-90"
+              aria-hidden
+            />
+            Prompt
+          </summary>
+          <div className="pt-2">
+            {prompt ? <Markdown>{prompt}</Markdown> : null}
+          </div>
+        </details>
+      ) : null}
+      {after ? <Markdown>{after}</Markdown> : null}
     </div>
+  )
+}
+
+/** The `depends-on` list, each slug that is on the board a link that selects
+ *  it — the same URL state a row tap sets, so no request and no skeleton. */
+function DependsOn({
+  value,
+  keys,
+  onSelect,
+}: {
+  value: string
+  keys: ReadonlyMap<string, string>
+  onSelect: (key: string) => void
+}) {
+  const slugs = value.split(",").map((s) => s.trim()).filter(Boolean)
+  return (
+    <>
+      {slugs.map((slug, i) => {
+        const key = keys.get(slug)
+        return (
+          <span key={slug}>
+            {i > 0 ? ", " : null}
+            {key ? (
+              <a
+                href={`?t=${encodeURIComponent(key)}`}
+                onClick={(e) => {
+                  // A modified click keeps the browser's own meaning (a new
+                  // tab); a plain one selects in place.
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+                  e.preventDefault()
+                  onSelect(key)
+                }}
+                className="text-app-tint underline underline-offset-2"
+              >
+                {slug}
+              </a>
+            ) : (
+              slug
+            )}
+          </span>
+        )
+      })}
+    </>
   )
 }

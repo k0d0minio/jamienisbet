@@ -18,4 +18,5 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Ticket view rewrite — `components/ticket-detail.tsx` (TicketSummary, action row, metadata table with depends-on links, Prompt fold), `board-views.tsx` (dependency keys), `tickets-board.tsx` (summary as the pane subtitle)
+- [x] Phone-width overflow — `app/globals.css` `.prose` (`min-width: 0`, `overflow-wrap` on the block and on links)
