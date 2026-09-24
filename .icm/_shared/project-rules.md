@@ -138,3 +138,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When one element renders two layouts by breakpoint (a pane from `lg`, a pushed view below), (`FAILURE.md` — master-detail-shell)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - Name the base as `origin/main` in every review or diff range (`/code-review … origin/main...HEAD`, `git diff origin/main...HEAD`): a cloud session's local `main` is never updated by `git fetch origin main`, so `main...HEAD` silently widens the review to commits already merged. (`FAILURE.md` — repo-and-estate-views)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- In the admin dashboard's URL-state screens, any client state that overrides what the URL selects must record the selection it was set under and be ignored once the URL has moved on (back/forward, links), so the URL always wins. (`FAILURE.md` — keyboard-nav)
