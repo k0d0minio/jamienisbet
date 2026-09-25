@@ -200,11 +200,14 @@ function signalsOf(pr: PrNode): Signal[] {
       const run = node as CheckRunNode
       if (/Vercel Preview Comments/.test(run.name)) continue
       const held = newest.get(run.name)
+      // The id first: a re-run still queued has no start time yet, and must
+      // still replace the failed attempt it was queued to replace.
       const later =
         !held ||
-        (time(run.startedAt) ?? 0) > (time(held.startedAt) ?? 0) ||
-        ((time(run.startedAt) ?? 0) === (time(held.startedAt) ?? 0) &&
-          (run.databaseId ?? 0) > (held.databaseId ?? 0))
+        (run.databaseId !== null && held.databaseId !== null
+          ? run.databaseId > held.databaseId
+          : (time(run.startedAt) ?? Number.MAX_SAFE_INTEGER) >
+            (time(held.startedAt) ?? Number.MAX_SAFE_INTEGER))
       if (later) newest.set(run.name, run)
     } else if (node.__typename === "StatusContext") {
       statuses.push(node as StatusContextNode)
@@ -743,6 +746,10 @@ async function readGates(): Promise<GatesRead> {
     notes.push(`Only the pinned repos were read — ${roster.sweepError}`)
   }
 
+  // Every repo's main tree (scopes, runs on main) needs nothing from the PR
+  // answer, so it starts now, beside it. It never rejects.
+  const treesRead = Promise.all(repos.map((repo) => readRepoTree(repo)))
+
   // Pull requests: one query per chunk of repos.
   const pulls = new Map<string, PrNode[]>()
   const answers = await Promise.all(
@@ -797,10 +804,13 @@ async function readGates(): Promise<GatesRead> {
   }
 
   const now = Date.now()
-  const [statuses, trees] = await Promise.all([
-    readRunStatuses(wanted),
-    Promise.all(repos.map((repo) => readRepoTree(repo))),
-  ])
+  const [statuses, trees] = await Promise.all([readRunStatuses(wanted), treesRead])
+  // "As of" is when GitHub answered, not when this render ran: a cached
+  // answer served stale while it refreshes carries its own older date.
+  const answeredAt = answers
+    .map((a) => (a.answer.failure === null ? a.answer.at : null))
+    .filter((at): at is number => at !== null)
+    .sort((a, b) => a - b)[0]
 
   const rows: GateRow[] = []
   for (const repo of repos) {
@@ -843,7 +853,12 @@ async function readGates(): Promise<GatesRead> {
       a.key.localeCompare(b.key)
   )
 
-  return { state: "ok", rows, notes, readAt: new Date(now).toISOString() }
+  return {
+    state: "ok",
+    rows,
+    notes,
+    readAt: new Date(answeredAt ?? now).toISOString(),
+  }
 }
 
 /**

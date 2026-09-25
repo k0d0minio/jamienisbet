@@ -229,11 +229,12 @@ export function InboxQueue({
   const paneRef = useRef<HTMLDivElement>(null)
   const rowRefs = useRef(new Map<string, HTMLButtonElement>())
 
-  /** The row the selection moves to when `key` leaves the list. */
+  /** The row the selection moves to when `key` leaves the list — a visible
+   *  one, never a row inside a folded group. */
   function neighbourOf(key: string): string | null {
-    const index = all.findIndex((item) => item.row.key === key)
+    const index = shown.findIndex((item) => item.row.key === key)
     if (index === -1) return selectedKey
-    return (all[index + 1] ?? all[index - 1])?.row.key ?? null
+    return (shown[index + 1] ?? shown[index - 1])?.row.key ?? null
   }
 
   const handlers: InboxHandlers = {
@@ -373,12 +374,15 @@ export function InboxQueue({
       if (target?.closest(TEXT_FIELD)) return
       if (document.querySelector(OVERLAY)) return
       // ⌘↵ (Ctrl↵ off a Mac) — the selected gate's launch, where it has one.
+      // Not on a focused link or button: there ⌘↵ is the browser's own
+      // "open in a new tab", and it stays that.
       if (
         event.key === "Enter" &&
         (event.metaKey || event.ctrlKey) &&
         !event.altKey &&
         !event.shiftKey
       ) {
+        if (target?.closest(ACTIVATABLE)) return
         const launch = paneRef.current?.querySelector<HTMLElement>(
           "[data-inbox-launch]"
         )

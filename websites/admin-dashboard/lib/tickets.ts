@@ -455,6 +455,9 @@ export type GraphqlAnswer<T> =
       data: T
       errors: { message: string; path?: (string | number)[]; type?: string }[]
       failure: null
+      /** When GitHub answered (its `date` header), ms — older than now when
+       *  the cache served this answer. Null when the header is missing. */
+      at: number | null
     }
   | { data: null; errors: []; failure: string }
 
@@ -517,7 +520,13 @@ export async function githubGraphql<T>(
             : "GitHub answered with nothing to read",
     }
   }
-  return { data: body.data, errors, failure: null }
+  const date = Date.parse(res.headers.get("date") ?? "")
+  return {
+    data: body.data,
+    errors,
+    failure: null,
+    at: Number.isNaN(date) ? null : date,
+  }
 }
 
 /**
@@ -856,18 +865,6 @@ function blobUrl(repo: TicketRepo, path: string): string {
   return `https://github.com/${repo.fullName}/blob/HEAD/${path}`
 }
 
-/**
- * One ticket file, read by blob SHA rather than by path.
- *
- * `contents/<path>` and `git/blobs/<sha>` hand back the same markdown, but
- * they are not the same cache entry. A path read answers "what is in that file
- * *now*", so it expires with the board's minute and a warm read re-fetched
- * every open ticket in the estate — comfortably a hundred requests a minute
- * for a set of files that changes a handful of times a day. A SHA read is
- * content-addressed and therefore immutable: it is cached for a month, and the
- * minute-clock tree read above is what notices a file changed, by naming a
- * different SHA.
- */
 /** A repo's default-branch tree, from the board's own minute-clock read —
  *  the same request, so the same cache entry: on a warm board it costs
  *  nothing. Empty for an empty repo; a sentence when GitHub refused. */
@@ -896,6 +893,18 @@ export function readBlob(repo: TicketRepo, sha: string): Promise<string | null> 
   return fetchBlob(repo, sha)
 }
 
+/**
+ * One ticket file, read by blob SHA rather than by path.
+ *
+ * `contents/<path>` and `git/blobs/<sha>` hand back the same markdown, but
+ * they are not the same cache entry. A path read answers "what is in that file
+ * *now*", so it expires with the board's minute and a warm read re-fetched
+ * every open ticket in the estate — comfortably a hundred requests a minute
+ * for a set of files that changes a handful of times a day. A SHA read is
+ * content-addressed and therefore immutable: it is cached for a month, and the
+ * minute-clock tree read above is what notices a file changed, by naming a
+ * different SHA.
+ */
 async function fetchBlob(repo: TicketRepo, sha: string): Promise<string | null> {
   const res = await gh(
     `/repos/${repo.fullName}/git/blobs/${sha}`,
