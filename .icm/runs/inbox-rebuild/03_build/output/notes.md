@@ -41,3 +41,13 @@
 - The phone's swipe engine (`swipe-row.tsx`) keeps its app-tier settle spring — kept by D-32, untouched here; `retire-app-tier` owns it.
 - The "44px" buttons below `lg` come from the desk tier's coarse-pointer step, so they are 44px on a phone and 30px in a narrow desktop window — the tokens' rule, not a query in the component.
 - Smoke focus: e on an outreach row → log → accept the suggestion clears the row; a woken lead returns as an Outreach row after the re-read; the badge equals the row count.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head after the review fix (ci-status.sh); re-read after the last push
+- reviews: code medium — 1 finding, fixed in-ticket (`s` on a dated outreach row with no step now refuses before the optimistic clear — `hasStep` on the row); 1 pre-existing behaviour parked · security `security-check.sh --branch --audit`: OK (gitleaks absent — built-in patterns only) · /security-review n/a (no auth, payments, PII or route policy touched; the two new server actions sit behind proxy.ts's existing gate) · /production-readiness n/a (no schema, auth, payments or env vars; one new read-only services query) · readiness `env.sh audit --changed`: OK
+- parked: inbox-overdue-by-calendar-day.md
+- migrations: skip — none of this run's own (check-migrations.sh after merging main: SKIP)
+- learned: skip — no error.log; FAILURE.md adds 1 on close-out
+- docs: websites/admin-dashboard/README.md (updated in Build) · announce: public

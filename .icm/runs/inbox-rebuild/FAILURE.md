@@ -13,12 +13,15 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — an optimistic clear ran on a refusal the client already knew
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Release's code review found that `s` on a dated outreach row with no step
+  hid the row, moved the selection and closed an open form, then the server refused and the
+  row came back with the selection elsewhere.
+- why: every clear went through the one optimistic path, including a case whose outcome the
+  row's own data already decided.
+- fixed by: `hasStep` on the row; the refusal is a toast before any write (Release commit).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- In the admin dashboard, decide any refusal the row's own data already knows before an optimistic removal; only an outcome the server alone can know may roll a row back.

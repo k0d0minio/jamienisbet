@@ -205,6 +205,7 @@ function outreachRow(
     facts,
     reach,
     logChannel: reach[0]?.channel ?? bestChannel(client) ?? "other",
+    hasStep: client.nextAction !== null,
   }
 }
 
@@ -242,6 +243,7 @@ function waitingRow(
     facts,
     reach,
     logChannel: reach[0]?.channel ?? "other",
+    hasStep: client.nextAction !== null,
   }
 }
 
@@ -272,6 +274,7 @@ function wakeRow(
     facts,
     reach,
     logChannel: reach[0]?.channel ?? "other",
+    hasStep: true,
   }
 }
 

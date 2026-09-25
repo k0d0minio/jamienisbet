@@ -192,6 +192,14 @@ export function InboxQueue({ read }: { read: InboxRead }) {
     },
     tomorrow(row) {
       if (row.kind === "waiting") return
+      // Known before any write: a dated row with no step has nothing to move
+      // (D-35), so the row, the selection and an open form all stay put.
+      if (row.kind === "outreach" && !row.hasStep) {
+        toast.error(
+          `No step was decided for ${row.name} — open them and decide one.`
+        )
+        return
+      }
       handlers.clear(
         row,
         row.kind === "wake"

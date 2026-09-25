@@ -41,6 +41,9 @@ export type InboxRow = {
   reach: ReachLink[]
   /** The channel a logged touch starts on. */
   logChannel: string
+  /** A step was decided — false only for a dated outreach row with no step,
+   *  which has nothing for Tomorrow to move (D-35). */
+  hasStep: boolean
 }
 
 /** How many of each kind are waiting beyond what the queue shows. */
