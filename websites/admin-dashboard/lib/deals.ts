@@ -279,19 +279,27 @@ export async function readDealFolder(slug: string | null): Promise<DealFolder | 
   return readFolder(tree, slug)
 }
 
-/** The stage of every named folder, for the leads list's chips — one tree read
- *  plus one DEAL.md read per slug. Slugs with no folder are simply absent. */
-export async function dealStages(slugs: (string | null)[]): Promise<Map<string, DealStage>> {
+/** The stage of every named folder, for the leads list — one tree read plus
+ *  one DEAL.md read per slug. Slugs with no folder, or a folder with no staged
+ *  artefact yet, are simply absent from `stages`. `readable` is false when the
+ *  folders could not be listed at all (no token, a rate limit, a token that
+ *  cannot read icm-board): an empty map then means "unknown", not "no
+ *  folders", and the screen says so rather than filing everyone under "No
+ *  folder" in silence. */
+export async function dealStages(
+  slugs: (string | null)[]
+): Promise<{ stages: Map<string, DealStage>; readable: boolean }> {
   const stages = new Map<string, DealStage>()
+  if (!configured()) return { stages, readable: false }
   const wanted = [...new Set(slugs.filter((s): s is string => Boolean(s)))]
-  if (wanted.length === 0 || !configured()) return stages
+  if (wanted.length === 0) return { stages, readable: true }
   const tree = await readDealsTree()
-  if (tree === null) return stages
+  if (tree === null) return { stages, readable: false }
   const folders = await Promise.all(wanted.map((slug) => readFolder(tree, slug)))
   for (const folder of folders) {
     if (folder.stage) stages.set(folder.slug, folder.stage)
   }
-  return stages
+  return { stages, readable: true }
 }
 
 /**

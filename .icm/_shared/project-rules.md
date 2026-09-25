@@ -155,3 +155,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In the admin dashboard, fixed chrome sized by a token (the rail, the tab bar) grows by the safe-area inset it clears — width or height plus `env(safe-area-inset-*)` — and the content offset reads the same sum; padding the inset inside the token's size leaves no room for the items. (`FAILURE.md` — shell-rail-palette)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - In the admin dashboard, decide any refusal the row's own data already knows before an optimistic removal; only an outcome the server alone can know may roll a row back. (`FAILURE.md` — inbox-rebuild)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In this repo, the post-flip push must change a file (an `.icm/` run file is enough): an empty commit is skipped by Vercel as "Not affected" and leaves the full gate with no preview. (`FAILURE.md` — leads-table-board)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Never re-render a whole PR body to tick acceptance criteria — that also rewrites the gate boxes; tick criteria only by editing those lines, or leave the ticks to `notes.md`. (`FAILURE.md` — leads-table-board)
