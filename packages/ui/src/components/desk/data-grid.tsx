@@ -79,7 +79,9 @@ function DataGridRow({ selected = false, className, ...props }: DataGridRowProps
   )
 }
 
-type DataGridHeaderCellProps = React.ComponentProps<"th"> & {
+// The native `align` attribute (left / center / right, long deprecated) is
+// replaced by the tier's start / end, so the two never intersect to `never`.
+type DataGridHeaderCellProps = Omit<React.ComponentProps<"th">, "align"> & {
   /** The column's current sort. Pass with onSort to make it sortable. */
   sort?: DataGridSort
   /** Makes the column sortable: the header becomes a button. */
@@ -133,7 +135,7 @@ function DataGridHeaderCell({
   )
 }
 
-type DataGridCellProps = React.ComponentProps<"td"> & {
+type DataGridCellProps = Omit<React.ComponentProps<"td">, "align"> & {
   /** A figure: right-aligned, tabular mono. */
   numeric?: boolean
   align?: "start" | "end"

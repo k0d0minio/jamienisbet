@@ -1,0 +1,5 @@
+## 2026-09-25T10:47:22Z ci Vercel – jamie-nisbet (and Vercel – portfolio) — next build type check failed
+../../packages/ui/src/components/desk/data-grid.tsx(93,3): error TS2322: Type '"start"' is not assignable to type 'never'.
+Failed to type check.
+- resolved: `React.ComponentProps<"th">` / `<"td">` already carry the legacy HTML `align` attribute ("left" | "center" | …), so a component prop named `align` with other values intersected to `never`; both prop types now `Omit<…, "align">` before adding the tier's own.
+- rule: In `packages/ui`, a component prop that reuses a native attribute name (`align`, `size`, `title`, `value`, `type`, `label` on some elements) must `Omit` the native one from `React.ComponentProps<…>` first — the intersection otherwise narrows to `never`, and only the consuming app's `next build` type check catches it.
