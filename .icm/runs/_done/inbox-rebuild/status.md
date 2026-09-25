@@ -1,10 +1,10 @@
-# Status: leads-table-board
+# Status: inbox-rebuild
 
 Where the run is, in five lines. Updated at every stage start and stop, and whenever a flag
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: release
-- step: 1
-- ci: GREEN (full gate — Vercel jamie-nisbet + portfolio pass on the closing head; Quality (advisory) re-read on it)
+- step: done
+- ci: GREEN
 - blocked: no
 - updated: 2026-09-25

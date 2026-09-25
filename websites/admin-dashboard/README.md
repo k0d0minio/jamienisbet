@@ -22,7 +22,7 @@ on the desk tier (`packages/ui/BRAND.md` § Desk tier); the screens inside it mo
 | Screen | Route | What it is |
 |---|---|---|
 | **Work** | `/` | Every repo's `.icm/intake/` backlog in one read-only board. Home. |
-| **Inbox** | `/inbox` | The triaged feed: what is waiting on you right now, section by section. |
+| **Inbox** | `/inbox` | The follow-ups queue: outreach due, leads gone quiet, wakes — cleared from the list or the keyboard. |
 | **Leads** | `/leads` | Every lead and customer: a sortable table or a read-only board by deal stage at the desk, swipeable rows on the phone; longest-waiting first by default; the cold pool is a view of it (`?view=prospects`). |
 | **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. **Reachable by URL only** — it left the navigation and the palette (D-17), and its code stays in place, dormant. |
@@ -45,11 +45,11 @@ One shell, two readings of it, both built from the desk tier's primitives
 - **Below `md`, a flat tab bar** welded to the bottom edge on a hairline — no floating glass —
   with the same three, each a third of the bar and 56px tall, extending under the home
   indicator. The title bar carries the palette's search button beside the JN menu (sign out).
-- **The Inbox badge** is the number of follow-ups waiting (D-15): open leads gone quiet past
-  the staleness threshold, the outreach owed by today, and the nurture wakes whose date has come
-  — uncapped, a lead both stale and due counted once (`countFollowUps` in
-  [`lib/inbox.ts`](lib/inbox.ts), whose rule the feed's "Waiting on you" section reads too).
-  Neon only; invoices and today's tickets are not counted. It streams into the chrome as a
+- **The Inbox badge** is the number of rows the Inbox shows (D-30): the outreach owed by today
+  (at most 10), open leads gone quiet past the staleness threshold (at most 6) and the nurture
+  wakes whose date has come (at most 3) — a lead both stale and due counted once
+  (`countFollowUps` in [`lib/inbox.ts`](lib/inbox.ts), the same rule and caps the queue reads).
+  Neon only. It streams into the chrome as a
   promise, so no screen waits on it, and it is hidden at 0 and when the read fails.
 - **The command palette** ([`components/command-palette.tsx`](components/command-palette.tsx)) —
   ⌘K on a Mac, Ctrl+K elsewhere, from any screen (a text field included), or the search button.
@@ -66,47 +66,54 @@ One shell, two readings of it, both built from the desk tier's primitives
 
 ## Inbox — what is waiting on you
 
-The Inbox (the Needs you feed, home until Work took that place) answers the
-question *what needs me* — a roster of everyone does not. So it is a feed: one prioritised list, in sections, and
-nothing in it that does not want something. A section renders only when it has
-rows.
+The Inbox answers *what needs me* as a fast queue (D-13): the business attention still owed by
+hand, and nothing else. Money left it with the rail (D-17), the "worth a look" counts stayed
+behind as the Leads filters they already were (`/leads?crack=unplanned`, `/leads?crack=idle` —
+D-18), today's tickets are Work's, and the Gates and PRs group arrives with `gates-read`. So the
+page reads Neon and nothing else ([`lib/inbox.ts`](lib/inbox.ts) → `loadInbox`).
 
-- **Waiting on you** — open leads past the staleness threshold (7 days with no
-  touch, the same constant the Leads list flags on, shared in
-  [`lib/leads.ts`](lib/leads.ts)), longest first. These rows wear the Leads
-  list's gestures: **swipe right** marks them worked — which is precisely the
-  stroke that drops them out of the section — **swipe left** reaches them, and a
-  tap opens the profile.
-- **Money** — the two kinds of invoice waiting on a decision: a draft nobody
-  finalized, and an open one past its due date, longest overdue first
-  (`listInvoicesNeedingAction` in [`lib/finance.ts`](lib/finance.ts)). The rows
-  **deep-link into Money** and nothing else: per the standing *no outbound
-  action without review* rule, finalizing and emailing stays a deliberate click
-  there.
-- **Today's tickets** — today's picks, runs in flight and blocked stubs, each
-  row deep-linking to its own ticket on Work (`/?t=`).
+**One group, Follow-ups** (D-15), foldable, its count in the header (the fold is remembered in
+this browser). Three kinds of row, in this order, each capped — the caps are the badge's too:
 
-**The rule that shapes every row:** a row either **acts in place** or
-**deep-links**. Nothing in the feed edits something that has a proper home
-elsewhere — marking a lead touched happens under the thumb because there is
-nowhere better to send you; an invoice or a ticket is a link.
+- **Outreach** — next steps dated today or earlier, in the crack-finder's order: overdue first,
+  then fit tier. At most 10: ten is a morning's work.
+- **Waiting on you** — open leads untouched for 7+ days (the Leads list's threshold, in
+  [`lib/leads.ts`](lib/leads.ts)) that are not already on today's outreach, longest first. At
+  most 6.
+- **Wake** — nurture leads whose wake date has come, longest-overdue first. At most 3.
 
-Todos and the Portuguese compliance calendar used to live here too (an Overdue
-section, a `+` to write a todo down, a calendar sheet). They were dropped with
-their tables — todos are kept in Google Tasks — so the feed makes nothing; it
-only lists what is owed.
+Past a cap, a quiet line at the foot of the group says how many more are waiting; they take the
+freed places as rows clear. A row reads its kind tag (mono), the name, who or where, and the age
+— overdue outreach and every stale lead in the destructive colour.
 
-**Empty is the point.** With nothing in any section the screen shows a designed
-**all clear** rather than a blank — the app opening on "nothing needs you" is a
-good day, not a broken screen.
+**At the desk (from `lg`)** the list and a detail pane sit side by side (D-34): the row's step or
+silence, its facts (last touch, due date, cadence rung, intake), and its actions. **Below `lg`**
+a tap opens the row in place: its primary and secondary as two full-width buttons, the rest as
+text buttons. Outreach and stale rows keep the Leads list's swipes (D-32): right marks the lead
+touched, left reaches them on WhatsApp or email.
 
-**Degradation is per section.** A missing `STRIPE_SECRET_KEY` or `GITHUB_TOKEN`
-drops its section and leaves one footnote line at the foot of the feed saying
-what is not being read; the same for a source that errors. A key that is missing
-is a fact about the deployment, not a thing that needs you, so it never takes a
-section's worth of the fold. Neon is the exception: it is the app's spine, two of
-the four sections depend on it, and it fails into a stated banner. The all-clear
-state knows when it is only as complete as what it could see, and says so.
+| Kind | Primary (↵) | Secondary | Also |
+|---|---|---|---|
+| Outreach | Reach on their best channel | Log a touch (`e`) | Tomorrow (`s`), other channels, Mark touched, Open lead |
+| Waiting on you | Reach on their best channel | Mark touched (`e`) | other channels, Open lead |
+| Wake | Wake (`e`) | Later · +90 days | Tomorrow (`s`), Open lead |
+
+**Keys, at the desk:** `j` / `k` (or ↓ / ↑) move, `↵` runs the primary, `e` the done action, `s`
+Tomorrow. None fires while typing, while the palette or a menu is open, or with a modifier held.
+
+**Clearing.** Every follow-up can be cleared without opening the lead: a stale lead by Mark
+touched; an outreach row by Tomorrow (the step keeps its words, dated tomorrow) or by logging a
+touch and accepting — or editing — the cadence's suggested next step; a wake by Wake (it comes
+back as an outreach row, with "Get back in touch" due today), Tomorrow, or Later. A cleared row
+leaves the list at once and the selection moves on; a failed write puts it back with a toast.
+Mark touched on an outreach row stamps the lead but leaves the row: the step is still due.
+
+**Nothing is sent from the Inbox** (D-33). Reach is a plain `wa.me`, `mailto:` or `tel:` link,
+with no draft — drafting stays on the lead's
+profile — and a touch is logged only by the operator's own submit.
+
+**Empty is the point:** with no rows the list reads "Nothing needs you". A failed database read
+says so in place of the group rather than pretending the day is clear.
 
 ## Leads
 
@@ -234,7 +241,7 @@ planned reads a quiet "No next step" on the rungs where one is expected, and ren
 all on the ones where it isn't (a client, a past client, a lost lead). **Nothing ever blocks a
 save for a missing next action** — that is Jamie's decision, and what notices the gap instead is
 a read: the crack-finder queries in the services layer, which sequence 6 of the lead-engine epic
-puts on the Needs you feed.
+puts on the Inbox.
 
 Riding with the identity are **two status glyphs — the delivery repo and the Stripe customer**.
 Lit and filled when connected (tap jumps to GitHub or Stripe); dim on a dashed outline when not
@@ -650,7 +657,7 @@ is read live from Stripe, and nothing about an amount comes from the browser. On
 sections:
 
 - **Balance** — available, pending, and total outstanding across open invoices.
-- **Invoices** (`#invoices` — where the Needs you feed's Money rows land) — every Stripe invoice
+- **Invoices** (`#invoices`) — every Stripe invoice
   with status/amount/hosted link, and a form to raise a new
   one **against a lead picked from the database** (no free-text customer details). Raising it
   resolves — and, first time, creates + links — that lead's Stripe customer, storing the id on
@@ -792,7 +799,7 @@ app/
     loading.tsx         # Work's layout-true skeleton
     board-actions.ts    # the board's refresh (tag-busting) server actions
     palette-actions.ts  # the palette's index: readBoard() + listClients, slimmed
-    inbox/              # the Inbox — the feed; loading.tsx alongside (the widest read in the app)
+    inbox/              # the Inbox — the follow-ups queue (Neon only); loading.tsx alongside
     actions.ts          # lead + touch server actions (every lead screen
                         #   uses these); logTouchAction is the one that answers with what to
                         #   do next
@@ -812,11 +819,14 @@ components/             # login form, nav, service-worker register, lead + money
                         #   app-menu.tsx — the monogram on the bar: what belongs to the app
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
                         #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
-                        #   lead-row.tsx — the leads list's gestures (call/email/archive, touched),
-                        #                worn by the feed's "Waiting on you" rows too
+                        #   lead-row.tsx — the leads list's gestures (call/email/archive, touched)
                         #   leads-table.tsx — Leads at the desk: the DataGrid, header sort,
                         #                row actions, j/k/Enter/t; the Table / Board switch
                         #   deal-board.tsx — Leads by deal stage, read-only
+                        #   inbox-list.tsx / inbox-row.tsx / inbox-detail.tsx — the Inbox
+                        #                queue: fold, selection, keys and optimistic clears;
+                        #                one row; the detail pane, the kind table of actions
+                        #                and the log-a-touch form
                         #   lead-action-row.tsx — the profile's circular actions, Contacts-style
                         #   lead-contact-card.tsx / lead-facts-card.tsx / lead-deal-card.tsx /
                         #   lead-notes-card.tsx
@@ -844,7 +854,8 @@ lib/                    # auth, formatting, stripe client, money, percent, finan
                         #   launchers/ — the session-link registry: one file per tool, index.ts orders them
                         #   leads.ts — the staleness threshold and the row labels the feed and
                         #              the Leads list both read a lead by
-                        #   inbox.ts — the follow-up rule: "waiting on you" and the badge count
+                        #   inbox.ts — the follow-up rule, the caps, the queue's read and the
+                        #              badge count; inbox-row.ts — the row as the browser gets it
                         #   touches.ts / lead-facts.ts — the model's closed vocabularies,
                         #              mirrored for the browser so a sheet needn't ship the
                         #              Neon driver to read a label
