@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Rows are dropped as they are — no export, no backup step (Define decision, Jamie 2026-09-25).
+- No Neon branch and no local `db:migrate`: `database.isolation: none`; CI validates, `main` applies
+  (Define decision). The migration is generated with `db:generate`, never hand-written.
+- Only todos and compliance go [D-16]; every other feed section, the Leads list and Money are
+  untouched (later stubs of `admin-cockpit-redesign`).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define: targeted greps of the admin pages and `schema/index.ts` to confirm `touches:`; `.icm/project.json` and `_shared/project-rules.md` (migrations, database isolation) to settle the migration-proof criterion.

@@ -6,18 +6,17 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator reads `02_define/output/spec.md` and ticks **Spec approved** on
+   https://github.com/k0d0minio/jamienisbet/pull/168 — then `build drop-todos-compliance`.
+2. Build follows `plan.md` pass by pass; load the `database-migration` capability skill for pass 3.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/jamienisbet/pull/168
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not export rows, add a backup step, or run `db:migrate` against any database — decided in Define.
+- Do not hand-write the migration or use `check-migrations.sh --new`; `db:generate` only.
+- Do not touch any other feed section, the Leads list or Money — later stubs own them.
+- Do not tick either gate checkbox.
