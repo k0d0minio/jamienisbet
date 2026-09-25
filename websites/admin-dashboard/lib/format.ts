@@ -23,7 +23,7 @@ export function formatDate(value: Date | string | null): string {
 
 // Stripe returns its timestamps as epoch seconds, and every one of them the
 // admin shows is read as a *day*: an invoice is raised on a day, due on a day,
-// paid on a day. The hour was never set by anyone and, on a grouped row, it
+// paid on a day. The hour was never set by anyone and, on a record row, it
 // costs exactly the width the figure and the state need. Two digits of year,
 // so a figure from last year can never be mistaken for one from this one.
 const shortEpochFormatter = new Intl.DateTimeFormat("en-GB", {

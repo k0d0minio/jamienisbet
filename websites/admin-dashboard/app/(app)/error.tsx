@@ -3,9 +3,9 @@
 import { useEffect } from "react"
 import { RotateCw, TriangleAlert } from "lucide-react"
 
-import { Button, GroupedBlock, GroupedList, GroupedSection } from "@jamie-nisbet/ui"
+import { DeskButton, RecordBlock, RecordSection } from "@jamie-nisbet/ui"
 
-import { AppScreen } from "@/components/app-screen"
+import { DeskScreen } from "@/components/desk-screen"
 
 // The boundary for the four screens. Each of them is a live read of something
 // that isn't here — Neon, Stripe, every repo's `.icm/intake/` over the GitHub
@@ -15,8 +15,8 @@ import { AppScreen } from "@/components/app-screen"
 // The screens degrade one source at a time on their own: a missing key or a
 // section that throws leaves a footnote and the rest of the feed. This catches
 // what that can't — the read that took the whole render down with it — and it
-// still has to read like the app rather than like a crash: the compact bar and
-// the app menu are where they always are, the words are plain, and the one
+// still has to read like the app rather than like a crash: the title bar and
+// the account menu are where they always are, the words are plain, and the one
 // thing that helps is under a thumb.
 //
 // A lead's own profile keeps its own boundary
@@ -36,12 +36,12 @@ export default function AppError({
   }, [error])
 
   return (
-    <AppScreen title="Didn't load" subtitle="Something upstream refused">
-      <GroupedList className="px-0">
-        <GroupedSection footer="Nothing has been changed. If it keeps happening, the database, Stripe or GitHub is the place to look.">
-          <GroupedBlock>
-            <span className="mb-2 flex items-center gap-2 text-app-callout text-app-label">
-              <TriangleAlert className="size-5 text-destructive" aria-hidden />
+    <DeskScreen title="Didn't load" subtitle="Something upstream refused">
+      <div className="flex flex-col gap-6 pt-4">
+        <RecordSection footer="Nothing has been changed. If it keeps happening, the database, Stripe or GitHub is the place to look.">
+          <RecordBlock>
+            <span className="mb-2 flex items-center gap-2 text-desk-body font-semibold text-desk-fg">
+              <TriangleAlert className="size-desk-icon text-desk-blocked" aria-hidden />
               This screen didn&apos;t come back
             </span>
             <p>
@@ -49,13 +49,13 @@ export default function AppError({
               screen here is a live read, so a second attempt is all it takes
               when whatever was down has come back.
             </p>
-          </GroupedBlock>
-        </GroupedSection>
-        <Button type="button" onClick={reset} className="w-full sm:w-fit">
-          <RotateCw />
+          </RecordBlock>
+        </RecordSection>
+        <DeskButton type="button" onClick={reset} className="w-full sm:w-fit">
+          <RotateCw aria-hidden />
           Try again
-        </Button>
-      </GroupedList>
-    </AppScreen>
+        </DeskButton>
+      </div>
+    </DeskScreen>
   )
 }

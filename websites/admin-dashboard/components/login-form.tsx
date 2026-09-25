@@ -2,7 +2,7 @@
 
 import { useActionState } from "react"
 
-import { AppField, AppInput, PendingButton } from "@jamie-nisbet/ui"
+import { DeskField, DeskInput, PendingButton } from "@jamie-nisbet/ui"
 
 import { login, type LoginState } from "@/app/login/actions"
 
@@ -17,9 +17,9 @@ export function LoginForm() {
       {/* The refusal is the field's own error line — under the box it belongs
           to, marking it invalid and announcing itself, rather than a boxed
           alert on the marketing tier. It used to be hand-wired here; it is
-          what AppField does for every field in the app now. */}
-      <AppField label="Password" error={state.error}>
-        <AppInput
+          what DeskField does for every field in the app now. */}
+      <DeskField label="Password" error={state.error}>
+        <DeskInput
           name="password"
           type="password"
           // What the phone should do with the field: offer the saved password,
@@ -35,7 +35,7 @@ export function LoginForm() {
           autoFocus
           required
         />
-      </AppField>
+      </DeskField>
 
       <PendingButton pending={pending} pendingText="Signing in…" className="w-full">
         Sign in

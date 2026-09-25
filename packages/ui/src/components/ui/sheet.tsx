@@ -15,15 +15,17 @@ import {
   DialogTrigger,
 } from "./dialog"
 
-// The phone-first modal surface: a bottom sheet that slides up over the page on
-// a small screen — where a centred dialog floats out of thumb reach and fights
-// the keyboard — and falls back to the ordinary centred dialog from `sm` up.
-// Same Radix machinery as Dialog (focus trap, escape, overlay), different
-// geometry; use it for any form or action that a phone user opens one-handed.
+// The phone-first modal surface: a bottom sheet pinned over the page on a small
+// screen — where a centred dialog floats out of thumb reach and fights the
+// keyboard — and the ordinary centred dialog from `sm` up. Same Radix
+// machinery as Dialog (focus trap, escape, overlay), different geometry; use it
+// for any form or action that a phone user opens one-handed.
 //
-// On the app tier a sheet can also take **detents** — the native behaviour
-// where the sheet rests at one of a few heights and you drag its handle
-// between them. See SheetContent's `detents` prop.
+// It appears and disappears; it does not slide or spring (the desk tier's
+// motion rule — instant, or a ≤120ms colour change). A sheet can also take
+// **detents** — it rests at one of a few heights and you drag its handle
+// between them. The drag follows the finger; a release settles at once. See
+// SheetContent's `detents` prop.
 
 const Sheet = Dialog
 const SheetTrigger = DialogTrigger
@@ -247,6 +249,9 @@ function SheetContent({
   return (
     <DialogContent
       ref={contentRef}
+      // The scrim appears and goes with the sheet — no fade of its own left
+      // behind once the panel has gone.
+      overlayClassName="data-[state=open]:animate-none data-[state=closed]:animate-none"
       className={cn(
         // Phone: pinned to the bottom edge, full-width, capped height with its
         // own scroll, padded past the home indicator.
@@ -257,9 +262,8 @@ function SheetContent({
         "bottom-[var(--jn-keyboard-inset)]",
         detented
           ? // A detented sheet is the height its detent says, not the height
-            // its content asks for — and it moves between them on the sheet
-            // spring. The duration utilities read the app tier's own tokens,
-            // which stand still under reduced motion.
+            // its content asks for. It follows the finger while dragged and
+            // takes its detent at once on release — no transition to settle.
             [
               "h-[var(--jn-sheet-height)] max-h-[calc(92dvh_-_var(--jn-keyboard-inset))]",
               // The dialog body is a grid, and a grid told to be taller than
@@ -267,11 +271,11 @@ function SheetContent({
               // out spread down the sheet with a hole in the middle of it.
               // Stack from the top and let the rest of the detent be space.
               "content-start",
-              "transition-[height] duration-[var(--duration-sheet)] ease-[var(--spring-sheet)]",
-              dragHeight !== null && "transition-none",
             ]
           : "max-h-[calc(85dvh_-_var(--jn-keyboard-inset))]",
-        "data-[state=open]:slide-in-from-bottom-8 data-[state=closed]:slide-out-to-bottom-8",
+        // No entrance and no exit: the dialog's zoom-and-fade is switched off
+        // here, so the sheet is simply there, and simply gone.
+        "data-[state=open]:animate-none data-[state=closed]:animate-none",
         // Desktop: the ordinary centred dialog — no keyboard to dodge, and no
         // detent to rest at. `--sheet-w` is iPadOS's form-sheet width, stated
         // as its own token: the class this used to carry, `sm:max-w-lg`,
@@ -306,7 +310,9 @@ function SheetContent({
           onPointerMove={onHandlePointerMove}
           onPointerUp={onHandlePointerUp}
           onPointerCancel={onHandlePointerUp}
-          className="-mx-4 -mt-4 mb-1 flex h-11 touch-none items-center justify-center sm:hidden"
+          // Centred and 3rem short of each edge, so the close button's 44px
+          // touch target in the corner never sits over the handle's end.
+          className="mx-auto -mt-4 mb-1 flex h-11 w-[calc(100%-6rem)] touch-none items-center justify-center sm:hidden"
         >
           <span className="h-1 w-10 rounded-full bg-border" aria-hidden />
         </button>

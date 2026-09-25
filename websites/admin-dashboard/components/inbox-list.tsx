@@ -31,7 +31,7 @@ import {
   wakeTomorrow,
 } from "@/app/(app)/actions"
 import { refreshGates } from "@/app/(app)/board-actions"
-import { AppMenu } from "@/components/app-menu"
+import { AccountMenu } from "@/components/account-menu"
 import { usePaletteOpener } from "@/components/command-palette"
 import {
   GateDetail,
@@ -718,7 +718,7 @@ function GatesGroup({
 }
 
 /** On the phone the screen's header carries what the rail carries at the
- *  desk: the palette and the app menu. From `md` the rail has both. */
+ *  desk: the palette and the account menu. From `md` the rail has both. */
 function PhoneChrome() {
   const openPalette = usePaletteOpener()
   return (
@@ -733,7 +733,7 @@ function PhoneChrome() {
           <Search aria-hidden />
         </DeskButton>
       ) : null}
-      <AppMenu />
+      <AccountMenu />
     </div>
   )
 }

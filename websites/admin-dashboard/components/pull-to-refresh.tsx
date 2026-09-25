@@ -98,10 +98,10 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           "pointer-events-none flex items-end justify-center overflow-hidden",
-          // A released pull settles home on the same spring a released swipe
-          // row does — critically damped, so the gap closes without snapping
-          // shut, and stands still under reduced motion.
-          pull === 0 && "transition-[height] spring-pop"
+          // A released pull closes the gap in the desk tier's 100ms, eased
+          // out, as a released swipe row does — no spring — and stands still
+          // under reduced motion.
+          pull === 0 && "transition-[height] duration-100"
         )}
         style={{ height: refreshing ? 40 : pull }}
         aria-hidden={!refreshing}
@@ -114,7 +114,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
           // The loader labels itself "Loading"; the sr-only line below says the
           // more specific thing, so here it is decorative.
           <LogoLoader
-            className="mb-2 size-5 text-app-label-3"
+            className="mb-2 size-5 text-desk-fg-3"
             role={undefined}
             aria-label={undefined}
             aria-hidden="true"
@@ -122,7 +122,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
         ) : (
           <RefreshCw
             className={cn(
-              "mb-2 size-5 text-app-label-3",
+              "mb-2 size-5 text-desk-fg-3",
               !active && "opacity-0"
             )}
             style={{ transform: `rotate(${pull * 2.5}deg)` }}

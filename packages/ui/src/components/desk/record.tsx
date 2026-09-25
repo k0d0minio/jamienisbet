@@ -8,10 +8,9 @@ import { cn } from "../../lib/utils"
 //
 // What one record's facts are at the desk — contact, facts, deal — read as
 // label on the left, value on the right, a hairline between rows, no slab and
-// no card around them. The desk's answer to the app tier's inset grouped list,
-// and deliberately prop-compatible with it (`header` / `footer`, `label` /
-// `value` / `description` / `href` / `accessory` / `variant` / `asChild`), so a
-// screen moving tiers swaps the element and keeps its logic.
+// no card around them. `RecordSection` takes a `header` and a `footer`;
+// `RecordRow` a `label`, `value`, `description`, `href`, `accessory`, `variant`
+// and `asChild`; `RecordBlock` holds prose; `RecordDisclosure` folds.
 //
 //   <RecordSection header="Contact" actions={<DeskButton variant="ghost" size="sm">Edit</DeskButton>}>
 //     <RecordRow label="Email" value={<span className="font-mono">a@b.pt</span>}
@@ -103,7 +102,7 @@ type RecordRowProps = Omit<
   href?: string
   target?: string
   rel?: string
-  /** Accepted for parity with the app tier's row; the desk draws no chevron. */
+  /** Accepted and ignored: the desk draws no chevron on a row. */
   chevron?: boolean
   /** A second control beside the row, outside its element: copy, delete. */
   accessory?: React.ReactNode
@@ -128,8 +127,7 @@ function RecordRow({
   children,
   ...props
 }: RecordRowProps) {
-  // The desk draws no chevron; the prop is accepted so a row moving from the
-  // app tier compiles unchanged.
+  // The desk draws no chevron; the prop is accepted and ignored.
   void _chevron
   const interactive = asChild || href != null || props.onClick != null
   const element = href != null ? "a" : interactive ? "button" : "div"
@@ -162,7 +160,19 @@ function RecordRow({
         </span>
       )}
       <span className="flex min-w-0 shrink-0 flex-col">
-        <span className={cn("truncate", VARIANT_LABEL[variant])}>{label}</span>
+        <span
+          className={cn(
+            "truncate",
+            // A label is a key — muted — when a value answers it. A row with
+            // no value (an action, a status line) is its own statement, and
+            // reads at full strength rather than as if it were disabled.
+            variant === "default" && value == null
+              ? "text-desk-fg"
+              : VARIANT_LABEL[variant]
+          )}
+        >
+          {label}
+        </span>
         {description != null && (
           <span className="truncate text-desk-meta text-desk-fg-3">
             {description}

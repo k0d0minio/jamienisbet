@@ -4,14 +4,14 @@ import { useState, useTransition } from "react"
 import { Check, Copy, Inbox, Moon, PenLine } from "lucide-react"
 
 import {
-  AppField,
-  AppInput,
-  AppTextarea,
+  DeskField,
+  DeskInput,
+  DeskTextarea,
   Button,
   DeskButton,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
+  RecordBlock,
+  RecordRow,
+  RecordSection,
   PendingButton,
   Sheet,
   SheetContent,
@@ -371,7 +371,7 @@ export function LeadReply({
 
             {/* The read, or the reason there isn't one. Either way the reply is
                 already in the history, which is what the words say. */}
-            <GroupedSection
+            <RecordSection
               header="The read"
               footer={
                 read
@@ -379,21 +379,21 @@ export function LeadReply({
                   : undefined
               }
             >
-              <GroupedBlock>
+              <RecordBlock>
                 {read ? (
-                  <p className="text-app-label">{read.summary}</p>
+                  <p className="text-desk-fg">{read.summary}</p>
                 ) : (
-                  <p className="text-app-callout text-app-label-2">
+                  <p className="text-desk-body text-desk-fg-2">
                     {triage.message}
                   </p>
                 )}
-              </GroupedBlock>
-            </GroupedSection>
+              </RecordBlock>
+            </RecordSection>
 
             {/* What came of it. Every button is the whole gesture rather than a
                 selection waiting on a save, and the one already on the row is
                 the one that reads as chosen. */}
-            <GroupedSection
+            <RecordSection
               header="What came of it"
               footer={
                 read?.outcome
@@ -401,7 +401,7 @@ export function LeadReply({
                   : "Changes the touch you just logged, and nothing else."
               }
             >
-              <GroupedBlock>
+              <RecordBlock>
                 <div
                   role="group"
                   aria-label="What came of it"
@@ -419,62 +419,65 @@ export function LeadReply({
                         aria-busy={busy === `outcome:${option.value}` || undefined}
                         onClick={() => takeOutcome(option.value)}
                         className={cn(
-                          "flex min-h-app-touch items-center justify-center gap-1.5 px-3",
-                          "rounded-app-control text-app-body transition-colors spring-press",
+                          "flex min-h-desk-control items-center justify-center gap-1.5 border px-3",
+                          "rounded-desk-control text-desk-ui transition-colors duration-100",
+                          // Chosen is the sunken fill plus weight, the desk's
+                          // one selected state; the proposed one is weight
+                          // alone, on the surface.
                           active
-                            ? "bg-app-group font-semibold text-app-label shadow-app-raised"
+                            ? "border-desk-line-strong bg-desk-sunken font-semibold text-desk-fg"
                             : proposed
-                              ? "bg-app-track font-semibold text-app-tint active:bg-app-press"
-                              : "bg-app-track font-medium text-app-label-2 active:bg-app-press",
+                              ? "border-desk-line-strong bg-desk-surface font-semibold text-desk-fg hover:bg-desk-hover active:bg-desk-sunken"
+                              : "border-desk-line bg-desk-surface text-desk-fg-2 hover:bg-desk-hover active:bg-desk-sunken",
                           "disabled:pointer-events-none"
                         )}
                       >
                         {active ? (
-                          <Check className="size-4 shrink-0" aria-hidden />
+                          <Check className="size-desk-icon shrink-0" aria-hidden />
                         ) : null}
                         {option.label}
                       </button>
                     )
                   })}
                 </div>
-              </GroupedBlock>
-            </GroupedSection>
+              </RecordBlock>
+            </RecordSection>
 
             {/* The opt-out, when the message asked for one. Irreversible, so it
                 sits under the reason it is being offered and behind a button
                 that says what it does rather than behind a row you could brush
                 past on the way to the next section. */}
             {read?.optOut ? (
-              <GroupedSection
+              <RecordSection
                 header="They asked to be removed"
                 footer="Permanent, and it belongs to the contact rather than to this record — a re-import can't bring it back."
               >
-                <GroupedBlock>
+                <RecordBlock>
                   {optedOut ? (
-                    <p className="text-app-label">
+                    <p className="text-desk-fg">
                       Opted out
                       {closed.length > 0 ? ` — ${closed.join(", ")} closed` : null}.
                       They&apos;re Not won, and nothing is planned.
                     </p>
                   ) : (
                     <div className="grid gap-3">
-                      <p className="text-app-callout text-app-label-2">
+                      <p className="text-desk-body text-desk-fg-2">
                         Closes every address, number and handle for {clientName}{" "}
                         for good, moves them to Not won, and clears what happens
                         next.
                       </p>
-                      <AppField
+                      <DeskField
                         label="Reason"
                         hint="What they said, in a few words — the only thing that explains this a year from now."
                       >
-                        <AppInput
+                        <DeskInput
                           value={reason}
                           onChange={(event) => setReason(event.target.value)}
                           maxLength={200}
                           autoCapitalize="sentences"
                           enterKeyHint="done"
                         />
-                      </AppField>
+                      </DeskField>
                       <PendingButton
                         type="button"
                         pending={busy === "optout"}
@@ -488,12 +491,12 @@ export function LeadReply({
                       </PendingButton>
                     </div>
                   )}
-                </GroupedBlock>
-              </GroupedSection>
+                </RecordBlock>
+              </RecordSection>
             ) : stage ? (
-              <GroupedSection header="Where they sit" footer={stage.hint}>
+              <RecordSection header="Where they sit" footer={stage.hint}>
                 {applied.has("stage") ? (
-                  <GroupedRow
+                  <RecordRow
                     icon={<Check />}
                     label={`Moved to ${stage.label}`}
                     description={
@@ -502,7 +505,7 @@ export function LeadReply({
                     chevron={false}
                   />
                 ) : (
-                  <GroupedRow
+                  <RecordRow
                     icon={stage.value === "nurture" ? <Moon /> : undefined}
                     label={`Move to ${stage.label}`}
                     description={
@@ -521,28 +524,28 @@ export function LeadReply({
                     sleeps forever, which is the thing nurture was invented not
                     to be. */}
                 {stage.value === "nurture" && !applied.has("stage") ? (
-                  <GroupedBlock>
-                    <AppField
+                  <RecordBlock>
+                    <DeskField
                       label="Wake date"
                       hint="When they come back into the queue."
                     >
-                      <AppInput
+                      <DeskInput
                         type="date"
                         value={wake}
                         onChange={(event) => setWake(event.target.value)}
                         className="w-full sm:max-w-52"
                       />
-                    </AppField>
-                  </GroupedBlock>
+                    </DeskField>
+                  </RecordBlock>
                 ) : null}
-              </GroupedSection>
+              </RecordSection>
             ) : null}
 
             {/* What to do about it. Editable before it is set, because a
                 proposal that is nearly right is worth a word rather than a
                 retype. */}
             {triage.next && !optedOut ? (
-              <GroupedSection
+              <RecordSection
                 header="Next step"
                 footer={
                   triage.next.source === "model"
@@ -550,13 +553,13 @@ export function LeadReply({
                     : "The cadence's own answer — nothing was proposed from the message."
                 }
               >
-                <GroupedBlock>
+                <RecordBlock>
                   {parked ? (
-                    <p className="text-app-callout text-app-label-2">
+                    <p className="text-desk-body text-desk-fg-2">
                       Parked — nothing is planned until they wake.
                     </p>
                   ) : applied.has("next") ? (
-                    <p className="text-app-label">
+                    <p className="text-desk-fg">
                       Set — {action}
                       {due ? (
                         <>
@@ -567,26 +570,26 @@ export function LeadReply({
                     </p>
                   ) : (
                     <div className="grid gap-3">
-                      <AppField
+                      <DeskField
                         label="What to do"
                         hint="Edit it if it isn't quite right."
                       >
-                        <AppInput
+                        <DeskInput
                           value={action}
                           onChange={(event) => setAction(event.target.value)}
                           maxLength={200}
                           autoCapitalize="sentences"
                           enterKeyHint="done"
                         />
-                      </AppField>
-                      <AppField label="Due">
-                        <AppInput
+                      </DeskField>
+                      <DeskField label="Due">
+                        <DeskInput
                           type="date"
                           value={due}
                           onChange={(event) => setDue(event.target.value)}
                           className="w-full sm:max-w-52"
                         />
-                      </AppField>
+                      </DeskField>
                       <PendingButton
                         type="button"
                         pending={busy === "next"}
@@ -599,23 +602,23 @@ export function LeadReply({
                       </PendingButton>
                     </div>
                   )}
-                </GroupedBlock>
-              </GroupedSection>
+                </RecordBlock>
+              </RecordSection>
             ) : null}
 
             {/* The answer, grounded on the thread — and handed over exactly the
                 way a first message is. Nothing here sends. */}
             {answer && replyChannel && replyDoor ? (
-              <GroupedSection
+              <RecordSection
                 header={`The answer — ${draftChannelLabel(replyChannel)}`}
                 footer="Written here, sent by you — nothing leaves this app."
               >
-                <GroupedBlock>
-                  <AppField
+                <RecordBlock>
+                  <DeskField
                     label="The draft"
                     hint="Edit it freely — what you send is what gets logged."
                   >
-                    <AppTextarea
+                    <DeskTextarea
                       autoResize
                       rows={6}
                       value={draft}
@@ -623,8 +626,8 @@ export function LeadReply({
                       autoCapitalize="sentences"
                       spellCheck
                     />
-                  </AppField>
-                </GroupedBlock>
+                  </DeskField>
+                </RecordBlock>
 
                 <DraftHandoff
                   channel={replyChannel}
@@ -633,7 +636,7 @@ export function LeadReply({
                   body={body}
                   onHandoff={handedOver}
                 />
-                <GroupedRow
+                <RecordRow
                   icon={<Copy />}
                   label="Copy the answer"
                   chevron={false}
@@ -645,14 +648,14 @@ export function LeadReply({
 
                 {handedOff ? (
                   applied.has("draft") ? (
-                    <GroupedRow
+                    <RecordRow
                       icon={<Check />}
                       label={`Logged — ${draftChannelLabel(replyChannel)}, sent`}
                       description="The answer is kept on the touch"
                       chevron={false}
                     />
                   ) : (
-                    <GroupedRow
+                    <RecordRow
                       icon={<PenLine />}
                       variant="tint"
                       label={`Log it — ${draftChannelLabel(replyChannel)}, sent`}
@@ -667,7 +670,7 @@ export function LeadReply({
                     />
                   )
                 ) : null}
-              </GroupedSection>
+              </RecordSection>
             ) : null}
 
             <div className="flex items-center gap-2">
@@ -694,7 +697,7 @@ export function LeadReply({
             </SheetHeader>
 
             <div className="grid gap-4">
-              <AppField
+              <DeskField
                 label="Where it came in"
                 hint="The door they used — which is also where an answer would go back."
               >
@@ -706,7 +709,7 @@ export function LeadReply({
                   }}
                   label="Where it came in"
                 />
-              </AppField>
+              </DeskField>
 
               {reading ? (
                 // Layout-true: the summary and the two or three decisions that
@@ -719,7 +722,7 @@ export function LeadReply({
                   <span className="sr-only">Reading the reply…</span>
                 </div>
               ) : (
-                <AppField
+                <DeskField
                   label="What they said"
                   hint={
                     configured
@@ -727,7 +730,7 @@ export function LeadReply({
                       : "Triage isn't set up on this deployment, so this is logged as it stands."
                   }
                 >
-                  <AppTextarea
+                  <DeskTextarea
                     autoResize
                     rows={6}
                     value={said}
@@ -737,7 +740,7 @@ export function LeadReply({
                     autoCapitalize="sentences"
                     spellCheck
                   />
-                </AppField>
+                </DeskField>
               )}
 
               <PendingButton

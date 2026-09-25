@@ -4,10 +4,10 @@ import { useState } from "react"
 import { Copy, ExternalLink, Mail, QrCode as QrCodeIcon, Share2 } from "lucide-react"
 
 import {
-  GroupedBlock,
-  GroupedDisclosure,
-  GroupedRow,
-  GroupedSection,
+  RecordBlock,
+  RecordDisclosure,
+  RecordRow,
+  RecordSection,
   QrCode,
   Sheet,
   SheetContent,
@@ -134,18 +134,18 @@ export function ShareFormLink({
 
   return (
     <div className="flex flex-col gap-4">
-      <GroupedSection header="The link">
+      <RecordSection header="The link">
         {/* Machine text: mono, selectable, wrapping rather than truncating.
             A link you can only send through buttons is a link you can't
             check, and checking it is sometimes the whole errand. */}
-        <GroupedBlock className="font-mono break-all">{url}</GroupedBlock>
-      </GroupedSection>
+        <RecordBlock className="font-mono break-all">{url}</RecordBlock>
+      </RecordSection>
 
-      <GroupedSection footer="Nothing goes out from here — each of these hands you a link or a draft, and you send it.">
+      <RecordSection footer="Nothing goes out from here — each of these hands you a link or a draft, and you send it.">
         {/* Only where the glass has one. Offering a share sheet that isn't
             there would be a button that looks like it worked. */}
         {canShare ? (
-          <GroupedRow
+          <RecordRow
             icon={<Share2 />}
             variant="tint"
             label="Share the link"
@@ -157,7 +157,7 @@ export function ShareFormLink({
           />
         ) : null}
 
-        <GroupedRow
+        <RecordRow
           icon={<Copy />}
           // Lead with it on a laptop, where it is the only way out of here.
           variant={canShare ? "default" : "tint"}
@@ -169,7 +169,7 @@ export function ShareFormLink({
         />
 
         {clientEmail ? (
-          <GroupedRow
+          <RecordRow
             icon={<Mail />}
             label="Email a draft"
             description={clientEmail}
@@ -179,7 +179,7 @@ export function ShareFormLink({
         ) : (
           // The action the record can't support, disabled rather than hidden:
           // its absence is the news, and it explains itself.
-          <GroupedRow
+          <RecordRow
             icon={<Mail />}
             label="Email a draft"
             description="No address on this lead yet"
@@ -188,7 +188,7 @@ export function ShareFormLink({
         )}
 
         {fitsInQr ? (
-          <GroupedDisclosure
+          <RecordDisclosure
             icon={<QrCodeIcon />}
             label="Show a QR code"
             description="For handing it over in person"
@@ -201,25 +201,25 @@ export function ShareFormLink({
               <QrCode
                 value={url}
                 label={`QR code for ${formTitle}`}
-                className="w-full max-w-56 rounded-app-control border border-app-separator"
+                className="w-full max-w-56 rounded-desk-control border border-desk-line"
               />
             </div>
-          </GroupedDisclosure>
+          </RecordDisclosure>
         ) : (
           // Only reachable with a portfolio base URL long enough to push the
           // link past 213 characters. Said rather than hidden, so the set of
           // ways to send stays the same four everywhere.
-          <GroupedRow
+          <RecordRow
             icon={<QrCodeIcon />}
             label="Show a QR code"
             description="This link is too long to fit in one"
             className="opacity-50"
           />
         )}
-      </GroupedSection>
+      </RecordSection>
 
-      <GroupedSection footer="Opening it is a look at what they will see — nothing is recorded until they submit.">
-        <GroupedRow
+      <RecordSection footer="Opening it is a look at what they will see — nothing is recorded until they submit.">
+        <RecordRow
           icon={<ExternalLink />}
           label="Open the questionnaire"
           href={url}
@@ -227,7 +227,7 @@ export function ShareFormLink({
           rel="noreferrer"
           chevron={false}
         />
-      </GroupedSection>
+      </RecordSection>
     </div>
   )
 }

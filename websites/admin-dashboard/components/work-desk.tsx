@@ -911,7 +911,7 @@ export function WorkDesk({
       <header className="flex h-desk-toolbar shrink-0 items-center gap-3 border-b border-desk-line bg-desk-surface px-4">
         <h1 className="text-desk-heading font-bold">Work</h1>
         <div className="ml-auto flex items-center">
-          <BoardRefresh readAt={board.readAt} desk />
+          <BoardRefresh readAt={board.readAt} />
         </div>
       </header>
 

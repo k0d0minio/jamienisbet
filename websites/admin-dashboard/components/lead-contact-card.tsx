@@ -4,8 +4,8 @@ import { useState, useTransition } from "react"
 import { Check, Copy } from "lucide-react"
 
 import {
-  AppField,
-  AppInput,
+  DeskField,
+  DeskInput,
   DeskButton,
   PendingButton,
   RecordBlock,
@@ -285,8 +285,8 @@ function ContactSheet({
         action={onSave}
         className="grid gap-3"
       >
-        <AppField label="Name">
-          <AppInput
+        <DeskField label="Name">
+          <DeskInput
             name="name"
             defaultValue={client.name}
             required
@@ -294,9 +294,9 @@ function ContactSheet({
             autoCapitalize="words"
             enterKeyHint="next"
           />
-        </AppField>
-        <AppField label="Company">
-          <AppInput
+        </DeskField>
+        <DeskField label="Company">
+          <DeskInput
             name="company"
             defaultValue={client.company ?? ""}
             placeholder="—"
@@ -304,9 +304,9 @@ function ContactSheet({
             autoCapitalize="words"
             enterKeyHint="next"
           />
-        </AppField>
-        <AppField label="Email">
-          <AppInput
+        </DeskField>
+        <DeskField label="Email">
+          <DeskInput
             name="email"
             type="email"
             inputMode="email"
@@ -318,9 +318,9 @@ function ContactSheet({
             defaultValue={client.email ?? ""}
             placeholder="—"
           />
-        </AppField>
-        <AppField label="Phone">
-          <AppInput
+        </DeskField>
+        <DeskField label="Phone">
+          <DeskInput
             name="phone"
             type="tel"
             inputMode="tel"
@@ -329,12 +329,12 @@ function ContactSheet({
             defaultValue={client.phone ?? ""}
             placeholder="—"
           />
-        </AppField>
-        <AppField
+        </DeskField>
+        <DeskField
           label="WhatsApp"
           hint="Only if it isn't the phone number above."
         >
-          <AppInput
+          <DeskInput
             name="whatsapp"
             type="tel"
             inputMode="tel"
@@ -343,9 +343,9 @@ function ContactSheet({
             defaultValue={client.whatsapp ?? ""}
             placeholder="—"
           />
-        </AppField>
-        <AppField label="Instagram" hint="The handle, with or without the @.">
-          <AppInput
+        </DeskField>
+        <DeskField label="Instagram" hint="The handle, with or without the @.">
+          <DeskInput
             name="instagram"
             autoCapitalize="none"
             autoCorrect="off"
@@ -356,7 +356,7 @@ function ContactSheet({
             defaultValue={client.instagram ? `@${client.instagram}` : ""}
             placeholder="—"
           />
-        </AppField>
+        </DeskField>
         <PendingButton
           pending={pending}
           pendingText="Saving…"

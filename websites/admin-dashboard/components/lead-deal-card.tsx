@@ -14,14 +14,14 @@ import {
 } from "lucide-react"
 
 import {
-  AppField,
-  AppInput,
-  AppSelect,
-  AppSelectContent,
-  AppSelectItem,
-  AppSelectTrigger,
-  AppSelectValue,
-  AppTextarea,
+  DeskField,
+  DeskInput,
+  DeskSelect,
+  DeskSelectContent,
+  DeskSelectItem,
+  DeskSelectTrigger,
+  DeskSelectValue,
+  DeskTextarea,
   DeskButton,
   RecordBlock,
   RecordRow,
@@ -262,7 +262,7 @@ function FeeEditor({
       onRemove={remove}
       onSubmit={submit}
     >
-      <AppField
+      <DeskField
         label={swap ? "Worth (€)" : "Amount (€)"}
         hint={
           swap
@@ -271,7 +271,7 @@ function FeeEditor({
         }
         error={error}
       >
-        <AppInput
+        <DeskInput
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
           inputMode="decimal"
@@ -280,37 +280,37 @@ function FeeEditor({
           placeholder="0.00"
           autoFocus
         />
-      </AppField>
+      </DeskField>
 
-      <AppField
+      <DeskField
         label="How it's paid"
         hint={swap ? "Counted in kind — nothing is invoiced for it." : undefined}
       >
-        <AppSelect
+        <DeskSelect
           value={paid}
           onValueChange={(next) => setPaid(next as PaidHow)}
         >
-          <AppSelectTrigger className="w-full">
-            <AppSelectValue />
-          </AppSelectTrigger>
-          <AppSelectContent>
-            <AppSelectItem value="one_off">One-off</AppSelectItem>
-            <AppSelectItem value="monthly">Every month</AppSelectItem>
-            <AppSelectItem value="barter">Exchange of services</AppSelectItem>
-          </AppSelectContent>
-        </AppSelect>
-      </AppField>
+          <DeskSelectTrigger className="w-full">
+            <DeskSelectValue />
+          </DeskSelectTrigger>
+          <DeskSelectContent>
+            <DeskSelectItem value="one_off">One-off</DeskSelectItem>
+            <DeskSelectItem value="monthly">Every month</DeskSelectItem>
+            <DeskSelectItem value="barter">Exchange of services</DeskSelectItem>
+          </DeskSelectContent>
+        </DeskSelect>
+      </DeskField>
 
       {swap ? (
-        <AppField label="What's being exchanged">
-          <AppTextarea
+        <DeskField label="What's being exchanged">
+          <DeskTextarea
             autoResize
             rows={2}
             value={exchange}
             onChange={(event) => setExchange(event.target.value)}
             placeholder="What you're doing for them, and what you're getting back…"
           />
-        </AppField>
+        </DeskField>
       ) : null}
     </TermEditor>
   )
@@ -362,7 +362,7 @@ function PercentEditor({
       onRemove={remove}
       onSubmit={submit}
     >
-      <AppField
+      <DeskField
         label={kind === "equity" ? "Equity (%)" : "Commission (%)"}
         hint={
           kind === "equity"
@@ -371,7 +371,7 @@ function PercentEditor({
         }
         error={error}
       >
-        <AppInput
+        <DeskInput
           value={value}
           onChange={(event) => setValue(event.target.value)}
           inputMode="decimal"
@@ -382,7 +382,7 @@ function PercentEditor({
           placeholder="—"
           autoFocus
         />
-      </AppField>
+      </DeskField>
     </TermEditor>
   )
 }
@@ -434,12 +434,12 @@ function SupportEditor({
       onRemove={remove}
       onSubmit={submit}
     >
-      <AppField
+      <DeskField
         label="Per month (€)"
         hint="Basic support beside the build: crash fixes on call. Needs the fail-safe page and Sentry wired first."
         error={error}
       >
-        <AppInput
+        <DeskInput
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
           inputMode="decimal"
@@ -448,7 +448,7 @@ function SupportEditor({
           placeholder="0.00"
           autoFocus
         />
-      </AppField>
+      </DeskField>
     </TermEditor>
   )
 }
@@ -499,8 +499,8 @@ function AgreementEditor({
       onRemove={() => undefined}
       onSubmit={submit}
     >
-      <AppField label="Agreed (€, one-off)" error={error}>
-        <AppInput
+      <DeskField label="Agreed (€, one-off)" error={error}>
+        <DeskInput
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
           inputMode="decimal"
@@ -509,9 +509,9 @@ function AgreementEditor({
           placeholder="0.00"
           autoFocus
         />
-      </AppField>
-      <AppField label="Support per month (€)" hint="The agreement's recurring line; blank for none.">
-        <AppInput
+      </DeskField>
+      <DeskField label="Support per month (€)" hint="The agreement's recurring line; blank for none.">
+        <DeskInput
           value={support}
           onChange={(event) => setSupport(event.target.value)}
           inputMode="decimal"
@@ -519,7 +519,7 @@ function AgreementEditor({
           enterKeyHint="done"
           placeholder="0.00"
         />
-      </AppField>
+      </DeskField>
     </TermEditor>
   )
 }

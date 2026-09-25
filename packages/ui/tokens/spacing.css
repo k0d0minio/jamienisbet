@@ -34,7 +34,7 @@
      from `sm` up. Stated here rather than borrowed from a utility alias so
      the width is a decision someone made, not a coincidence of scales.
      A dialog is a short question; a sheet holds a form, and takes iPadOS's
-     own form-sheet width (540pt) so it reads native on the app tier. */
+     own form-sheet width (540pt). */
   --dialog-w:   32rem;   /* 512 */
   --sheet-w:    34rem;   /* 544 — iPadOS form sheet */
 }

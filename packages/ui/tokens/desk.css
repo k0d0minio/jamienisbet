@@ -31,8 +31,7 @@
    NAMING: every token is prefixed --desk-*. desk.css maps them into
    Tailwind's theme namespaces (--text-desk-*, --spacing-desk-*, …);
    naming them that way here would make the mapping self-referential.
-   The prefix is also what lets the admin link this file beside
-   app.css while its screens move over, without a collision.
+   The prefix also keeps every desk name clear of the marketing tier's.
    ============================================================ */
 
 :root,

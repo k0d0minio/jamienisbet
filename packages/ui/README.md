@@ -27,13 +27,8 @@ generous whitespace, and a full light **+ dark** theme. The longer brand guide l
   right after `styles.css` and gains the dense scale in Hanken Grotesk, 32px rows and 30px
   controls at the desk (44px under a thumb, from the tokens), tight corners, hairline panes
   and a single float shadow. No marketing site links it. Values live in `tokens/desk.css`.
-  See [`BRAND.md`](BRAND.md) § Desk tier and [Desk tier](#desk-tier) below.
-- **`app.css`** — the **app tier** entry, opt-in and **retiring** (the admin's screens move
-  to the desk tier one by one; `retire-app-tier` deletes it). An *operated* surface
-  links it right after `styles.css` and gains translucent materials, real elevation, spring
-  motion, the native type scale on the system font stack, and larger continuous corners. No
-  marketing site links it, and nothing in `styles.css` reaches it. Values live in
-  `tokens/app.css`. See [`BRAND.md`](BRAND.md) § App tier (retiring) and [App tier](#app-tier) below.
+  See [`BRAND.md`](BRAND.md) § Desk tier and [Desk tier](#desk-tier) below. There are two
+  tiers — marketing and desk — and no third.
 - **`tokens.css`** — the **variables-only** layer (no Tailwind). Link this from non-React /
   non-Tailwind surfaces (static HTML, email, slides). `styles.css` is built on top of it.
 - **`tokens/`** — CSS custom properties, one file per concern (`colors`, `typography`,
@@ -67,8 +62,7 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Machine-readable | `QrCode` (+ `canEncodeQr`) — see [QR codes](#qr-codes) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid`, `LogoFull`, `LogoLoader` |
 | Motion | `Reveal`, `RevealGroup`, `RevealItem`, `LogoLockup` — see [Motion & feedback](#motion--feedback) |
-| Desk tier | `RailItem`, `Pane` (+ `PaneHeader`/`PaneToolbar`/`PaneBody`), `ListRow`, `StatusDot`, `PriorityTag`, `Kbd`, `DeskSegmentedControl`, `DataGrid` (+ `DataGridHeader`/`DataGridBody`/`DataGridRow`/`DataGridHeaderCell`/`DataGridCell`), `CommandPalette` (+ `CommandPaletteInput`/`List`/`Group`/`Item`/`Empty`), `DeskButton` — see [Desk tier](#desk-tier) |
-| App tier (retiring) | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material`, `AppField` (+ `AppLabel`/`AppInput`/`AppTextarea`), `AppSelect` (+ its parts) — see [App tier](#app-tier) |
+| Desk tier | `RailItem`, `Pane` (+ `PaneHeader`/`PaneToolbar`/`PaneBody`), `ListRow`, `StatusDot`, `PriorityTag`, `Kbd`, `DeskSegmentedControl`, `DataGrid` (+ `DataGridHeader`/`DataGridBody`/`DataGridRow`/`DataGridHeaderCell`/`DataGridCell`), `CommandPalette` (+ `CommandPaletteInput`/`List`/`Group`/`Item`/`Empty`), `DeskButton`, `DeskMenu` (+ parts), `DeskTabs`, `RecordSection` (+ `RecordRow`/`RecordBlock`/`RecordDisclosure`), `DeskField` (+ `DeskLabel`/`DeskInput`/`DeskTextarea`), `DeskSelect` (+ its parts) — see [Desk tier](#desk-tier) |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
@@ -220,8 +214,8 @@ export function Brief() {
 ### Desk tier
 
 The admin's tier: a dense, flat work tool designed at the desk and compressed for the phone.
-It is **opt-in** — link it after the theme, and nothing else in the estate changes. It can sit
-beside `app.css` while the admin's screens move over: every name here is `desk-*`.
+It is **opt-in** — link it after the theme, and nothing else in the estate changes. Every
+name here is `desk-*`.
 
 ```css
 /* app/globals.css — the desk tier, on top of the theme. Order matters:
@@ -231,8 +225,8 @@ beside `app.css` while the admin's screens move over: every name here is `desk-*
 @source "../../../packages/ui/src";
 ```
 
-Then put `desk-tier` on the shell's root element — one class that sets Hanken Grotesk at the
-ui step on the page canvas, and draws focus inside the control.
+Then put `desk-tier` on `<body>` — one class that sets Hanken Grotesk at the ui step on the
+page canvas, and draws focus inside the control.
 
 | | Utilities | Tokens |
 |---|---|---|
@@ -274,128 +268,45 @@ import { Play } from "lucide-react"
 </Pane>
 ```
 
-### App tier
-
-*Retiring — new admin work goes on the [desk tier](#desk-tier); this stays until
-`retire-app-tier` deletes it.*
-
-`websites/admin-dashboard` is not a website with a login — it is an installed, one-handed
-PWA, and it ships on a second sanctioned tier of this package. The tier is **opt-in**: link
-it after the theme, and nothing else in the estate changes.
-
-```css
-/* app/globals.css — the app tier, on top of the theme. Order matters:
-   app.css assumes Tailwind and the brand tokens are already loaded. */
-@import "@jamie-nisbet/ui/styles.css";
-@import "@jamie-nisbet/ui/app.css";
-@source "../../../packages/ui/src";
-```
-
-Then put `app-tier` on the shell's root element — one class that switches the subtree to the
-system font stack at the native body size, on the grouped-content canvas.
-
-What it adds, all through utilities so a call site never touches a raw value:
-
-| | Utilities | Tokens |
-|---|---|---|
-| **Materials** | `material-thin` / `material-regular` / `material-thick`, `text-material-label`(`-2`/`-3`), `border-material-hairline` | `--material-*` |
-| **Elevation** | `shadow-app-raised` / `-chrome` / `-sheet` / `-popover` | `--elevation-*` |
-| **Motion** | `spring-sheet` / `spring-header` / `spring-press` / `spring-pop` | `--spring-*`, `--duration-*` |
-| **Type** | `font-app`, `text-app-large-title` → `text-app-caption-2` | `--app-font`, `--app-text-*`, `--app-leading-*`, `--app-tracking-*` |
-| **Shape** | `rounded-app-row` / `-control` / `-group` / `-card` / `-chrome` / `-sheet` | `--app-radius-*` |
-| **Surfaces** | `bg-app-canvas` / `bg-app-group` / `bg-app-press` / `bg-app-field`, `text-app-label`(`-2`/`-3`), `text-app-tint`, `border-app-separator` / `border-app-field-border` | `--app-*` |
-| **Layout** | `px-app-gutter`, `gap-app-section`, `min-h-app-touch`, `min-h-app-bar` | `--app-gutter`, `--app-group-gap`, `--app-touch-min`, `--app-bar-height` |
-
-The tier's **form controls** are siblings to the shadcn primitives, not a variant on them —
-`AppField` wrapping an `AppInput`, `AppTextarea` or `AppSelect`:
+The tier's **form controls** are its own, not the marketing controls at another size —
+`DeskField` wrapping a `DeskInput`, `DeskTextarea` or `DeskSelect`:
 
 ```tsx
-<AppField label="Amount" hint="Before VAT." error={state.error}>
-  <AppInput name="amount" inputMode="decimal" placeholder="1500.00" required />
-</AppField>
+<DeskField label="Amount" hint="Before VAT." error={state.error}>
+  <DeskInput name="amount" inputMode="decimal" placeholder="1500.00" required />
+</DeskField>
 ```
 
-`AppField` owns the label, the hint, the error and the `id` / `aria-describedby` /
+`DeskField` owns the label, the hint, the error and the `id` / `aria-describedby` /
 `aria-invalid` wiring between them, so the control inside needs no id of its own (pass one
-and it wins). Every control is 44px tall on every pointer, at 17px — over the threshold
-where iOS zooms the page on focus. `AppSelect` is the whole set rather than a restyled
-trigger: its menu is a material with 44px rows. Its trigger takes `variant="plain"` for the
-pull-down menu button — a value in the tint with a chevron and no box — used where a choice
-is made from inside a list row.
+and it wins). Every control sits on the row step — 32px at the desk, 44px under a
+thumb — with its value at the body step, which is 16px on touch: the size at which iOS stops
+zooming the page on focus. `DeskTextarea` takes `autoResize` for an editor that sits in the
+page. `DeskSelect` is the whole set rather than a restyled trigger: its menu is a flat
+floating panel with rows on the row step. Its trigger takes `variant="plain"` for a value
+with a chevron and no box, used where a choice is made from inside a row.
 
-Springs are **critically damped** — they settle, they never overshoot — so the brand's
-no-bounce rule survives; only the shape of the deceleration changes. Durations collapse to
-nothing under `prefers-reduced-motion` at the token level, on top of the brand's global
-reduced-motion reset. Both colour modes are complete and flip on `[data-theme="dark"]` like
-everything else, so the app follows the OS appearance through one mechanism.
+A record's facts are a `RecordSection` of `RecordRow`s — label on the leading edge, value on
+the trailing one, a hairline between rows, no slab:
 
 ```tsx
-import {
-  ActionCircle, ActionCircleRow, GroupedList, GroupedSection, GroupedRow,
-  IdentityHeader, Material,
-} from "@jamie-nisbet/ui"
-import { Mail, Phone, Receipt } from "lucide-react"
-
-export function LeadProfile() {
-  return (
-    <>
-      <IdentityHeader
-        name="Ana Ribeiro"
-        meta="Keel · client"
-        figure="€3,120"
-        figureLabel="Value"
-      >
-        <ActionCircleRow>
-          <ActionCircle icon={<Phone />} label="Call" href="tel:+351910000000" />
-          <ActionCircle icon={<Mail />} label="Email" disabled />
-        </ActionCircleRow>
-      </IdentityHeader>
-
-      <GroupedList>
-        <GroupedSection header="Contact">
-          <GroupedRow icon={<Mail />} label="Email" value="ana@keel.pt" href="mailto:ana@keel.pt" />
-          <GroupedRow icon={<Phone />} label="Phone" value="—" />
-        </GroupedSection>
-
-        <GroupedSection header="Money" footer="Drafts are never sent from here.">
-          <GroupedRow
-            icon={<Receipt />}
-            label="Outstanding"
-            value={<span className="font-mono">€3,120</span>}
-            href="/money"
-          />
-        </GroupedSection>
-      </GroupedList>
-
-      {/* The tab bar the tier is built for: a material that floats over content. */}
-      <Material asChild level="thick" elevation="chrome" edge="top">
-        <nav className="fixed inset-x-0 bottom-0">…</nav>
-      </Material>
-    </>
-  )
-}
+<RecordSection header="Contact" footer="Drafts are never sent from here.">
+  <RecordRow icon={<Mail />} label="Email" value="ana@keel.pt" href="mailto:ana@keel.pt" />
+  <RecordRow label="Outstanding" value={<span className="font-mono">€3,120</span>} href="/money" />
+</RecordSection>
 ```
 
-- **`GroupedRow` is one of four elements**, decided by its props: an `<a>` with `href`, a
+- **`RecordRow` is one of four elements**, decided by its props: an `<a>` with `href`, a
   `<button>` with `onClick`, whatever you hand it with `asChild` (a Next `<Link>`, usually),
-  and otherwise a read-only `<div>`. Interactive rows press-deepen, sit on the 44px floor,
-  and take the disclosure chevron unless `chevron={false}`.
-- **A row can carry an `accessory`** — a copy button beside an address, a delete beside a
-  todo. It renders *outside* the row's own element (a button inside a button is not a
-  thing), and the row gives up its chevron for it.
-- **So can a `GroupedDisclosure`** — an action you can take without opening the fold, such
-  as sharing the link the fold spells out. A `<summary>` has to be the details' first child
-  and can't hold a button either, so this one floats over the summary's trailing edge, on
-  the label's own line, and keeps its chevron: the fold still has to say it opens.
-- **Neither header listens to scroll.** The masthead is in ordinary flow and simply scrolls
-  away; a sentinel and an `IntersectionObserver` fade the material and the compact title in
-  at the moment it clears the bar. `onCollapsedChange` reports the hand-off to anything else
-  that should follow it. `LargeTitleHeader` and `IdentityHeader` are two mastheads over the
-  one mechanism (`CollapsingHeader`).
+  and otherwise a read-only `<div>`. Interactive rows take the hover wash and the tier's
+  focus.
+- **A row can carry an `accessory`** — a copy button beside an address. It renders *outside*
+  the row's own element (a button inside a button is not a thing).
 - **Sheets can take detents.** `<SheetContent detents={["medium", "large"]}>` makes the
-  phone sheet rest at native heights: drag the handle between them, drag it off the bottom
-  to dismiss, or tap it to step. It is a phone behaviour — from `sm` up the sheet is the
-  centred dialog it always was.
+  phone sheet rest at set heights: drag the handle between them, drag it off the bottom to
+  dismiss, or tap it to step. The drag follows the finger and a release settles at once — no
+  spring, and no slide on open or close. It is a phone behaviour: from `sm` up the sheet is
+  the centred dialog it always was.
 - **A figure is still mono.** Pass `<span className="font-mono">€3,120</span>` into a row's
   `value` — the tier changes the UI face, never the brand's signature for numbers.
 

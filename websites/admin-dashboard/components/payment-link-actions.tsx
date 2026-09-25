@@ -5,9 +5,9 @@ import { Ban, Copy, ExternalLink } from "lucide-react"
 
 import {
   Badge,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
+  RecordBlock,
+  RecordRow,
+  RecordSection,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -67,7 +67,7 @@ export function PaymentLinkActions({ link }: { link: PaymentLinkView }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <GroupedRow
+        <RecordRow
           label={product}
           // A live link says nothing about being live: nearly all of them are,
           // and a name and an amount is the whole of what a working link is.
@@ -104,14 +104,14 @@ export function PaymentLinkActions({ link }: { link: PaymentLinkView }) {
         </SheetHeader>
 
         <div className="flex flex-col gap-4">
-          <GroupedSection header="The link">
+          <RecordSection header="The link">
             {/* Machine text, so it sets in mono and is allowed to wrap — this
                 is the one place the whole URL is meant to be legible. */}
-            <GroupedBlock className="font-mono break-all">{url}</GroupedBlock>
-          </GroupedSection>
+            <RecordBlock className="font-mono break-all">{url}</RecordBlock>
+          </RecordSection>
 
-          <GroupedSection>
-            <GroupedRow
+          <RecordSection>
+            <RecordRow
               icon={<Copy />}
               variant="tint"
               label="Copy the link"
@@ -120,7 +120,7 @@ export function PaymentLinkActions({ link }: { link: PaymentLinkView }) {
                 void copyToClipboard(url, "Payment link")
               }}
             />
-            <GroupedRow
+            <RecordRow
               icon={<ExternalLink />}
               label="Open the pay page"
               href={url}
@@ -128,11 +128,11 @@ export function PaymentLinkActions({ link }: { link: PaymentLinkView }) {
               rel="noreferrer"
               chevron={false}
             />
-          </GroupedSection>
+          </RecordSection>
 
           {active ? (
-            <GroupedSection footer="A link can't be deleted in Stripe, only switched off.">
-              <GroupedRow
+            <RecordSection footer="A link can't be deleted in Stripe, only switched off.">
+              <RecordRow
                 icon={<Ban />}
                 variant="destructive"
                 label="Deactivate this link"
@@ -140,7 +140,7 @@ export function PaymentLinkActions({ link }: { link: PaymentLinkView }) {
                 disabled={pending}
                 onClick={onDeactivate}
               />
-            </GroupedSection>
+            </RecordSection>
           ) : null}
         </div>
       </SheetContent>

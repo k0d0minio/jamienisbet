@@ -15,8 +15,6 @@
    Order matters: this file assumes Tailwind and the brand tokens are
    already loaded (styles.css does both). It never imports Tailwind
    itself — importing it twice would duplicate the whole framework.
-   It can sit beside app.css while the admin's screens move over:
-   every name here is desk-*, every name there app-*.
 
    Values live in tokens/desk.css, which this file imports and then
    maps into Tailwind's theme namespaces so call sites reach the tier

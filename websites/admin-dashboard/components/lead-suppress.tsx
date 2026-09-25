@@ -4,8 +4,8 @@ import { useTransition } from "react"
 import { Ban } from "lucide-react"
 
 import {
-  AppField,
-  AppInput,
+  DeskField,
+  DeskInput,
   PendingButton,
   RecordRow,
   RecordSection,
@@ -117,10 +117,10 @@ export function LeadOptOutSheet({
             {reachable.map((channel) => (
               <li
                 key={`${channel.kind}:${channel.value}`}
-                className="flex items-baseline justify-between gap-3 text-app-subhead"
+                className="flex items-baseline justify-between gap-3 text-desk-ui"
               >
-                <span className="text-app-label-2">{channel.label}</span>
-                <span className="truncate font-mono text-app-label">
+                <span className="text-desk-fg-2">{channel.label}</span>
+                <span className="truncate font-mono text-desk-fg">
                   {channel.value}
                 </span>
               </li>
@@ -151,18 +151,18 @@ export function LeadOptOutSheet({
             }
             className="grid gap-3"
           >
-            <AppField
+            <DeskField
               label="Reason"
               hint="What they said, in a few words. Optional, and the only thing that explains this later."
             >
-              <AppInput
+              <DeskInput
                 name="reason"
                 placeholder="Replied: remove me"
                 autoCapitalize="sentences"
                 maxLength={200}
                 enterKeyHint="done"
               />
-            </AppField>
+            </DeskField>
             <PendingButton
               pending={pending}
               pendingText="Recording…"

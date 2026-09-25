@@ -1,57 +1,27 @@
 import { clsx, type ClassValue } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
 
-// The app tier's type scale has to be *declared* to tailwind-merge, or it is
+// The desk tier's type scale has to be *declared* to tailwind-merge, or it is
 // silently thrown away.
 //
 // twMerge resolves each class to one group and keeps the last of a group. Under
 // the `text-` prefix it knows two: `font-size` (a fixed list — xs, sm, …) and
-// `text-color` (the catch-all everything else falls into). `text-app-subhead`
-// is not on the size list, so it fell into the colour group — and any call that
-// set a size and a colour together, which is most of them, kept only the
-// colour:
+// `text-color` (the catch-all everything else falls into). `text-desk-meta` is
+// not on the size list, so it would fall into the colour group — and any call
+// that set a size and a colour together, which is most of them, would keep
+// only the colour:
 //
-//   cn("text-app-caption-2 font-medium", active && "text-app-tint")
-//     → "font-medium text-app-tint"        // the 11px is gone
+//   cn("text-desk-micro font-medium", active && "text-desk-fg")
+//     → "font-medium text-desk-fg"        // the 11px is gone
 //
-// Nothing errors and nothing warns; the text simply inherits 17px from the
-// `app-tier` root and reads a stop or two too large. Naming the tier's sizes
-// here is the one place that can be fixed for every call site at once — a
-// literal beats the catch-all validator, so these now resolve as sizes.
+// Nothing errors and nothing warns. Naming the tier's sizes here is the one
+// place that can be fixed for every call site at once — a literal beats the
+// catch-all validator, so these resolve as sizes. Sizes and colours are named
+// disjointly (`text-desk-ui` is a size, `text-desk-fg` a colour), and listing
+// both keeps each in its own group.
 //
-// The marketing tier is untouched: every name below is `app-*` or `material-*`,
-// which exist only under `@jamie-nisbet/ui/app.css`.
-const appTextSizes = [
-  "app-large-title",
-  "app-title-1",
-  "app-title-2",
-  "app-title-3",
-  "app-headline",
-  "app-body",
-  "app-callout",
-  "app-subhead",
-  "app-footnote",
-  "app-caption",
-  "app-caption-2",
-];
-
-// Listed for the same reason, from the other side: these are colours, and
-// saying so keeps a future size named `app-<something>` from being ambiguous.
-const appTextColors = [
-  "app-label",
-  "app-label-2",
-  "app-label-3",
-  "app-tint",
-  "app-fill-label",
-  "material-label",
-  "material-label-2",
-  "material-label-3",
-];
-
-// The desk tier has the same trap and the same fix: its steps are `desk-*`,
-// which exist only under `@jamie-nisbet/ui/desk.css`. Sizes and colours are
-// named disjointly (`text-desk-ui` is a size, `text-desk-fg` a colour), and
-// listing both keeps each in its own group.
+// The marketing tier is untouched: every name below is `desk-*`, which exists
+// only under `@jamie-nisbet/ui/desk.css`.
 const deskTextSizes = [
   "desk-title",
   "desk-heading",
@@ -73,9 +43,8 @@ const deskTextColors = [
   "desk-done",
 ];
 
-// The elevation scale is a `shadow`, not a `shadow-color` — so one elevation
-// replaces another rather than stacking with it.
-const appShadows = ["app-raised", "app-chrome", "app-sheet", "app-popover"];
+// The elevation step is a `shadow`, not a `shadow-color` — so it replaces
+// another shadow rather than stacking with it.
 const deskShadows = ["desk-float"];
 
 // The desk tier's named sizes, corners and tracking are theme *values*, not
@@ -110,9 +79,9 @@ const twMerge = extendTailwindMerge({
       tracking: deskTracking,
     },
     classGroups: {
-      "font-size": [{ text: [...appTextSizes, ...deskTextSizes] }],
-      "text-color": [{ text: [...appTextColors, ...deskTextColors] }],
-      shadow: [{ shadow: [...appShadows, ...deskShadows] }],
+      "font-size": [{ text: deskTextSizes }],
+      "text-color": [{ text: deskTextColors }],
+      shadow: [{ shadow: deskShadows }],
     },
   },
 });

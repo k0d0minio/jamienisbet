@@ -355,8 +355,7 @@ function optionId(listId: string, entryId: string): string {
 // The phone's trigger, on the title bar. The rail's lives in nav.tsx.
 
 /** The title bar's search button — phones only; from `md` the rail carries
- *  it. Styled as a bar button of the tier the title bar is still on (the app
- *  tier, until each screen moves), like the app menu beside it. */
+ *  it. A desk bar button, like the account menu beside it. */
 export function PaletteTitleBarButton() {
   const openPalette = usePaletteOpener()
   if (!openPalette) return null
@@ -366,8 +365,8 @@ export function PaletteTitleBarButton() {
       aria-label="Go anywhere"
       onClick={openPalette}
       className={cn(
-        "flex size-app-touch items-center justify-center rounded-app-control",
-        "text-material-label transition-colors spring-press active:bg-app-press",
+        "flex size-desk-control items-center justify-center rounded-desk-control",
+        "text-desk-fg transition-colors duration-100 hover:bg-desk-hover active:bg-desk-sunken",
         "md:hidden"
       )}
     >

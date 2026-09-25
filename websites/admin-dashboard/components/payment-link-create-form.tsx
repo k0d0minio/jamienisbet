@@ -6,9 +6,9 @@ import { Plus } from "lucide-react"
 import {
   Alert,
   AlertDescription,
-  AppField,
-  AppInput,
-  GroupedRow,
+  DeskField,
+  DeskInput,
+  RecordRow,
   PendingButton,
   Sheet,
   SheetContent,
@@ -41,7 +41,7 @@ export function PaymentLinkCreateForm() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <GroupedRow icon={<Plus />} label="New payment link" />
+        <RecordRow icon={<Plus />} label="New payment link" />
       </SheetTrigger>
 
       {/* Three short fields fit the half sheet with the list still visible
@@ -93,28 +93,28 @@ function PaymentLinkForm() {
       }}
       className="flex flex-col gap-4"
     >
-      <AppField label="Product / service">
-        <AppInput
+      <DeskField label="Product / service">
+        <DeskInput
           name="name"
           placeholder="Discovery call"
           required
           enterKeyHint="next"
           autoCapitalize="sentences"
         />
-      </AppField>
+      </DeskField>
 
       <div className="grid grid-cols-2 gap-3">
-        <AppField label="Amount">
-          <AppInput
+        <DeskField label="Amount">
+          <DeskInput
             name="amount"
             inputMode="decimal"
             enterKeyHint="next"
             placeholder="250.00"
             required
           />
-        </AppField>
-        <AppField label="Currency">
-          <AppInput
+        </DeskField>
+        <DeskField label="Currency">
+          <DeskInput
             name="currency"
             defaultValue="eur"
             maxLength={3}
@@ -123,7 +123,7 @@ function PaymentLinkForm() {
             autoCorrect="off"
             spellCheck={false}
           />
-        </AppField>
+        </DeskField>
       </div>
 
       {state.error ? (
@@ -134,7 +134,7 @@ function PaymentLinkForm() {
       {state.success && state.url ? (
         <Alert variant="success">
           <AlertDescription className="flex flex-wrap items-center gap-3">
-            <span className="font-mono text-app-caption break-all">{state.url}</span>
+            <span className="font-mono text-desk-meta break-all">{state.url}</span>
             <CopyButton value={state.url} what="Payment link" />
           </AlertDescription>
         </Alert>

@@ -4,8 +4,8 @@ import { useState, useTransition } from "react"
 import { Copy, ExternalLink, Send, Trash2 } from "lucide-react"
 
 import {
-  GroupedRow,
-  GroupedSection,
+  RecordRow,
+  RecordSection,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -110,7 +110,7 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <GroupedRow
+        <RecordRow
           label={who}
           description={
             <span className="flex items-center gap-1.5">
@@ -159,8 +159,8 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
         <div className="flex flex-col gap-4">
           {/* The record itself — everything the retired desktop table had a
               column for, read-only, where reading it belongs. */}
-          <GroupedSection>
-            <GroupedRow
+          <RecordSection>
+            <RecordRow
               label="Number"
               chevron={false}
               value={
@@ -175,19 +175,19 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
                 whose total and outstanding are the same number does not need
                 to say it twice. */}
             {invoice.total ? (
-              <GroupedRow
+              <RecordRow
                 label="Total"
                 chevron={false}
                 value={<span className="font-mono">{invoice.total}</span>}
               />
             ) : null}
-            <GroupedRow
+            <RecordRow
               label="Created"
               chevron={false}
               value={<span className="font-mono">{invoice.created}</span>}
             />
             {invoice.due ? (
-              <GroupedRow
+              <RecordRow
                 label="Due"
                 chevron={false}
                 value={
@@ -203,18 +203,18 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
               />
             ) : null}
             {invoice.email ? (
-              <GroupedRow
+              <RecordRow
                 label="Email"
                 chevron={false}
                 value={invoice.email}
               />
             ) : null}
-          </GroupedSection>
+          </RecordSection>
 
           {/* What you can do with it. The send is tinted because it is the
               affirmative action of this sheet; it is also the only one that
               reaches a customer, so it says so under its own label. */}
-          <GroupedSection
+          <RecordSection
             footer={
               canSend
                 ? "Nothing leaves for the customer until you confirm."
@@ -222,7 +222,7 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
             }
           >
             {hostedInvoiceUrl ? (
-              <GroupedRow
+              <RecordRow
                 icon={<ExternalLink />}
                 label="Open the hosted invoice"
                 href={hostedInvoiceUrl}
@@ -232,7 +232,7 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
               />
             ) : null}
             {hostedInvoiceUrl ? (
-              <GroupedRow
+              <RecordRow
                 icon={<Copy />}
                 label="Copy the link"
                 chevron={false}
@@ -242,7 +242,7 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
               />
             ) : null}
             {canSend ? (
-              <GroupedRow
+              <RecordRow
                 icon={<Send />}
                 variant="tint"
                 label={isDraft ? "Finalize and send" : "Resend"}
@@ -259,19 +259,19 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
             {/* A paid or voided invoice has nothing left to do to it — say so
                 rather than leaving an empty slab. */}
             {!canSend && !hostedInvoiceUrl ? (
-              <GroupedRow
+              <RecordRow
                 label="Nothing left to do"
                 description="This invoice is settled."
                 chevron={false}
               />
             ) : null}
-          </GroupedSection>
+          </RecordSection>
 
           {/* The one that can't be taken back keeps its own group, the way a
               native sheet separates it. */}
           {canCancel ? (
-            <GroupedSection>
-              <GroupedRow
+            <RecordSection>
+              <RecordRow
                 icon={<Trash2 />}
                 variant="destructive"
                 label={isDraft ? "Delete this draft" : "Void this invoice"}
@@ -279,7 +279,7 @@ export function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
                 disabled={pending}
                 onClick={onCancel}
               />
-            </GroupedSection>
+            </RecordSection>
           ) : null}
         </div>
       </SheetContent>

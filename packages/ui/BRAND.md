@@ -45,13 +45,13 @@ The brand voice is *quiet, casual confidence* — professional without being cor
 
 **Elevation.** *(The desk tier keeps one float step for the palette, menus and sheets — see § Desk tier.)* Shadows are **soft and low** and used sparingly — a card resting state is usually *just a border*. Shadow appears mainly on hover (cards lift `translateY(-2px)` + `--shadow-md`) and on overlays/dialogs (`--shadow-xl`).
 
-**Motion.** Quick and confident: 120–260ms, ease-out (`cubic-bezier(0.2,0,0,1)`). **No bounce, no spring** — *the retiring app tier alone had critically damped springs; see § App tier (retiring).* Transitions are fades and small translations. Hover = subtle background/border shift or a small lift; **press = colour deepens** (`--primary-active`), never a cartoonish shrink. The marketing tier has **one entrance**: a fade and an 8px rise as a section scrolls into view, played once (`Reveal` / `RevealGroup` / `RevealItem`, on [motion.dev](https://motion.dev)); the hero plays it on load, its lines 80ms apart. The logo, when it is a link, quietens on hover and press and crossfades when the theme flips (`LogoLockup`) — that is the whole of its choreography. Two decorative loops are allowed: the JN icon drawing itself in and breathing (`LogoLoader` — every route's loading state, pull-to-refresh, the board's refresh) and the "rolling deploy" ring on a pending button (`Spinner`); loops — those two and the skeleton shimmer — run on `--duration-spin`/`--duration-shimmer`-class timings, far slower than any transition. Everything respects `prefers-reduced-motion` (loops stand still; reveals render still and visible; transitions snap).
+**Motion.** Quick and confident: 120–260ms, ease-out (`cubic-bezier(0.2,0,0,1)`). **No bounce, no spring**, on any tier — the desk tier is stiller still (see § Desk tier). Transitions are fades and small translations. Hover = subtle background/border shift or a small lift; **press = colour deepens** (`--primary-active`), never a cartoonish shrink. The marketing tier has **one entrance**: a fade and an 8px rise as a section scrolls into view, played once (`Reveal` / `RevealGroup` / `RevealItem`, on [motion.dev](https://motion.dev)); the hero plays it on load, its lines 80ms apart. The logo, when it is a link, quietens on hover and press and crossfades when the theme flips (`LogoLockup`) — that is the whole of its choreography. Two decorative loops are allowed: the JN icon drawing itself in and breathing (`LogoLoader` — every route's loading state, pull-to-refresh, the board's refresh) and the "rolling deploy" ring on a pending button (`Spinner`); loops — those two and the skeleton shimmer — run on `--duration-spin`/`--duration-shimmer`-class timings, far slower than any transition. Everything respects `prefers-reduced-motion` (loops stand still; reveals render still and visible; transitions snap).
 
 **Cards.** Surface fill, 1px `--border`, 12px radius, generous padding (`--space-5`). Interactive cards add a hover lift. No coloured left-border accents, no drop-shadow-by-default.
 
 **Data & figures.** Numbers are the brand's rhetorical device, so they get a form of their own rather than a chart library. The stat tile is the canonical carrier: mono figure, sentence-case label, optional delta beside it. Trend reads as `↗ +12%` — a unicode arrow and a signed mono value, tinted with a **muted** semantic colour and only ever by a polarity the caller declares (a rise is not always good news). A series is drawn as a **hairline ~1.5px sparkline** — a shape, not a chart: no axes, no gridlines, no tooltips, and an area wash at most 10% of the same hue. Part-of-whole is a thin bar with a hairline track and a flat fill. **No gradients, no second axis, no neon.** Every one of these ships in `packages/ui` as `Stat` / `Delta` / `Sparkline` / `Meter`.
 
-**Why three of those have no consumer.** Only `Meter` is on a screen today (the tickets board's batch arcs). `Stat`, `Delta` and `Sparkline` are **kept deliberately without one**: they are the executable form of the paragraph above, and deleting them would leave this page describing a numeric language the package cannot render — the rule and the implementation have to fail together or not at all. They are the **marketing tier's** numeric surface, waiting on the first page with figures to show (a case study's results, a proof strip on the portfolio), and they are designed as one composition — `Stat` takes a `Delta` and a `Sparkline` as slots, so the set is kept or dropped whole. `GlanceRow` is **not** their successor: it is app-tier chrome, sized for three figures across a phone, and § App tier (retiring) says so. Reach for `Stat` when a number is the point of the surface; reach for `GlanceRow` when it is the summary above a list. _(Audited 2026-08-29 — `.icm/intake/triage/_done/prune-unused-ui-primitives.md`.)_
+**Why three of those have no consumer.** Only `Meter` is on a screen today (the tickets board's batch arcs). `Stat`, `Delta` and `Sparkline` are **kept deliberately without one**: they are the executable form of the paragraph above, and deleting them would leave this page describing a numeric language the package cannot render — the rule and the implementation have to fail together or not at all. They are the **marketing tier's** numeric surface, waiting on the first page with figures to show (a case study's results, a proof strip on the portfolio), and they are designed as one composition — `Stat` takes a `Delta` and a `Sparkline` as slots, so the set is kept or dropped whole. In the admin, a summary of figures above a list is a plain row of mono figures at the desk tier's `text-desk-figure` step, not a `Stat`. Reach for `Stat` when a number is the point of a marketing surface. _(Audited 2026-08-29 — `.icm/intake/triage/_done/prune-unused-ui-primitives.md`.)_
 
 **Transparency & blur.** *(Marketing tier only — the desk tier has none; see § Desk tier.)* Reserved: the sticky site header (`backdrop-filter: blur(10px)` over a translucent `--bg`) and the dialog overlay. Not used decoratively.
 
@@ -74,10 +74,14 @@ It is a tier, not a fork. It lives in this package, ships its own tokens, and is
 imports *after* `styles.css`. Nothing a marketing site imports loads it, and the desk-tier
 components are inert without it.
 
+There are two tiers and no third: **marketing** (every public site) and **desk** (the admin).
+Every screen in the admin — login, "not here", the error and loading screens, and dormant
+Money included — is on the desk tier, which the admin switches on once with `desk-tier` on
+`<body>`.
+
 *(Decided 2026-09-25 — see [`.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md`](../../.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md).
-It replaces the app tier in the admin screen by screen; until the last screen moves,
-`retire-app-tier` has not run and § App tier (retiring) below still governs the screens that
-have not. These are amendments with a scope, not drift. A change outside that scope is drift.)*
+It replaced the admin's earlier iOS-idiom tier, which has been deleted. These are amendments
+with a scope, not drift. A change outside that scope is drift.)*
 
 **The five rules.**
 
@@ -104,7 +108,9 @@ have not. These are amendments with a scope, not drift. A change outside that sc
   text. Priority is a mono tag (P0 danger and bold, P1 ink and bold, P2 muted), never a
   pill. Corners are tight: 4px keys, 6px controls and rows, 8px panes and floating panels.
   One elevation step, `--desk-shadow-float`, and only what floats takes it. Motion is
-  instant or a plain ≤120ms colour change.
+  instant or a plain ≤120ms colour change: a sheet or a dialog appears and disappears with
+  no slide and no spring, and a sheet's detents on the phone follow the finger and settle at
+  once on release.
 - **D-4 — Hanken Grotesk UI text, IBM Plex Mono for metadata.** Replaces the system font
   stack in the admin. The dense scale (desk → touch):
 
@@ -121,6 +127,8 @@ have not. These are amendments with a scope, not drift. A change outside that sc
   Body on touch is 16px, which is also what keeps iOS from zooming a focused field.
 - **Focus draws inside the control.** Panes scroll and clip, so under `desk-tier`,
   `:focus-visible` also takes an outline at a negative offset that nothing can clip.
+- **Appearance follows the system**, with no in-app toggle: the admin mirrors
+  `prefers-color-scheme` onto `[data-theme]` before first paint.
 
 **What does not change:** the brand ramp and the semantic colours are exactly as above —
 the tier adds density and structure, **not a single hue**; every `--desk-*` colour is an
@@ -168,34 +176,18 @@ states per view — loading, empty, error, populated.
   operated by the arrow keys. The panels are the caller's.
 - `RecordSection` / `RecordRow` / `RecordBlock` / `RecordDisclosure` — one record's facts as a
   dense key–value list under a mono eyebrow, with an `actions` slot (Edit) on the eyebrow's
-  line. Prop-compatible with the app tier's grouped list, so a screen moving tiers swaps the
-  element and keeps its logic.
-
-### App tier (retiring)
-
-The admin's previous tier, kept only until `retire-app-tier` deletes it: the screens not yet
-moved to the desk tier still run on it, and a fix to one of them follows these rules — new
-admin work never does. It lives in `tokens/app.css` + `app.css` (linked after `styles.css`)
-and `src/components/app/`, and it amended the marketing tier in the admin in the iOS idiom
-*(2026-08-29, [`.icm/intake/admin-native-redesign/breakdown.md`](../../.icm/intake/admin-native-redesign/breakdown.md))*:
-
-- **Materials** (`material-thin` / `-regular` / `-thick`) are structural chrome, degrading to
-  opaque twins under `prefers-reduced-transparency` or `[data-materials="opaque"]`.
-- **Elevation** exists for what floats (`shadow-app-raised` / `-chrome` / `-sheet` /
-  `-popover`); **springs** are critically damped and named by pattern (`spring-sheet`,
-  `spring-header`, `spring-press`, `spring-pop`).
-- **UI text is the system font stack** (`font-app`) on the native scale (`text-app-*`, body
-  17); figures stay mono. **Corners round harder** (`rounded-app-*`, 10–24px).
-- **Controls are 44px by construction** (`AppField`, `AppInput`, `AppSelect`, `AppMenu`),
-  and `app-tier` draws focus inside the control.
-- Primitives: `Material`, `GroupedList` and its parts, `CollapsingHeader`,
-  `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` / `ActionCircleRow`,
-  `GlanceRow` / `GlanceFigure`, `SegmentedControl` / `SegmentedItem`, the `App*` form
-  controls, `AppSelect`, `AppMenu`, and `Sheet` detents. Each file's header comment is its
-  full rule.
-
-Its one tint, muted semantics, mono figures, semantic-tokens-only rule and four designed
-states are the same as every tier's.
+  line.
+- `DeskField` / `DeskLabel` / `DeskInput` / `DeskTextarea` — the tier's form controls. A
+  field is the unit: its label, its control, and the hint or error under it, wired together
+  (`aria-describedby`, `aria-invalid`, the error announced). Flat — a strong hairline on the
+  surface, 6px corners, no shadow — on the row step (32px at the desk, 44px under a
+  thumb), the value at the body step (16px on touch, so iOS never zooms a focused field).
+  `DeskTextarea` can `autoResize` to its content. Never the marketing `Input` on a desk
+  screen.
+- `DeskSelect` / `DeskSelectTrigger` / `DeskSelectValue` / `DeskSelectContent` /
+  `DeskSelectItem` (+ `Group`, `Label`, `Separator`) — the select, trigger and menu both: a
+  `field` trigger that is the same box as a `DeskInput`, or a `plain` one for a choice made
+  inside a row; the menu is a flat floating panel like `DeskMenu`, rows on the row step.
 
 ---
 
@@ -222,7 +214,6 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 - `tokens.css` — the variables-only layer for non-Tailwind surfaces (static HTML, email, slides).
 - `tokens/` — `colors.css`, `typography.css`, `spacing.css`, `radius.css`, `shadows.css`, `motion.css`, `fonts.css`, `base.css`.
 - `desk.css` + `tokens/desk.css` — the **desk tier**, the admin's tier (see § Desk tier). Opt-in: linked *after* `styles.css` by the admin only, never by a marketing site.
-- `app.css` + `tokens/app.css` — the **app tier**, retiring (see § App tier (retiring)). Opt-in the same way; deleted by `retire-app-tier`.
 
 **Assets** (`assets/`)
 - `logo/` — `reference/` (the delivered artwork: `full-light`, `full-dark`, `icon-light`, `icon-dark` at 2000px — the source of record), and the traced SVGs `logo-full.svg`, `logo-full-dark.svg`, `logo-mark.svg`, `logo-mark-dark.svg` for surfaces outside React.
@@ -231,8 +222,7 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 
 **Components** (TSX, idiomatic shadcn/ui themed with the brand tokens; import from the `@jamie-nisbet/ui` barrel)
 - `src/components/ui/` — Button, Badge, Card, Input, Label, Textarea, Select, Switch, Alert, Dialog, Sheet, plus the motion/feedback set: Skeleton, Spinner, Toaster + `toast()`, PendingButton. Compositional where shadcn is (e.g. `Card` + `CardHeader` + `CardTitle`; `Sheet` + `SheetContent` + `SheetHeader`). Also the glanceable data-viz primitives — Stat, Delta, Sparkline, Meter (inline SVG, no chart library; see § Data & figures) — and QrCode, the one surface here that is deliberately dark-on-light in both themes, because a camera reads it and plenty of scanners will not invert.
-- `src/components/desk/` — the **desk-tier** primitives: RailItem, Pane / PaneHeader / PaneToolbar / PaneBody, ListRow, StatusDot, PriorityTag, Kbd, DeskSegmentedControl, DataGrid and its parts, CommandPalette and its parts, DeskButton. Exported from the same barrel, but inert unless the surface links `desk.css` (see § Desk tier).
-- `src/components/app/` — the **app-tier** primitives (retiring): GroupedList / GroupedSection / GroupedRow / GroupedBlock / GroupedDisclosure, CollapsingHeader, LargeTitleHeader, IdentityHeader, Monogram, ActionCircle / ActionCircleRow, GlanceRow / GlanceFigure, SegmentedControl / SegmentedItem, Material, AppField / AppLabel / AppInput / AppTextarea, AppSelect and its parts. Exported from the same barrel, but inert unless the surface links `app.css` (see § App tier (retiring)).
+- `src/components/desk/` — the **desk-tier** primitives: RailItem, Pane / PaneHeader / PaneToolbar / PaneBody, ListRow, StatusDot, PriorityTag, Kbd, DeskSegmentedControl, DataGrid and its parts, CommandPalette and its parts, DeskButton, DeskMenu and its parts, DeskTabs, RecordSection / RecordRow / RecordBlock / RecordDisclosure, DeskField / DeskLabel / DeskInput / DeskTextarea, DeskSelect and its parts. Exported from the same barrel, but inert unless the surface links `desk.css` (see § Desk tier).
 - `src/components/brand/` — Eyebrow, IconButton, LogoMark / LogoMarkSolid / LogoFull and LogoLoader (brand-only; no shadcn equivalent), over the traced paths in `logo-artwork.ts`.
 - `src/components/motion/` — Reveal / RevealGroup / RevealItem (the marketing tier's entrance) and LogoLockup (the logo's hover, press and theme crossfade), on `motion` (motion.dev).
 - `src/lib/utils.ts` — the `cn()` class-merge helper. Types come from the TSX source.

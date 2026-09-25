@@ -34,9 +34,9 @@ export default function AppLayout({
         <PullToRefresh>
           {/* The content takes the rest of the window. No horizontal padding
               and no width cap here: a screen's title bar has to reach both
-              edges of its column, so the gutter belongs to AppScreen — and so
+              edges of its column, so the gutter belongs to DeskScreen — and so
               does the reading width, which every screen but Work keeps
-              (AppScreen's `wide`). `pb-tabs` clears the tab bar and leaves the
+              (DeskScreen's `wide`). `pb-tabs` clears the tab bar and leaves the
               last row somewhere to scroll to; from `md` the bar is gone and so
               is the allowance. */}
           <main className="w-full flex-1 pb-tabs md:pb-8">{children}</main>
@@ -48,6 +48,7 @@ export default function AppLayout({
             Toaster adds the safe-area inset itself, so this is the bar and
             nothing else. */}
         <Toaster
+          desk
           style={
             {
               "--toaster-offset":

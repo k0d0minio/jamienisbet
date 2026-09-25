@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { cn } from "../../lib/utils"
+import { useDeskFieldWiring } from "./field"
 
 // DESK TIER — the dense segmented control.
 //
@@ -29,6 +30,10 @@ type DeskSegmentedOption<T extends string> = {
   /** How many things are behind this option. Set in mono. */
   count?: number
   disabled?: boolean
+  /** Why a disabled option can't be chosen — the button's own title. Never
+   *  the only place that reason lives: say it in the field's hint too, since
+   *  a title is hover-only. */
+  title?: string
 }
 
 type DeskSegmentedControlProps<T extends string> = Omit<
@@ -47,6 +52,9 @@ function DeskSegmentedControl<T extends string>({
   className,
   ...props
 }: DeskSegmentedControlProps<T>) {
+  // Inside a DeskField the group is the field's control: its hint and error
+  // describe the group, and the label names it.
+  const wired = useDeskFieldWiring(props)
   const refs = React.useRef<(HTMLButtonElement | null)[]>([])
   const enabled = options
     .map((option, index) => ({ option, index }))
@@ -97,6 +105,7 @@ function DeskSegmentedControl<T extends string>({
         className
       )}
       {...props}
+      {...wired}
     >
       {options.map((option, index) => {
         const checked = option.value === value
@@ -111,6 +120,7 @@ function DeskSegmentedControl<T extends string>({
             aria-checked={checked}
             tabIndex={index === stop ? 0 : -1}
             disabled={option.disabled}
+            title={option.title}
             data-slot="desk-segmented-item"
             data-checked={checked || undefined}
             onClick={() => onValueChange(option.value)}
