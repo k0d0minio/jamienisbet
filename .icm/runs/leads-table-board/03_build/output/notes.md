@@ -1,7 +1,7 @@
 # Build notes: leads-table-board
 
 - commits: feat (table, board, page, phone rows, skeleton, README) · chore (run files)
-- ci: GREEN on b20a11e (full gate: Quality (advisory) pass; every Vercel project skipped the empty ready commit as not affected — the admin preview of this code is the branch alias, built and passed on the pre-flip head)
+- ci: GREEN on the full gate — Quality (advisory) pass on b20a11e (the empty ready commit, which Vercel skipped as not affected); `Vercel – jamie-nisbet` and `Vercel – portfolio` pass on the closing head
 
 ## What changed
 
@@ -35,7 +35,7 @@
 - [ ] Empty / closed-crack / DB-error states on the desk tier; skeleton matches both widths — built; needs the smoke.
 - [ ] Light and dark — built from desk tokens only; needs the smoke in both themes. No `force-dynamic` under `app/(app)/leads` — true (`grep`).
 - [x] README § Leads rewritten; "the wide table is gone" removed.
-- [x] CI lint / typecheck / build and the admin preview — Quality (advisory) pass on b20a11e; `Vercel – jamie-nisbet` built and passed on the pre-flip head (same code).
+- [x] CI lint / typecheck / build and the admin preview — Quality (advisory) pass; `Vercel – jamie-nisbet` builds and passes on the closing head.
 
 ## Notes for Release
 

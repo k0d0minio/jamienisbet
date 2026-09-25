@@ -16,8 +16,8 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 ### 2026-09-25 — the ready push built no preview
 
 - what happened: after the flip, the contract's empty commit (`chore: leads-table-board — ready`, b20a11e) came back with every Vercel project `Skipped - Not affected`; `ci-status.sh` settled GREEN with "no preview URL to test against".
-- why: this repo's Vercel ignored-build step diffs the push against the project's last deployment, and the previous push (the build notes, on top of the code commit) had already deployed the admin — so an empty commit changes nothing it watches. The admin preview of the finished code is the draft-era deployment of that previous head, served on the branch alias.
-- fixed by: nothing to fix in code — the operator smokes the branch alias (jamie-nisbet-git-claude-charming-archimedes-2b59uc-kodominio.vercel.app), which serves that head.
+- why: an empty commit changes no file, and this repo's Vercel ignored-build step skips a push that touches nothing it watches. The next push that carried files (the run's closing commit, `.icm/` only) built `Vercel – jamie-nisbet` again and passed.
+- fixed by: the closing commit's push, which the contract makes anyway — its head carries the preview the operator smokes (served on the branch alias).
 
 ### 2026-09-25 — criteria ticks in the PR body were not written
 
@@ -27,5 +27,5 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Learned rules
 
-- In this repo, don't count on the post-flip empty commit for a preview: Vercel skips it as "Not affected" when the previous push already deployed; point the operator at the branch alias of the last code push and say so.
+- In this repo, the post-flip push must change a file (an `.icm/` run file is enough): an empty commit is skipped by Vercel as "Not affected" and leaves the full gate with no preview.
 - Never re-render a whole PR body to tick acceptance criteria — that also rewrites the gate boxes; tick criteria only by editing those lines, or leave the ticks to `notes.md`.

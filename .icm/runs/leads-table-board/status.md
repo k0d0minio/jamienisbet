@@ -5,6 +5,6 @@ flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-pr
 
 - phase: build
 - step: done
-- ci: GREEN (full gate, b20a11e — Quality (advisory) pass; Vercel skipped the empty ready commit, the admin preview is the branch alias)
+- ci: GREEN (full gate — Vercel jamie-nisbet + portfolio pass on the closing head; Quality (advisory) re-read on it)
 - blocked: no
 - updated: 2026-09-25
