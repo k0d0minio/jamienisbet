@@ -4,11 +4,8 @@ import { useEffect, useOptimistic, useRef, useState, useTransition } from "react
 import { Pencil } from "lucide-react"
 
 import {
-  AppTextarea,
-  Button,
-  GroupedBlock,
-  GroupedSection,
-  PendingButton,
+  DeskButton,
+  RecordSection,
   toast,
 } from "@jamie-nisbet/ui"
 
@@ -21,7 +18,7 @@ import { hapticTick } from "@/lib/haptics"
 //
 // This used to be a sheet, for a real reason: a fixed-height box that scrolls
 // inside a page that also scrolls is a trap on a phone. The fix is not the
-// sheet, it is the box — `autoResize` grows the textarea to its content on
+// sheet, it is the box — `field-sizing: content` grows the textarea to its content on
 // every keystroke, so it has nothing to scroll and the page keeps the only
 // scroll on screen. With that gone, so is the reason to send a one-line
 // correction through a bottom sheet.
@@ -83,82 +80,77 @@ export function LeadNotesCard({
 
   if (editing) {
     return (
-      <GroupedSection header="Notes">
-        <GroupedBlock>
-          <div className="grid gap-3">
-            <AppTextarea
-              ref={box}
-              autoResize
-              rows={4}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onBlur={commit}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") setEditing(false)
-                // The one keyboard shortcut a multi-line box needs, since
-                // return is a newline here.
-                if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-                  commit()
-                }
-              }}
-              placeholder="Working notes — calls, decisions, next steps…"
-              aria-label="Notes"
-              autoCapitalize="sentences"
-            />
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                className="px-3"
-                // Keep the caret where it is: without this the press blurs the
-                // box first, which would save the very draft it discards.
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => setEditing(false)}
-              >
-                Cancel
-              </Button>
-              <PendingButton
-                type="button"
-                pending={pending}
-                pendingText="Saving…"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={commit}
-              >
-                Save
-              </PendingButton>
-            </div>
+      <RecordSection header="Notes">
+        <div className="grid gap-3 pt-1">
+          <textarea
+            ref={box}
+            rows={4}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={commit}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setEditing(false)
+              // The one keyboard shortcut a multi-line box needs, since
+              // return is a newline here.
+              if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                commit()
+              }
+            }}
+            placeholder="Working notes — calls, decisions, next steps…"
+            aria-label="Notes"
+            autoCapitalize="sentences"
+            // Grows with what is written, the way the app tier's box did.
+            className="field-sizing-content min-h-24 w-full resize-none rounded-desk-control border border-desk-line-strong bg-desk-surface px-3 py-2 text-desk-body text-desk-fg placeholder:text-desk-fg-3"
+          />
+          <div className="flex items-center justify-end gap-2">
+            <DeskButton
+              type="button"
+              variant="ghost"
+              // Keep the caret where it is: without this the press blurs the
+              // box first, which would save the very draft it discards.
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </DeskButton>
+            <DeskButton
+              type="button"
+              loading={pending}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={commit}
+            >
+              {pending ? "Saving…" : "Save"}
+            </DeskButton>
           </div>
-        </GroupedBlock>
-      </GroupedSection>
+        </div>
+      </RecordSection>
     )
   }
 
   return (
-    <GroupedSection header="Notes">
-      <GroupedBlock className="p-0">
-        <button
-          type="button"
-          onClick={edit}
-          aria-label={shown ? "Edit notes" : "Write a note"}
-          aria-busy={pending || undefined}
-          className="flex w-full min-h-app-touch items-start gap-3 px-4 py-3 text-left transition-colors spring-press active:bg-app-press"
-        >
-          {shown ? (
-            <span className="min-w-0 flex-1 whitespace-pre-wrap">{shown}</span>
-          ) : (
-            // Empty, and designed: it says what belongs here and it is the
-            // thing you tap to start writing it.
-            <span className="min-w-0 flex-1 text-app-label-3">
-              Nothing written down yet — calls, decisions and next steps go
-              here.
-            </span>
-          )}
-          <Pencil
-            className="mt-0.5 size-3.5 shrink-0 text-app-label-3"
-            aria-hidden
-          />
-        </button>
-      </GroupedBlock>
-    </GroupedSection>
+    <RecordSection header="Notes">
+      <button
+        type="button"
+        onClick={edit}
+        aria-label={shown ? "Edit notes" : "Write a note"}
+        aria-busy={pending || undefined}
+        className="flex w-full items-start gap-3 rounded-desk-control py-2 text-left text-desk-body text-desk-fg transition-colors duration-100 hover:bg-desk-hover"
+      >
+        {shown ? (
+          <span className="min-w-0 flex-1 whitespace-pre-wrap">{shown}</span>
+        ) : (
+          // Empty, and designed: it says what belongs here and it is the
+          // thing you tap to start writing it.
+          <span className="min-w-0 flex-1 text-desk-fg-3">
+            Nothing written down yet — calls, decisions and next steps go
+            here.
+          </span>
+        )}
+        <Pencil
+          className="mt-1 size-3.5 shrink-0 text-desk-fg-3"
+          aria-hidden
+        />
+      </button>
+    </RecordSection>
   )
 }

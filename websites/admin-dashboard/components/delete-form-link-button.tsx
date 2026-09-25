@@ -3,7 +3,7 @@
 import { useTransition } from "react"
 import { Trash2 } from "lucide-react"
 
-import { Button } from "@jamie-nisbet/ui"
+import { DeskButton } from "@jamie-nisbet/ui"
 
 import { removeFormLink } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
@@ -31,16 +31,16 @@ export function DeleteFormLinkButton({
   }
 
   return (
-    <Button
+    <DeskButton
       type="button"
       variant="ghost"
       size="sm"
       disabled={pending}
       onClick={onDelete}
-      className="text-destructive hover:text-destructive"
+      className="text-desk-blocked hover:text-desk-blocked"
     >
       <Trash2 />
       Delete
-    </Button>
+    </DeskButton>
   )
 }

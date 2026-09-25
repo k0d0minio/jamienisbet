@@ -97,15 +97,15 @@ export function ShareLinkButton({
         void shareOrCopy(sharePayload(formTitle, url), "Questionnaire link")
       }}
       className={cn(
-        "flex min-h-app-touch min-w-app-touch items-center justify-center rounded-app-control",
-        "text-app-tint transition-colors spring-press active:bg-app-press",
+        "flex size-desk-control items-center justify-center rounded-desk-control",
+        "text-desk-fg-2 transition-colors duration-100 hover:bg-desk-sunken hover:text-desk-fg",
         className
       )}
     >
       {canShare ? (
-        <Share2 className="size-5" aria-hidden />
+        <Share2 className="size-4" aria-hidden />
       ) : (
-        <Copy className="size-5" aria-hidden />
+        <Copy className="size-4" aria-hidden />
       )}
     </button>
   )

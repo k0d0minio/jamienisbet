@@ -1,20 +1,17 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Plus } from "lucide-react"
 
 import {
   AppField,
   AppTextarea,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
+  RecordBlock,
+  RecordSection,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
   Spinner,
   cn,
   toast,
@@ -26,6 +23,7 @@ import {
   type NextStepSuggestion,
 } from "@/app/(app)/actions"
 import { ChannelPicker } from "@/components/channel-picker"
+import { useLeadProfile } from "@/components/lead-profile"
 import { NextStepPane } from "@/components/next-step-pane"
 import { hapticTick } from "@/lib/haptics"
 import { channelLabel, outcomesFor, type ChannelValue } from "@/lib/touches"
@@ -73,6 +71,8 @@ export function LeadTouches({
    * through.
    */
   reply,
+  /** The timeline's last line — the day the record began (`CameInRow`). */
+  cameIn,
   children,
 }: {
   clientId: string
@@ -80,9 +80,16 @@ export function LeadTouches({
   count: number
   capped: boolean
   reply?: React.ReactNode
+  cameIn?: React.ReactNode
   children: React.ReactNode
 }) {
-  const [open, setOpen] = useState(false)
+  // On the profile the sheet is opened from the head's action bar ("Log a
+  // touch", or L), so its open state is the profile's; anywhere else it is
+  // this section's own.
+  const profile = useLeadProfile()
+  const [ownOpen, setOwnOpen] = useState(false)
+  const open = profile ? profile.logOpen : ownOpen
+  const setOpen = profile ? profile.setLogOpen : setOwnOpen
   const [logging, startLogging] = useTransition()
   const [saving, startSaving] = useTransition()
 
@@ -145,8 +152,9 @@ export function LeadTouches({
   }
 
   return (
-    <GroupedSection
+    <RecordSection
       header="Touches"
+      aria-label={`Touch history for ${clientName}`}
       footer={
         count === 0
           ? undefined
@@ -155,19 +163,22 @@ export function LeadTouches({
             : "Every call, message and visit, newest first."
       }
     >
+      {/* The other door in: paste what came back. At the head of the
+          timeline, because a reply is usually why the page was opened. */}
+      {reply ? <div className="pb-2">{reply}</div> : null}
+
       {count === 0 ? (
-        <GroupedBlock>
+        <RecordBlock>
           Nothing logged yet — a call, a message or a walk-in goes here, and
           what came of it is what decides the next one.
-        </GroupedBlock>
-      ) : (
-        children
-      )}
+        </RecordBlock>
+      ) : null}
+      <ol className="flex flex-col">
+        {count === 0 ? null : children}
+        {cameIn}
+      </ol>
 
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetTrigger asChild>
-          <GroupedRow icon={<Plus />} label="Log a touch" variant="tint" />
-        </SheetTrigger>
 
         {/* Two detents: the channel grid fits at half height, and the note
             wants the whole sheet once you are writing one. */}
@@ -304,10 +315,6 @@ export function LeadTouches({
           )}
         </SheetContent>
       </Sheet>
-
-      {reply}
-
-      <span className="sr-only">{`Touch history for ${clientName}`}</span>
-    </GroupedSection>
+    </RecordSection>
   )
 }

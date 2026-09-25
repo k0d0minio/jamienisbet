@@ -8,6 +8,7 @@ import {
   AppInput,
   AppTextarea,
   Button,
+  DeskButton,
   GroupedBlock,
   GroupedRow,
   GroupedSection,
@@ -342,16 +343,17 @@ export function LeadReply({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <GroupedRow
-          icon={<Inbox />}
-          label="Log a reply"
-          description={
+        <DeskButton
+          variant="secondary"
+          title={
             configured
               ? "Paste what they said and take it from there"
               : "Paste what they said"
           }
-          variant="tint"
-        />
+        >
+          <Inbox aria-hidden />
+          Log a reply
+        </DeskButton>
       </SheetTrigger>
 
       {/* The read is prose and the pane under it is four decisions, so this

@@ -159,6 +159,17 @@ states per view — loading, empty, error, populated.
 - `DeskButton` — `primary` / `secondary` / `ghost`, `sm` 26 · `md` 30 · `icon` · `icon-sm`,
   an optional `shortcut` hint ("Launch ⌘↵") and a `loading` state. Built on the shared
   `Button`, which it never changes.
+- `DeskMenu` / `DeskMenuTrigger` / `DeskMenuContent` / `DeskMenuItem` / `DeskMenuSeparator` /
+  `DeskMenuGroup` — "do one of these" behind one trigger: a flat floating panel (it takes
+  `shadow-desk-float`), rows on the row height, an optional second line, a `destructive` item.
+  Radix owns the keyboard.
+- `DeskTabs` (+ `deskTabId` / `deskTabPanelId`) — several bodies in one place: labels on a
+  hairline, the current one in ink with a 2px underline, an optional mono count; a tablist
+  operated by the arrow keys. The panels are the caller's.
+- `RecordSection` / `RecordRow` / `RecordBlock` / `RecordDisclosure` — one record's facts as a
+  dense key–value list under a mono eyebrow, with an `actions` slot (Edit) on the eyebrow's
+  line. Prop-compatible with the app tier's grouped list, so a screen moving tiers swaps the
+  element and keeps its logic.
 
 ### App tier (retiring)
 

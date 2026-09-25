@@ -2,15 +2,6 @@
 
 import { useState, useTransition } from "react"
 import {
-  Briefcase,
-  Globe,
-  Languages,
-  MapPin,
-  Pencil,
-  Signal,
-} from "lucide-react"
-
-import {
   AppField,
   AppInput,
   AppSelect,
@@ -19,10 +10,11 @@ import {
   AppSelectTrigger,
   AppSelectValue,
   AppTextarea,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
+  DeskButton,
   PendingButton,
+  RecordBlock,
+  RecordRow,
+  RecordSection,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -138,11 +130,172 @@ export function LeadFactsCard({
       client.hook
   )
 
+  const editSheet = (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <DeskButton variant="ghost" size="sm" aria-label="Edit facts">
+          Edit
+        </DeskButton>
+      </SheetTrigger>
+      {/* Two detents: the fields fit at half height on a phone, and the hook
+          wants the whole sheet when you are actually writing one. */}
+      <SheetContent detents={["medium", "large"]}>
+        <SheetHeader>
+          <SheetTitle>Edit facts</SheetTitle>
+          <SheetDescription>
+            What they do, where they are, and why they would care.
+          </SheetDescription>
+        </SheetHeader>
+        <form
+          action={(formData) =>
+            startTransition(async () => {
+              hapticTick()
+              try {
+                await saveClientFacts(client.id, formData)
+                setOpen(false)
+              } catch {
+                // The sheet stays open on a failure, so the fields you
+                // typed are still there to try again with.
+                toast.error("Couldn't save the facts")
+              }
+            })
+          }
+          className="grid gap-3"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <AppField label="Sector">
+              <AppInput
+                name="sector"
+                defaultValue={client.sector ?? ""}
+                placeholder="Restaurant, clinic, builder…"
+                autoCapitalize="sentences"
+                enterKeyHint="next"
+              />
+            </AppField>
+            <AppField label="Town">
+              <AppInput
+                name="town"
+                defaultValue={client.town ?? ""}
+                placeholder="Mafra"
+                autoCapitalize="words"
+                enterKeyHint="next"
+              />
+            </AppField>
+            <AppField label="Language" hint="Which one to open in.">
+              <AppSelect
+                name="language"
+                defaultValue={client.language ?? UNSET}
+              >
+                <AppSelectTrigger className="w-full">
+                  <AppSelectValue />
+                </AppSelectTrigger>
+                <AppSelectContent>
+                  <AppSelectItem value={UNSET}>Not set</AppSelectItem>
+                  {LANGUAGES.map((option) => (
+                    <AppSelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </AppSelectItem>
+                  ))}
+                </AppSelectContent>
+              </AppSelect>
+            </AppField>
+            <AppField label="Fit tier" hint="A is the best fit.">
+              <AppSelect
+                name="fitTier"
+                defaultValue={client.fitTier ?? UNSET}
+              >
+                <AppSelectTrigger className="w-full">
+                  <AppSelectValue />
+                </AppSelectTrigger>
+                <AppSelectContent>
+                  <AppSelectItem value={UNSET}>Not tiered</AppSelectItem>
+                  {FIT_TIERS.map((tier) => (
+                    <AppSelectItem key={tier.value} value={tier.value}>
+                      {tier.value} — {tier.hint}
+                    </AppSelectItem>
+                  ))}
+                </AppSelectContent>
+              </AppSelect>
+            </AppField>
+          </div>
+
+          <AppField label="Website" hint="With or without the https://.">
+            <AppInput
+              name="websiteUrl"
+              // The URL keyboard, but not the URL *type*: the pool's
+              // addresses are written the way people say them ("example.pt"),
+              // and native url validation would refuse to submit the form
+              // over a missing scheme. `websiteHref` puts one on for the
+              // link instead.
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="next"
+              defaultValue={client.websiteUrl ?? ""}
+              placeholder="example.pt"
+            />
+          </AppField>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <AppField label="Web presence">
+              <AppSelect
+                name="websiteGrade"
+                defaultValue={client.websiteGrade ?? UNSET}
+              >
+                <AppSelectTrigger className="w-full">
+                  <AppSelectValue />
+                </AppSelectTrigger>
+                <AppSelectContent>
+                  <AppSelectItem value={UNSET}>Not graded</AppSelectItem>
+                  {WEBSITE_GRADES.map((option) => (
+                    <AppSelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </AppSelectItem>
+                  ))}
+                </AppSelectContent>
+              </AppSelect>
+            </AppField>
+            <AppField label="Google reviews" hint="Empty if nobody looked.">
+              <AppInput
+                name="reviewCount"
+                inputMode="numeric"
+                enterKeyHint="next"
+                defaultValue={client.reviewCount ?? ""}
+                placeholder="—"
+              />
+            </AppField>
+          </div>
+
+          <AppField
+            label="Hook"
+            hint="The one thing about them a first message leads with."
+          >
+            <AppTextarea
+              name="hook"
+              rows={3}
+              autoCapitalize="sentences"
+              defaultValue={client.hook ?? ""}
+              placeholder="Menu is a PDF nobody can read on a phone…"
+            />
+          </AppField>
+
+          <PendingButton
+            pending={pending}
+            pendingText="Saving…"
+            className="w-full sm:w-fit"
+          >
+            Save
+          </PendingButton>
+        </form>
+      </SheetContent>
+    </Sheet>
+  )
+
   return (
-    <GroupedSection header="Facts">
+    <RecordSection header="Facts" actions={editSheet}>
       {client.sector ? (
-        <GroupedRow
-          icon={<Briefcase />}
+        <RecordRow
           label="Sector"
           value={client.sector}
           chevron={false}
@@ -150,8 +303,7 @@ export function LeadFactsCard({
       ) : null}
 
       {client.town ? (
-        <GroupedRow
-          icon={<MapPin />}
+        <RecordRow
           label="Town"
           value={client.town}
           chevron={false}
@@ -159,8 +311,7 @@ export function LeadFactsCard({
       ) : null}
 
       {language ? (
-        <GroupedRow
-          icon={<Languages />}
+        <RecordRow
           label="Language"
           value={language}
           chevron={false}
@@ -172,8 +323,7 @@ export function LeadFactsCard({
         // and it is the letter the prospects list sorts on, so it reads the
         // same here as it does there. The line under it is what the letter
         // means, which a single character cannot say on its own.
-        <GroupedRow
-          icon={<Signal />}
+        <RecordRow
           label="Fit tier"
           // What the letter means — unless the facts have since moved past it,
           // which is the more useful sentence and the only one that asks for
@@ -185,7 +335,7 @@ export function LeadFactsCard({
               ? `The facts now say ${derivedTier}`
               : (fitTierHint(client.fitTier) ?? undefined)
           }
-          value={<span className="font-mono">{client.fitTier}</span>}
+          value={<span className="font-mono text-desk-meta">{client.fitTier}</span>}
           chevron={false}
         />
       ) : null}
@@ -193,8 +343,7 @@ export function LeadFactsCard({
       {client.websiteUrl ? (
         // The site itself, opened in its own tab — this is a link out of the
         // app, not a move inside it.
-        <GroupedRow
-          icon={<Globe />}
+        <RecordRow
           label="Website"
           description={presence || undefined}
           value={websiteHost(client.websiteUrl)}
@@ -205,8 +354,7 @@ export function LeadFactsCard({
       ) : presence ? (
         // Graded, with no address on file: "no website" is a finding, and the
         // row that carries it is exactly where you would look for one.
-        <GroupedRow
-          icon={<Globe />}
+        <RecordRow
           label="Web presence"
           value={presence}
           chevron={false}
@@ -217,17 +365,17 @@ export function LeadFactsCard({
           is a sentence you read before writing one, and a 44px line would
           truncate the half that matters. */}
       {client.hook ? (
-        <GroupedBlock>
-          <span className="text-app-label-3">Hook</span>
-          <p className="mt-1 whitespace-pre-wrap text-app-label">{client.hook}</p>
-        </GroupedBlock>
+        <RecordBlock>
+          <span className="text-desk-fg-3">Hook</span>
+          <p className="mt-1 whitespace-pre-wrap text-desk-fg">{client.hook}</p>
+        </RecordBlock>
       ) : null}
 
       {hasAny ? null : (
-        <GroupedBlock>
+        <RecordBlock>
           Nothing on file — what they do, where they are, and the line a first
           message would lead with all land here.
-        </GroupedBlock>
+        </RecordBlock>
       )}
 
       <LeadEnrich
@@ -237,163 +385,6 @@ export function LeadFactsCard({
         enrichedOn={enrichedOn}
       />
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <GroupedRow icon={<Pencil />} label="Edit facts" />
-        </SheetTrigger>
-        {/* Two detents: the fields fit at half height on a phone, and the hook
-            wants the whole sheet when you are actually writing one. */}
-        <SheetContent detents={["medium", "large"]}>
-          <SheetHeader>
-            <SheetTitle>Edit facts</SheetTitle>
-            <SheetDescription>
-              What they do, where they are, and why they would care.
-            </SheetDescription>
-          </SheetHeader>
-          <form
-            action={(formData) =>
-              startTransition(async () => {
-                hapticTick()
-                try {
-                  await saveClientFacts(client.id, formData)
-                  setOpen(false)
-                } catch {
-                  // The sheet stays open on a failure, so the fields you
-                  // typed are still there to try again with.
-                  toast.error("Couldn't save the facts")
-                }
-              })
-            }
-            className="grid gap-3"
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <AppField label="Sector">
-                <AppInput
-                  name="sector"
-                  defaultValue={client.sector ?? ""}
-                  placeholder="Restaurant, clinic, builder…"
-                  autoCapitalize="sentences"
-                  enterKeyHint="next"
-                />
-              </AppField>
-              <AppField label="Town">
-                <AppInput
-                  name="town"
-                  defaultValue={client.town ?? ""}
-                  placeholder="Mafra"
-                  autoCapitalize="words"
-                  enterKeyHint="next"
-                />
-              </AppField>
-              <AppField label="Language" hint="Which one to open in.">
-                <AppSelect
-                  name="language"
-                  defaultValue={client.language ?? UNSET}
-                >
-                  <AppSelectTrigger className="w-full">
-                    <AppSelectValue />
-                  </AppSelectTrigger>
-                  <AppSelectContent>
-                    <AppSelectItem value={UNSET}>Not set</AppSelectItem>
-                    {LANGUAGES.map((option) => (
-                      <AppSelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </AppSelectItem>
-                    ))}
-                  </AppSelectContent>
-                </AppSelect>
-              </AppField>
-              <AppField label="Fit tier" hint="A is the best fit.">
-                <AppSelect
-                  name="fitTier"
-                  defaultValue={client.fitTier ?? UNSET}
-                >
-                  <AppSelectTrigger className="w-full">
-                    <AppSelectValue />
-                  </AppSelectTrigger>
-                  <AppSelectContent>
-                    <AppSelectItem value={UNSET}>Not tiered</AppSelectItem>
-                    {FIT_TIERS.map((tier) => (
-                      <AppSelectItem key={tier.value} value={tier.value}>
-                        {tier.value} — {tier.hint}
-                      </AppSelectItem>
-                    ))}
-                  </AppSelectContent>
-                </AppSelect>
-              </AppField>
-            </div>
-
-            <AppField label="Website" hint="With or without the https://.">
-              <AppInput
-                name="websiteUrl"
-                // The URL keyboard, but not the URL *type*: the pool's
-                // addresses are written the way people say them ("example.pt"),
-                // and native url validation would refuse to submit the form
-                // over a missing scheme. `websiteHref` puts one on for the
-                // link instead.
-                inputMode="url"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                enterKeyHint="next"
-                defaultValue={client.websiteUrl ?? ""}
-                placeholder="example.pt"
-              />
-            </AppField>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <AppField label="Web presence">
-                <AppSelect
-                  name="websiteGrade"
-                  defaultValue={client.websiteGrade ?? UNSET}
-                >
-                  <AppSelectTrigger className="w-full">
-                    <AppSelectValue />
-                  </AppSelectTrigger>
-                  <AppSelectContent>
-                    <AppSelectItem value={UNSET}>Not graded</AppSelectItem>
-                    {WEBSITE_GRADES.map((option) => (
-                      <AppSelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </AppSelectItem>
-                    ))}
-                  </AppSelectContent>
-                </AppSelect>
-              </AppField>
-              <AppField label="Google reviews" hint="Empty if nobody looked.">
-                <AppInput
-                  name="reviewCount"
-                  inputMode="numeric"
-                  enterKeyHint="next"
-                  defaultValue={client.reviewCount ?? ""}
-                  placeholder="—"
-                />
-              </AppField>
-            </div>
-
-            <AppField
-              label="Hook"
-              hint="The one thing about them a first message leads with."
-            >
-              <AppTextarea
-                name="hook"
-                rows={3}
-                autoCapitalize="sentences"
-                defaultValue={client.hook ?? ""}
-                placeholder="Menu is a PDF nobody can read on a phone…"
-              />
-            </AppField>
-
-            <PendingButton
-              pending={pending}
-              pendingText="Saving…"
-              className="w-full sm:w-fit"
-            >
-              Save
-            </PendingButton>
-          </form>
-        </SheetContent>
-      </Sheet>
-    </GroupedSection>
+    </RecordSection>
   )
 }

@@ -1,4 +1,4 @@
-import { IdentityHeader, LargeTitleHeader } from "@jamie-nisbet/ui"
+import { LargeTitleHeader } from "@jamie-nisbet/ui"
 
 import { AppMenu } from "@/components/app-menu"
 import { PaletteTitleBarButton } from "@/components/command-palette"
@@ -77,66 +77,6 @@ export function AppScreen({
         {masthead}
       </LargeTitleHeader>
       <div className="px-app-gutter">{children}</div>
-    </div>
-  )
-}
-
-// A profile screen — one person, one record — opens on *them* rather than on a
-// heading: the Contacts masthead, then the actions, then the record as grouped
-// sections. Same bar, same hand-off, same menu as AppScreen; the difference is
-// what scrolls away above the fold, and that the content here is a
-// `GroupedList`, which owns the gutter itself.
-export function AppProfileScreen({
-  name,
-  compactTitle,
-  meta,
-  figure,
-  figureLabel,
-  badges,
-  avatar,
-  back,
-  actions,
-  children,
-}: {
-  /** Whose screen this is. Becomes the page's real <h1>. */
-  name: string
-  compactTitle?: React.ReactNode
-  /** What they are, under the name — company, status. */
-  meta?: React.ReactNode
-  /** The figure that qualifies the record, set in mono beside the name. */
-  figure?: React.ReactNode
-  figureLabel?: React.ReactNode
-  /** Terms and warnings that ride with the identity. */
-  badges?: React.ReactNode
-  /** Replaces the derived monogram — a skeleton disc while the record loads. */
-  avatar?: React.ReactNode
-  back?: React.ReactNode
-  /** The circular action row, directly under the identity. */
-  actions?: React.ReactNode
-  children: React.ReactNode
-}) {
-  return (
-    <div className={READING_COLUMN}>
-      <IdentityHeader
-        className="vt-app-header"
-        name={name}
-        compactTitle={compactTitle}
-        meta={meta}
-        figure={figure}
-        figureLabel={figureLabel}
-        badges={badges}
-        avatar={avatar}
-        leading={back}
-        trailing={
-          <>
-            <PaletteTitleBarButton />
-            <AppMenu />
-          </>
-        }
-      >
-        {actions}
-      </IdentityHeader>
-      {children}
     </div>
   )
 }

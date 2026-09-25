@@ -7,10 +7,12 @@ import {
   AppField,
   AppTextarea,
   Button,
-  GroupedBlock,
+  DeskButton,
   GroupedRow,
   GroupedSection,
   PendingButton,
+  RecordBlock,
+  RecordSection,
   SegmentedControl,
   SegmentedItem,
   Sheet,
@@ -226,46 +228,50 @@ export function LeadDraft({
   // decision that this app honours.
   if (!configured) {
     return (
-      <GroupedSection header="Draft">
-        <GroupedBlock>
+      <RecordSection header="Draft">
+        <RecordBlock>
           Drafting isn&apos;t set up — there is no AI Gateway key on this
           deployment. Everything else on this page works as it did.
-        </GroupedBlock>
-      </GroupedSection>
+        </RecordBlock>
+      </RecordSection>
     )
   }
 
   if (openDoors.length === 0) {
     return (
-      <GroupedSection header="Draft">
-        <GroupedBlock>
+      <RecordSection header="Draft">
+        <RecordBlock>
           {anyClosed
             ? "They asked not to be contacted, so there is nothing to write."
             : `No address, number or handle on file for ${clientName} — a draft needs a door to go out of.`}
-        </GroupedBlock>
-      </GroupedSection>
+        </RecordBlock>
+      </RecordSection>
     )
   }
 
   return (
-    <GroupedSection
+    <RecordSection
       header="Draft"
       footer="Written here, sent by you — nothing leaves this app."
     >
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetTrigger asChild>
-          <GroupedRow
-            icon={<PenLine />}
-            label="Write a draft"
-            description={[
+        <div className="flex flex-wrap items-center gap-3 py-2">
+          <SheetTrigger asChild>
+            <DeskButton variant="primary">
+              <PenLine aria-hidden />
+              Write a draft
+            </DeskButton>
+          </SheetTrigger>
+          {/* Where the cadence says to start: which message, which door. */}
+          <span className="font-mono text-desk-meta text-desk-fg-3">
+            {[
               DRAFT_KINDS.find((k) => k.value === defaultKind)?.label,
               startChannel ? draftChannelLabel(startChannel) : null,
             ]
               .filter(Boolean)
               .join(" · ")}
-            variant="tint"
-          />
-        </SheetTrigger>
+          </span>
+        </div>
 
         {/* The draft is the point and it is prose, so this sheet opens at full
             height rather than dragging up to it. */}
@@ -467,6 +473,6 @@ export function LeadDraft({
       </Sheet>
 
       <span className="sr-only">{`Draft outreach for ${clientName}`}</span>
-    </GroupedSection>
+    </RecordSection>
   )
 }

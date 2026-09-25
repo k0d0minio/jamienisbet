@@ -1,5 +1,4 @@
 import {
-  ArrowDownLeft,
   AtSign,
   Ellipsis,
   Footprints,
@@ -7,8 +6,6 @@ import {
   MessageCircle,
   Phone,
 } from "lucide-react"
-
-import { GroupedDisclosure, GroupedRow } from "@jamie-nisbet/ui"
 
 import { Markdown } from "@/components/markdown"
 import { channelLabel, outcomeLabel } from "@/lib/touches"
@@ -62,75 +59,86 @@ function ChannelGlyph({ channel }: { channel: string }) {
   }
 }
 
-function TouchLabel({ touch }: { touch: LeadTouchRow }) {
-  const inbound = touch.direction === "in"
+/** The date, in mono like every other figure on this tier. */
+function LoggedOn({ on }: { on: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
-      {channelLabel(touch.channel)} · {outcomeLabel(touch.outcome)}
-      {/* Outbound is the ordinary case, so only inbound says so — an arrow
-          rather than a word, because "in" on every second row would read as
-          noise and this is the row where they came to you. */}
-      {inbound ? (
-        <>
-          <ArrowDownLeft className="size-3.5 shrink-0 text-app-tint" aria-hidden />
-          <span className="sr-only">— they got in touch</span>
-        </>
-      ) : null}
+    <span className="font-mono text-desk-meta text-desk-fg-3 tabular-nums">
+      {on}
     </span>
   )
 }
 
-/** The date, in mono like every other figure on this tier. */
-function LoggedOn({ on }: { on: string }) {
-  return <span className="font-mono tabular-nums">{on}</span>
-}
-
+// One line of the Activity timeline, on the desk tier: the date, which way it
+// went, then the channel and what came of it, with the note under it as it
+// was written. The note is read in place — it is what the history is for —
+// and only a draft folds, because a whole message is a page of its own.
+//
+// Direction is a glyph rather than a word: → went out, ← came in. Every row
+// says it, so the column reads down the page as the rhythm of the exchange.
 export function TouchRow({ touch }: { touch: LeadTouchRow }) {
-  const label = <TouchLabel touch={touch} />
-  const when = <LoggedOn on={touch.loggedOn} />
-
-  if (!touch.note && !touch.draftMd) {
-    return (
-      <GroupedRow
-        icon={<ChannelGlyph channel={touch.channel} />}
-        label={label}
-        value={when}
-        chevron={false}
-      />
-    )
-  }
+  const inbound = touch.direction === "in"
 
   return (
-    <GroupedDisclosure
-      icon={<ChannelGlyph channel={touch.channel} />}
-      label={label}
-      description={touch.note ?? "Draft"}
-      value={when}
-    >
-      {touch.note ? (
-        <p className="whitespace-pre-wrap text-app-footnote text-app-label-2">
-          {touch.note}
-        </p>
-      ) : null}
-
-      {touch.draftMd ? (
-        <div className={touch.note ? "mt-3" : undefined}>
-          <span className="text-app-label-3">
-            Draft
-            {/* Which model wrote it — a courtesy, so a message that reads
-                oddly can be traced to whatever drafted it. */}
-            {touch.model ? (
-              <>
-                {" · "}
-                <span className="font-mono">{touch.model}</span>
-              </>
-            ) : null}
+    <li className="grid grid-cols-[4.5rem_1.25rem_minmax(0,1fr)] gap-x-2 border-b border-desk-line py-2">
+      <LoggedOn on={touch.loggedOn} />
+      <span
+        className="font-mono text-desk-meta text-desk-fg-3"
+        title={inbound ? "They got in touch" : "You reached out"}
+      >
+        <span aria-hidden>{inbound ? "←" : "→"}</span>
+        <span className="sr-only">{inbound ? "In:" : "Out:"}</span>
+      </span>
+      <div className="flex min-w-0 flex-col gap-1">
+        <span className="flex min-w-0 items-center gap-1.5 text-desk-ui font-semibold text-desk-fg">
+          <span className="flex shrink-0 text-desk-fg-3 [&>svg]:size-desk-icon">
+            <ChannelGlyph channel={touch.channel} />
           </span>
-          <div className="mt-1">
-            <Markdown>{touch.draftMd}</Markdown>
-          </div>
-        </div>
-      ) : null}
-    </GroupedDisclosure>
+          <span className="truncate">
+            {channelLabel(touch.channel)} · {outcomeLabel(touch.outcome)}
+          </span>
+        </span>
+        {touch.note ? (
+          <p className="text-desk-ui whitespace-pre-wrap text-desk-fg-2">
+            {touch.note}
+          </p>
+        ) : null}
+        {touch.draftMd ? (
+          <details className="group/draft">
+            <summary className="cursor-pointer list-none text-desk-meta text-desk-fg-3 hover:text-desk-fg [&::-webkit-details-marker]:hidden">
+              Draft
+              {/* Which model wrote it — a courtesy, so a message that reads
+                  oddly can be traced to whatever drafted it. */}
+              {touch.model ? (
+                <>
+                  {" · "}
+                  <span className="font-mono">{touch.model}</span>
+                </>
+              ) : null}
+              <span aria-hidden> ▸</span>
+            </summary>
+            <div className="mt-1 text-desk-ui text-desk-fg-2">
+              <Markdown>{touch.draftMd}</Markdown>
+            </div>
+          </details>
+        ) : null}
+      </div>
+    </li>
+  )
+}
+
+/** The timeline's last line: the day the record began, and the door it came
+ *  through. Derived from the row itself (`created_at`, `source`) — nothing is
+ *  logged for it, so it is always there and always last. */
+export function CameInRow({ on, source }: { on: string; source: string }) {
+  return (
+    <li className="grid grid-cols-[4.5rem_1.25rem_minmax(0,1fr)] gap-x-2 border-b border-desk-line py-2">
+      <LoggedOn on={on} />
+      <span aria-hidden className="font-mono text-desk-meta text-desk-fg-3">
+        ·
+      </span>
+      <span className="text-desk-ui font-semibold text-desk-fg">
+        Came in · {source}
+      </span>
+    </li>
   )
 }

@@ -1,10 +1,10 @@
 import { CircleCheck, ExternalLink, Hourglass, Share2 } from "lucide-react"
 
 import {
-  Button,
-  GroupedBlock,
-  GroupedDisclosure,
-  GroupedSection,
+  DeskButton,
+  RecordBlock,
+  RecordDisclosure,
+  RecordSection,
   cn,
 } from "@jamie-nisbet/ui"
 import { zipAnswers, type FormLink } from "@jamie-nisbet/services"
@@ -40,7 +40,7 @@ function Answer({ value }: { value: string | boolean | null }) {
     return <span>{value ? "Yes" : "No"}</span>
   }
   if (value === null || value.trim() === "") {
-    return <span className="text-app-label-3">Not answered</span>
+    return <span className="text-desk-fg-3">Not answered</span>
   }
   // Answers arrive as typed, newlines and all — a textarea reply is a paragraph
   // or a bullet list, and collapsing it would lose the shape they gave it.
@@ -80,7 +80,7 @@ function PendingBody({
       {/* The whole point of the pending state. Mono and selectable, wrapping
           rather than truncating — a link you can only send through buttons is
           a link you can't check. */}
-      <div className="rounded-app-control border border-app-separator bg-app-canvas px-3 py-2 font-mono text-app-caption break-all">
+      <div className="rounded-desk-control border border-desk-line bg-desk-canvas px-3 py-2 font-mono text-desk-meta break-all">
         {url}
       </div>
       {/* One wrapping row, leading with the two that hand the link over. It
@@ -93,19 +93,19 @@ function PendingBody({
           clientEmail={clientEmail}
           description={`Sent ${formatDateTime(link.sentAt)}. Pick how it reaches them.`}
         >
-          <Button type="button" variant="secondary" size="sm">
+          <DeskButton type="button" variant="secondary" size="sm">
             <Share2 />
             Ways to send
-          </Button>
+          </DeskButton>
         </ShareFormLinkSheet>
         <CopyButton value={url} what="Questionnaire link" />
         <a
           href={url}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-app-touch items-center gap-1.5 rounded-app-control px-3 text-app-subhead text-app-label-3 transition-colors spring-press active:bg-app-press"
+          className="inline-flex h-desk-control-sm items-center gap-1.5 rounded-desk-control px-2.5 text-desk-ui font-semibold text-desk-fg-2 transition-colors duration-100 hover:bg-desk-sunken hover:text-desk-fg"
         >
-          <ExternalLink className="size-4" aria-hidden />
+          <ExternalLink className="size-3.5" aria-hidden />
           Preview
         </a>
         <DeleteFormLinkButton id={link.id} clientId={clientId} answered={false} />
@@ -126,25 +126,26 @@ function AnsweredBody({
   const answered = zipAnswers(link.formSnapshot, link.answers)
   return (
     <div className="flex flex-col gap-3">
-      <dl className="grid gap-3 border-l-2 border-success/40 pl-3">
+      <dl className="grid gap-3">
         {answered.map((field) => (
           <div key={field.key} className="grid gap-1">
-            <dt className="text-app-footnote text-app-label-3">{field.label}</dt>
-            <dd className="text-app-callout text-app-label">
+            <dt className="text-desk-meta text-desk-fg-3">{field.label}</dt>
+            <dd className="text-desk-body text-desk-fg">
               <Answer value={field.answer} />
             </dd>
           </div>
         ))}
       </dl>
       <div className="flex flex-wrap items-center gap-1">
-        {/* Only offered when the row names a deal folder — that is where the
-            snapshot belongs (icm-board D24). Setting one in the Deal card
-            makes the button appear; without one it says why it isn't here. */}
+        {/* Only offered when the row has a deal folder — that is where the
+            snapshot belongs (icm-board D24). The folder is named after the
+            delivery repo (D28), so connecting a repo is what makes the button
+            appear; without one it says why it isn't here. */}
         {hasDealFolder ? (
           <WriteFormToRepoButton linkId={link.id} clientId={clientId} />
         ) : (
-          <span className="text-app-footnote text-app-label-3">
-            Set a deal folder in the Deal card to snapshot these answers into it.
+          <span className="text-desk-meta text-desk-fg-3">
+            Connect a repo to snapshot these answers into its deal folder.
           </span>
         )}
         <DeleteFormLinkButton id={link.id} clientId={clientId} answered />
@@ -176,7 +177,7 @@ export function FormLinks({
   const newestAnswered = links.findIndex((link) => link.completedAt !== null)
 
   return (
-    <GroupedSection
+    <RecordSection
       header="Forms"
       footer={`The house questionnaires live in icm-board's workspaces/sell/references/forms/; ${clientName}'s own in their delivery repo's .icm/onboarding/. Sending one publishes a link; handing it over is yours to do. Answers stay in Neon — a snapshot goes to the deal folder only when you ask.`}
     >
@@ -189,15 +190,15 @@ export function FormLinks({
       />
 
       {links.length === 0 ? (
-        <GroupedBlock>
+        <RecordBlock>
           Nothing sent yet. Sending one publishes a link you can share, email or
           hold up as a QR code — and the answers land back here.
-        </GroupedBlock>
+        </RecordBlock>
       ) : (
         links.map((link, index) => {
           const done = link.completedAt !== null
           return (
-            <GroupedDisclosure
+            <RecordDisclosure
               key={link.id}
               label={link.formSnapshot.title}
               description={sentLine(link)}
@@ -217,14 +218,14 @@ export function FormLinks({
               value={
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1 text-app-footnote",
-                    done ? "text-success" : "text-app-label-3"
+                    "inline-flex items-center gap-1 text-desk-meta",
+                    done ? "text-desk-done" : "text-desk-fg-3"
                   )}
                 >
                   {done ? (
-                    <CircleCheck className="size-4" aria-hidden />
+                    <CircleCheck className="size-3.5" aria-hidden />
                   ) : (
-                    <Hourglass className="size-4" aria-hidden />
+                    <Hourglass className="size-3.5" aria-hidden />
                   )}
                   {/* Waiting is the default state and says nothing new; it
                       gives its words back to the title and the share button
@@ -247,10 +248,10 @@ export function FormLinks({
                   clientEmail={clientEmail}
                 />
               )}
-            </GroupedDisclosure>
+            </RecordDisclosure>
           )
         })
       )}
-    </GroupedSection>
+    </RecordSection>
   )
 }

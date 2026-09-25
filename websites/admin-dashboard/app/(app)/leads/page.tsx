@@ -27,6 +27,7 @@ import { ClientCreateForm } from "@/components/client-create-form"
 import { DealBadges } from "@/components/deal-badges"
 import { DealBoard } from "@/components/deal-board"
 import { DealStageChip } from "@/components/deal-stage-chip"
+import { LeadOrderRecorder } from "@/components/lead-order"
 import { LeadRow } from "@/components/lead-row"
 import {
   LeadsLayoutSwitch,
@@ -602,6 +603,11 @@ export default async function LeadsPage({
 
   return (
     <>
+      {/* The order on screen — the table's, and the phone rows' — for j / k
+          on a lead's profile (D-24). The board groups these same rows by
+          stage; stepping from it follows the table's order underneath. */}
+      <LeadOrderRecorder ids={visible.map((row) => row.id)} />
+
       {/* The desk: one pane across the content area, the whole window high,
           so the table's header sticks and the board's columns scroll inside
           it rather than the page. `-mb-8` takes back the shell's desk

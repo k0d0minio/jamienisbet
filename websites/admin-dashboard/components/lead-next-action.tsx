@@ -21,11 +21,11 @@ import {
 import { clearNextAction, saveNextAction } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 
-// What happens next, on the masthead — the one line that turns a record into a
-// piece of work.
+// What happens next — the block that turns a record into a piece of work. The
+// first thing under the head, on the desk's left column and on the phone.
 //
-// It sits with the identity rather than in a section because it is the same
-// order of fact as the name and the figure: the question this page exists to
+// It leads the record because it is the same order of fact as the name and
+// the figure: the question this page exists to
 // answer is "what do I do about this person", and the answer should be legible
 // before a thumb has moved. Everything else on the profile is what they *are*;
 // this is what is owed.
@@ -47,6 +47,9 @@ export function LeadNextAction({
   /** The same date as `YYYY-MM-DD`, for the date field. */
   dueValue,
   overdue,
+  /** "2 days late", said beside the eyebrow once the date has passed —
+   *  pre-formatted on the server, which owns the clock. */
+  lateLabel,
   /** They are parked on nurture: the line is a wake date, not a next step. */
   parked,
   /** A next step is expected on this rung — so an empty one is worth saying.
@@ -59,6 +62,7 @@ export function LeadNextAction({
   dueLabel: string | null
   dueValue: string | null
   overdue: boolean
+  lateLabel: string | null
   parked: boolean
   expected: boolean
 }) {
@@ -74,7 +78,7 @@ export function LeadNextAction({
     : action
 
   // Nothing to say and nothing worth prompting for — an active client owes no
-  // next step, and an empty chip on their masthead would only be clutter.
+  // next step, and an empty block on their profile would only be clutter.
   if (!line && !expected) return null
 
   const empty = !line
@@ -84,37 +88,45 @@ export function LeadNextAction({
       <SheetTrigger asChild>
         <button
           type="button"
-          // Its own line in the masthead's badge row: the sentence can run
-          // long, and a next step wrapped around a Stripe glyph reads as
-          // neither. `basis-full` rather than `w-full` so the negative margin
-          // that hangs the press wash into the gutter doesn't overflow the
-          // line — and it is on the control itself rather than a wrapper, so a
-          // lead with nothing to say here leaves no empty row behind.
+          // The first thing under the head on both layouts: the one part of
+          // the page about *doing* rather than about who they are. Late is
+          // the tier's one danger tint, over the whole block — the single
+          // place on the profile a colour field is the message.
           className={cn(
-            "-ml-2.5 flex min-h-app-touch basis-full items-center gap-1.5 rounded-app-control px-2.5",
-            "text-left text-app-footnote transition-colors spring-press active:bg-app-press",
+            "flex w-full flex-col gap-1 rounded-desk-pane border px-3.5 py-3 text-left transition-colors duration-100",
             overdue
-              ? "font-medium text-destructive"
-              : empty
-                ? "text-app-label-3"
-                : "font-medium text-app-tint"
+              ? "border-desk-blocked/30 bg-desk-blocked-soft"
+              : "border-desk-line bg-desk-surface hover:bg-desk-hover"
           )}
         >
-          {parked ? (
-            <Moon className="size-3.5 shrink-0" aria-hidden />
-          ) : (
-            <Flag className="size-3.5 shrink-0" aria-hidden />
-          )}
-          <span className="min-w-0 flex-1 truncate">
-            {line ?? "No next step"}
+          <span
+            className={cn(
+              "flex items-center gap-1.5 font-mono text-desk-micro tracking-desk-eyebrow uppercase",
+              overdue ? "text-desk-blocked" : "text-desk-fg-3"
+            )}
+          >
+            {parked ? (
+              <Moon className="size-3 shrink-0" aria-hidden />
+            ) : (
+              <Flag className="size-3 shrink-0" aria-hidden />
+            )}
+            {parked ? "Parked" : "Next step"}
+            {overdue && lateLabel ? ` · ${lateLabel}` : null}
+          </span>
+          <span
+            className={cn(
+              "text-desk-body font-semibold",
+              empty ? "text-desk-fg-3" : "text-desk-fg"
+            )}
+          >
+            {line ?? "No next step — set one"}
           </span>
           {/* A date is a figure, so it sets in mono — and only when it adds
               something the line hasn't already said. */}
-          {!parked && dueLabel ? (
-            <span className="shrink-0 font-mono text-app-caption tabular-nums">
-              {dueLabel}
-            </span>
-          ) : null}
+          <span className="font-mono text-desk-meta text-desk-fg-2">
+            {!parked && dueLabel ? `due ${dueLabel} · ` : null}
+            edit
+          </span>
         </button>
       </SheetTrigger>
 
