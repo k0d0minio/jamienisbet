@@ -1,7 +1,7 @@
 # Build notes: shell-rail-palette
 
 - commits: feat (routes, desk tier, rail, tab bar, badge, palette) · docs (README) · chore (run files)
-- ci: see status.md — settled by ci-status.sh at the flip
+- ci: GREEN on 280272b (full gate: Vercel – jamie-nisbet, Vercel – portfolio; Quality (advisory) success)
 
 ## What changed
 
@@ -35,7 +35,7 @@
 - [x] Only Work widens — `AppScreen`'s reading column.
 - [ ] Light/dark, safe areas, 44px touch, toasts/add button clear the bar — built from semantic desk tokens and the tab geometry; needs the operator's smoke on the preview (phone + desk, both themes).
 - [x] README updated.
-- [ ] CI lint/typecheck/build + admin preview — settled at the flip (status.md).
+- [x] CI lint/typecheck/build + admin preview — GREEN on the post-flip head.
 
 ## Notes for Release
 

@@ -6,18 +6,16 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: read `02_define/output/spec.md`; change it with `revise shell-rail-palette "<what>"`.
-2. Operator: tick **Spec approved** in the body of https://github.com/k0d0minio/jamienisbet/pull/170.
-3. Then `/pipeline build shell-rail-palette` — execute `plan.md` pass by pass.
+1. Operator: smoke the admin preview — https://jamie-nisbet-git-claude-vibrant-hopper-w16td2-kodominio.vercel.app — at phone width and at the desk, in light and dark: the rail / tab bar, the Inbox badge, ⌘K (and the phone's search button), a ticket / lead / repo jump, "Launch next", `/tickets?t=…` redirecting, `/inbox`.
+2. Operator: tick **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/170.
+3. Then `/pipeline release shell-rail-palette`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/170
+- blocked on operator: smoke the preview and tick **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/170
 
 ## Do not
 
-- Do not start Build before the Spec approved box is ticked; never tick it.
-- Do not remove the Money route, its page, its Stripe code, or the feed's Money / Today's tickets
-  sections — `inbox-rebuild` and D-17 own that.
+- Do not tick Ready to merge; never merge before it is ticked.
+- Do not remove the Money route or its Stripe code, or the feed's Money / Today's tickets sections (`inbox-rebuild`).
 - Do not restyle the screens inside the shell — the later stubs own them.
-- Do not add a GitHub fetch path for the palette — reuse `readBoard()`.
