@@ -44,7 +44,7 @@ export function ClientActions({
     startTransition(async () => {
       hapticTick()
       await removeClient(id)
-      if (redirectOnDelete) router.push("/")
+      if (redirectOnDelete) router.push("/inbox")
     })
   }
 

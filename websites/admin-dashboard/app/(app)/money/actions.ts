@@ -9,11 +9,11 @@ import { parseAmountToMinor } from "@/lib/money"
 import { getStripe } from "@/lib/stripe"
 
 // Everything money-related is one screen, so every mutation refreshes it. The
-// leads list is refreshed too — raising an invoice links a Stripe customer onto
-// the lead row.
+// Inbox is refreshed too — its Money section lists the invoices waiting on a
+// decision.
 function revalidateMoney() {
   revalidatePath("/money")
-  revalidatePath("/")
+  revalidatePath("/inbox")
 }
 
 // ---- Invoices ----------------------------------------------------------------

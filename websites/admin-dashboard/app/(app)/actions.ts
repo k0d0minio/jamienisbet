@@ -93,9 +93,10 @@ import {
   type RepoSummary,
 } from "@/lib/github"
 
-// Three screens read a lead: the Needs you feed at "/" (whose first section is
+// Three screens read a lead: the Inbox at "/inbox" (whose first section is
 // the ones that have gone quiet), the list at "/leads", and the profile at
-// "/leads/<id>". An edit anywhere has to refresh all three — marking someone
+// "/leads/<id>". Never "/": that is Work, and revalidating it would expire the
+// board's cached GitHub reads for a write that changed nothing on it. An edit anywhere has to refresh all three — marking someone
 // touched is exactly the write that should drop them out of the feed.
 function revalidateLead(id: string) {
   revalidateLeadLists()
@@ -104,7 +105,7 @@ function revalidateLead(id: string) {
 
 /** The two screens that list leads. */
 function revalidateLeadLists() {
-  revalidatePath("/")
+  revalidatePath("/inbox")
   revalidatePath("/leads")
 }
 

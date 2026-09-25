@@ -128,7 +128,7 @@ export function ClientCreateForm() {
       }}
     >
       {/* Desktop: a bar button on the title bar's trailing edge. Keyed to
-          `md`, where the chrome swaps the tab bar for the sidebar — the
+          `md`, where the chrome swaps the tab bar for the rail — the
           floating button below is positioned against that bar, so the two have
           to hand over on the same breakpoint. Tinted, because it is the one
           thing on this screen that makes something. */}

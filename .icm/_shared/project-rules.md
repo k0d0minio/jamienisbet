@@ -149,3 +149,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In `packages/ui`, a table with a sticky header uses `border-separate border-spacing-0` and draws its hairlines on the cells: under `border-collapse` the borders belong to the table and scroll away beneath a sticky `<th>`. (`FAILURE.md` — desk-tier)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - A `packages/ui` token that aliases a themed token with `var()` is declared on `:root, [data-theme]`, not `:root` alone — it resolves where it is declared, so a nested theme subtree would otherwise keep the root's colours. (`FAILURE.md` — desk-tier)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In the admin dashboard, a jump that only changes Work's board selection while already on `/` writes the URL with `window.history.pushState(null, "", href)`, never `router.push` — a router navigation re-runs the page and puts the skeleton back over the board. (`FAILURE.md` — shell-rail-palette)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In the admin dashboard, fixed chrome sized by a token (the rail, the tab bar) grows by the safe-area inset it clears — width or height plus `env(safe-area-inset-*)` — and the content offset reads the same sum; padding the inset inside the token's size leaves no room for the items. (`FAILURE.md` — shell-rail-palette)

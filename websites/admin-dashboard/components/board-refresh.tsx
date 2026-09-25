@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react"
 
 import { LogoLoader, cn } from "@jamie-nisbet/ui"
 
-import { refreshBoard, refreshBoardPosition } from "@/app/(app)/tickets/actions"
+import { refreshBoard, refreshBoardPosition } from "@/app/(app)/board-actions"
 
 /** How long the app has to have been out of sight before coming back to it
  *  re-reads the board. Under it, a glance away is not worth a request. */
