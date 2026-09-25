@@ -36,3 +36,11 @@ export const NO_SUPPRESSIONS: SuppressedChannels = {
   whatsapp: false,
   instagram: false,
 }
+
+/** Whether anything is left to close — the menu offers the opt-out sheet only
+ *  then. Here, not beside the sheet in `components/lead-suppress.tsx`: that is a
+ *  "use client" module, and the lead page calls this during its server render,
+ *  where a client module's exports are references, not functions. */
+export function hasReachableChannel(channels: { closed: unknown }[]): boolean {
+  return channels.some((channel) => channel.closed === null)
+}
