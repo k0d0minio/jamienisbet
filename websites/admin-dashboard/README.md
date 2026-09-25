@@ -10,30 +10,64 @@ shared Neon Postgres database via [`@jamie-nisbet/services`](../../packages/serv
 the counterpart to the public sites: where the portfolio and sellers forms **capture** intakes,
 the admin is where each becomes a lead that gets worked.
 
-It is **mobile-first and installable** — branded **Consultancy JN**, it ships a web app
-manifest, icons, and a service worker so it can be added to a phone home screen and launched
-fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
+It is **a desk tool first, compressed for the phone, and installable** — branded
+**Consultancy JN**, it ships a web app manifest, icons, and a service worker so it can be added
+to a phone home screen and launched fullscreen like a native app (see
+[Mobile & PWA](#mobile--pwa)). It is mid-way through the `admin-cockpit-redesign`: the shell is
+on the desk tier (`packages/ui/BRAND.md` § Desk tier); the screens inside it move over one by one.
 
-**Four screens.** That is the whole app, and it is deliberate — see
+**Four screens and a dormant fifth.** That is the whole app, and it is deliberate — see
 [Deliberately not here](#deliberately-not-here).
 
 | Screen | Route | What it is |
 |---|---|---|
-| **Needs you** | `/` | The triaged feed: what is waiting on you right now, section by section. Home. |
+| **Work** | `/` | Every repo's `.icm/intake/` backlog in one read-only board. Home. |
+| **Inbox** | `/inbox` | The triaged feed: what is waiting on you right now, section by section. |
 | **Leads** | `/leads` | Every lead and customer in one list, longest-waiting first; the cold pool is a view of it (`?view=prospects`). |
 | **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link. |
-| **Tickets** | `/tickets` | Every repo's `.icm/intake/` backlog in one read-only board. |
-| **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. |
+| **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. **Reachable by URL only** — it left the navigation and the palette (D-17), and its code stays in place, dormant. |
 
-The tab bar and the desktop sidebar carry those four in that order, Needs you
-first. The leads list used to be home; a `/?filter=…` or `/?archived=1` bookmark
-from then is redirected to the same view on `/leads`, and a bare `/` opens the
-feed.
+The rail and the tab bar carry Work, Inbox and Leads, in that order. The board was
+`/tickets` until Work became home; `/tickets` and any `/tickets?…` link redirect to `/` with the
+query intact (`next.config.ts`). Before the feed, the leads list was home, so a `/?filter=…` or
+`/?archived=1` bookmark still redirects to the same view on `/leads`.
 
-## Needs you — the screen the app opens on
+## The shell — rail, tab bar, command palette
 
-The only question you have at 8am is *what needs me*, and a roster of everyone
-does not answer it. So home is a feed: one prioritised list, in sections, and
+One shell, two readings of it, both built from the desk tier's primitives
+([`components/nav.tsx`](components/nav.tsx), [`app/(app)/layout.tsx`](app/(app)/layout.tsx)):
+
+- **From `md` (768px), a 56px icon rail** on the leading edge: the JN mark, then Work, Inbox and
+  Leads (`RailItem`, the current one `aria-current="page"`), and at its foot the palette's
+  search button and sign out. An iPad in portrait is a desk and gets it. The content takes the
+  rest of the window: Work fills it, and every other screen keeps its reading column
+  (`AppScreen`'s `wide` is Work's alone).
+- **Below `md`, a flat tab bar** welded to the bottom edge on a hairline — no floating glass —
+  with the same three, each a third of the bar and 56px tall, extending under the home
+  indicator. The title bar carries the palette's search button beside the JN menu (sign out).
+- **The Inbox badge** is the number of follow-ups waiting (D-15): open leads gone quiet past
+  the staleness threshold, the outreach owed by today, and the nurture wakes whose date has come
+  — uncapped, a lead both stale and due counted once (`countFollowUps` in
+  [`lib/inbox.ts`](lib/inbox.ts), whose rule the feed's "Waiting on you" section reads too).
+  Neon only; invoices and today's tickets are not counted. It streams into the chrome as a
+  promise, so no screen waits on it, and it is hidden at 0 and when the read fails.
+- **The command palette** ([`components/command-palette.tsx`](components/command-palette.tsx)) —
+  ⌘K on a Mac, Ctrl+K elsewhere, from any screen (a text field included), or the search button.
+  Four groups: **Repos** (→ `/?r=`), **Tickets** (→ `/?t=`, with the ticket's status dot),
+  **Leads** (non-archived, matched on name and company → `/leads/<id>`) and **Actions** —
+  "Launch next for <repo>" per epic with a next stub (its default launch link, the one Copy
+  next builds), "Estate check", and "Go to" Work, Inbox and Leads. With nothing typed it offers
+  the actions; typing filters every group on label and metadata, word-start matches first, eight
+  rows a group. ↑/↓ move, Enter runs, Esc closes. The index is read on every open by one server
+  action ([`app/(app)/palette-actions.ts`](app/(app)/palette-actions.ts)) over the reads the
+  screens already make — `readBoard()`, so the board's cached GitHub reads, and the Leads
+  screen's `listClients` — and a source that fails drops its groups with a one-line note.
+  Launches open in a new tab; the palette sends nothing and changes nothing.
+
+## Inbox — what is waiting on you
+
+The Inbox (the Needs you feed, home until Work took that place) answers the
+question *what needs me* — a roster of everyone does not. So it is a feed: one prioritised list, in sections, and
 nothing in it that does not want something. A section renders only when it has
 rows.
 
@@ -50,7 +84,7 @@ rows.
   action without review* rule, finalizing and emailing stays a deliberate click
   there.
 - **Today's tickets** — today's picks, runs in flight and blocked stubs, each
-  row deep-linking to its own ticket on the Tickets board (`?t=`).
+  row deep-linking to its own ticket on Work (`/?t=`).
 
 **The rule that shapes every row:** a row either **acts in place** or
 **deep-links**. Nothing in the feed edits something that has a proper home
@@ -151,7 +185,7 @@ relationship, and what was actually billed lives in Stripe.
 
 The **working-list strip** that used to sit above this list — todos and Portuguese compliance
 dates folded into a `<details>` — is gone, and so are todos and compliance dates themselves.
-Attention lives on [Needs you](#needs-you--the-screen-the-app-opens-on).
+Attention lives on the [Inbox](#inbox--what-is-waiting-on-you).
 
 A lead's own page opens on *them*: the identity masthead (name, company · status, the deal's
 headline figure in mono) and, under it, the five things you do from a phone as a row of tinted
@@ -337,7 +371,7 @@ hold for one:
   connecting says so rather than calling the repo missing. A client org that enforces SAML SSO
   also needs the token authorised for that org on github.com.
 
-The Tickets board reads through the same token, so the same rule decides whether a client-hosted
+The Work board reads through the same token, so the same rule decides whether a client-hosted
 repo's tickets show up there.
 
 ### Forms — questionnaires sent to a lead
@@ -353,7 +387,7 @@ and paste the link it gives you into an email you write yourself.
   renders. The answers land in Neon (`biz.form_links`), which stays the record.
 - **The library is two repos, scoped per lead.** The picker offers the house questionnaires
   from icm-board *plus* any in the lead's own connected delivery repo (`clients.github_repo`,
-  the same roster the Tickets board uses; its folder is `.icm/onboarding/`) — both read over the
+  the same roster the Work board uses; its folder is `.icm/onboarding/`) — both read over the
   GitHub API, the client's sorted first and preselected. A form written for one client only ever
   appears on that client's profile; a repo with no questionnaire folder contributes nothing and
   raises nothing. Forms are identified by repo *and* slug, so a client repo can carry its own
@@ -386,7 +420,7 @@ intake) because that app already has the brand chrome and a server action writin
 `biz.clients`; nothing customer-facing is served from the dashboard. Nothing is traced into the
 deployment any more: the house forms are read from icm-board over the GitHub API.
 
-## Tickets
+## Work — the screen the app opens on
 
 The estate's engineering backlog in one place, read **batch-first**. Every active repo keeps
 its work items as markdown in `.icm/intake/` — the estate-wide standard (canonical spec:
@@ -448,14 +482,14 @@ layouts (Portuguese, German, Spanish among them) that type those characters that
 level is a `listbox` whose `aria-activedescendant` is the cursor row, so a screen reader follows
 the same cursor; below `lg` nothing here applies.
 
-**Read once, used locally.** `/tickets` reads the board once per visit (`readBoard()` in
+**Read once, used locally.** Work (`/`) reads the board once per visit (`readBoard()` in
 [`lib/tickets.ts`](lib/tickets.ts)) and hands it to a client root
 ([`components/tickets-board.tsx`](components/tickets-board.tsx)) as plain data: ticket bodies and
 epic breakdowns as raw markdown, rendered only when that ticket or epic is opened, and every
 launcher already built. The repo
 chips filter in memory and every selection is resolved from the URL, written with
 `history.pushState` ([`components/use-board-params.ts`](components/use-board-params.ts)) — so a
-tap is instant, back/forward step through filters and selections, and `/tickets?repo=<slug>`
+tap is instant, back/forward step through filters and selections, and `/?repo=<slug>`
 still deep-links. New data arrives
 two ways, both swapped in under whatever is open without the loading skeleton: the **refresh
 button** busts every board read (`refreshBoard`), and coming back to the app after **five minutes
@@ -642,26 +676,26 @@ business data.
 
 The app is built mobile-first and installs to a phone home screen as **Consultancy JN**.
 
-- **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — four destinations, Needs you
-  first: a floating translucent tab bar hovering over the content on phones, and the same four as
-  a leading sidebar from `md` up. Each tab is a full 3.5rem target — a quarter of the pill, which
-  is why the labels set at the tier's smallest caption and never wrap; content is padded to clear
-  the bar and respects the home-indicator safe area.
+- **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — three destinations, Work
+  first: a flat tab bar on phones and the 56px icon rail from `md` up, with the ⌘K palette over
+  both (see [The shell](#the-shell--rail-tab-bar-command-palette)). Each tab is a full 3.5rem
+  target — a third of the bar; content is padded to clear it and it extends under the
+  home-indicator safe area.
 - **Touch targets and safe areas** ([`app/globals.css`](app/globals.css)) — the design system's
   own controls are sized for a mouse (h-8/h-9), so rather than annotate every call site the
   floor is lifted once under `@media (pointer: coarse)`: every button, input and select trigger
   gets a 44px minimum. Nothing there affects a desktop pointer, and the app tier's own controls
   already set their own floor (`min-h-app-touch` on a grouped row, a 3.5rem tab, a 48px action
   disc). The same file defines the geometry utilities the fixed chrome and the rails use —
-  `bottom-tabs`, `bottom-above-tabs`, `pb-tabs`, `no-scrollbar`, and `pt-screen-safe` /
+  `bottom-above-tabs`, `pb-tabs`, `no-scrollbar`, and `pt-screen-safe` /
   `pb-screen-safe` for the two screens outside the shell (login and "not here"), which have no
   tab bar to clear but still open under a notch.
 - **Appearance follows the system**, with no in-app toggle — the app tier's rule. An inline,
   render-blocking script in [`app/layout.tsx`](app/layout.tsx) mirrors `prefers-color-scheme`
   onto `[data-theme]` before first paint, which is the whole point: a theme resolved in an
   effect is the white flash every dark-mode app is judged by.
-- **Materials degrade where the device can't afford them.** The floating chrome and the title
-  bar are `backdrop-filter`s over a scrolling list, which is the most expensive thing this tier
+- **Materials degrade where the device can't afford them.** The title bar (still on the app
+  tier) is `backdrop-filter`s over a scrolling list, which is the most expensive thing this tier
   asks of a GPU. Two things turn the blur off, both landing on the same opaque surfaces (see
   [`packages/ui/tokens/app.css`](../../packages/ui/tokens/app.css) § Materials without the
   blur): `prefers-reduced-transparency`, reactively in CSS, and `data-materials="opaque"` —
@@ -727,10 +761,13 @@ app/
   not-found.tsx         # a URL that is nothing, including a deleted lead's bookmark
   login/                # /login page + login/logout server actions
   (app)/                # authenticated area (route group — no URL segment)
-    layout.tsx          # nav chrome (mobile-first spacing + tab-bar clearance)
-    error.tsx           # the four screens' error boundary — a read that refused
-    page.tsx            # Needs you — the feed; also redirects the old /?filter= leads bookmarks
-    loading.tsx         # the feed's layout-true skeleton (the widest read in the app)
+    layout.tsx          # the shell: rail, tab bar, palette provider, the streamed Inbox badge
+    error.tsx           # the screens' error boundary — a read that refused
+    page.tsx            # Work — the board; also redirects the old /?filter= leads bookmarks
+    loading.tsx         # Work's layout-true skeleton
+    board-actions.ts    # the board's refresh (tag-busting) server actions
+    palette-actions.ts  # the palette's index: readBoard() + listClients, slimmed
+    inbox/              # the Inbox — the feed; loading.tsx alongside (the widest read in the app)
     actions.ts          # lead + touch server actions (every lead screen
                         #   uses these); logTouchAction is the one that answers with what to
                         #   do next
@@ -738,12 +775,14 @@ app/
                         #   pool, tier-sorted; loading.tsx alongside
     leads/[id]/         # one lead: Person / Work segments, repo + Stripe glyphs
                         #   error.tsx — its own boundary, so it can name the record
-    tickets/            # Tickets — every repo's .icm/intake/ backlog, read-only, copy-prompt
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
 components/             # login form, nav, service-worker register, lead + money UI
                         #   app-screen.tsx — every screen's masthead: the tier's collapsing
-                        #                header, and the profile's identity form of it
-                        #   nav.tsx      — the floating tab bar, and its sidebar form from `md`
+                        #                header, and the profile's identity form of it; the
+                        #                reading column (Work alone is `wide`)
+                        #   nav.tsx      — the desk rail from `md`, the flat tab bar below it
+                        #   command-palette.tsx — ⌘K: the shortcut, the index, filtering, the
+                        #                title bar's search button
                         #   app-menu.tsx — the monogram on the bar: what belongs to the app
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
                         #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
@@ -759,7 +798,7 @@ components/             # login form, nav, service-worker register, lead + money
                         #                on the server, two-tap logging and the cadence's
                         #                prefilled next step in a client sheet over it
                         #   lead-intake.tsx — how they came in, folded shut until asked for
-                        #   tickets-board.tsx — the Tickets board's client root: read once,
+                        #   tickets-board.tsx — Work's board, its client root: read once,
                         #                master–detail, selection resolved from the URL
                         #                (use-board-params.ts owns it; board-model.ts resolves it)
                         #   board-pane.tsx / board-views.tsx — the pane from `lg`, the pushed
@@ -776,6 +815,7 @@ lib/                    # auth, formatting, stripe client, money, percent, finan
                         #   launchers/ — the session-link registry: one file per tool, index.ts orders them
                         #   leads.ts — the staleness threshold and the row labels the feed and
                         #              the Leads list both read a lead by
+                        #   inbox.ts — the follow-up rule: "waiting on you" and the badge count
                         #   touches.ts / lead-facts.ts — the model's closed vocabularies,
                         #              mirrored for the browser so a sheet needn't ship the
                         #              Neon driver to read a label
@@ -799,7 +839,7 @@ Requires the `biz` schema to exist — run the migration in
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
 and optionally `GITHUB_TOKEN` for the delivery-repo
-connect/create and the Tickets board (plus `GITHUB_REPO_OWNER` to home new client repos under a
+connect/create and the Work board (plus `GITHUB_REPO_OWNER` to home new client repos under a
 specific user/org). Set `PORTFOLIO_BASE_URL` to the portfolio's origin so the Forms card builds
 customer links against the right host. `AI_GATEWAY_API_KEY` turns on the draft panel and
 *Read their website* — set a small monthly budget on the Gateway in the Vercel dashboard as the

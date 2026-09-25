@@ -31,4 +31,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Rail + flat tab bar (components/nav.tsx), tab geometry in globals.css
 - [x] Inbox badge: lib/inbox.ts `countFollowUps`, streamed from the layout
 - [x] Palette: components/command-palette.tsx + app/(app)/palette-actions.ts, title-bar trigger
-- [ ] README: screens, navigation, layout tree
+- [x] README: screens, the shell section, navigation, layout tree
