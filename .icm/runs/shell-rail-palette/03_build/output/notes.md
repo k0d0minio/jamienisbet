@@ -43,3 +43,13 @@
 - The layout re-reads the badge on every navigation that re-renders it (router.refresh, pull-to-refresh, a server action); a plain client navigation between screens keeps the last count — the spec did not ask for a live badge.
 - Look closely at `components/command-palette.tsx` → `PaletteProvider`: the palette remounts per opening (keyed by a session counter) so every open is a fresh query and a fresh read.
 - Context budget: read the design canvas artboards (rail/tab bar geometry) and Next's `patch-fetch.js` / `action-handler.js` to prove the action keeps the board's cache.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head after the review fixes (ci-status.sh); re-read after the last push
+- reviews: code high — 9 findings: 6 fixed in-ticket (`fix: shell-rail-palette — review findings`: palette highlight by id, pushState on Work, key-less autofill keydowns, the rail's notch inset, one new-tab rule via `launchLinkProps`, the Inbox h1), 2 parked, 1 does not reproduce (the palette action on `/money`: Next 16's action handler sets `fetchCache: default-no-store` before the page's segment config is read, and the board's fetches set `cache: "force-cache"` explicitly, so they stay cached) · security `security-check.sh --branch --audit`: OK · /security-review n/a (no auth, payments, PII or route policy touched — the new server action and the `/tickets` redirect sit behind proxy.ts's existing gate) · /production-readiness n/a (no schema, auth, payments or env vars; the DB is read only through existing services queries) · readiness `env.sh audit --changed`: OK
+- parked: inbox-badge-live-on-navigation.md, inbox-count-without-full-client-read.md
+- migrations: skip — none of this run's own (check-migrations.sh after merging main: SKIP)
+- learned: skip — no error.log; FAILURE.md adds 2 on close-out
+- docs: websites/admin-dashboard/README.md (updated in Build) · announce: public

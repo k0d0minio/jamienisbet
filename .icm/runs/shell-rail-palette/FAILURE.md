@@ -13,12 +13,13 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — Release review found in-ticket defects Build's self-check missed
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: `/code-review high` found six fixable issues: the palette's highlight kept a position rather than a row, so it moved when the index arrived; the palette navigated with `router.push` on Work; the shortcut listener crashed on autofill's key-less keydowns; the 56px rail padded the notch inset *inside* its width; the new-tab rule was restated instead of reused; the moved feed's h1 still said "Needs you".
+- why: Build checked each criterion against its happy path and never walked the async load (the highlight), the board's own navigation idiom (pushState), or a notched landscape device.
+- fixed by: `fix: shell-rail-palette — review findings` on the run branch, before the merge.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- In the admin dashboard, a jump that only changes Work's board selection while already on `/` writes the URL with `window.history.pushState(null, "", href)`, never `router.push` — a router navigation re-runs the page and puts the skeleton back over the board.
+- In the admin dashboard, fixed chrome sized by a token (the rail, the tab bar) grows by the safe-area inset it clears — width or height plus `env(safe-area-inset-*)` — and the content offset reads the same sum; padding the inset inside the token's size leaves no room for the items.
