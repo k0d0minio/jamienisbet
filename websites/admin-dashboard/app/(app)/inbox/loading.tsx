@@ -1,82 +1,55 @@
-import { GroupedSection, Skeleton, cn } from "@jamie-nisbet/ui"
+import { Pane, PaneBody, PaneHeader, Skeleton } from "@jamie-nisbet/ui"
 
-import { AppScreen } from "@/components/app-screen"
-import { LoadingLine } from "@/components/loading-line"
+// The queue's shape while it reads: the same two panes, the group header, and
+// a handful of rows — not a guess at how many, since a quiet day resolving into
+// fewer rows reads better than a busy one being cut short. Built from the
+// page's own primitives, so the real screen replaces it without the list
+// jumping under a pointer already on its way to a row.
 
-// The feed is the widest read in the app — Neon, Stripe and every repo's
-// `.icm/intake/` over the GitHub API, all at once — so it is the screen most
-// likely to be looked at before it has landed. The shape goes first, built from
-// the same pieces as page.tsx so the real sections replace it without the page
-// jumping under a thumb already on its way to a row.
-//
-// Two sections of three rows, not four of everything: what the feed will
-// actually hold is the one thing that can't be known here, and a skeleton that
-// guesses high leaves the screen shrinking when the answer arrives. A quiet day
-// resolving into fewer rows reads better than a busy one being cut short.
-//
-// The feed moved here from `/` when Work became home, and brought its
-// skeleton with it; the `(app)` segment root's loading.tsx is Work's now.
-
-function RowSkeleton({ first }: { first?: boolean }) {
+function RowSkeleton() {
   return (
-    <li
-      className={cn(
-        "relative flex items-center gap-3 bg-app-group px-4 py-2.5 md:gap-4 md:px-5 md:py-3.5",
-        !first &&
-          "before:absolute before:top-0 before:right-0 before:left-4 before:h-px before:bg-app-separator md:before:left-5"
-      )}
-    >
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-center justify-between gap-3">
-          {/* The label line runs at body size, the detail line at footnote —
-              two different bar heights, or the list reads as one grey block. */}
-          <Skeleton className="h-4 w-2/5" />
-          <Skeleton className="h-4 w-12 shrink-0" />
-        </div>
-        <Skeleton className="h-3 w-3/5" />
+    <li className="flex min-h-desk-row items-start gap-3 border-b border-desk-line px-5 py-2 lg:h-desk-row lg:items-center lg:py-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 lg:flex-row lg:items-center lg:gap-3">
+        <Skeleton className="h-3 w-20 lg:w-32 lg:shrink-0" />
+        <Skeleton className="h-3.5 w-2/5 lg:flex-1" />
+        <Skeleton className="h-3 w-1/3 lg:w-24" />
       </div>
-      <Skeleton className="size-4 shrink-0 rounded-full" />
+      <Skeleton className="h-3 w-10 shrink-0" />
     </li>
-  )
-}
-
-function SectionSkeleton({ header }: { header: string }) {
-  return (
-    <div className="flex flex-col">
-      {/* The header is knowable — it is the section's name, not its contents —
-          so it is set rather than guessed at. Aligned on the row labels, the
-          way GroupedSection sets its own. */}
-      <div className="px-4 pb-2 text-app-footnote text-app-label-3">
-        {header}
-      </div>
-      <GroupedSection>
-        <ul>
-          {[0, 1, 2].map((i) => (
-            <RowSkeleton key={i} first={i === 0} />
-          ))}
-        </ul>
-      </GroupedSection>
-    </div>
   )
 }
 
 export default function InboxLoading() {
   return (
-    <AppScreen
-      title="Inbox"
-      // The count is the one thing the subtitle carries, and it is exactly what
-      // isn't known yet — so the loading line stands in its place: the JN
-      // icon drawing itself in, beside the word.
-      subtitle={<LoadingLine>Loading what needs you</LoadingLine>}
+    <div
+      aria-busy
+      aria-label="Loading the Inbox"
+      className="desk-tier flex flex-col lg:-mb-8 lg:h-dvh lg:flex-row"
     >
-      <div className="flex flex-col gap-app-section pt-1 pb-2">
-        <SectionSkeleton header="Waiting on you" />
-        <SectionSkeleton header="Outreach due" />
-
-        <span className="sr-only" role="status">
-          Loading what needs you
-        </span>
-      </div>
-    </AppScreen>
+      <Pane
+        aria-label="Inbox"
+        className="max-lg:border-r-0 lg:w-2/5 lg:max-w-xl lg:min-w-96 lg:shrink-0"
+      >
+        <PaneHeader title="Inbox" titleAs="h1" />
+        <PaneBody>
+          <div className="flex h-desk-row items-center border-b border-desk-line bg-desk-hover px-5 font-mono text-desk-micro tracking-desk-eyebrow text-desk-fg-2 uppercase">
+            Follow-ups
+          </div>
+          <ul>
+            {[0, 1, 2, 3, 4].map((index) => (
+              <RowSkeleton key={index} />
+            ))}
+          </ul>
+        </PaneBody>
+      </Pane>
+      <Pane aria-hidden className="hidden flex-1 lg:flex">
+        <PaneBody className="flex flex-col gap-4 px-8 py-7">
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-3 w-1/3" />
+          <Skeleton className="h-4 w-3/4" />
+        </PaneBody>
+      </Pane>
+    </div>
   )
 }

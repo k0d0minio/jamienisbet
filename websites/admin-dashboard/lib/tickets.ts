@@ -1742,28 +1742,6 @@ export async function listBoard(): Promise<
   return { ...read, sections, strip: assembleStrip(tickets) }
 }
 
-/**
- * Just the now-strip — today's picks, runs in flight, what's stuck.
- *
- * Home renders at most five rows of it and nothing else, and used to call
- * `listBoard()` for them: the whole estate folded into repo sections and
- * batches, then thrown away. The GitHub reads underneath are the same reads
- * /tickets makes and are shared with it through the Data Cache, so this was
- * never a second trip to the API — but it is now the same trip without the
- * assembly, and home says what it actually depends on.
- */
-export async function listStrip(): Promise<{
-  configured: boolean
-  strip: Ticket[]
-  errors: TicketFetchError[]
-  rosterError: string | null
-  dbError: string | null
-}> {
-  const { configured, tickets, errors, rosterError, dbError } =
-    await readEstate()
-  return { configured, strip: assembleStrip(tickets), errors, rosterError, dbError }
-}
-
 // ---------------------------------------------------------------------------
 // Maintenance launchers — the board's "button tied to a script" surface, kept
 // inside the read-only contract: each one copies its maintenance prompt, and

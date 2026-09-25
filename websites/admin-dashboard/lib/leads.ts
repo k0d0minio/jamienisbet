@@ -1,6 +1,7 @@
 import {
   IDLE_AFTER_DAYS,
   activeStatuses,
+  clientStatuses,
   customerStatuses,
   dealHeadline,
   fitTiers,
@@ -273,4 +274,122 @@ export function waitedLabel(days: number, open: boolean): string {
   if (days <= 0) return "Worked today"
   const elapsed = waitingLabel(days)
   return open ? `Waiting ${elapsed}` : `Last worked ${elapsed} ago`
+}
+
+// The Leads table's sort (leads-table-board, D-33). Every column but the row
+// actions sorts; the choice rides the URL as `?sort=<key>&dir=asc|desc` and is
+// applied here, on the server, so a reload or a shared link keeps the order.
+//
+// Two rules hold for every column. Empty values — no stage, no deal, no next
+// step, no date, no tier — sort last in *both* directions: flipping a column
+// is for reading the other end of what is there, never for surfacing the
+// blanks. And the sort is stable, so ties keep whatever order the rows came
+// in: the view's own default (longest-waiting first, or the pool's tier order).
+
+export const leadSortKeys = [
+  "name",
+  "status",
+  "stage",
+  "value",
+  "next",
+  "due",
+  "last",
+  "tier",
+] as const
+export type LeadSortKey = (typeof leadSortKeys)[number]
+export type SortDir = "asc" | "desc"
+export type LeadSort = { key: LeadSortKey; dir: SortDir }
+
+/** What the first click on a header does. The columns read as a question
+ *  asked of the list — who is worth most, who has waited longest — start at
+ *  the answer; the rest start at the top of the alphabet or the calendar. */
+export function firstDirection(key: LeadSortKey): SortDir {
+  return key === "value" || key === "last" ? "desc" : "asc"
+}
+
+/** The URL's sort, or null for the view's default order. An unknown key or
+ *  direction is ignored rather than guessed at. */
+export function parseLeadSort(
+  sort: string | undefined,
+  dir: string | undefined
+): LeadSort | null {
+  if (!sort || !(leadSortKeys as readonly string[]).includes(sort)) return null
+  const key = sort as LeadSortKey
+  if (dir === undefined) return { key, dir: firstDirection(key) }
+  if (dir !== "asc" && dir !== "desc") return null
+  return { key, dir }
+}
+
+/** When the next step is due — or, for a parked prospect with no next step,
+ *  when it wakes. The table's Due column and the board's card foot both read
+ *  this, so the two never disagree about a date. */
+export function dueOf(client: Client): Date | null {
+  if (client.nextActionDue) return client.nextActionDue
+  if (!client.nextAction && isNurtured(client)) return client.wakeAt
+  return null
+}
+
+/** The headline figure's euro amount, for sorting on Value: cash, support or
+ *  barter. A deal whose headline is a percentage has no euros to compare. */
+function valueMinorOf(client: Client): number | null {
+  const headline = dealHeadline(client)
+  if (!headline) return null
+  switch (headline.kind) {
+    case "cash":
+    case "support":
+    case "barter":
+      return headline.valueMinor
+    default:
+      return null
+  }
+}
+
+type SortValue = number | string | null
+
+/**
+ * The rows in the order a column asks for, as a new array. `stageOf` answers
+ * which deal stage a row's folder is at ("03"), null when there is none.
+ */
+export function sortLeads(
+  rows: Client[],
+  sort: LeadSort,
+  { now, stageOf }: { now: number; stageOf: (client: Client) => string | null }
+): Client[] {
+  const valueOf = (client: Client): SortValue => {
+    switch (sort.key) {
+      case "name":
+        return client.name.toLocaleLowerCase()
+      case "status":
+        return (clientStatuses as readonly string[]).indexOf(client.status)
+      case "stage": {
+        const code = stageOf(client)
+        return code === null ? null : Number(code)
+      }
+      case "value":
+        return valueMinorOf(client)
+      case "next":
+        return client.nextAction ? client.nextAction.toLocaleLowerCase() : null
+      case "due":
+        return dueOf(client)?.getTime() ?? null
+      case "last":
+        return daysWaiting(client, now)
+      case "tier": {
+        const index = (fitTiers as readonly string[]).indexOf(client.fitTier ?? "")
+        return index === -1 ? null : index
+      }
+    }
+  }
+  const sign = sort.dir === "asc" ? 1 : -1
+  const keyed = rows.map((client) => ({ client, value: valueOf(client) }))
+  keyed.sort((a, b) => {
+    if (a.value === null || b.value === null) {
+      // Blanks last, whichever way the column runs.
+      return a.value === b.value ? 0 : a.value === null ? 1 : -1
+    }
+    if (typeof a.value === "string" && typeof b.value === "string") {
+      return sign * a.value.localeCompare(b.value)
+    }
+    return sign * ((a.value as number) - (b.value as number))
+  })
+  return keyed.map((entry) => entry.client)
 }
