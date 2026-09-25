@@ -95,3 +95,15 @@ Fixed on the way: the sheet close ✕ (16px → 44px on touch), action rows read
 - `vt-app-header` / `vt-app-tabs` / `vt-app-rail` are view-transition names, not app-tier utilities, and were kept.
 - `RecordRow` now sets an action row's label at full strength — this also brightens action rows on the screens earlier runs built (lead profile), which is the intended reading.
 - The populated states (real leads, the board, gates, Money with Stripe, dragging a detent on an iPhone) could not be rendered in the session and are the operator's smoke on the preview.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on b8f9254 before the review fixes; re-read after the last push (ci-status.sh)
+- reviews: code high — ten findings; seven in-ticket and fixed on the branch (30f00a7): the enlarged sheet close target overlapped the detent handle's end, the scrim kept fading after the sheet had gone, segmented controls stretched their track but not their segments, the touch log's outcome buttons rested on the "selected" fill with no press state, a DeskField's hint was not wired to a segmented group, value-less status rows read muted, the toast's desk look lived in admin CSS (now a `desk` variant of `Toaster`), and the base prose rules were dead under `desk-tier` (merged into one set); nested `desk-tier` on the leads list removed · security security-check.sh --branch --audit: OK ([WARN] gitleaks not installed — built-in patterns ran) + /security-review — no findings (UI rename only; no server, auth or payment logic changed) · readiness env.sh audit --changed: OK; /production-readiness n/a (no DB, env or server change — auth and payments are touched in markup only)
+- parked: phone-chrome-one-component.md (one phone title-bar chrome in four places; nested desk-tier outside this diff)
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (FAILURE.md carries 4 rules for the close-out's sync)
+- docs: packages/ui/BRAND.md, README.md, SKILL.md, websites/admin-dashboard/README.md, .claude/skills/design-dna/SKILL.md (updated in Build) · announce: public
+- note: the review fixes landed after the operator's smoke of b8f9254; they touch the sheet handle's width, the scrim's fade, segment widths, the outcome buttons' fills, toast styling and prose rules — no behaviour of a form or action
+
