@@ -126,11 +126,14 @@ export function useBoardParams() {
     else write(target, false)
   }, [])
 
-  /** Step back to the entry that pushed this one when the board pushed it —
-   *  wherever that was — otherwise push `parent`. The phone's back: the
-   *  level named on its button is the one it lands on (spec work-phone §5). */
-  const pop = useCallback((parent: BoardQuery) => {
-    if (pushedFrom() !== null) window.history.back()
+  /** The phone's back (spec work-phone §5): a real step back to the entry
+   *  that pushed this one when the board pushed it and the caller says that
+   *  entry is somewhere back may land (`viaHistory`) — otherwise a push of
+   *  `parent`. The caller decides, because only it knows the levels: a step
+   *  back into a deeper level (a cold link's parent, pushed over it) would
+   *  loop the two. */
+  const pop = useCallback((parent: BoardQuery, viaHistory: boolean) => {
+    if (viaHistory && pushedFrom() !== null) window.history.back()
     else write(queryFor(parent), false)
   }, [])
 

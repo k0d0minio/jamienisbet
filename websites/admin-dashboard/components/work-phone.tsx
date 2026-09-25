@@ -82,6 +82,10 @@ import type { BoardData, BoardTicket, MaintenanceLauncher } from "@/lib/tickets"
 // slide, and the edge swipe follows the finger rather than playing a motion.
 // Rows only tap — no swipe trays; copy and GitHub live in the reader.
 
+/** How far in from the level's leading edge a swipe back may start. */
+const EDGE_PX = 20
+/** How far a touch travels before it counts as sideways or as a scroll. */
+const SLOP_PX = 8
 /** How far an edge swipe has to carry the level, as a share of its width,
  *  before letting go pops it. */
 const EDGE_BACK_SHARE = 0.33
@@ -184,18 +188,21 @@ export function WorkPhone({
     navigate(phoneQuery(next))
   }
 
+  // Back lands on the entry that pushed this one — the repo an epic was
+  // opened from, the ticket before a build-order tap — unless that entry is
+  // deeper than this level (a cold link's parent, pushed over it), where a
+  // step back would bounce between the two: then it is the parent.
   const parent = phoneParent(level)
-  function back() {
-    if (parent) pop(phoneQuery(parent))
-  }
-  // The button names where it lands: the entry that pushed this one, or the
-  // parent when nothing did.
-  const backTo = (() => {
-    if (!parent) return null
-    if (pushedFrom === null) return parent
-    const { selection: from } = resolve(new URLSearchParams(pushedFrom))
-    return phoneLevel(from, new URLSearchParams(pushedFrom).get("v"))
+  const from = (() => {
+    if (pushedFrom === null) return null
+    const query = new URLSearchParams(pushedFrom)
+    return phoneLevel(resolve(query).selection, query.get("v"))
   })()
+  const viaHistory = from !== null && depth(from) <= depth(level)
+  const backTo = parent ? (viaHistory && from ? from : parent) : null
+  function back() {
+    if (parent) pop(phoneQuery(parent), viaHistory)
+  }
 
   function setSegment(segment: PhoneSegment) {
     // A filter over the list, not a level: rewritten in place.
@@ -211,29 +218,67 @@ export function WorkPhone({
     open({ kind: "batch", section, batch })
 
   // ---- The edge swipe. ---------------------------------------------------
+  // Native listeners on the level itself, not an overlay: a touch that starts
+  // within EDGE_PX of the level's leading edge (clear of the rail from `md`,
+  // which the level already sits beside) becomes a swipe only once it moves
+  // sideways; a tap still reaches what is under it and a vertical move is the
+  // page's scroll, untouched. `touchmove` must be non-passive to hold the page
+  // still once it is a swipe, which React's own listener can't be.
   const [drag, setDrag] = useState(0)
-  const gesture = useRef<{ pointerId: number; startX: number; startAt: number } | null>(null)
-
-  function onEdgeDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.pointerType === "mouse") return
-    gesture.current = { pointerId: e.pointerId, startX: e.clientX, startAt: e.timeStamp }
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-  function onEdgeMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (gesture.current?.pointerId !== e.pointerId) return
-    setDrag(Math.max(0, e.clientX - gesture.current.startX))
-  }
-  function onEdgeEnd(e: React.PointerEvent<HTMLDivElement>) {
-    const g = gesture.current
-    if (g?.pointerId !== e.pointerId) return
-    gesture.current = null
-    const distance = Math.max(0, e.clientX - g.startX)
-    const elapsed = Math.max(1, e.timeStamp - g.startAt)
-    const far = distance > window.innerWidth * EDGE_BACK_SHARE
-    const flick = distance > FLICK_MIN_PX && distance / elapsed > FLICK_SPEED
-    setDrag(0)
-    if (e.type === "pointerup" && (far || flick)) back()
-  }
+  const levelRef = useRef<HTMLDivElement>(null)
+  const backRef = useRef(back)
+  useEffect(() => {
+    backRef.current = back
+  })
+  const canPop = parent !== null
+  useEffect(() => {
+    const el = levelRef.current
+    if (!live || !canPop || !el) return
+    let g: { x: number; y: number; at: number; sideways: boolean | null } | null = null
+    function onStart(e: TouchEvent) {
+      g = null
+      if (e.touches.length !== 1 || !el) return
+      const touch = e.touches[0]
+      if (touch.clientX - el.getBoundingClientRect().left > EDGE_PX) return
+      g = { x: touch.clientX, y: touch.clientY, at: e.timeStamp, sideways: null }
+    }
+    function onMove(e: TouchEvent) {
+      if (!g) return
+      const dx = e.touches[0].clientX - g.x
+      const dy = e.touches[0].clientY - g.y
+      if (g.sideways === null) {
+        if (Math.abs(dx) < SLOP_PX && Math.abs(dy) < SLOP_PX) return
+        g.sideways = dx > 0 && Math.abs(dx) > Math.abs(dy)
+        if (!g.sideways) {
+          g = null
+          return
+        }
+      }
+      e.preventDefault()
+      setDrag(Math.max(0, dx))
+    }
+    function onEnd(e: TouchEvent) {
+      const gesture = g
+      g = null
+      if (!gesture?.sideways) return
+      const distance = Math.max(0, (e.changedTouches[0]?.clientX ?? gesture.x) - gesture.x)
+      const elapsed = Math.max(1, e.timeStamp - gesture.at)
+      const far = distance > window.innerWidth * EDGE_BACK_SHARE
+      const flick = distance > FLICK_MIN_PX && distance / elapsed > FLICK_SPEED
+      setDrag(0)
+      if (e.type === "touchend" && (far || flick)) backRef.current()
+    }
+    el.addEventListener("touchstart", onStart, { passive: true })
+    el.addEventListener("touchmove", onMove, { passive: false })
+    el.addEventListener("touchend", onEnd)
+    el.addEventListener("touchcancel", onEnd)
+    return () => {
+      el.removeEventListener("touchstart", onStart)
+      el.removeEventListener("touchmove", onMove)
+      el.removeEventListener("touchend", onEnd)
+      el.removeEventListener("touchcancel", onEnd)
+    }
+  }, [live, canPop])
 
   // ---- The level on screen. ----------------------------------------------
   let content: React.ReactNode
@@ -285,23 +330,8 @@ export function WorkPhone({
 
   return (
     <div className="desk-tier flex min-h-full flex-col bg-desk-canvas font-desk text-desk-fg">
-      {backTo ? (
-        // The leading edge, where a thumb swipes back — under the back bar
-        // and the launch bar, which keep their whole targets, and clear of
-        // the rail from `md`. Outside the level it moves, so it stays fixed
-        // to the window while the level follows the finger. A drag here is
-        // the level's, never the page's pull-to-refresh further up the tree.
-        <div
-          aria-hidden
-          className="fixed top-0 bottom-0 left-0 z-[5] w-4 touch-none md:left-[calc(var(--desk-rail)_+_env(safe-area-inset-left,0px))]"
-          onTouchStart={(e) => e.stopPropagation()}
-          onPointerDown={onEdgeDown}
-          onPointerMove={onEdgeMove}
-          onPointerUp={onEdgeEnd}
-          onPointerCancel={onEdgeEnd}
-        />
-      ) : null}
       <div
+        ref={levelRef}
         className="flex flex-1 flex-col"
         style={drag > 0 ? { transform: `translateX(${drag}px)` } : undefined}
       >
@@ -322,6 +352,11 @@ export function WorkPhone({
       </div>
     </div>
   )
+}
+
+/** How deep a level sits: the list, then a repo or an epic, then a reader. */
+function depth(level: PhoneLevel): number {
+  return level.kind === "list" ? 0 : level.kind === "reader" ? 2 : 1
 }
 
 /** Back and forward are the only history moves the board doesn't make

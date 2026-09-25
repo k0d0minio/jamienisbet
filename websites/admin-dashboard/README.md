@@ -683,9 +683,11 @@ list key plus `?t=` — the list it was opened from, and where back returns. Des
 sensibly: `?v=running` and `?v=blocked` open Up next at that section, `?t=` alone opens the reader
 over its own epic, `?repo=` becomes `?r=`. Every tap is a `pushState`; the switch between Up next
 and Repos is a `replaceState`. The **back button** names where it lands and is `history.back()`
-when the board pushed the entry (use-board-params.ts `pop`), a push of the level's parent from a
-cold link; a **swipe from the leading edge** does the same, following the finger with no
-animation (D-3). The page scrolls — pull-to-refresh listens to it — and each level keeps its
+to the entry the board pushed this one from (use-board-params.ts `pop`) — unless that entry is
+deeper than this level (a cold link's parent, pushed over it), or nothing pushed it: then a push
+of the level's parent. A **swipe from the leading edge** (a touch starting within 20px of the
+level's edge that moves sideways — a tap or a vertical scroll there is untouched) does the same,
+following the finger with no animation (D-3). The page scrolls — pull-to-refresh listens to it — and each level keeps its
 place: popping back to a list lands where it was left. Rows only tap: no swipe trays. There is no
 keyboard map.
 

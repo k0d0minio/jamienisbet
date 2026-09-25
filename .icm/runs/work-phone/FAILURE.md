@@ -30,7 +30,19 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
   checking what the shell's pull-to-refresh needs.
 - fixed by: D-45 — the page scrolls; scroll kept per level key; plan.md rewritten.
 
+### 2026-09-25 — the review caught a back loop and an edge strip that ate touches
+
+- what happened: `/code-review` at Release — from a cold deep link, back on the reader pushed
+  the epic, whose back stepped history into the reader again, forever; and the 16px
+  `touch-none` edge overlay swallowed vertical scrolls and taps that started under it.
+- why: `pop` stepped back whenever the board had pushed the entry, whatever that entry was; the
+  swipe was ported from the old pushed view's overlay without asking what sits under it.
+- fixed by: back steps history only into a level no deeper than the current one (`depth` in
+  work-phone.tsx); the swipe became native, non-passive touch listeners on the level itself.
+
 ## Learned rules
 
 - A spec for an admin screen names motion only after reading `.claude/skills/design-dna/SKILL.md` → Motion: the desk tier is instant or a ≤120ms colour change, never a slide.
 - In the admin dashboard, a phone screen scrolls the window, not a container of its own: pull-to-refresh (`components/pull-to-refresh.tsx`) listens to the page scroll.
+- In the admin dashboard, an in-app back that uses `history.back()` must first check the entry behind it is not deeper than the current level — a pushed parent over a cold link otherwise loops the two.
+- In the admin dashboard, an edge-swipe gesture listens on the view itself (non-passive `touchmove`, decided after a slop), never through a `touch-none` overlay, which eats the taps and scrolls under it.

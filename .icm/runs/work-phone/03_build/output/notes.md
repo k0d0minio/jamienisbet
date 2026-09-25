@@ -59,8 +59,10 @@ prove it — nothing here was run in a browser (blind-until-ready).
   pops or springs back with no animation. Worth a look in the smoke.
 - **D-45:** the phone scrolls the window; scroll restore and the sticky launch bar rest on that.
   Smoke both on an iPhone in Safari and installed (standalone), where the toolbars differ.
-- The edge strip (16px, fixed, leading edge) sits under the back bar and the launch bar; in a
-  Safari tab the browser's own edge swipe may also fire — both land on the same history entry.
+- The edge swipe is native touch listeners on the level (a touch within 20px of its leading
+  edge that moves sideways; Release replaced Build's `touch-none` overlay strip, which ate taps
+  and vertical scrolls — see `## Release`). In a Safari tab the browser's own edge swipe may also
+  fire — both land on the same history entry.
 - `app/(app)/loading.tsx` still draws the old phone board's skeleton on the app tier; the
   loading states are `retire-app-tier`'s (its stub names them), so it was left alone.
 - The two extra deletions (`launch-menu.tsx`, `repo-maintenance.tsx`) had no importer once the
