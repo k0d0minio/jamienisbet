@@ -46,6 +46,7 @@ import {
 import { TicketSummary } from "@/components/ticket-detail"
 import { useBoardKeys, type BoardKeyIntent } from "@/components/use-board-keys"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
+import { useWorkLive } from "@/components/work-screen"
 import { copyToClipboard } from "@/lib/clipboard"
 import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 
@@ -280,7 +281,14 @@ export function TicketsBoard({
    *  section of their own in `board.sections` — keyed by full name. */
   unreadableMaintenance: Record<string, MaintenanceLauncher[]>
 }) {
-  const { repos, counts, total, errors, rosterError, dbError, sections } = board
+  const { repos, counts, total, errors, rosterError, dbError } = board
+  // An epic whose every stub is through carries rows for the desk's epic
+  // list (lib/tickets.ts) but nothing for this board to show: it keeps the
+  // batches with open tickets, as it always has.
+  const sections = board.sections
+    .map((s) => ({ ...s, batches: s.batches.filter((b) => b.tickets.length > 0) }))
+    .filter((s) => s.batches.length > 0)
+  const live = useWorkLive()
   const params = useBoardParams()
   const { navigate, correct, back } = params
 
@@ -319,8 +327,8 @@ export function TicketsBoard({
       : null
   const fixKey = fix ? JSON.stringify(fix) : null
   useEffect(() => {
-    if (fixKey) correct(JSON.parse(fixKey) as BoardQuery)
-  }, [fixKey, correct])
+    if (live && fixKey) correct(JSON.parse(fixKey) as BoardQuery)
+  }, [live, fixKey, correct])
 
   // Level 1 is a batch's tickets: a batch selected, or a ticket in one.
   const drilled =
@@ -582,7 +590,10 @@ export function TicketsBoard({
     }
   }
 
-  useBoardKeys(onKey)
+  // From `lg` Work is the desk (work-screen.tsx mounts work-desk.tsx there),
+  // and this board is the phone's, which has no keyboard map: its keys stay
+  // off until `work-phone` retires them with the rest of this board.
+  useBoardKeys(onKey, false)
 
   // The list scrolls with the page. Level 0 keeps its place while a batch is
   // open, and a batch opens at its top.

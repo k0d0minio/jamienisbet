@@ -186,6 +186,36 @@ export const TICKET_GROUPS = [
 
 export type TicketGroup = (typeof TICKET_GROUPS)[number]
 
+/**
+ * A ticket's state as Work's desk reads it (admin-cockpit-redesign, spec
+ * work-panes §3) — the four a `StatusDot` draws for an open item:
+ *
+ *   next     runnable now: its epic's lowest open stub, not blocked, every
+ *            `depends-on` merged; or an open triage stub
+ *   open     queued behind something in its epic
+ *   blocked  a `blocked:` line, or its epic's lowest open stub waiting on a
+ *            dependency that isn't merged yet
+ *   running  a run folder in `.icm/runs/` (D-11)
+ *
+ * A dependency is merged when its stub sits in the epic's `_done/` with no
+ * active run folder; open in the epic, or in `_done/` with a run still going,
+ * it is unmet. Today is a flag beside this, not a state (`today`).
+ */
+export type TicketStatus = "next" | "open" | "blocked" | "running"
+
+/** The dependency a stub is waiting on, when one is unmet. `running` — it
+ *  has an active run, so it is on its way, not untouched. */
+export type WaitingOn = { slug: string; running: boolean }
+
+/** Where a run in flight came from: the stub it consumed, found by slug in
+ *  the repo's `_done/` folders. */
+export type RunOrigin = {
+  /** The epic folder, or "triage". */
+  epic: string
+  sequence: number | null
+  sequenceTotal: number | null
+}
+
 export type Ticket = {
   repo: TicketRepo
   /** Path within the repo, e.g. ".icm/intake/business-state/neon-at-the-gate.md" */
@@ -195,7 +225,18 @@ export type Ticket = {
   /** Path identity for stubs ("epic/slug", "triage/slug"), legacy ID otherwise. */
   id: string
   title: string
+  /** The phone board's grouping: `status`, with a today-pick taking "today".
+   *  Derived from `status` and `today`, so the two readings never disagree. */
   group: TicketGroup
+  status: TicketStatus
+  /** Named in icm-board's `.icm/today.md`. */
+  today: boolean
+  /** A triage stub's `- lane:` line. */
+  lane: string | null
+  /** The unmet dependency a stub waits on; null when every one is merged. */
+  waitingOn: WaitingOn | null
+  /** A run's stub, when one matches; null for every other kind. */
+  origin: RunOrigin | null
   /** "stub" (new shape) | "legacy" (flat PREFIX-NNN) | "run" (.icm/runs/ in flight) */
   kind: "stub" | "legacy" | "run"
   /** Which stage a run ticket is next for — null for every other kind. The
@@ -238,6 +279,22 @@ export type Ticket = {
   hint: LaunchHint | null
   /** The ticket markdown minus its header block, rendered on the board. */
   body: string
+}
+
+/** The phone board's group for a state — today's picks first, whatever
+ *  their state. */
+function groupOf(status: TicketStatus, today: boolean): TicketGroup {
+  if (today) return "today"
+  switch (status) {
+    case "running":
+      return "in-flight"
+    case "blocked":
+      return "blocked"
+    case "next":
+      return "next"
+    default:
+      return "queued"
+  }
 }
 
 export type TicketFetchError = {
@@ -664,6 +721,14 @@ function parseLegacy(
     }
   }
 
+  const status: TicketStatus =
+    group === "in-flight"
+      ? "running"
+      : group === "blocked"
+        ? "blocked"
+        : group === "queued"
+          ? "open"
+          : "next"
   return {
     repo,
     path,
@@ -671,6 +736,11 @@ function parseLegacy(
     id,
     title,
     group,
+    status,
+    today: group === "today",
+    lane: null,
+    waitingOn: null,
+    origin: null,
     kind: "legacy",
     runStage: null,
     batch: "backlog",
@@ -729,7 +799,61 @@ async function fetchBlob(repo: TicketRepo, sha: string): Promise<string | null> 
 type RepoRead = {
   tickets: Ticket[]
   breakdowns: Record<string, string>
+  /** Each epic's full row set, open, running and done, by epic folder. */
+  epicRows: Record<string, EpicRow[]>
   error: TicketFetchError | null
+}
+
+/** One stub of an epic as its list shows it — open, running or done. Only an
+ *  open or running row has a ticket on the board to open (`ticketId`, the
+ *  ticket's own id); a done row's file is never read. */
+export type EpicRow = {
+  slug: string
+  title: string
+  sequence: number | null
+  state: "open" | "running" | "done"
+  ticketId: string | null
+}
+
+/**
+ * An epic's `## Build order`, by slug: each line's place and its one line —
+ * the canonical shape is `N. <feature-slug> — <one line> — depends-on: …`
+ * (intake/CONTEXT.md → Formats). What titles a finished stub without reading
+ * its file. A breakdown that doesn't follow the shape yields fewer entries,
+ * never an error.
+ */
+function buildOrder(markdown: string): Map<string, { sequence: number; title: string }> {
+  // Each entry's text, with its hard-wrapped continuation lines (indented,
+  // not a new item) joined on.
+  const entries: { sequence: number; slug: string; text: string }[] = []
+  let open: { sequence: number; slug: string; text: string } | null = null
+  let inSection = false
+  for (const line of markdown.split("\n")) {
+    if (/^##\s/.test(line)) {
+      inSection = /^##\s+build order\b/i.test(line)
+      open = null
+      continue
+    }
+    if (!inSection) continue
+    const m = line.match(/^\s*(\d+)\.\s+`?([a-z0-9][a-z0-9-]*)`?\s+[—–]\s+(.+)$/i)
+    if (m) {
+      open = { sequence: Number(m[1]), slug: m[2], text: m[3] }
+      entries.push(open)
+      continue
+    }
+    if (open && /^\s+\S/.test(line) && !/^\s*(\d+\.|[-*])\s/.test(line)) {
+      open.text = `${open.text} ${line.trim()}`
+      continue
+    }
+    open = null
+  }
+  const order = new Map<string, { sequence: number; title: string }>()
+  for (const { sequence, slug, text } of entries) {
+    if (!slug || order.has(slug)) continue
+    const title = text.replace(/\s+[—–]\s+depends-on:.*$/i, "").trim()
+    order.set(slug, { sequence, title: title || slug })
+  }
+  return order
 }
 
 async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
@@ -740,7 +864,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     )
     // 409: an empty repo — nothing to show yet, not an error (a repo is
     // onboard the moment its first ticket lands).
-    if (res.status === 409) return { tickets: [], breakdowns: {}, error: null }
+    if (res.status === 409) return { tickets: [], breakdowns: {}, epicRows: {}, error: null }
     // 404: the token can't see the repo. Only a pinned repo gets here — the
     // swept ones were just listed by the same token — so it is a connected
     // client's repo, or a house one, the board would otherwise drop without a
@@ -749,6 +873,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       return {
         tickets: [],
         breakdowns: {},
+        epicRows: {},
         error: {
           repo,
           message:
@@ -760,6 +885,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       return {
         tickets: [],
         breakdowns: {},
+        epicRows: {},
         error: { repo, message: await githubFailure(res) },
       }
     }
@@ -769,6 +895,11 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     const legacyPaths: { path: string; sha: string }[] = []
     const breakdownPaths: { epic: string; sha: string }[] = []
     const runSlugs = new Set<string>()
+    // Each epic's `_done/` stubs, by name only — the tree already lists them,
+    // so knowing what an epic has finished costs no request. Their blobs are
+    // never read: a done row takes its title from the breakdown's build order.
+    // `triage` holds the finished one-offs, read only to title a lane run.
+    const doneByEpic = new Map<string, Set<string>>()
     // Which stage each run in flight is at, read from which outputs exist —
     // the same derivation `project-labels.sh --stage auto` makes: Build's
     // notes.md present → release is next; a `lane/` folder → a lane run, not
@@ -793,8 +924,18 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       const m = entry.path.match(/^\.icm\/intake\/(.+)$/)
       if (!m) continue
       const rel = m[1]
-      if (rel.includes("/_done/") || !rel.endsWith(".md")) continue
+      if (!rel.endsWith(".md")) continue
       const segments = rel.split("/")
+      // `<epic>/_done/<slug>.md` — a finished stub of a live epic. A whole
+      // epic archived under `intake/_done/` is history and stays off the board.
+      if (segments.length === 3 && segments[1] === "_done" && segments[0] !== "_done") {
+        const slug = segments[2].replace(/\.md$/, "")
+        if (slug.toLowerCase() === "breakdown") continue
+        if (!doneByEpic.has(segments[0])) doneByEpic.set(segments[0], new Set())
+        doneByEpic.get(segments[0])!.add(slug)
+        continue
+      }
+      if (rel.includes("_done/")) continue
       if (segments.length === 1) {
         const nameLower = segments[0].toLowerCase()
         if (nameLower === "readme.md" || nameLower === "context.md") continue
@@ -838,13 +979,17 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     const breakdowns = Object.fromEntries(
       breakdownResults.filter((b): b is readonly [string, string] => b !== null)
     )
+    const orders = new Map(
+      Object.entries(breakdowns).map(([epic, raw]) => [epic, buildOrder(raw)])
+    )
 
     const stubs = stubResults.filter((s): s is Stub => s !== null)
 
-    // Positional grouping, per epic: the lowest-sequence unblocked stub is
-    // "next"; a stub whose in-epic dependency is still open is waiting (shown
-    // in Blocked); everything else queues. Triage stubs are all "next" — a
-    // backlog, not a batch.
+    // Positional grouping, per epic (spec work-panes §3). The lowest-sequence
+    // stub without a `blocked:` line is the epic's one candidate for Up next:
+    // "next" when every dependency it names is merged, "blocked" — waiting on
+    // the one that isn't — otherwise. Every other open stub queues. Triage
+    // stubs are all "next" — a backlog, not a batch.
     const openByEpic = new Map<string, Set<string>>()
     for (const s of stubs) {
       if (!openByEpic.has(s.epic)) openByEpic.set(s.epic, new Set())
@@ -861,19 +1006,31 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       if ((s.sequence ?? Number.MAX_SAFE_INTEGER - 1) < currentSeq)
         nextOf.set(s.epic, s.slug)
     }
+    // A dependency is unmet while it is open in the epic, or finished into
+    // `_done/` with its run still going. A slug the epic doesn't hold at all
+    // blocks nothing — it stays visible in the stub's own fields.
+    const unmetDependency = (s: Stub): WaitingOn | null => {
+      for (const d of s.dependsOn) {
+        if (openByEpic.get(s.epic)?.has(d)) return { slug: d, running: false }
+        if (doneByEpic.get(s.epic)?.has(d) && runSlugs.has(d))
+          return { slug: d, running: true }
+      }
+      return null
+    }
 
     const tickets: Ticket[] = stubs.map((s) => {
-      const openDep = s.dependsOn.find((d) => openByEpic.get(s.epic)?.has(d))
-      let group: TicketGroup
-      if (s.blocked !== null) group = "blocked"
-      else if (s.epic === "triage") group = "next"
-      else if (nextOf.get(s.epic) === s.slug) group = "next"
-      else if (openDep) group = "blocked"
-      else group = "queued"
-      const meta: [string, string][] =
-        openDep && s.blocked === null
-          ? [...s.meta, ["Waiting on", openDep]]
-          : s.meta
+      const waitingOn = s.epic === "triage" ? null : unmetDependency(s)
+      let status: TicketStatus
+      if (s.blocked !== null) status = "blocked"
+      else if (s.epic === "triage") status = "next"
+      else if (nextOf.get(s.epic) === s.slug) status = waitingOn ? "blocked" : "next"
+      else status = "open"
+      const meta: [string, string][] = waitingOn
+        ? [
+            ...s.meta,
+            ["Waiting on", waitingOn.running ? `${waitingOn.slug} — running` : waitingOn.slug],
+          ]
+        : s.meta
       const prompt = s.prompt ?? synthesizedPrompt(repo, s.path)
       return {
         repo,
@@ -881,7 +1038,12 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         htmlUrl: blobUrl(repo, s.path),
         id: `${s.epic}/${s.slug}`,
         title: s.title,
-        group,
+        group: groupOf(status, false),
+        status,
+        today: false,
+        lane: s.lane,
+        waitingOn,
+        origin: null,
         kind: "stub",
         runStage: null,
         batch: s.epic,
@@ -896,15 +1058,43 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       }
     })
 
+    // A run is titled by the stub it consumed: found by slug in an epic's
+    // `_done/`, its title and place from that epic's build order — else the
+    // bare slug, as before.
+    const originOf = (slug: string): (RunOrigin & { title: string | null }) | null => {
+      for (const [epic, done] of doneByEpic) {
+        if (!done.has(slug)) continue
+        const placed = orders.get(epic)?.get(slug) ?? null
+        // The plan's size is its highest place, not how many lines matched
+        // the shape — a line that didn't would otherwise undercount it.
+        const total = Math.max(0, ...[...(orders.get(epic)?.values() ?? [])].map((o) => o.sequence))
+        return {
+          epic,
+          sequence: placed?.sequence ?? null,
+          sequenceTotal: placed && total > 0 ? total : null,
+          title: placed?.title ?? null,
+        }
+      }
+      return null
+    }
+
     for (const slug of [...runSlugs].sort()) {
       const runStage = runStages.get(slug) ?? "build"
+      const found = originOf(slug)
       tickets.push({
         repo,
         path: `.icm/runs/${slug}`,
         htmlUrl: `https://github.com/${repo.fullName}/tree/HEAD/.icm/runs/${slug}`,
         id: `runs/${slug}`,
-        title: slug,
-        group: "in-flight",
+        title: found?.title ?? slug,
+        group: groupOf("running", false),
+        status: "running",
+        today: false,
+        lane: null,
+        waitingOn: null,
+        origin: found
+          ? { epic: found.epic, sequence: found.sequence, sequenceTotal: found.sequenceTotal }
+          : null,
         kind: "run",
         runStage,
         batch: null,
@@ -927,11 +1117,50 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         .filter((t): t is Ticket => t !== null)
         .map((t) => ({ ...t, ...pickupFor(repo, { kind: "legacy", slug: t.id }, t.prompt) }))
     )
-    return { tickets: tickets.map(withLaunchHint), breakdowns, error: null }
+
+    // Every stub of every epic, in sequence — open, running and done — for
+    // the epic's own list. Open rows are the parsed stubs; `_done/` rows take
+    // their place and title from the build order, and a `_done/` stub the
+    // breakdown doesn't name sinks after the sequenced rows under its slug.
+    const epicRows: Record<string, EpicRow[]> = {}
+    const epics = new Set([...openByEpic.keys(), ...doneByEpic.keys()])
+    for (const epic of epics) {
+      if (batchKind(epic) !== "epic") continue
+      const order = orders.get(epic)
+      const rows: EpicRow[] = stubs
+        .filter((s) => s.epic === epic)
+        .map((s) => ({
+          slug: s.slug,
+          title: s.title,
+          sequence: s.sequence ?? order?.get(s.slug)?.sequence ?? null,
+          state: "open" as const,
+          ticketId: `${epic}/${s.slug}`,
+        }))
+      for (const slug of doneByEpic.get(epic) ?? []) {
+        if (openByEpic.get(epic)?.has(slug)) continue
+        const placed = order?.get(slug)
+        const running = runSlugs.has(slug)
+        rows.push({
+          slug,
+          title: placed?.title ?? slug,
+          sequence: placed?.sequence ?? null,
+          state: running ? "running" : "done",
+          ticketId: running ? `runs/${slug}` : null,
+        })
+      }
+      epicRows[epic] = rows.sort(
+        (a, b) =>
+          (a.sequence ?? Number.MAX_SAFE_INTEGER) - (b.sequence ?? Number.MAX_SAFE_INTEGER) ||
+          a.slug.localeCompare(b.slug)
+      )
+    }
+
+    return { tickets: tickets.map(withLaunchHint), breakdowns, epicRows, error: null }
   } catch (err) {
     return {
       tickets: [],
       breakdowns: {},
+      epicRows: {},
       error: {
         repo,
         message: err instanceof Error ? err.message : "network error",
@@ -1195,13 +1424,17 @@ export type Batch = {
   breakdown: string | null
   /** The folder on GitHub — the batch's "open the real thing" escape hatch. */
   htmlUrl: string
-  /** What the breakdown planned (max `N of M`); null when unsequenced —
-   * always covers the open count, so `planned - tickets.length` is done. */
+  /** An epic's total: its open stubs plus everything in its `_done/`
+   * (running ones included). Null for the pseudo-batches. */
   planned: number | null
-  /** Stubs already through: planned minus still open. 0 when unsequenced. */
+  /** An epic's finished stubs: in `_done/` with no active run. 0 for the
+   * pseudo-batches. */
   done: number
   /** Open tickets, batch order: sequence for epics, priority for the rest. */
   tickets: Ticket[]
+  /** An epic's every stub in sequence — open, running and done (`EpicRow`).
+   *  Null for the pseudo-batches. */
+  rows: EpicRow[] | null
   /** The stub a swipe-right starts: the epic's "next", else the top of the
    * pile. Null for an empty batch (which the board never renders) and for
    * "runs" — a run in flight isn't picked up the way a stub is. */
@@ -1268,9 +1501,10 @@ function runsBatch(repo: TicketRepo, runs: Ticket[]): Batch {
     planned: null,
     done: 0,
     tickets: ordered,
+    rows: null,
     next: null,
-    todayCount: ordered.filter((t) => t.group === "today").length,
-    blockedCount: ordered.filter((t) => t.group === "blocked").length,
+    todayCount: ordered.filter((t) => t.today).length,
+    blockedCount: 0,
     p0Count: 0,
   }
 }
@@ -1278,7 +1512,8 @@ function runsBatch(repo: TicketRepo, runs: Ticket[]): Batch {
 function assembleBatches(
   repo: TicketRepo,
   tickets: Ticket[],
-  breakdowns: Record<string, string>
+  breakdowns: Record<string, string>,
+  epicRows: Record<string, EpicRow[]>
 ): Batch[] {
   const byBatch = new Map<string, Ticket[]>()
   const runs: Ticket[] = []
@@ -1293,32 +1528,32 @@ function assembleBatches(
     byBatch.set(t.batch, list)
   }
 
+  // An epic whose every stub is through still has its rows to show, all
+  // dimmed, until the epic itself is archived.
+  for (const slug of Object.keys(epicRows)) {
+    if (!byBatch.has(slug)) byBatch.set(slug, [])
+  }
+
   const batches: Batch[] = []
   for (const [slug, members] of byBatch) {
     const kind = batchKind(slug)
     const ordered = [...members].sort(batchOrder(kind))
-    // What the breakdown planned, if the stubs are sequenced. A batch that
-    // grew past its own plan (recut mid-flight) still reads sanely: planned
-    // never shows less than what's open.
-    const totals = ordered
-      .map((t) => t.sequenceTotal)
-      .filter((n): n is number => n !== null)
-    const planned =
-      kind === "epic" && totals.length > 0
-        ? Math.max(...totals, ordered.length)
-        : null
+    // An epic counts what it holds: open plus `_done/`, of which the done
+    // ones are those with no run still going (spec work-panes §4).
+    const rows = kind === "epic" ? (epicRows[slug] ?? []) : null
     batches.push({
       slug,
       kind,
       title: batchTitle(kind, slug),
       breakdown: kind === "epic" ? (breakdowns[slug] ?? null) : null,
       htmlUrl: batchFolderUrl(repo, kind, slug),
-      planned,
-      done: planned === null ? 0 : planned - ordered.length,
+      planned: rows ? Math.max(rows.length, ordered.length) : null,
+      done: rows ? rows.filter((r) => r.state === "done").length : 0,
       tickets: ordered,
-      next: ordered.find((t) => t.group === "next") ?? ordered[0] ?? null,
-      todayCount: ordered.filter((t) => t.group === "today").length,
-      blockedCount: ordered.filter((t) => t.group === "blocked").length,
+      rows,
+      next: ordered.find((t) => t.status === "next") ?? ordered[0] ?? null,
+      todayCount: ordered.filter((t) => t.today).length,
+      blockedCount: ordered.filter((t) => t.status === "blocked").length,
       p0Count: ordered.filter((t) => t.priority === "P0").length,
     })
   }
@@ -1366,6 +1601,11 @@ type EstateRead = {
   tickets: Ticket[]
   /** Each repo's epic breakdowns, by repo full name, then epic folder. */
   breakdowns: Map<string, Record<string, string>>
+  /** Each repo's epic rows (`EpicRow`), by repo full name, then epic folder. */
+  epicRows: Map<string, Record<string, EpicRow[]>>
+  /** icm-board's today.md picks, in the file's order, as `<repo>/<id>`
+   *  ticket keys — the Today view's order. */
+  todayOrder: string[]
   errors: TicketFetchError[]
   /** The owner sweep failed, so the roster is the pinned tier alone. */
   rosterError: string | null
@@ -1389,6 +1629,8 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     repos: [],
     tickets: [],
     breakdowns: new Map<string, Record<string, string>>(),
+    epicRows: new Map<string, Record<string, EpicRow[]>>(),
+    todayOrder: [],
     errors: [],
     rosterError: null,
   }
@@ -1413,7 +1655,7 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     Promise.all(
       roster.repos.map((repo) =>
         skip.has(repo.fullName)
-          ? Promise.resolve<RepoRead>({ tickets: [], breakdowns: {}, error: null })
+          ? Promise.resolve<RepoRead>({ tickets: [], breakdowns: {}, epicRows: {}, error: null })
           : fetchRepoTickets(repo)
       )
     ),
@@ -1425,7 +1667,9 @@ const readEstate = cache(async (): Promise<EstateRead> => {
   const tickets = results
     .flatMap((r) => r.tickets)
     .map((t) =>
-      todayKeys.has(`${t.repo.slug} ${t.id}`) ? { ...t, group: "today" as const } : t
+      todayKeys.has(`${t.repo.slug} ${t.id}`)
+        ? { ...t, today: true, group: groupOf(t.status, true) }
+        : t
     )
     .sort(
       (a, b) =>
@@ -1441,6 +1685,10 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     breakdowns: new Map(
       roster.repos.map((repo, i) => [repo.fullName, results[i].breakdowns])
     ),
+    epicRows: new Map(
+      roster.repos.map((repo, i) => [repo.fullName, results[i].epicRows])
+    ),
+    todayOrder: [...todayKeys].map((key) => key.replace(" ", "/")),
     errors: [
       ...roster.unreadable,
       ...results
@@ -1460,12 +1708,17 @@ export async function listBoard(): Promise<
   EstateRead & { sections: RepoSection[]; strip: Ticket[] }
 > {
   const read = await readEstate()
-  const { repos, tickets, breakdowns } = read
+  const { repos, tickets, breakdowns, epicRows } = read
 
   const sections = repos
     .map((repo) => {
       const own = tickets.filter((t) => t.repo.fullName === repo.fullName)
-      const batches = assembleBatches(repo, own, breakdowns.get(repo.fullName) ?? {})
+      const batches = assembleBatches(
+        repo,
+        own,
+        breakdowns.get(repo.fullName) ?? {},
+        epicRows.get(repo.fullName) ?? {}
+      )
       return {
         section: {
           repo,
@@ -1598,6 +1851,8 @@ export type BoardData = {
   rosterError: string | null
   dbError: string | null
   estateCheck: LaunchSet
+  /** today.md's picks in its own order, as ticket keys (`<repo>/<id>`). */
+  todayOrder: string[]
   /** When this read finished, ISO — the board's "as of". */
   readAt: string
 }
@@ -1637,6 +1892,7 @@ export async function readBoard(): Promise<BoardData | null> {
     rosterError: board.rosterError,
     dbError: board.dbError,
     estateCheck: estateCheckLaunches(),
+    todayOrder: board.todayOrder,
     readAt: new Date().toISOString(),
   }
 }

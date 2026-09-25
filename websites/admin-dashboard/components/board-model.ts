@@ -177,13 +177,27 @@ function inView<T extends { repo: { slug: string } }>(
 /** The estate's tickets in one group, for the repo in view, in board order.
  *  The strip holds every today-pick, run and blocked ticket, so it is the one
  *  place these are counted — the figures and the overview's Blocked rows read
- *  the same set and can't drift apart. */
+ *  the same set and can't drift apart. Read off each ticket's state and today
+ *  flag rather than its phone group, so a blocked today-pick counts in both —
+ *  as Work's desk views count it (lib/tickets.ts `TicketStatus`). */
 export function ticketsInGroup(
   board: BoardData,
   group: TicketGroup,
   repoSlug: string | null
 ): BoardTicket[] {
-  return inView(board.strip, repoSlug).filter((t) => t.group === group)
+  const matches = (t: BoardTicket): boolean => {
+    switch (group) {
+      case "today":
+        return t.today
+      case "blocked":
+        return t.status === "blocked"
+      case "in-flight":
+        return t.status === "running"
+      default:
+        return t.group === group
+    }
+  }
+  return inView(board.strip, repoSlug).filter(matches)
 }
 
 /** The masthead figures the estate overview sets, for the repos in view. A

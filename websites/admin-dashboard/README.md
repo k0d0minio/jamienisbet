@@ -467,59 +467,82 @@ repo roster comes from the database plus every repo the token owns or collaborat
 ticket links back to its client. A connected repo the token can't see is named on the board
 with the reason, never dropped in silence.
 
-**Master–detail.** The board is a list that drills and a pane that swaps
-([`components/tickets-board.tsx`](components/tickets-board.tsx)). List level 0 is the repo chip
-rail and the repo groups; tapping a batch pushes the list to level 1 — that batch's tickets
-under a "‹ repo" back row — and tapping a repo's header opens the repo. From `lg` the pane
-([`components/board-pane.tsx`](components/board-pane.tsx)) stands beside the list, pinned under
-the title bar with its own scroll, and shows the selected **ticket**, **batch**, **repo** or,
-with nothing selected, the **estate overview**. The batch view is the epic's own: its `N of M`
-and `Meter`, **Copy next** (the next stub's own split button — its pick-up, every tool behind
-the chevron), **Recut** (epics), GitHub, its stubs, and the epic's `breakdown.md` rendered (read
-by blob SHA beside the stubs; "No breakdown.md in this epic." where there is none). The repo view sets
-the repo's own figures in mono — Open, Today, Blocked, In flight, a zero left out — then, if
-its GitHub read failed, what GitHub said in full, then its client (or "House repo") and its
-maintenance launchers with Open on GitHub. The estate overview sets the Today / Blocked / Open
-figures for the current repo filter; under them a **Blocked** group lists exactly the tickets
-that figure counts, each with its repo and why it is stuck (its `blocked:` line, else the open
-stub it waits on), a tap opening the ticket; then **Couldn't be read** — the roster error
-first, then each unreadable repo with what GitHub said, its row opening that repo's view (a
-repo that couldn't be read has no section in the list, so this is its way in; the view still
-carries its triage and sweep launchers); then the estate check and the board's footnote. A ticket reads phone-first: its title and one
-summary line (status · priority · `n of m` · repo · client, and why it is blocked), then
-**Copy** with its recommendation and **Open on GitHub**, its header fields — a `depends-on`
-slug still on the board selects that ticket — and the body, its `## Prompt` section folded.
-Below `lg` a ticket or a repo is a full-screen pushed view with a back bar and an edge swipe; a
-batch is not pushed — level 1 *is* its view there, its stubs first and its actions and
-breakdown under them — and the overview is the foot of level 0. Every selection is URL state —
-`?t=<repo>/<ticket id>`, `?b=<repo>/<batch>` (`_runs` for In flight) or `?r=<repo>`, one at a
-time, beside the `?repo=` filter — so a link reopens exactly that view, and one that names
-something since shipped falls back to its batch, or to nothing. An old link still carrying the
-retired `&pane=1` opens the same view and drops the flag.
+**Three panes at the desk.** From `lg` (1024px) Work is three panes beside the rail
+([`components/work-desk.tsx`](components/work-desk.tsx), its data in
+[`components/work-model.ts`](components/work-model.ts); mockup option A, D-7), under a
+toolbar strip with "as of HH:MM" and the refresh button:
 
-**The keyboard, from `lg`.** [`components/use-board-keys.ts`](components/use-board-keys.ts)
-drives the board without the mouse; `?` (or the hint at the foot of the list) opens the map.
-`↓`/`↑` or `j`/`k` move a cursor through the list level on screen. At level 0 it walks the repo
-headers and batch rows and the pane *previews* the row under it without touching the URL (a batch
-can't be selected there without drilling); `Enter`, `→` or `l` commits — a batch drills to level
-1, a repo opens and focus moves into the pane. At level 1 the cursor is the selection: each step
-rewrites `?t=` in place (`replaceState`), so back steps through levels, not through every stub
-passed; `Enter` moves focus into the pane, where the arrows and `j`/`k` scroll it. `Esc`, `←` or
-`h` back out a level — pane → list → repos — and at level 0 clear the selection. `c` copies what
-the view's own copy button would (a ticket's pick-up, a batch's Copy next; "Nothing to copy here"
-otherwise), `o` opens it on GitHub, `r` is the refresh button, `[`/`]` step the repo chips (All
-included, wrapping). No key fires while you type, while a menu or sheet is open, or with
-Ctrl/Cmd/Alt held — except `[`, `]` and `?` themselves, which still fire on the AltGr/Option
-layouts (Portuguese, German, Spanish among them) that type those characters that way. Each list
-level is a `listbox` whose `aria-activedescendant` is the cursor row, so a screen reader follows
-the same cursor; below `lg` nothing here applies.
+- **Pane one — views, then repos.** **Up next**, **Today**, **Running** and **Blocked**, each
+  with a mono count (Running's amber, Blocked's red once non-zero). Under a "Repos" eyebrow,
+  every repo in the board's urgency order: a fold chevron, the slug, its open count — and,
+  unfolded, its epics with a mono `done/total`, then **Triage** and **Backlog** with their open
+  counts. Repos start folded except the one holding the selection; a fold the operator makes is
+  remembered in this browser (`localStorage`, `jn:work:folds`). A repo whose read failed stays
+  listed with a red dot, its view saying what GitHub said; a failed roster read is a line under
+  the eyebrow.
+- **Pane two — the list.** An estate view lists its tickets as two-line rows — a `StatusDot`,
+  the title, the `PriorityTag`, a "today" mark for a today.md pick, and under them the mono
+  `repo / epic · n of m` (`repo / triage · <lane>`), a blocked row's red reason, a running row's
+  amber stage ("Build next", "Release next", "Lane — PR open for your merge"). An epic lists
+  **every** stub in sequence — open, running and done, done ones dimmed — over a thin meter; a
+  repo lists its open tickets and runs grouped by epic. A quiet view says so in a line; a view
+  missing a repo that couldn't be read says how many.
+- **Pane three — the detail.** The views below, unchanged until `work-reader` replaces them:
+  the selected ticket; with none, the epic's batch view, the repo view, or — for a view — the
+  estate overview (its Blocked rows open in the Blocked view).
+
+**What each view holds** (`TicketStatus` in [`lib/tickets.ts`](lib/tickets.ts)), all from the
+one tree read per repo — no request beyond it. A dependency is **merged** when its stub sits in
+the epic's `_done/` with no active run folder; open in the epic, or in `_done/` with a run
+still going, it is unmet (a slug the epic doesn't hold blocks nothing). **Up next** is one stub
+per epic — its lowest-sequence open stub without a `blocked:` line, when every dependency is
+merged — plus every open triage stub, by priority (P0, P1, P2, none), then repo order, then
+sequence. **Blocked** is every stub with a `blocked:` line, plus each epic's lowest open stub
+whose dependency is unmet ("Waiting on <dep>", "— running" when it has a run). **Running** is
+every run folder in `.icm/runs/` (D-11), titled from the stub it consumed. **Today** is
+icm-board's `today.md`, in its order. Everything else open is queued. Done stubs are known by
+name from the tree (`<epic>/_done/`, never read); their titles and places come from the
+breakdown's `## Build order` lines, and one the breakdown doesn't name lists after the rest by
+its slug. The phone board's groups, the figures and the palette's dots read the same states.
+
+**The URL.** The list is one of `?v=next|today|running|blocked`, `?b=<repo>/<batch>` or
+`?r=<repo>`; `?t=<repo>/<ticket id>` is the ticket open in it, beside the list key. Nothing set
+is Up next with the overview. Every click is a `pushState`, so back/forward step through lists
+and selections. Older links resolve and are rewritten in place: `?t=` alone opens the ticket in
+its own epic or triage (a run in Running), `?b=<repo>/_runs` is Running, the phone's
+`?repo=<slug>` opens that repo, a ticket since shipped falls back to its epic, anything unknown
+to Up next.
+
+**The keyboard, at the desk** ([`components/use-board-keys.ts`](components/use-board-keys.ts);
+`?`, or the key strip at the foot of pane two, opens the map). Each pane has a cursor; the
+focused one moves. `↓`/`↑` or `j`/`k` move it — in pane two the cursor *is* the selection, each
+step rewriting `?t=` in place (`replaceState`), so the detail follows and back doesn't replay
+every row passed; in the detail pane they scroll it. `Enter`, `→` or `l` opens and moves focus a
+pane right: pane one's entry into pane two, pane two's ticket into the detail. `Esc`, `←` or `h`
+moves focus a pane left, and in pane one closes the open ticket. `[`/`]` step through pane
+one's views and unfolded epics, opening each without moving focus. `c` copies what the detail's
+own copy button would, `o` opens it on GitHub, `r` refreshes. No key fires while you type, while
+a menu, sheet or the palette is open, or with Ctrl/Cmd/Alt held — except `[`, `]` and `?`, which
+still fire on the AltGr/Option layouts (Portuguese, German, Spanish among them) that type them
+that way. Each pane's list is a `listbox` whose `aria-activedescendant` is its cursor row.
+
+**Under `lg` — the phone board.** A list that drills and a pane that pushes
+([`components/tickets-board.tsx`](components/tickets-board.tsx)), until `work-phone` replaces it.
+[`components/work-screen.tsx`](components/work-screen.tsx) mounts one layout or the other by the
+window's width (both render behind their breakpoints until it is known). List level 0 is the
+repo chip rail and one inset group per repo — its epics, Triage, Backlog and In flight; tapping a
+batch pushes level 1, that batch's tickets under a "‹ repo" back row; tapping a repo's header
+opens the repo, and a ticket or a repo is a full-screen pushed view with a back bar and an edge
+swipe. The estate overview is the foot of level 0. Its selection is one of `?t=`, `?b=` or
+`?r=` beside the `?repo=` chip filter — a desk link opens there too (`?t=` wins, `?v=` is
+ignored). It has no keyboard map.
 
 **Read once, used locally.** Work (`/`) reads the board once per visit (`readBoard()` in
-[`lib/tickets.ts`](lib/tickets.ts)) and hands it to a client root
-([`components/tickets-board.tsx`](components/tickets-board.tsx)) as plain data: ticket bodies and
+[`lib/tickets.ts`](lib/tickets.ts)) and hands it to the client — the desk's panes or the phone
+board, whichever the window is wide enough for — as plain data: ticket bodies and
 epic breakdowns as raw markdown, rendered only when that ticket or epic is opened, and every
-launcher already built. The repo
-chips filter in memory and every selection is resolved from the URL, written with
+launcher already built. Views and chips filter in memory and every selection is resolved
+from the URL, written with
 `history.pushState` ([`components/use-board-params.ts`](components/use-board-params.ts)) — so a
 tap is instant, back/forward step through filters and selections, and `/?repo=<slug>`
 still deep-links. New data arrives
