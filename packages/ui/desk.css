@@ -1,0 +1,153 @@
+/* ============================================================
+   Jamie Nisbet Design System — DESK TIER entry (opt-in).
+
+   The marketing sites link styles.css and nothing else. The admin
+   dashboard — a dense work tool used at a desk and on a phone —
+   links this file directly after it, and gains the desk tier:
+   Hanken Grotesk on a dense scale, 32px rows and 30px controls at
+   the desk (44px under a thumb), tight corners, hairline structure,
+   and a shadow only on what floats. BRAND.md § Desk tier.
+
+       @import "@jamie-nisbet/ui/styles.css";
+       @import "@jamie-nisbet/ui/desk.css";
+       @source "../../../packages/ui/src";
+
+   Order matters: this file assumes Tailwind and the brand tokens are
+   already loaded (styles.css does both). It never imports Tailwind
+   itself — importing it twice would duplicate the whole framework.
+   It can sit beside app.css while the admin's screens move over:
+   every name here is desk-*, every name there app-*.
+
+   Values live in tokens/desk.css, which this file imports and then
+   maps into Tailwind's theme namespaces so call sites reach the tier
+   through utilities — `h-desk-row`, `text-desk-ui`,
+   `rounded-desk-control`, `bg-desk-sunken`, `shadow-desk-float` —
+   and never a raw value. `inline` keeps the var() reference in the
+   generated utility, so each one still flips with
+   [data-theme="dark"] and with the coarse-pointer step.
+   ============================================================ */
+
+@import "./tokens/desk.css";
+
+@theme inline {
+  /* ---- Family ---------------------------------------------- */
+  /* Figures reach mono through the brand's own `font-mono`. */
+  --font-desk: var(--desk-font);
+
+  /* ---- The dense scale --------------------------------------- */
+  /* Each step carries its leading, weight and tracking; a call site
+     overrides the weight with font-* where the layout wants it. */
+  --text-desk-title: var(--desk-text-title);
+  --text-desk-title--line-height: var(--desk-leading-title);
+  --text-desk-title--font-weight: var(--desk-weight-title);
+  --text-desk-title--letter-spacing: var(--desk-tracking-title);
+
+  --text-desk-heading: var(--desk-text-heading);
+  --text-desk-heading--line-height: var(--desk-leading-heading);
+  --text-desk-heading--font-weight: var(--desk-weight-heading);
+  --text-desk-heading--letter-spacing: var(--desk-tracking-heading);
+
+  --text-desk-body: var(--desk-text-body);
+  --text-desk-body--line-height: var(--desk-leading-body);
+  --text-desk-body--font-weight: var(--desk-weight-body);
+
+  --text-desk-ui: var(--desk-text-ui);
+  --text-desk-ui--line-height: var(--desk-leading-ui);
+  --text-desk-ui--font-weight: var(--desk-weight-ui);
+
+  --text-desk-meta: var(--desk-text-meta);
+  --text-desk-meta--line-height: var(--desk-leading-meta);
+  --text-desk-meta--font-weight: var(--desk-weight-meta);
+
+  --text-desk-micro: var(--desk-text-micro);
+  --text-desk-micro--line-height: var(--desk-leading-micro);
+  --text-desk-micro--font-weight: var(--desk-weight-micro);
+
+  --text-desk-figure: var(--desk-text-figure);
+  --text-desk-figure--line-height: var(--desk-leading-figure);
+  --text-desk-figure--font-weight: var(--desk-weight-figure);
+
+  --tracking-desk-eyebrow: var(--desk-tracking-eyebrow);
+
+  /* ---- Size ------------------------------------------------ */
+  /* Named steps, so a call site writes `h-desk-row` and
+     `size-desk-control` rather than a number nobody can check. */
+  --spacing-desk-row: var(--desk-row);
+  --spacing-desk-control: var(--desk-control);
+  --spacing-desk-control-sm: var(--desk-control-sm);
+  --spacing-desk-grid-row: var(--desk-grid-row);
+  --spacing-desk-grid-header: var(--desk-grid-header);
+  --spacing-desk-rail: var(--desk-rail);
+  --spacing-desk-rail-item: var(--desk-rail-item);
+  --spacing-desk-pane-header: var(--desk-pane-header);
+  --spacing-desk-toolbar: var(--desk-toolbar);
+  --spacing-desk-icon: var(--desk-icon);
+  --spacing-desk-icon-rail: var(--desk-icon-rail);
+  --spacing-desk-dot: var(--desk-dot);
+  --spacing-desk-check: var(--desk-check);
+  --spacing-desk-badge: var(--desk-badge);
+
+  /* ---- Shape ------------------------------------------------ */
+  --radius-desk-key: var(--desk-radius-key);
+  --radius-desk-control: var(--desk-radius-control);
+  --radius-desk-pane: var(--desk-radius-pane);
+
+  /* ---- Elevation -------------------------------------------- */
+  --shadow-desk-float: var(--desk-shadow-float);
+
+  /* ---- Colour ----------------------------------------------- */
+  /* Disjoint from the size names above on purpose: `text-desk-ui`
+     is a size and `text-desk-fg` a colour, and neither could be
+     read as the other. */
+  --color-desk-canvas: var(--desk-canvas);
+  --color-desk-surface: var(--desk-surface);
+  --color-desk-hover: var(--desk-hover);
+  --color-desk-sunken: var(--desk-sunken);
+  --color-desk-line: var(--desk-line);
+  --color-desk-line-strong: var(--desk-line-strong);
+  --color-desk-fg: var(--desk-fg);
+  --color-desk-fg-2: var(--desk-fg-2);
+  --color-desk-fg-3: var(--desk-fg-3);
+  --color-desk-ink: var(--desk-ink);
+  --color-desk-ink-fg: var(--desk-ink-fg);
+  --color-desk-ink-hover: var(--desk-ink-hover);
+  --color-desk-focus: var(--desk-focus);
+  --color-desk-running: var(--desk-running);
+  --color-desk-running-soft: var(--desk-running-soft);
+  --color-desk-blocked: var(--desk-blocked);
+  --color-desk-blocked-soft: var(--desk-blocked-soft);
+  --color-desk-done: var(--desk-done);
+  --color-desk-done-soft: var(--desk-done-soft);
+}
+
+/* ============================================================
+   THE DESK TIER SWITCH
+   One class, applied once at the top of the admin's tree (the
+   shell's <body> or its root element). Below it, text sets in
+   Hanken Grotesk at the ui step on the page canvas. Nothing outside
+   it changes — which is what keeps the marketing sites untouched
+   even in a build that loads this file.
+   ============================================================ */
+
+@utility desk-tier {
+  font-family: var(--desk-font);
+  font-size: var(--desk-text-ui);
+  line-height: var(--desk-leading-ui);
+  color: var(--desk-fg);
+  background-color: var(--desk-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* ---- Focus, on a tier of clipping panes ---------------------
+     The brand's focus ring (tokens/base.css) is an outset
+     box-shadow, and this tier is built out of panes that scroll and
+     clip. An outline at a negative offset is drawn *inside* the
+     control, so no pane can throw it away. It rides on top of the
+     brand ring rather than replacing it; where nothing clips, both
+     read as one indicator. Set here, not per call site, because
+     "can you see what has focus" is not a screen's decision. */
+  & :focus-visible {
+    outline: 2px solid var(--desk-focus);
+    outline-offset: -2px;
+  }
+}

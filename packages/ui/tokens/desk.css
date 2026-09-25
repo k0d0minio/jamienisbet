@@ -1,0 +1,189 @@
+/* ============================================================
+   DESK TIER — Jamie Nisbet Design System
+
+   The admin's tier: a dense, flat work tool designed at the desk
+   and compressed for the phone (BRAND.md § Desk tier). The
+   marketing sites never load this file: it is reached only through
+   "@jamie-nisbet/ui/desk.css" (Tailwind surfaces) or a direct
+   import of this file (variables-only surfaces), never through
+   styles.css or tokens.css.
+
+   What it adds is density and structure, never a hue. Every colour
+   below is an alias of a semantic token in colors.css, so dark mode
+   flips through the one [data-theme="dark"] block that already
+   exists and this file carries no dark block of its own. No
+   materials, no springs, no blur: a hairline does the structural
+   work, a shadow means "floats" and nothing else.
+
+   THE TOUCH STEP IS BUILT IN. The size and type tokens are declared
+   twice: once for a fine pointer (the desk), once inside the single
+   @media (pointer: coarse) block at the foot of this file (a phone,
+   an iPad without a trackpad). Components read the tokens and never
+   carry a pointer or width query of their own — so a 32px desk row
+   is a 44px row under a thumb from the same markup, by construction.
+   Where the desk *layout* begins is the shell's call, not this
+   file's.
+
+   NAMING: every token is prefixed --desk-*. desk.css maps them into
+   Tailwind's theme namespaces (--text-desk-*, --spacing-desk-*, …);
+   naming them that way here would make the mapping self-referential.
+   The prefix is also what lets the admin link this file beside
+   app.css while its screens move over, without a collision.
+   ============================================================ */
+
+:root {
+  /* ============================================================
+     COLOUR — aliases only. Design against these, never the ramps.
+     ============================================================ */
+
+  /* Surfaces: the page behind the panes, the pane itself, the
+     hover wash, and the sunken fill that says "selected" (and is
+     the track a segmented control sits in). */
+  --desk-canvas: var(--bg);
+  --desk-surface: var(--surface);
+  --desk-hover: var(--surface-2);
+  --desk-sunken: var(--surface-sunken);
+
+  /* Hairlines: the structure between rows and panes, and the
+     stronger edge a control or a key hint draws. */
+  --desk-line: var(--border);
+  --desk-line-strong: var(--border-strong);
+
+  /* Text, three stops. */
+  --desk-fg: var(--text-1);
+  --desk-fg-2: var(--text-2);
+  --desk-fg-3: var(--text-3);
+
+  /* The one tint — ink in light, paper in dark. */
+  --desk-ink: var(--primary);
+  --desk-ink-fg: var(--primary-fg);
+  --desk-ink-hover: var(--primary-hover);
+  --desk-focus: var(--border-focus);
+
+  /* State, muted, and only ever as a dot, a check or a tag. */
+  --desk-running: var(--warning);
+  --desk-running-soft: var(--warning-soft);
+  --desk-blocked: var(--danger);
+  --desk-blocked-soft: var(--danger-soft);
+  --desk-done: var(--success);
+  --desk-done-soft: var(--success-soft);
+
+  /* ============================================================
+     TYPE — Hanken Grotesk for UI text, IBM Plex Mono for every
+     figure, slug, date, key and piece of metadata (D-4).
+     Each step: size / line-height / weight / tracking.
+     ============================================================ */
+
+  --desk-font: var(--font-sans);
+  --desk-font-mono: var(--font-mono);
+
+  /* title — a pane's or a record's name. */
+  --desk-text-title: 1.375rem; /* 22 */
+  --desk-leading-title: 1.75rem; /* 28 */
+  --desk-weight-title: 700;
+  --desk-tracking-title: -0.02em;
+
+  /* heading — a section inside a pane. */
+  --desk-text-heading: 0.9375rem; /* 15 */
+  --desk-leading-heading: 1.25rem; /* 20 */
+  --desk-weight-heading: 600;
+  --desk-tracking-heading: -0.01em;
+
+  /* body — reading text: a stub, a note, a profile. */
+  --desk-text-body: 0.875rem; /* 14 */
+  --desk-leading-body: 1.375rem; /* 22 */
+  --desk-weight-body: 400;
+
+  /* ui — list rows, labels, controls. The tier's base size. */
+  --desk-text-ui: 0.8125rem; /* 13 */
+  --desk-leading-ui: 1.125rem; /* 18 */
+  --desk-weight-ui: 500;
+
+  /* meta — mono: slugs, repos, dates, values in a row. */
+  --desk-text-meta: 0.75rem; /* 12 */
+  --desk-leading-meta: 1rem; /* 16 */
+  --desk-weight-meta: 400;
+
+  /* micro — mono: key hints, priority tags, eyebrows, table
+     headers. The canvas sets all four at 11. */
+  --desk-text-micro: 0.6875rem; /* 11 */
+  --desk-leading-micro: 0.875rem; /* 14 */
+  --desk-weight-micro: 500;
+
+  /* figure — mono, tabular: money and counts that lead a view. */
+  --desk-text-figure: 1.25rem; /* 20 */
+  --desk-leading-figure: 1.625rem; /* 26 */
+  --desk-weight-figure: 500;
+
+  /* Uppercase mono labels (eyebrows, table headers) open up. */
+  --desk-tracking-eyebrow: 0.06em;
+
+  /* ============================================================
+     SIZE — density earns its keep (D-3).
+     ============================================================ */
+
+  --desk-row: 2rem; /* 32 — a list row */
+  --desk-control: 1.875rem; /* 30 — a button, a segmented track */
+  --desk-control-sm: 1.625rem; /* 26 — a small button, a segment */
+  --desk-grid-row: 2.5rem; /* 40 — a data-grid body row (two lines) */
+  --desk-grid-header: 2rem; /* 32 — a data-grid header row */
+  --desk-rail: 3.5rem; /* 56 — the icon rail's width */
+  --desk-rail-item: 2.5rem; /* 40 — a rail button */
+  --desk-pane-header: 3.5rem; /* 56 — a pane's title bar */
+  --desk-toolbar: 2.75rem; /* 44 — the strip under it; the palette's input */
+
+  --desk-icon: 1rem; /* 16 — an icon in a row or a control */
+  --desk-icon-rail: 1.125rem; /* 18 — a rail icon */
+  --desk-dot: 0.5rem; /* 8 — a status dot */
+  --desk-dot-ring: 1.5px; /* the open dot's ring */
+  --desk-check: 0.75rem; /* 12 — the done check */
+  --desk-badge: 1rem; /* 16 — a rail count badge */
+
+  /* ============================================================
+     SHAPE — tight, precise corners; nothing continuous.
+     ============================================================ */
+
+  --desk-radius-key: 4px; /* a key hint, a segment inside its track */
+  --desk-radius-control: 6px; /* buttons, rows, rail items, tracks */
+  --desk-radius-pane: 8px; /* cards, the palette, a menu */
+
+  /* ============================================================
+     ELEVATION — one step, for what floats: the palette, a menu, a
+     sheet. Resting content never takes it. The brand's own step
+     already carries its dark value.
+     ============================================================ */
+
+  --desk-shadow-float: var(--shadow-xl);
+}
+
+/* ============================================================
+   THE TOUCH STEP
+   The one query on this tier. Rows and controls reach the 44px
+   touch floor and every type step goes up one; the desk-only
+   chrome (rail width, pane header) keeps its size.
+   ============================================================ */
+@media (pointer: coarse) {
+  :root {
+    --desk-text-title: 1.75rem; /* 28 */
+    --desk-leading-title: 2.125rem; /* 34 */
+    --desk-text-heading: 1.0625rem; /* 17 */
+    --desk-leading-heading: 1.375rem; /* 22 */
+    --desk-text-body: 1rem; /* 16 — also what keeps iOS from zooming a field */
+    --desk-leading-body: 1.5rem; /* 24 */
+    --desk-text-ui: 0.9375rem; /* 15 */
+    --desk-leading-ui: 1.25rem; /* 20 */
+    --desk-text-meta: 0.8125rem; /* 13 */
+    --desk-leading-meta: 1.125rem; /* 18 */
+    --desk-text-micro: 0.75rem; /* 12 */
+    --desk-leading-micro: 1rem; /* 16 */
+    --desk-text-figure: 1.375rem; /* 22 */
+    --desk-leading-figure: 1.75rem; /* 28 */
+
+    --desk-row: 2.75rem; /* 44 */
+    --desk-control: 2.75rem; /* 44 */
+    --desk-control-sm: 2.75rem; /* 44 */
+    --desk-grid-row: 3rem; /* 48 */
+    --desk-grid-header: 2.75rem; /* 44 */
+    --desk-rail-item: 2.75rem; /* 44 */
+  }
+}
