@@ -31,7 +31,9 @@ import {
 // The Inbox's follow-ups (D-15), as a rule the queue and the rail's badge both
 // read, so the number on the Inbox and the rows inside it count the same people.
 // The badge is read when the shell renders (a load, a refresh, a server
-// action), so between those it can trail the queue — never by a different rule.
+// action); between those it can trail the queue on any other screen — never
+// by a different rule. The Inbox screen itself keeps the badge exact while
+// it is open (components/inbox-live-count.ts), from the same read.
 //
 // Three kinds: the outreach owed by today, open leads gone quiet past the
 // staleness threshold, and the nurture wakes whose date has come. Each is
