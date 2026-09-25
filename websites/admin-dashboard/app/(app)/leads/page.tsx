@@ -678,7 +678,12 @@ export default async function LeadsPage({
               (layout === "board" ? (
                 <DealBoard rows={rowViews} readable={readable} />
               ) : (
+                // Keyed to the archive flag: a row restored or deleted from
+                // the archive is hidden on the click, and that hiding must not
+                // follow the same component instance back into the live view,
+                // where the restored lead belongs again.
                 <LeadsTable
+                  key={archived ? "archive" : "live"}
                   rows={rowViews}
                   sort={shownSort}
                   sortHrefs={sortHrefs}
