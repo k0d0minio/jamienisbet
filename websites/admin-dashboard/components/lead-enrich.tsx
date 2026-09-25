@@ -5,11 +5,10 @@ import { ScanSearch } from "lucide-react"
 
 import {
   Button,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
-  PendingButton,
+  RecordBlock,
   RecordRow,
+  RecordSection,
+  PendingButton,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -226,7 +225,7 @@ export function LeadEnrich({
           </div>
         ) : problem ? (
           <div className="grid gap-3">
-            <p className="rounded-app-group border border-app-separator bg-app-group px-4 py-3 text-app-callout text-app-label-2">
+            <p className="rounded-desk-pane border border-desk-line bg-desk-surface px-4 py-3 text-desk-body text-desk-fg-2">
               {problem}
             </p>
             <div className="flex items-center gap-2">
@@ -244,18 +243,18 @@ export function LeadEnrich({
         ) : preview ? (
           <div className="grid gap-4">
             {preview.findings.length > 0 ? (
-              <GroupedSection header="What the site shows">
-                <GroupedBlock>
-                  <ul className="grid gap-1 text-app-label">
+              <RecordSection header="What the site shows">
+                <RecordBlock>
+                  <ul className="grid gap-1 text-desk-fg">
                     {preview.findings.map((finding) => (
                       <li key={finding}>{finding}</li>
                     ))}
                   </ul>
-                </GroupedBlock>
-              </GroupedSection>
+                </RecordBlock>
+              </RecordSection>
             ) : null}
 
-            <GroupedSection
+            <RecordSection
               header={
                 preview.changes.length === 0
                   ? "Nothing to change"
@@ -268,10 +267,10 @@ export function LeadEnrich({
               }
             >
               {preview.changes.length === 0 ? (
-                <GroupedBlock>
+                <RecordBlock>
                   The site says what this record already does. Saving records
                   that it was read, so the batch pass leaves it alone.
-                </GroupedBlock>
+                </RecordBlock>
               ) : (
                 preview.changes.map((change) =>
                   change.field === "hook" ? (
@@ -282,7 +281,7 @@ export function LeadEnrich({
                       onToggle={() => toggle(change.field)}
                     />
                   ) : (
-                    <GroupedRow
+                    <RecordRow
                       key={change.field}
                       label={change.label}
                       description={
@@ -301,7 +300,7 @@ export function LeadEnrich({
                   )
                 )
               )}
-            </GroupedSection>
+            </RecordSection>
 
             {/* The letter, reported rather than offered — and reported
                 honestly: it is what the facts add up to if all of them are
@@ -310,9 +309,9 @@ export function LeadEnrich({
                 the services layer, and a second copy of the weights running in
                 a sheet is the drift this whole ticket exists to prevent. */}
             {preview.tier.ifAccepted ? (
-              <GroupedSection header="Fit tier">
-                <GroupedBlock>
-                  <p className="text-app-label">
+              <RecordSection header="Fit tier">
+                <RecordBlock>
+                  <p className="text-desk-fg">
                     Taking all of it makes them{" "}
                     <span className="font-mono">{preview.tier.ifAccepted}</span>
                     {preview.tier.now === null
@@ -321,11 +320,11 @@ export function LeadEnrich({
                         ? " — the same as today."
                         : ` — they are ${preview.tier.now} today.`}
                   </p>
-                  <p className="mt-1 text-app-footnote text-app-label-3">
+                  <p className="mt-1 text-desk-meta text-desk-fg-3">
                     {preview.tier.reasons.join(" · ")}
                   </p>
-                </GroupedBlock>
-              </GroupedSection>
+                </RecordBlock>
+              </RecordSection>
             ) : null}
 
             <div className="flex items-center gap-2">
@@ -353,7 +352,7 @@ export function LeadEnrich({
               </Button>
             </div>
 
-            <p className="text-app-caption text-app-label-3">
+            <p className="text-desk-meta text-desk-fg-3">
               Read by <span className="font-mono">{preview.model}</span>. The
               tier is derived from the facts, never proposed.
             </p>
@@ -383,9 +382,9 @@ function HookChange({
   onToggle: () => void
 }) {
   return (
-    <GroupedBlock>
+    <RecordBlock>
       <div className="flex items-start justify-between gap-3">
-        <span className="text-app-label-3">{change.label}</span>
+        <span className="text-desk-fg-3">{change.label}</span>
         <Switch
           checked={checked}
           onCheckedChange={onToggle}
@@ -393,11 +392,11 @@ function HookChange({
         />
       </div>
       {change.current ? (
-        <p className="mt-1 text-app-footnote text-app-label-3">
+        <p className="mt-1 text-desk-meta text-desk-fg-3">
           Now: {change.current}
         </p>
       ) : null}
-      <p className="mt-1 whitespace-pre-wrap text-app-label">{change.proposed}</p>
-    </GroupedBlock>
+      <p className="mt-1 whitespace-pre-wrap text-desk-fg">{change.proposed}</p>
+    </RecordBlock>
   )
 }

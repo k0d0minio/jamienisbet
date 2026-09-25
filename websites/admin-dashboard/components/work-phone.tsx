@@ -14,7 +14,7 @@ import {
   cn,
 } from "@jamie-nisbet/ui"
 
-import { AppMenu } from "@/components/app-menu"
+import { AccountMenu } from "@/components/account-menu"
 import {
   batchKey,
   repoFigures,
@@ -370,7 +370,7 @@ function subscribeHistory(onChange: () => void) {
 // Chrome.
 
 /** On the phone the title bar carries what the rail carries at the desk: the
- *  palette and the app menu. From `md` the rail has both. */
+ *  palette and the account menu. From `md` the rail has both. */
 function PhoneChrome() {
   const openPalette = usePaletteOpener()
   return (
@@ -380,7 +380,7 @@ function PhoneChrome() {
           <Search aria-hidden />
         </DeskButton>
       ) : null}
-      <AppMenu />
+      <AccountMenu />
     </div>
   )
 }
@@ -548,7 +548,7 @@ function ListLevel({
         <div className="flex min-h-12 items-center gap-2">
           <h1 className="text-desk-heading font-bold">Work</h1>
           <div className="ml-auto flex items-center gap-1">
-            <BoardRefresh readAt={board.readAt} desk />
+            <BoardRefresh readAt={board.readAt} />
             <PhoneChrome />
           </div>
         </div>

@@ -2,15 +2,14 @@ import type { Metadata } from "next"
 import { Receipt, TriangleAlert } from "lucide-react"
 
 import {
-  GlanceFigure,
-  GlanceRow,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
+  RecordBlock,
+  RecordRow,
+  RecordSection,
 } from "@jamie-nisbet/ui"
 import { listClients } from "@jamie-nisbet/services"
 
-import { AppScreen } from "@/components/app-screen"
+import { DeskScreen } from "@/components/desk-screen"
+import { MoneyFigure, MoneyFigures } from "@/components/money-figures"
 import { InvoiceActions } from "@/components/invoice-actions"
 import {
   InvoiceCreateForm,
@@ -42,10 +41,10 @@ export const dynamic = "force-dynamic"
 // two ways to ask for it. Every figure is read live from Stripe, which stays
 // the source of truth — nothing about an amount comes from the browser.
 //
-// The screen's name sets large and hands off to the compact bar on scroll;
-// under it, what the account adds up to is a glance row of mono figures rather
-// than a wall of stat cards. Then three inset grouped lists — invoices, links,
-// what landed — each opening with the row that creates one.
+// The screen's name sits in a flat title bar; under it, what the account adds
+// up to is a row of mono figures rather than a wall of stat cards. Then three
+// records — invoices, links, what landed — each opening with the row that
+// creates one.
 //
 // The desktop tables are gone. A table only ever worked on the wide end, and
 // keeping one meant every row existed twice, in two layouts, with two sets of
@@ -100,7 +99,7 @@ async function loadMoney(): Promise<MoneyData> {
 }
 
 // ---------------------------------------------------------------------------
-// The glance row
+// The figures
 
 type Figure = { key: string; value: string; label: string }
 
@@ -150,23 +149,23 @@ export default async function MoneyPage() {
   // every missing-configuration case in this app degrades.
   if (!isStripeConfigured()) {
     return (
-      <AppScreen title="Money">
-        <div className="flex flex-col gap-app-section pt-1 pb-2">
-          <GroupedSection footer="Everything else in the app works without it.">
-            <GroupedRow
+      <DeskScreen title="Money">
+        <div className="flex flex-col gap-6 pt-1 pb-2">
+          <RecordSection footer="Everything else in the app works without it.">
+            <RecordRow
               icon={<Receipt />}
               label="Stripe isn't configured here"
               chevron={false}
             />
-            <GroupedBlock>
+            <RecordBlock>
               Set <span className="font-mono">STRIPE_SECRET_KEY</span> in this
               environment to see the balance and raise invoices and payment
               links. The variable is listed in{" "}
               <span className="font-mono">.env.example</span>.
-            </GroupedBlock>
-          </GroupedSection>
+            </RecordBlock>
+          </RecordSection>
         </div>
-      </AppScreen>
+      </DeskScreen>
     )
   }
 
@@ -199,35 +198,35 @@ export default async function MoneyPage() {
   const figures = glanceFigures(summary)
 
   return (
-    <AppScreen
+    <DeskScreen
       title="Money"
       masthead={
         figures.length > 0 ? (
-          <GlanceRow>
+          <MoneyFigures>
             {figures.map((figure) => (
-              <GlanceFigure
+              <MoneyFigure
                 key={figure.key}
                 value={figure.value}
                 label={figure.label}
               />
             ))}
-          </GlanceRow>
+          </MoneyFigures>
         ) : undefined
       }
     >
-      <div className="flex flex-col gap-app-section pt-1 pb-2">
+      <div className="flex flex-col gap-6 pt-1 pb-2">
         {/* Stripe is the whole screen, so a failure to reach it is stated in
             plain words rather than left as three empty lists. */}
         {error ? (
-          <GroupedSection>
-            <GroupedRow
+          <RecordSection>
+            <RecordRow
               icon={<TriangleAlert />}
               label={down ? "Stripe unavailable" : "Some of this didn't load"}
               variant="destructive"
               chevron={false}
             />
-            <GroupedBlock>{error}</GroupedBlock>
-          </GroupedSection>
+            <RecordBlock>{error}</RecordBlock>
+          </RecordSection>
         ) : null}
 
         {down ? null : (
@@ -241,14 +240,14 @@ export default async function MoneyPage() {
 
             {/* Two short lists side by side once there is width for them — the
                 iPad reading of the same groups, not a different layout. */}
-            <div className="flex flex-col gap-app-section lg:grid lg:grid-cols-2 lg:items-start">
+            <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
               <PaymentLinks rows={links} />
               <RecentPayments rows={payments} />
             </div>
           </>
         )}
       </div>
-    </AppScreen>
+    </DeskScreen>
   )
 }
 
@@ -257,8 +256,8 @@ export default async function MoneyPage() {
 //
 // `id` is the Needs you feed's landing point: its Money rows find the invoice
 // that needs deciding on and send you here, where deciding actually happens.
-// `scroll-mt-app-bar` keeps the section's header clear of the compact title
-// bar the deep link scrolls it under.
+// `scroll-mt-20` keeps the section's header clear of the sticky title bar the
+// deep link scrolls it under.
 
 function Invoices({
   rows,
@@ -274,9 +273,9 @@ function Invoices({
   const open = openCount ?? 0
 
   return (
-    <GroupedSection
+    <RecordSection
       id="invoices"
-      className="scroll-mt-app-bar"
+      className="scroll-mt-20"
       header="Invoices"
       footer={
         // The standing rule, said where it is obeyed. The count of what is
@@ -287,12 +286,12 @@ function Invoices({
       <InvoiceCreateForm clients={clients} />
 
       {rows === null ? (
-        <GroupedBlock>Couldn&rsquo;t read the invoices from Stripe.</GroupedBlock>
+        <RecordBlock>Couldn&rsquo;t read the invoices from Stripe.</RecordBlock>
       ) : rows.length === 0 ? (
-        <GroupedBlock>
+        <RecordBlock>
           Nothing raised yet. A new one stays a draft until you send it, so
           there is no harm in starting it early.
-        </GroupedBlock>
+        </RecordBlock>
       ) : (
         rows.map((row) => (
           <InvoiceActions
@@ -323,7 +322,7 @@ function Invoices({
           />
         ))
       )}
-    </GroupedSection>
+    </RecordSection>
   )
 }
 
@@ -332,21 +331,21 @@ function Invoices({
 
 function PaymentLinks({ rows }: { rows: PaymentLinkRow[] | null }) {
   return (
-    <GroupedSection
+    <RecordSection
       header="Payment links"
       footer="A link is only outbound once you copy it and share it."
     >
       <PaymentLinkCreateForm />
 
       {rows === null ? (
-        <GroupedBlock>
+        <RecordBlock>
           Couldn&rsquo;t read the payment links from Stripe.
-        </GroupedBlock>
+        </RecordBlock>
       ) : rows.length === 0 ? (
-        <GroupedBlock>
+        <RecordBlock>
           None yet. A link is the quickest way to be paid for something with a
           fixed price — a discovery call, a fixed-scope audit.
-        </GroupedBlock>
+        </RecordBlock>
       ) : (
         rows.map((row) => (
           <PaymentLinkActions
@@ -364,7 +363,7 @@ function PaymentLinks({ rows }: { rows: PaymentLinkRow[] | null }) {
           />
         ))
       )}
-    </GroupedSection>
+    </RecordSection>
   )
 }
 
@@ -374,16 +373,16 @@ function PaymentLinks({ rows }: { rows: PaymentLinkRow[] | null }) {
 
 function RecentPayments({ rows }: { rows: PaymentRow[] | null }) {
   return (
-    <GroupedSection header="Recent payments">
+    <RecordSection header="Recent payments">
       {rows === null ? (
-        <GroupedBlock>Couldn&rsquo;t read the payments from Stripe.</GroupedBlock>
+        <RecordBlock>Couldn&rsquo;t read the payments from Stripe.</RecordBlock>
       ) : rows.length === 0 ? (
-        <GroupedBlock>
+        <RecordBlock>
           Nothing has landed yet. Paid invoices and links both show up here.
-        </GroupedBlock>
+        </RecordBlock>
       ) : (
         rows.map((payment) => (
-          <GroupedRow
+          <RecordRow
             key={payment.id}
             label={payment.description ?? "Payment"}
             description={
@@ -409,6 +408,6 @@ function RecentPayments({ rows }: { rows: PaymentRow[] | null }) {
           />
         ))
       )}
-    </GroupedSection>
+    </RecordSection>
   )
 }

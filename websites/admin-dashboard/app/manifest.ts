@@ -35,7 +35,7 @@ export default function manifest(): MetadataRoute.Manifest {
     // and the wider panes — and an installed tablet app told "portrait" could
     // never reach its landscape reading.
     orientation: "any",
-    // The splash and the installed chrome take the app's canvas (--bg) —
+    // The splash and the installed chrome take the desk canvas (--bg) —
     // the logo's paper — so the icon's tile and the screen behind it are
     // the same sheet. A manifest cannot carry a media query, so this is the
     // light reading; the mode-reactive value is the <meta name="theme-color">

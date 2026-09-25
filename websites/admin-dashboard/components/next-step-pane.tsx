@@ -3,8 +3,8 @@
 import { Moon } from "lucide-react"
 
 import {
-  AppField,
-  AppInput,
+  DeskField,
+  DeskInput,
   Button,
   PendingButton,
   SheetDescription,
@@ -80,22 +80,22 @@ export function NextStepPane({
         {park ? (
           <input type="hidden" name="park" value="1" />
         ) : (
-          <AppField label="Next step" hint="Edit it if it isn't quite right.">
-            <AppInput
+          <DeskField label="Next step" hint="Edit it if it isn't quite right.">
+            <DeskInput
               name="action"
               defaultValue={suggestion.action}
               maxLength={200}
               autoCapitalize="sentences"
               enterKeyHint="done"
             />
-          </AppField>
+          </DeskField>
         )}
 
-        <AppField
+        <DeskField
           label={park ? "Wake date" : "Due"}
           hint={park ? "Ninety days out, by default." : undefined}
         >
-          <AppInput
+          <DeskInput
             name="dueDate"
             type="date"
             defaultValue={dateValue(
@@ -103,7 +103,7 @@ export function NextStepPane({
             )}
             className="w-full sm:max-w-52"
           />
-        </AppField>
+        </DeskField>
 
         <div className="flex items-center gap-2">
           <PendingButton
@@ -128,7 +128,7 @@ export function NextStepPane({
         </div>
       </form>
 
-      <p className="mt-4 text-app-footnote text-app-label-3">
+      <p className="mt-4 text-desk-meta text-desk-fg-3">
         Nothing here is binding — a lead with no next step is allowed, it just
         turns up on the Needs you feed as one nobody has planned.
       </p>

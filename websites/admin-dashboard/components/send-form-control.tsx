@@ -7,11 +7,11 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-  AppSelect,
-  AppSelectContent,
-  AppSelectItem,
-  AppSelectTrigger,
-  AppSelectValue,
+  DeskSelect,
+  DeskSelectContent,
+  DeskSelectItem,
+  DeskSelectTrigger,
+  DeskSelectValue,
   Button,
   RecordRow,
   Sheet,
@@ -80,31 +80,31 @@ export function SendFormControl({
   return (
     <div className="flex flex-col gap-3">
       {forms.length === 0 ? (
-        <p className="text-app-subhead text-app-label-3">
+        <p className="text-desk-ui text-desk-fg-3">
           No questionnaires to send. The house ones live in icm-board&apos;s{" "}
-          <code className="rounded-xs bg-app-press px-1 py-0.5 text-app-caption">
+          <code className="rounded-xs bg-desk-hover px-1 py-0.5 text-desk-meta">
             workspaces/sell/references/forms/
           </code>
           , a client&apos;s own in their delivery repo&apos;s{" "}
-          <code className="rounded-xs bg-app-press px-1 py-0.5 text-app-caption">
+          <code className="rounded-xs bg-desk-hover px-1 py-0.5 text-desk-meta">
             .icm/onboarding/
           </code>
           . Add a markdown file to either and it shows up here.
         </p>
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <AppSelect value={formId} onValueChange={setFormId} disabled={pending}>
-            <AppSelectTrigger
+          <DeskSelect value={formId} onValueChange={setFormId} disabled={pending}>
+            <DeskSelectTrigger
               className="w-full sm:flex-1"
               aria-label="Questionnaire to send"
             >
-              <AppSelectValue placeholder="Choose a questionnaire" />
-            </AppSelectTrigger>
-            <AppSelectContent>
+              <DeskSelectValue placeholder="Choose a questionnaire" />
+            </DeskSelectTrigger>
+            <DeskSelectContent>
               {forms.map((form) => (
-                <AppSelectItem key={form.id} value={form.id}>
+                <DeskSelectItem key={form.id} value={form.id}>
                   {form.title}
-                  <span className="text-material-label-3">
+                  <span className="text-desk-fg-3">
                     {" "}
                     · {form.questionCount}{" "}
                     {form.questionCount === 1 ? "question" : "questions"}
@@ -116,10 +116,10 @@ export function SendFormControl({
                       ? null
                       : ` · ${form.sourceRepo.split("/").pop()}`}
                   </span>
-                </AppSelectItem>
+                </DeskSelectItem>
               ))}
-            </AppSelectContent>
-          </AppSelect>
+            </DeskSelectContent>
+          </DeskSelect>
           <Button
             type="button"
             disabled={pending || !formId}
@@ -162,7 +162,7 @@ export function SendFormControl({
 }
 
 // The Forms group's own row: sending a questionnaire is a two-tap act on a
-// phone (pick one, send), and a grouped list has no room for a picker and a
+// phone (pick one, send), and a record row has no room for a picker and a
 // button on a line — so the row opens a sheet and the control above lives in
 // it. The row is the only part of this file the profile screen renders
 // directly; anything else can still use the control on its own.

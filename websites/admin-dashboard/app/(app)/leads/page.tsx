@@ -21,7 +21,7 @@ import {
   type Client,
 } from "@jamie-nisbet/services"
 
-import { AppScreen } from "@/components/app-screen"
+import { DeskScreen } from "@/components/desk-screen"
 import { ArchiveChip, ProspectsChip } from "@/components/chip"
 import { ClientCreateForm } from "@/components/client-create-form"
 import { DealBadges } from "@/components/deal-badges"
@@ -100,7 +100,7 @@ export const metadata: Metadata = { title: "Leads" }
 // businesses that have never engaged, and eighty-five of them arrive in one
 // batch. They are not a slice of the roster — they are a different population:
 // sorted on their fit tier rather than on who has waited longest, carrying none
-// of the money the glance row adds up, and owed a reply by nobody. Filing them
+// of the money the totals line adds up, and owed a reply by nobody. Filing them
 // under "All" would leave the roster mostly strangers and make the word "All"
 // a promise the screen can't keep.
 //
@@ -704,7 +704,7 @@ export default async function LeadsPage({
           works — full-bleed, flat, on the desk tier. The layout switch is not
           offered here: a board of nine columns is a desk view. */}
       <div className="md:hidden">
-        <AppScreen
+        <DeskScreen
           title={title}
           subtitle={totalsLine ?? undefined}
           actions={
@@ -724,7 +724,7 @@ export default async function LeadsPage({
             )
           }
         >
-          <div className="desk-tier -mx-(--app-gutter) flex flex-col">
+          <div className="desk-tier -mx-4 flex flex-col">
             <div className="flex flex-col gap-1.5 px-4 py-2">
               <LeadFilters
                 label={cold ? "Filter prospects" : "Filter leads"}
@@ -751,7 +751,7 @@ export default async function LeadsPage({
               </ul>
             )}
           </div>
-        </AppScreen>
+        </DeskScreen>
       </div>
     </>
   )

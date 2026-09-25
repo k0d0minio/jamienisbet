@@ -24,12 +24,12 @@ export function ClientStripeLink({
   if (stripeCustomerId) {
     return (
       <div className="grid gap-1">
-        <span className="font-mono text-app-footnote break-all">{stripeCustomerId}</span>
+        <span className="font-mono text-desk-meta break-all">{stripeCustomerId}</span>
         <a
           href={`https://dashboard.stripe.com/customers/${stripeCustomerId}`}
           target="_blank"
           rel="noreferrer"
-          className="text-app-footnote text-app-label-3 underline underline-offset-2 hover:text-app-label"
+          className="text-desk-meta text-desk-fg-3 underline underline-offset-2 hover:text-desk-fg"
         >
           View in Stripe ↗
         </a>
@@ -58,7 +58,7 @@ export function ClientStripeLink({
       >
         {pending ? "Linking…" : "Create & link Stripe customer"}
       </Button>
-      {error ? <p className="text-app-footnote text-destructive">{error}</p> : null}
+      {error ? <p className="text-desk-meta text-destructive">{error}</p> : null}
     </div>
   )
 }

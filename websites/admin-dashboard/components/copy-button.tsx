@@ -26,7 +26,7 @@ export function CopyButton({
   label?: string
   what?: string
   size?: "sm" | "default"
-  /** For a caller that sets its own type — the app tier's scale, say. */
+  /** For a caller that sets its own type — the desk tier's scale, say. */
   className?: string
 }) {
   const [copied, setCopied] = useState(false)

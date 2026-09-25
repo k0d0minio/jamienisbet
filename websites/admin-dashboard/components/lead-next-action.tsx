@@ -4,8 +4,8 @@ import { useState, useTransition } from "react"
 import { CalendarClock, Flag, Moon } from "lucide-react"
 
 import {
-  AppField,
-  AppInput,
+  DeskField,
+  DeskInput,
   Button,
   PendingButton,
   Sheet,
@@ -161,8 +161,8 @@ export function LeadNextAction({
           {parked ? (
             <input type="hidden" name="park" value="1" />
           ) : (
-            <AppField label="Next step" hint="Short and in your own words.">
-              <AppInput
+            <DeskField label="Next step" hint="Short and in your own words.">
+              <DeskInput
                 name="action"
                 defaultValue={action ?? ""}
                 maxLength={200}
@@ -170,10 +170,10 @@ export function LeadNextAction({
                 autoCapitalize="sentences"
                 enterKeyHint="next"
               />
-            </AppField>
+            </DeskField>
           )}
 
-          <AppField
+          <DeskField
             label={parked ? "Wake date" : "Due"}
             hint={
               parked
@@ -181,13 +181,13 @@ export function LeadNextAction({
                 : "Empty means it never reaches the day's queue."
             }
           >
-            <AppInput
+            <DeskInput
               name="dueDate"
               type="date"
               defaultValue={dueValue ?? ""}
               className="w-full sm:max-w-52"
             />
-          </AppField>
+          </DeskField>
 
           <div className="flex items-center gap-2">
             <PendingButton
@@ -224,7 +224,7 @@ export function LeadNextAction({
         </form>
 
         {!parked && !action ? (
-          <p className="mt-4 flex items-start gap-2 text-app-footnote text-app-label-3">
+          <p className="mt-4 flex items-start gap-2 text-desk-meta text-desk-fg-3">
             <CalendarClock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
             Logging a touch suggests the next one for you — this is for when you
             already know.

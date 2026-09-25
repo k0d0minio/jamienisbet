@@ -4,9 +4,9 @@ import { invoiceStateLabel, type InvoiceState } from "@/lib/invoice-state"
 
 // Where an invoice stands, as one muted pill on its row.
 //
-// The badge is restyled for the app tier rather than re-invented: same
-// component, same mono label, full radius instead of the marketing tier's 5px
-// box — a pill inside a 16px slab, the way the deal badges next door round.
+// The badge is restyled rather than re-invented: same component, same mono
+// label, full radius instead of the marketing tier's 5px box — the way the deal
+// badges next door round.
 //
 // Colour is the whole point, and it is state-only and muted, never neon:
 //

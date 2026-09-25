@@ -11,7 +11,7 @@ import { LogoLoader } from "@jamie-nisbet/ui"
 export function LoadingLine({ children = "Loading" }: { children?: React.ReactNode }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 text-app-subhead text-app-label-3"
+      className="inline-flex items-center gap-1.5 text-desk-ui text-desk-fg-3"
       aria-hidden="true"
     >
       <LogoLoader className="size-4" role={undefined} aria-label={undefined} />

@@ -2,7 +2,7 @@
 
 import { AtSign, Mail, MessageCircle } from "lucide-react"
 
-import { GroupedRow } from "@jamie-nisbet/ui"
+import { RecordRow } from "@jamie-nisbet/ui"
 
 import {
   draftInstagramHref,
@@ -47,7 +47,7 @@ export function DraftHandoff({
   switch (channel) {
     case "email":
       return (
-        <GroupedRow
+        <RecordRow
           icon={<Mail />}
           variant="tint"
           label="Open an email draft"
@@ -59,7 +59,7 @@ export function DraftHandoff({
       )
     case "whatsapp":
       return (
-        <GroupedRow
+        <RecordRow
           icon={<MessageCircle />}
           variant="tint"
           label="Open the chat, message typed in"
@@ -73,7 +73,7 @@ export function DraftHandoff({
       )
     case "instagram":
       return (
-        <GroupedRow
+        <RecordRow
           icon={<AtSign />}
           variant="tint"
           label="Copy it and open Instagram"

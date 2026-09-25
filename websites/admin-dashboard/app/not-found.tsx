@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { Inbox, MapPinOff } from "lucide-react"
 
-import { GroupedBlock, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
+import { RecordBlock, RecordRow, RecordSection } from "@jamie-nisbet/ui"
 
-import { AppScreen } from "@/components/app-screen"
+import { DeskScreen } from "@/components/desk-screen"
 
 // What a URL that isn't a screen looks like — including the one that actually
 // happens: a lead's page reached from a bookmark after the record was deleted
@@ -19,28 +19,28 @@ import { AppScreen } from "@/components/app-screen"
 export default function NotFound() {
   return (
     <main className="mx-auto w-full max-w-5xl pb-screen-safe">
-      <AppScreen title="Not here" subtitle="Nothing at this address">
-        <GroupedList className="px-0">
-          <GroupedSection footer="A lead that has been deleted leaves its address behind — a bookmark or a back button can still reach it.">
-            <GroupedBlock>
-              <span className="mb-2 flex items-center gap-2 text-app-callout text-app-label">
-                <MapPinOff className="size-5 text-app-label-3" aria-hidden />
+      <DeskScreen title="Not here" subtitle="Nothing at this address">
+        <div className="flex flex-col gap-6 pt-4">
+          <RecordSection footer="A lead that has been deleted leaves its address behind — a bookmark or a back button can still reach it.">
+            <RecordBlock>
+              <span className="mb-2 flex items-center gap-2 text-desk-body font-semibold text-desk-fg">
+                <MapPinOff className="size-desk-icon text-desk-fg-3" aria-hidden />
                 There is no screen at this address
               </span>
               <p>
                 Either it never existed, or whatever was here has been deleted
                 since the link was made.
               </p>
-            </GroupedBlock>
-          </GroupedSection>
+            </RecordBlock>
+          </RecordSection>
 
-          <GroupedSection>
-            <GroupedRow asChild icon={<Inbox />} label="Back to the Inbox">
+          <RecordSection>
+            <RecordRow asChild icon={<Inbox />} label="Back to the Inbox">
               <Link href="/inbox" />
-            </GroupedRow>
-          </GroupedSection>
-        </GroupedList>
-      </AppScreen>
+            </RecordRow>
+          </RecordSection>
+        </div>
+      </DeskScreen>
     </main>
   )
 }

@@ -20,12 +20,11 @@ import { formatBps } from "@/lib/percent"
 // One component wherever they appear — the list row's third line and the lead
 // profile's identity header — so the same four facts read identically. What the
 // headline figure beside them already carries is passed in as `omit` and left
-// out here: an equity-only deal says "12% equity" once, not twice. Both of
-// those are app-tier surfaces, so the badges round fully rather than taking the
-// marketing tier's 5px corners: a pill inside a 16px slab, not a small box
-// inside a big one. The figures stay mono, which they were already.
+// out here: an equity-only deal says "12% equity" once, not twice. The badges
+// round fully — a tag on a flat desk row, not a small box — and the figures
+// stay mono.
 
-/** App-tier pills: full radius, and a hair more room around the glyph than the
+/** Pills: full radius, and a hair more room around the glyph than the
  *  marketing badge's 5px box wants. */
 const PILL = "rounded-full px-2.5"
 

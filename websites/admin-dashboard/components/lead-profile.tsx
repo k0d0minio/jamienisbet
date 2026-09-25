@@ -15,7 +15,7 @@ import { ChevronLeft } from "lucide-react"
 
 import { DeskTabs, cn, deskTabId, deskTabPanelId } from "@jamie-nisbet/ui"
 
-import { AppMenu } from "@/components/app-menu"
+import { AccountMenu } from "@/components/account-menu"
 import { PaletteTitleBarButton } from "@/components/command-palette"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
@@ -221,11 +221,11 @@ export function LeadProfile({
                 </span>
               </span>
             ) : null}
-            {/* The phone's chrome: the palette and the app menu live in the
+            {/* The phone's chrome: the palette and the account menu live in the
                 rail from `md`, and in the title bar every other screen has. */}
             <div className="ml-auto flex items-center md:hidden">
               <PaletteTitleBarButton />
-              <AppMenu />
+              <AccountMenu />
             </div>
           </div>
           {head}

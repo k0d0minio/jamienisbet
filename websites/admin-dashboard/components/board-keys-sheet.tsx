@@ -3,8 +3,8 @@
 import { useRef } from "react"
 
 import {
-  GroupedRow,
-  GroupedSection,
+  RecordRow,
+  RecordSection,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -48,7 +48,7 @@ const GROUPS: { header: string; keys: { keys: string[]; label: string }[] }[] = 
 /** One key as a keycap: a hairline slab, the key in mono. */
 export function Keycap({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="inline-flex min-w-6 items-center justify-center rounded-app-control border border-app-separator bg-app-group px-1.5 font-mono text-app-caption text-app-label-2">
+    <kbd className="inline-flex min-w-6 items-center justify-center rounded-desk-control border border-desk-line bg-desk-surface px-1.5 font-mono text-desk-meta text-desk-fg-2">
       {children}
     </kbd>
   )
@@ -84,11 +84,11 @@ export function BoardKeysSheet({
             menu is open.
           </SheetDescription>
         </SheetHeader>
-        <div className="mt-4 flex flex-col gap-app-section">
+        <div className="mt-4 flex flex-col gap-6">
           {GROUPS.map((group) => (
-            <GroupedSection key={group.header} header={group.header}>
+            <RecordSection key={group.header} header={group.header}>
               {group.keys.map((row) => (
-                <GroupedRow
+                <RecordRow
                   key={row.label}
                   label={row.label}
                   chevron={false}
@@ -101,7 +101,7 @@ export function BoardKeysSheet({
                   }
                 />
               ))}
-            </GroupedSection>
+            </RecordSection>
           ))}
         </div>
       </SheetContent>

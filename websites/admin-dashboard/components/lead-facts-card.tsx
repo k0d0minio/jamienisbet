@@ -2,14 +2,14 @@
 
 import { useState, useTransition } from "react"
 import {
-  AppField,
-  AppInput,
-  AppSelect,
-  AppSelectContent,
-  AppSelectItem,
-  AppSelectTrigger,
-  AppSelectValue,
-  AppTextarea,
+  DeskField,
+  DeskInput,
+  DeskSelect,
+  DeskSelectContent,
+  DeskSelectItem,
+  DeskSelectTrigger,
+  DeskSelectValue,
+  DeskTextarea,
   DeskButton,
   PendingButton,
   RecordBlock,
@@ -163,64 +163,64 @@ export function LeadFactsCard({
           className="grid gap-3"
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <AppField label="Sector">
-              <AppInput
+            <DeskField label="Sector">
+              <DeskInput
                 name="sector"
                 defaultValue={client.sector ?? ""}
                 placeholder="Restaurant, clinic, builder…"
                 autoCapitalize="sentences"
                 enterKeyHint="next"
               />
-            </AppField>
-            <AppField label="Town">
-              <AppInput
+            </DeskField>
+            <DeskField label="Town">
+              <DeskInput
                 name="town"
                 defaultValue={client.town ?? ""}
                 placeholder="Mafra"
                 autoCapitalize="words"
                 enterKeyHint="next"
               />
-            </AppField>
-            <AppField label="Language" hint="Which one to open in.">
-              <AppSelect
+            </DeskField>
+            <DeskField label="Language" hint="Which one to open in.">
+              <DeskSelect
                 name="language"
                 defaultValue={client.language ?? UNSET}
               >
-                <AppSelectTrigger className="w-full">
-                  <AppSelectValue />
-                </AppSelectTrigger>
-                <AppSelectContent>
-                  <AppSelectItem value={UNSET}>Not set</AppSelectItem>
+                <DeskSelectTrigger className="w-full">
+                  <DeskSelectValue />
+                </DeskSelectTrigger>
+                <DeskSelectContent>
+                  <DeskSelectItem value={UNSET}>Not set</DeskSelectItem>
                   {LANGUAGES.map((option) => (
-                    <AppSelectItem key={option.value} value={option.value}>
+                    <DeskSelectItem key={option.value} value={option.value}>
                       {option.label}
-                    </AppSelectItem>
+                    </DeskSelectItem>
                   ))}
-                </AppSelectContent>
-              </AppSelect>
-            </AppField>
-            <AppField label="Fit tier" hint="A is the best fit.">
-              <AppSelect
+                </DeskSelectContent>
+              </DeskSelect>
+            </DeskField>
+            <DeskField label="Fit tier" hint="A is the best fit.">
+              <DeskSelect
                 name="fitTier"
                 defaultValue={client.fitTier ?? UNSET}
               >
-                <AppSelectTrigger className="w-full">
-                  <AppSelectValue />
-                </AppSelectTrigger>
-                <AppSelectContent>
-                  <AppSelectItem value={UNSET}>Not tiered</AppSelectItem>
+                <DeskSelectTrigger className="w-full">
+                  <DeskSelectValue />
+                </DeskSelectTrigger>
+                <DeskSelectContent>
+                  <DeskSelectItem value={UNSET}>Not tiered</DeskSelectItem>
                   {FIT_TIERS.map((tier) => (
-                    <AppSelectItem key={tier.value} value={tier.value}>
+                    <DeskSelectItem key={tier.value} value={tier.value}>
                       {tier.value} — {tier.hint}
-                    </AppSelectItem>
+                    </DeskSelectItem>
                   ))}
-                </AppSelectContent>
-              </AppSelect>
-            </AppField>
+                </DeskSelectContent>
+              </DeskSelect>
+            </DeskField>
           </div>
 
-          <AppField label="Website" hint="With or without the https://.">
-            <AppInput
+          <DeskField label="Website" hint="With or without the https://.">
+            <DeskInput
               name="websiteUrl"
               // The URL keyboard, but not the URL *type*: the pool's
               // addresses are written the way people say them ("example.pt"),
@@ -235,50 +235,50 @@ export function LeadFactsCard({
               defaultValue={client.websiteUrl ?? ""}
               placeholder="example.pt"
             />
-          </AppField>
+          </DeskField>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <AppField label="Web presence">
-              <AppSelect
+            <DeskField label="Web presence">
+              <DeskSelect
                 name="websiteGrade"
                 defaultValue={client.websiteGrade ?? UNSET}
               >
-                <AppSelectTrigger className="w-full">
-                  <AppSelectValue />
-                </AppSelectTrigger>
-                <AppSelectContent>
-                  <AppSelectItem value={UNSET}>Not graded</AppSelectItem>
+                <DeskSelectTrigger className="w-full">
+                  <DeskSelectValue />
+                </DeskSelectTrigger>
+                <DeskSelectContent>
+                  <DeskSelectItem value={UNSET}>Not graded</DeskSelectItem>
                   {WEBSITE_GRADES.map((option) => (
-                    <AppSelectItem key={option.value} value={option.value}>
+                    <DeskSelectItem key={option.value} value={option.value}>
                       {option.label}
-                    </AppSelectItem>
+                    </DeskSelectItem>
                   ))}
-                </AppSelectContent>
-              </AppSelect>
-            </AppField>
-            <AppField label="Google reviews" hint="Empty if nobody looked.">
-              <AppInput
+                </DeskSelectContent>
+              </DeskSelect>
+            </DeskField>
+            <DeskField label="Google reviews" hint="Empty if nobody looked.">
+              <DeskInput
                 name="reviewCount"
                 inputMode="numeric"
                 enterKeyHint="next"
                 defaultValue={client.reviewCount ?? ""}
                 placeholder="—"
               />
-            </AppField>
+            </DeskField>
           </div>
 
-          <AppField
+          <DeskField
             label="Hook"
             hint="The one thing about them a first message leads with."
           >
-            <AppTextarea
+            <DeskTextarea
               name="hook"
               rows={3}
               autoCapitalize="sentences"
               defaultValue={client.hook ?? ""}
               placeholder="Menu is a PDF nobody can read on a phone…"
             />
-          </AppField>
+          </DeskField>
 
           <PendingButton
             pending={pending}

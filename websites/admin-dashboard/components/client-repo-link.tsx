@@ -3,7 +3,7 @@
 import { type ReactNode, useEffect, useState, useTransition } from "react"
 import { ChevronRight, TriangleAlert } from "lucide-react"
 
-import { AppField, AppInput, AppLabel, Button, Switch } from "@jamie-nisbet/ui"
+import { DeskField, DeskInput, DeskLabel, Button, Switch } from "@jamie-nisbet/ui"
 
 import {
   connectClientRepo,
@@ -35,17 +35,17 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
           href={`https://github.com/${githubRepo}`}
           target="_blank"
           rel="noreferrer"
-          className="font-mono text-app-subhead break-all underline underline-offset-2 hover:text-app-label"
+          className="font-mono text-desk-ui break-all underline underline-offset-2 hover:text-desk-fg"
         >
           {githubRepo} ↗
         </a>
         {githubDefaultBranch ? (
-          <span className="font-mono text-app-footnote text-app-label-3">
+          <span className="font-mono text-desk-meta text-desk-fg-3">
             {githubDefaultBranch}
           </span>
         ) : null}
       </div>
-      <p className="text-app-footnote text-app-label-3">
+      <p className="text-desk-meta text-desk-fg-3">
         Connected — this is where the delivery work for them lives.
       </p>
       <Button
@@ -53,7 +53,7 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
         size="sm"
         variant="ghost"
         disabled={pending}
-        className="w-fit text-app-label-3"
+        className="w-fit text-desk-fg-3"
         onClick={() => {
           setError(null)
           hapticTick()
@@ -77,13 +77,13 @@ function Connected({ id, githubRepo, githubDefaultBranch }: ConnectedProps) {
 
 // A failure that belongs to a whole block rather than to one field — the
 // disconnect that was refused, the repo GitHub would not create. Drawn the way
-// AppField draws a field's error, glyph included, so the two never read as
+// DeskField draws a field's error, glyph included, so the two never read as
 // different kinds of bad news.
 function RepoError({ children }: { children: ReactNode }) {
   return (
     <p
       role="alert"
-      className="flex items-center gap-1.5 text-app-footnote text-destructive"
+      className="flex items-center gap-1.5 text-desk-meta text-destructive"
     >
       <TriangleAlert className="size-4 shrink-0" aria-hidden />
       {children}
@@ -120,7 +120,7 @@ function ConnectExisting({ id }: { id: string }) {
   }, [])
 
   return (
-    <AppField
+    <DeskField
       label="Connect an existing repo"
       hint={
         listingError
@@ -130,7 +130,7 @@ function ConnectExisting({ id }: { id: string }) {
       error={error}
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <AppInput
+        <DeskInput
           list="repo-options"
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -170,7 +170,7 @@ function ConnectExisting({ id }: { id: string }) {
           {pending ? "Connecting…" : "Connect"}
         </Button>
       </div>
-    </AppField>
+    </DeskField>
   )
 }
 
@@ -193,8 +193,8 @@ function CreateNew({
 
   return (
     <div className="grid gap-2">
-      <AppField label="Create a new repo">
-        <AppInput
+      <DeskField label="Create a new repo">
+        <DeskInput
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="repo-name"
@@ -203,22 +203,22 @@ function CreateNew({
           spellCheck={false}
           className="font-mono"
         />
-      </AppField>
-      <AppInput
+      </DeskField>
+      <DeskInput
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description (optional)"
         aria-label="Repo description"
       />
-      <div className="flex min-h-app-touch items-center gap-2">
+      <div className="flex min-h-desk-control items-center gap-2">
         <Switch
           id="repo-private"
           checked={isPrivate}
           onCheckedChange={setIsPrivate}
         />
-        <AppLabel htmlFor="repo-private" className="font-normal">
+        <DeskLabel htmlFor="repo-private" className="font-normal">
           Private
-        </AppLabel>
+        </DeskLabel>
       </div>
       <Button
         type="button"
@@ -274,7 +274,7 @@ export function ClientRepoLink({
   const [scaffoldError, setScaffoldError] = useState<string | null>(null)
 
   const scaffoldNotice = scaffoldError ? (
-    <p className="text-app-footnote text-destructive">{scaffoldError}</p>
+    <p className="text-desk-meta text-destructive">{scaffoldError}</p>
   ) : null
 
   if (githubRepo) {
@@ -292,7 +292,7 @@ export function ClientRepoLink({
 
   if (!configured) {
     return (
-      <p className="text-app-footnote text-app-label-3">
+      <p className="text-desk-meta text-desk-fg-3">
         GitHub is not configured — set <code>GITHUB_TOKEN</code> to connect a
         delivery repo.
       </p>
@@ -301,14 +301,14 @@ export function ClientRepoLink({
 
   const connect = (
     <>
-      <p className="text-app-footnote text-app-label-3">
+      <p className="text-desk-meta text-desk-fg-3">
         Point at the repo their delivery work lives in, or create a fresh one.
       </p>
       <ConnectExisting id={id} />
-      <div className="flex items-center gap-3 text-app-footnote text-app-label-3">
-        <span className="h-px flex-1 bg-app-separator" />
+      <div className="flex items-center gap-3 text-desk-meta text-desk-fg-3">
+        <span className="h-px flex-1 bg-desk-line" />
         or
-        <span className="h-px flex-1 bg-app-separator" />
+        <span className="h-px flex-1 bg-desk-line" />
       </div>
       <CreateNew
         id={id}
@@ -328,7 +328,7 @@ export function ClientRepoLink({
   // rather than a screen of scroll on a phone.
   return (
     <details className="group">
-      <summary className="flex min-h-app-touch cursor-pointer list-none items-center gap-2 text-app-subhead text-app-label-3 transition-colors hover:text-app-label">
+      <summary className="flex min-h-desk-control cursor-pointer list-none items-center gap-2 text-desk-ui text-desk-fg-3 transition-colors hover:text-desk-fg">
         <ChevronRight
           className="size-4 shrink-0 transition-transform group-open:rotate-90"
           aria-hidden

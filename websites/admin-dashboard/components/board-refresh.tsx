@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useTransition } from "react"
 import { RefreshCw } from "lucide-react"
 
-import { DeskButton, LogoLoader, cn } from "@jamie-nisbet/ui"
+import { DeskButton } from "@jamie-nisbet/ui"
 
 import { refreshBoard, refreshBoardPosition } from "@/app/(app)/board-actions"
 
@@ -44,20 +44,14 @@ const asOfFormat = new Intl.DateTimeFormat("en-GB", {
 // transition, so the board stays on screen under them — never the loading
 // skeleton — and whatever is open stays open; the quiet one shows no spinner.
 //
-// It is a bar button — the trailing edge of the screen's own title bar, beside
-// the app menu, where the archive switch sits on Leads — with the stamp set
-// small in front of it. That means both ride the bar's material and take the
-// vibrancy-safe label colours rather than the page's.
+// It is a bar button — the trailing edge of Work's toolbar at the desk and its
+// title bar on the phone — with the stamp set small in mono in front of it.
 export function BoardRefresh({
   readAt,
-  desk = false,
 }: {
   /** When the board on screen was read, ISO. Absent on the loading skeleton,
    *  which has nothing to date yet. */
   readAt?: string
-  /** Drawn for Work's desk toolbar (the desk tier) rather than the app
-   *  tier's title bar. Same button, same refresh. */
-  desk?: boolean
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -125,66 +119,26 @@ export function BoardRefresh({
     ? `Refresh the board from GitHub — showing it as of ${asOf}`
     : "Refresh the board from GitHub"
 
-  if (desk) {
-    return (
-      <div className="flex items-center gap-1">
-        {readAt ? (
-          <time
-            dateTime={readAt}
-            className="font-mono text-desk-meta tabular-nums whitespace-nowrap text-desk-fg-3"
-          >
-            as of {asOf}
-          </time>
-        ) : null}
-        <DeskButton
-          variant="ghost"
-          size="icon-sm"
-          aria-label={label}
-          title="Refresh the board from GitHub"
-          onClick={onRefresh}
-          loading={pending}
-        >
-          {pending ? null : <RefreshCw aria-hidden />}
-        </DeskButton>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex items-center">
-      {/* A time, so it sets in mono. */}
+    <div className="flex items-center gap-1">
       {readAt ? (
         <time
           dateTime={readAt}
-          className="font-mono text-app-caption-2 tabular-nums whitespace-nowrap text-material-label-2"
+          className="font-mono text-desk-meta tabular-nums whitespace-nowrap text-desk-fg-3"
         >
           as of {asOf}
         </time>
       ) : null}
-      <button
-        type="button"
+      <DeskButton
+        variant="ghost"
+        size="icon-sm"
         aria-label={label}
         title="Refresh the board from GitHub"
         onClick={onRefresh}
-        disabled={pending}
-        className={cn(
-          // A 44px target on the bar, matching the app menu beside it.
-          "flex size-app-touch shrink-0 items-center justify-center rounded-app-control",
-          "text-material-label transition-colors spring-press active:bg-app-press",
-          "disabled:pointer-events-none disabled:opacity-50"
-        )}
+        loading={pending}
       >
-        {pending ? (
-          <LogoLoader
-            className="size-5"
-            role={undefined}
-            aria-label={undefined}
-            aria-hidden="true"
-          />
-        ) : (
-          <RefreshCw className="size-5" aria-hidden />
-        )}
-      </button>
+        {pending ? null : <RefreshCw aria-hidden />}
+      </DeskButton>
     </div>
   )
 }

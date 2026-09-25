@@ -6,7 +6,7 @@ import {
   Skeleton,
 } from "@jamie-nisbet/ui"
 
-import { AppScreen } from "@/components/app-screen"
+import { DeskScreen } from "@/components/desk-screen"
 import { LoadingLine } from "@/components/loading-line"
 
 // The leads screen is a full read of every client plus the deal folders, so
@@ -92,11 +92,11 @@ export default function LeadsLoading() {
       </div>
 
       <div className="md:hidden">
-        <AppScreen
+        <DeskScreen
           title="Leads"
           subtitle={<LoadingLine>Loading leads</LoadingLine>}
         >
-          <div className="desk-tier -mx-(--app-gutter) flex flex-col">
+          <div className="desk-tier -mx-4 flex flex-col">
             <div className="px-4 py-3">
               <FilterSkeleton />
             </div>
@@ -106,7 +106,7 @@ export default function LeadsLoading() {
               ))}
             </ul>
           </div>
-        </AppScreen>
+        </DeskScreen>
       </div>
 
       <span className="sr-only" role="status">

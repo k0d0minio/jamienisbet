@@ -216,7 +216,7 @@ export function SwipeRow({
         <div
           className={cn(
             "absolute inset-y-0 left-0 flex items-center gap-2 pl-4 pr-2",
-            "text-app-footnote font-semibold transition-opacity spring-press",
+            "text-desk-meta font-semibold transition-opacity duration-100",
             commit.className,
             offset > 8 ? "opacity-100" : "opacity-0"
           )}
@@ -249,9 +249,9 @@ export function SwipeRow({
           // A swipe is a drag, and a drag across text selects it — on a mouse
           // that leaves the row highlighted behind the gesture.
           "relative touch-pan-y select-none",
-          // A released row settles rather than stopping dead: the app tier's
-          // pop spring, critically damped, so it never passes home.
-          !dragging && "transition-transform spring-pop"
+          // A released row settles home in the desk tier's 100ms, eased out,
+          // with no spring — it never passes home.
+          !dragging && "transition-transform duration-100"
         )}
         style={{ transform: offset !== 0 ? `translateX(${offset}px)` : undefined }}
         onPointerDown={onPointerDown}
@@ -269,7 +269,7 @@ export function SwipeRow({
 /** One action in the swipe tray, in the iOS idiom: a full-height column of
  * solid colour running edge to edge of the row's height, icon over a single
  * word, wide enough to hit mid-swipe without aiming. No radius of its own —
- * the group the row sits in owns the corners and clips them. */
+ * the row is flat and full-bleed, so the tray is too. */
 export function SwipeAction({
   label,
   icon,
@@ -289,13 +289,13 @@ export function SwipeAction({
 }) {
   const classes = cn(
     "relative isolate flex w-20 flex-col items-center justify-center gap-1",
-    // The tray's own type: the app tier's smallest caption, set heavy, because
-    // it is read at a glance under a moving thumb.
-    "text-app-caption-2 font-semibold",
+    // The tray's own type: the desk tier's micro step, set heavy, because it
+    // is read at a glance under a moving thumb.
+    "text-desk-micro font-semibold",
     // Press = colour deepens (BRAND.md), not a ghost fade: a foreground-tinted
     // scrim behind the icon/label over the caller's solid colour — darkens in
     // light, lifts in dark, the direction --primary-active moves.
-    "after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-foreground/0 after:transition-colors spring-press active:after:bg-foreground/10",
+    "after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-foreground/0 after:transition-colors duration-100 active:after:bg-foreground/10",
     className
   )
   if (href) {

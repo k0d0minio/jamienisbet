@@ -4,19 +4,18 @@ import { useRef, useState, useTransition } from "react"
 import { Plus } from "lucide-react"
 
 import {
-  AppField,
-  AppInput,
-  AppSelect,
-  AppSelectContent,
-  AppSelectItem,
-  AppSelectTrigger,
-  AppSelectValue,
-  AppTextarea,
+  DeskField,
+  DeskInput,
+  DeskSelect,
+  DeskSelectContent,
+  DeskSelectItem,
+  DeskSelectTrigger,
+  DeskSelectValue,
+  DeskTextarea,
   Button,
   DeskButton,
   PendingButton,
-  SegmentedControl,
-  SegmentedItem,
+  DeskSegmentedControl,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -157,8 +156,8 @@ export function ClientCreateForm({
               aria-label="Add lead or client"
               title="Add lead or client"
               className={cn(
-                "hidden size-app-touch shrink-0 items-center justify-center rounded-app-control md:flex",
-                "text-app-tint transition-colors spring-press active:bg-app-press"
+                "hidden size-desk-control shrink-0 items-center justify-center rounded-desk-control md:flex",
+                "text-desk-ink transition-colors duration-100 active:bg-desk-sunken"
               )}
             >
               <Plus className="size-5" aria-hidden />
@@ -168,19 +167,17 @@ export function ClientCreateForm({
           {/* Phone: a floating disc riding above the floating tab bar, reachable
               one-handed. `bottom-above-tabs` reads the bar's own geometry, and
               the gutter token puts it on the same margin as everything else on
-              the screen — the tab bar's pill is capped at `max-w-sm` and centred,
-              so on any phone this clears it sideways as well as vertically.
-              `shadow-app-chrome` is the tier's "this floats" step, the same one
-              the bar under it takes. */}
+              the screen. `shadow-desk-float` is the tier's one shadow, for what
+              floats — and this does. */}
           <SheetTrigger asChild>
             <button
               type="button"
               aria-label="Add lead or client"
               className={cn(
-                "fixed right-(--app-gutter) bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
-                "rounded-full bg-app-tint text-primary-foreground shadow-app-chrome",
+                "fixed right-4 bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
+                "rounded-full bg-desk-ink text-desk-ink-fg shadow-desk-float",
                 // Press = colour deepens, never a shrink (BRAND.md § Motion).
-                "transition-colors spring-press active:bg-primary-active"
+                "transition-colors duration-100 active:bg-desk-ink-hover"
               )}
             >
               <Plus className="size-6" aria-hidden />
@@ -201,22 +198,23 @@ export function ClientCreateForm({
         </SheetHeader>
 
         {/* Lead or client, above the fields — the first decision, and the one
-            that changes what the rest of the form asks for. The app tier's
+            that changes what the rest of the form asks for. The desk tier's
             segmented control, the same one the leads list filters with, so a
             closed choice looks the same wherever it is made. Radio semantics
             rather than tabs: this is a value being chosen, not a view being
             switched. */}
-        <SegmentedControl role="radiogroup" aria-label="What you're adding">
-          {KINDS.map((option) => (
-            <SegmentedItem
-              key={option.key}
-              role="radio"
-              label={option.label}
-              active={option.key === kind.key}
-              onClick={() => setKind(option)}
-            />
-          ))}
-        </SegmentedControl>
+        <DeskSegmentedControl
+          aria-label="What you're adding"
+          className="w-full"
+          value={kind.key}
+          onValueChange={(key) =>
+            setKind(KINDS.find((option) => option.key === key) ?? kind)
+          }
+          options={KINDS.map((option) => ({
+            value: option.key,
+            label: option.label,
+          }))}
+        />
 
         <form
           ref={formRef}
@@ -250,8 +248,8 @@ export function ClientCreateForm({
               which on the tallest form in the app means scrolling back up to
               remember which box the phone number went in. */}
           <div className="grid gap-3 sm:grid-cols-2">
-            <AppField label="Name">
-              <AppInput
+            <DeskField label="Name">
+              <DeskInput
                 name="name"
                 placeholder="Ana Ferreira"
                 required
@@ -260,18 +258,18 @@ export function ClientCreateForm({
                 autoCapitalize="words"
                 enterKeyHint="next"
               />
-            </AppField>
-            <AppField label="Company (optional)">
-              <AppInput
+            </DeskField>
+            <DeskField label="Company (optional)">
+              <DeskInput
                 name="company"
                 placeholder="—"
                 autoComplete="organization"
                 autoCapitalize="words"
                 enterKeyHint="next"
               />
-            </AppField>
-            <AppField label="Email (optional)">
-              <AppInput
+            </DeskField>
+            <DeskField label="Email (optional)">
+              <DeskInput
                 name="email"
                 type="email"
                 inputMode="email"
@@ -282,9 +280,9 @@ export function ClientCreateForm({
                 enterKeyHint="next"
                 placeholder="—"
               />
-            </AppField>
-            <AppField label="Phone (optional)">
-              <AppInput
+            </DeskField>
+            <DeskField label="Phone (optional)">
+              <DeskInput
                 name="phone"
                 type="tel"
                 inputMode="tel"
@@ -292,7 +290,7 @@ export function ClientCreateForm({
                 enterKeyHint="next"
                 placeholder="—"
               />
-            </AppField>
+            </DeskField>
           </div>
 
           {/* What they're worth, asked for only when adding a client. A lead's
@@ -308,52 +306,52 @@ export function ClientCreateForm({
               total by waiting, so it belongs on the profile. */}
           {isClient ? (
             <div className="grid gap-3 sm:grid-cols-3">
-              <AppField label="Value (€)" hint="Empty if there's no fee.">
-                <AppInput
+              <DeskField label="Value (€)" hint="Empty if there's no fee.">
+                <DeskInput
                   name="value"
                   inputMode="decimal"
                   enterKeyHint="next"
                   placeholder="0.00"
                 />
-              </AppField>
-              <AppField label="Billed">
-                <AppSelect name="billingType" defaultValue="one_off">
-                  <AppSelectTrigger className="w-full">
-                    <AppSelectValue />
-                  </AppSelectTrigger>
-                  <AppSelectContent>
-                    <AppSelectItem value="one_off">One-off</AppSelectItem>
-                    <AppSelectItem value="monthly">Every month</AppSelectItem>
-                  </AppSelectContent>
-                </AppSelect>
-              </AppField>
-              <AppField label="Paid in">
-                <AppSelect name="dealType" defaultValue="cash">
-                  <AppSelectTrigger className="w-full">
-                    <AppSelectValue />
-                  </AppSelectTrigger>
-                  <AppSelectContent>
-                    <AppSelectItem value="cash">Cash</AppSelectItem>
-                    <AppSelectItem value="barter">Services</AppSelectItem>
-                  </AppSelectContent>
-                </AppSelect>
-              </AppField>
+              </DeskField>
+              <DeskField label="Billed">
+                <DeskSelect name="billingType" defaultValue="one_off">
+                  <DeskSelectTrigger className="w-full">
+                    <DeskSelectValue />
+                  </DeskSelectTrigger>
+                  <DeskSelectContent>
+                    <DeskSelectItem value="one_off">One-off</DeskSelectItem>
+                    <DeskSelectItem value="monthly">Every month</DeskSelectItem>
+                  </DeskSelectContent>
+                </DeskSelect>
+              </DeskField>
+              <DeskField label="Paid in">
+                <DeskSelect name="dealType" defaultValue="cash">
+                  <DeskSelectTrigger className="w-full">
+                    <DeskSelectValue />
+                  </DeskSelectTrigger>
+                  <DeskSelectContent>
+                    <DeskSelectItem value="cash">Cash</DeskSelectItem>
+                    <DeskSelectItem value="barter">Services</DeskSelectItem>
+                  </DeskSelectContent>
+                </DeskSelect>
+              </DeskField>
             </div>
           ) : null}
 
           {/* Keyed on the kind so switching gives a genuinely empty box rather
               than carrying text written for the other one into a new column. */}
-          <AppField key={kind.field} label={kind.note}>
-            <AppTextarea
+          <DeskField key={kind.field} label={kind.note}>
+            <DeskTextarea
               name={kind.field}
               rows={2}
               autoCapitalize="sentences"
               placeholder={kind.placeholder}
             />
-          </AppField>
+          </DeskField>
 
           {error ? (
-            <p className="text-app-footnote text-destructive">{error}</p>
+            <p className="text-desk-meta text-destructive">{error}</p>
           ) : null}
           {/* Primary action full-width and last on a phone — thumb lands on it. */}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

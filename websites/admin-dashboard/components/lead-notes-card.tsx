@@ -99,7 +99,7 @@ export function LeadNotesCard({
             placeholder="Working notes — calls, decisions, next steps…"
             aria-label="Notes"
             autoCapitalize="sentences"
-            // Grows with what is written, the way the app tier's box did.
+            // Grows with what is written.
             className="field-sizing-content min-h-24 w-full resize-none rounded-desk-control border border-desk-line-strong bg-desk-surface px-3 py-2 text-desk-body text-desk-fg placeholder:text-desk-fg-3"
           />
           <div className="flex items-center justify-end gap-2">

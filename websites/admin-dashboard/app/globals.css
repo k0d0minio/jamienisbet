@@ -1,12 +1,11 @@
 /* ============================================================
    Admin dashboard — app stylesheet.
 
-   Links the Jamie Nisbet design system three times — the brand tokens
-   and shadcn theme, then the retiring app tier (materials, elevation,
-   springs, the native type scale) that the screens still wear, then
-   the desk tier the shell's chrome is built on (the rail, the tab bar,
-   the command palette) and every screen moves to in turn. No brand token is redefined here;
-   one source of truth lives in @jamie-nisbet/ui.
+   Links the Jamie Nisbet design system twice — the brand tokens and
+   shadcn theme, then the desk tier every screen is built on (Hanken
+   Grotesk on the dense scale, hairlines, 32px rows at the desk and 44px
+   under a thumb). No brand token is redefined here; one source of truth
+   lives in @jamie-nisbet/ui.
 
    Everything below the imports is *this app's* plumbing: the
    tab bar's geometry, touch-target minimums, and the markdown layer. It belongs here rather than in the design system
@@ -15,16 +14,10 @@
    ============================================================ */
 
 @import "@jamie-nisbet/ui/styles.css";
-/* The app tier — materials, elevation, springs, the native type scale. Opt-in
-   by construction and loaded *after* styles.css, which is the only way to
-   reach it; the marketing sites import neither this line nor its tokens.
-   See packages/ui/BRAND.md § App tier. */
-@import "@jamie-nisbet/ui/app.css";
-/* The desk tier — the admin's tier for new work (BRAND.md § Desk tier).
-   Every name in it is desk-*, so it sits beside app.css without a
-   collision while the screens move over; `desk-tier` is set on each
-   piece of chrome built on it, not on <body>, where `app-tier` stays
-   until the last screen has moved (retire-app-tier). */
+/* The desk tier — the admin's tier (BRAND.md § Desk tier). Opt-in by
+   construction and loaded *after* styles.css; the marketing sites import
+   neither this line nor its tokens. `desk-tier` is set once, on <body>
+   (app/layout.tsx). */
 @import "@jamie-nisbet/ui/desk.css";
 
 /* Tailwind must scan the design system's TSX source for the utility classes
@@ -124,24 +117,18 @@
 /* ------------------------------------------------------------------
    Branded markdown — ticket bodies rendered by react-markdown.
 
-   Retuned to the app tier's native scale. It used to set on the
-   marketing tier's 14px steps, so a heading inside a ticket came out
-   smaller than the row that opened it.
-
-   The whole ladder sits one step below its container: a sheet's title
-   is 18/600, so a ticket's own h1 tops out at the tier's headline
-   (17), h2 at callout (16), h3 at subhead (15) — and the body reads at
-   subhead with a relaxed leading, since a ticket is read rather than
-   scanned. Set any higher and a `# Heading` in a ticket out-shouts the
-   sheet it was opened from.
+   Set on the desk tier's scale, one step below its container, so a
+   `# Heading` in a ticket never out-shouts the pane it was opened in.
+   The base rules below carry the shape; the `.desk-tier .prose` block
+   after them tunes it to the dense scale under the shell's root.
 
    Figures and code stay mono, as they do on every tier. No tokens are
    defined here, only applied.
    ------------------------------------------------------------------ */
 
 .prose {
-  color: var(--app-label-2);
-  font-size: var(--app-text-subhead);
+  color: var(--desk-fg-2);
+  font-size: var(--desk-text-ui);
   line-height: var(--leading-relaxed);
   /* Never wider than the phone: a word longer than the line breaks, and a
      code block or table scrolls inside its own box (below). */
@@ -155,37 +142,36 @@
 .prose h2,
 .prose h3,
 .prose h4 {
-  color: var(--app-label);
-  font-weight: var(--app-weight-headline);
+  color: var(--desk-fg);
+  font-weight: var(--desk-weight-heading);
   line-height: var(--leading-snug);
-  letter-spacing: var(--app-tracking-headline);
+  letter-spacing: var(--desk-tracking-heading);
 }
 .prose h1 {
-  font-size: var(--app-text-headline);
+  font-size: var(--desk-text-heading);
 }
 .prose h2 {
-  font-size: var(--app-text-callout);
+  font-size: var(--desk-text-body);
   margin-top: var(--space-5);
 }
 .prose h3,
 .prose h4 {
-  font-size: var(--app-text-subhead);
+  font-size: var(--desk-text-ui);
   margin-top: var(--space-4);
 }
 .prose strong {
-  color: var(--app-label);
-  font-weight: var(--app-weight-headline);
+  color: var(--desk-fg);
+  font-weight: var(--desk-weight-heading);
 }
 .prose a {
-  color: var(--app-tint);
+  color: var(--desk-ink);
   text-underline-offset: 3px;
   text-decoration: underline;
   /* A bare URL has no break opportunities of its own. */
   overflow-wrap: anywhere;
 }
-/* The tier draws focus *inside* a control, because the grouped list and the
-   tab pill clip anything outside one (packages/ui/app.css § app-tier). An
-   inline link is the one shape that breaks under: its box is a single line of
+/* The tier draws focus *inside* a control, because its panes scroll and clip
+   anything outside one (packages/ui/desk.css § desk-tier). An inline link is the one shape that breaks under: its box is a single line of
    text, so an inset outline is drawn through the words. Put it back outside —
    nothing clips a link in a ticket body. */
 .prose a:focus-visible {
@@ -205,7 +191,7 @@
   list-style: decimal;
 }
 .prose li::marker {
-  color: var(--app-label-3);
+  color: var(--desk-fg-3);
 }
 /* GFM task lists — the checkboxes are read-only here (the repo owns the
    ticket), so they lose the marker and sit inline with their line. */
@@ -215,23 +201,23 @@
 }
 .prose li > input[type="checkbox"] {
   margin-right: var(--space-2);
-  accent-color: var(--app-tint);
+  accent-color: var(--desk-ink);
 }
 .prose code {
   font-family: var(--font-mono);
   font-size: 0.875em;
   background: var(--surface-sunken);
-  border: 1px solid var(--app-separator);
+  border: 1px solid var(--desk-line);
   border-radius: var(--radius-xs);
   padding: 0.1em 0.35em;
   overflow-wrap: anywhere;
 }
 .prose pre {
   font-family: var(--font-mono);
-  font-size: var(--app-text-caption);
+  font-size: var(--desk-text-meta);
   background: var(--surface-sunken);
-  border: 1px solid var(--app-separator);
-  border-radius: var(--app-radius-control);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-control);
   padding: var(--space-3);
   overflow-x: auto;
 }
@@ -243,19 +229,18 @@
 .prose blockquote {
   border-left: 2px solid var(--border-strong);
   padding-left: var(--space-3);
-  color: var(--app-label-3);
+  color: var(--desk-fg-3);
 }
 .prose hr {
   border: 0;
-  border-top: 1px solid var(--app-separator);
+  border-top: 1px solid var(--desk-line);
   margin: var(--space-5) 0;
 }
 
 /* The same prose on the desk tier — the Work reader (spec work-reader §6).
    Same elements, same rhythm, drawn from the desk tokens instead: Hanken
    Grotesk on the dense scale, hairlines, the sunken fill for code, ink for
-   links. Scoped by the shell's `desk-tier` root, so a screen still on the app
-   tier keeps the rules above. */
+   links. Scoped by the `desk-tier` root on <body>. */
 .desk-tier .prose {
   color: var(--desk-fg-2);
   font-size: var(--desk-text-body);
@@ -321,18 +306,18 @@
   width: max-content;
   max-width: 100%;
   border-collapse: collapse;
-  font-size: var(--app-text-caption);
+  font-size: var(--desk-text-meta);
 }
 .prose th,
 .prose td {
-  border: 1px solid var(--app-separator);
+  border: 1px solid var(--desk-line);
   padding: var(--space-1) var(--space-2);
   text-align: left;
   vertical-align: top;
 }
 .prose th {
-  color: var(--app-label);
-  font-weight: var(--app-weight-headline);
+  color: var(--desk-fg);
+  font-weight: var(--desk-weight-heading);
   background: var(--surface-sunken);
 }
 
@@ -353,22 +338,17 @@
      Touch targets, for what the design system still sizes for a mouse.
 
      This used to cover inputs and select triggers too. It no longer
-     needs to: the app tier ships its own form controls (AppInput,
-     AppTextarea, AppSelectTrigger), and every one of them is
-     `min-h-app-touch` in its own class list — 44px on a laptop as much
-     as on a phone, which is the point. A control that is only
-     finger-sized behind a media query is a control that reads at 36px
-     in every screenshot, every desktop session, and every sheet on an
-     iPad; the query was patching the symptom.
+     needs to: the desk tier's form controls (DeskInput, DeskTextarea,
+     DeskSelectTrigger) take their height from the control step, which
+     the tier's touch step lifts to 44px under a coarse pointer.
 
-     What is left is the button, which is still the marketing tier's
-     h-9 in 21 files here and has no app-tier sibling. Lifting it once
-     for coarse pointers beats annotating every call site, and nothing
-     here alters layout on a mouse. When a button of this tier's own
-     lands, this block goes with it.
+     What is left is the marketing `Button`, still used by some screens
+     here. Lifting it once for coarse pointers beats annotating every
+     call site, and nothing here alters layout on a mouse. When the last
+     one becomes a `DeskButton`, this block goes with it.
 
-     Everything else already sets its own floor: a grouped row, a tab,
-     an action circle, and now every field.
+     Everything else already sets its own floor: a desk row, a tab, a
+     desk button, and every field.
      ---------------------------------------------------------------- */
   @media (pointer: coarse) {
     [data-slot="button"]:not([data-size="xs"]):not([data-size="icon-xs"]) {
@@ -385,19 +365,15 @@
 
 /* ------------------------------------------------------------------
    View transitions — the list ↔ lead profile move (components/
-   view-transition-link.tsx). Retuned to the app tier's motion: the
-   outgoing page leaves on the header spring and the incoming one
-   settles on the pop spring, so a page change decelerates like every
-   other movement in the app rather than stopping dead on a bezier.
+   view-transition-link.tsx). On the desk tier a page change is a plain
+   cross-fade inside the tier's 120ms — no rise, no slide, no spring.
    The whole block sits behind `no-preference`, so reduced motion gets
    the browser's plain cut and the link stops asking for a transition
    at all.
 
    The chrome is named out of the root snapshot: a title bar, a tab
-   bar and a rail that are the same on both pages should hold their
-   position while the content under them changes, not slide with it.
-   Naming them also lets the title itself cross-fade in place, which is
-   the whole point of a bar that carries the screen's name.
+   bar and a rail that are the same on both pages hold their position
+   while the content under them changes.
    ------------------------------------------------------------------ */
 
 /* The three pieces of chrome that must not move. Declared outside the
@@ -416,35 +392,11 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes jn-page-out {
-    to {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-  }
-
-  @keyframes jn-page-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-  }
-
-  ::view-transition-old(root) {
-    animation: jn-page-out var(--duration-header) var(--spring-header) both;
-  }
-
-  ::view-transition-new(root) {
-    animation: jn-page-in var(--duration-pop) var(--spring-pop) both;
-  }
-
-  /* The named chrome holds still, but its *contents* still change — the
-     bar's title is the screen's name. Cross-fade those on the header
-     spring rather than letting the browser's default group animation
-     stretch one snapshot into the other. */
+  ::view-transition-old(root),
+  ::view-transition-new(root),
   ::view-transition-old(app-header),
   ::view-transition-new(app-header) {
-    animation-duration: var(--duration-header);
-    animation-timing-function: var(--spring-header);
+    animation-duration: var(--duration-fast);
+    animation-timing-function: var(--ease-out);
   }
 }

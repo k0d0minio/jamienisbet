@@ -4,17 +4,15 @@ import { useState, useTransition } from "react"
 import { Copy, PenLine } from "lucide-react"
 
 import {
-  AppField,
-  AppTextarea,
+  DeskField,
+  DeskTextarea,
   Button,
   DeskButton,
-  GroupedRow,
-  GroupedSection,
+  RecordRow,
+  RecordSection,
   PendingButton,
   RecordBlock,
-  RecordSection,
-  SegmentedControl,
-  SegmentedItem,
+  DeskSegmentedControl,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -305,21 +303,20 @@ export function LeadDraft({
               </SheetHeader>
 
               <div className="grid gap-4">
-                <AppField label="Which message" hint={DRAFT_KIND_HINTS[kind]}>
-                  <SegmentedControl role="radiogroup" aria-label="Which message">
-                    {DRAFT_KINDS.map((option) => (
-                      <SegmentedItem
-                        key={option.value}
-                        role="radio"
-                        label={option.label}
-                        active={kind === option.value}
-                        onClick={() => setKind(option.value)}
-                      />
-                    ))}
-                  </SegmentedControl>
-                </AppField>
+                <DeskField label="Which message" hint={DRAFT_KIND_HINTS[kind]}>
+                  <DeskSegmentedControl
+                    aria-label="Which message"
+                    className="w-full"
+                    value={kind}
+                    onValueChange={setKind}
+                    options={DRAFT_KINDS.map((option) => ({
+                      value: option.value,
+                      label: option.label,
+                    }))}
+                  />
+                </DeskField>
 
-                <AppField
+                <DeskField
                   label="Down which door"
                   hint={
                     anyClosed
@@ -327,31 +324,27 @@ export function LeadDraft({
                       : "The register follows the channel — an email is not a WhatsApp message."
                   }
                 >
-                  <SegmentedControl role="radiogroup" aria-label="Down which door">
-                    {DRAFT_CHANNELS.map((option) => {
+                  <DeskSegmentedControl<DraftChannelValue | "">
+                    aria-label="Down which door"
+                    className="w-full"
+                    // No door chosen yet (none open) is "" — no option checked.
+                    value={channel ?? ""}
+                    onValueChange={(value) => setChannel(value || null)}
+                    options={DRAFT_CHANNELS.map((option) => {
                       const door = doors[option.value]
-                      const available = Boolean(door.value) && !door.closed
-                      return (
-                        <SegmentedItem
-                          key={option.value}
-                          role="radio"
-                          label={option.label}
-                          active={channel === option.value}
-                          disabled={!available}
-                          className="disabled:opacity-40"
-                          title={
-                            door.closed
-                              ? "They opted out — nothing goes out here"
-                              : door.value
-                                ? undefined
-                                : "Nothing on file for this one"
-                          }
-                          onClick={() => setChannel(option.value)}
-                        />
-                      )
+                      return {
+                        value: option.value,
+                        label: option.label,
+                        disabled: !door.value || door.closed,
+                        title: door.closed
+                          ? "They opted out — nothing goes out here"
+                          : door.value
+                            ? undefined
+                            : "Nothing on file for this one",
+                      }
                     })}
-                  </SegmentedControl>
-                </AppField>
+                  />
+                </DeskField>
 
                 {writing ? (
                   // Layout-true: the box that is about to hold the draft,
@@ -366,7 +359,7 @@ export function LeadDraft({
                   // before the call rather than after it reads generic: a lead
                   // with no hook has nothing specific for a message to lead
                   // with, and that is a gap in the record, not in the model.
-                  <p className="rounded-app-group border border-app-separator bg-app-group px-4 py-3 text-app-callout text-app-label-2">
+                  <p className="rounded-desk-pane border border-desk-line bg-desk-surface px-4 py-3 text-desk-body text-desk-fg-2">
                     {hasHook
                       ? "Nothing written yet. The hook on this lead is what the message will lead with."
                       : "Nothing written yet. There is no hook on this lead, so the draft has only the sector and the town to work from — it will be thinner for it."}
@@ -375,7 +368,7 @@ export function LeadDraft({
                       : null}
                   </p>
                 ) : (
-                  <AppField
+                  <DeskField
                     label="The draft"
                     hint={
                       model ? (
@@ -388,7 +381,7 @@ export function LeadDraft({
                       )
                     }
                   >
-                    <AppTextarea
+                    <DeskTextarea
                       autoResize
                       rows={8}
                       value={draft}
@@ -396,7 +389,7 @@ export function LeadDraft({
                       autoCapitalize="sentences"
                       spellCheck
                     />
-                  </AppField>
+                  </DeskField>
                 )}
 
                 <div className="flex items-center gap-2">
@@ -428,7 +421,7 @@ export function LeadDraft({
                 </div>
 
                 {draft === "" || !channel ? null : (
-                  <GroupedSection
+                  <RecordSection
                     header="Hand it over"
                     footer="Each of these opens the message somewhere else with nothing sent. You press send."
                   >
@@ -439,7 +432,7 @@ export function LeadDraft({
                       body={body}
                       onHandoff={handedOver}
                     />
-                    <GroupedRow
+                    <RecordRow
                       icon={<Copy />}
                       label="Copy the draft"
                       chevron={false}
@@ -448,12 +441,12 @@ export function LeadDraft({
                         handedOver()
                       }}
                     />
-                  </GroupedSection>
+                  </RecordSection>
                 )}
 
                 {handedOff ? (
-                  <GroupedSection footer="The draft is kept on the touch, so the history shows what actually went out.">
-                    <GroupedRow
+                  <RecordSection footer="The draft is kept on the touch, so the history shows what actually went out.">
+                    <RecordRow
                       icon={<PenLine />}
                       variant="tint"
                       label={`Log it — ${draftChannelLabel(channel ?? "")}, sent`}
@@ -464,7 +457,7 @@ export function LeadDraft({
                       disabled={logging}
                       onClick={log}
                     />
-                  </GroupedSection>
+                  </RecordSection>
                 ) : null}
               </div>
             </>

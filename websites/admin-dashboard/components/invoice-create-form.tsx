@@ -7,17 +7,17 @@ import { Plus } from "lucide-react"
 import {
   Alert,
   AlertDescription,
-  AppField,
-  AppInput,
-  AppSelect,
-  AppSelectContent,
-  AppSelectItem,
-  AppSelectTrigger,
-  AppSelectValue,
-  AppTextarea,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
+  DeskField,
+  DeskInput,
+  DeskSelect,
+  DeskSelectContent,
+  DeskSelectItem,
+  DeskSelectTrigger,
+  DeskSelectValue,
+  DeskTextarea,
+  RecordBlock,
+  RecordRow,
+  RecordSection,
   PendingButton,
   Sheet,
   SheetContent,
@@ -62,7 +62,7 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <GroupedRow icon={<Plus />} label="New invoice" />
+        <RecordRow icon={<Plus />} label="New invoice" />
       </SheetTrigger>
 
       {/* One `large` detent rather than two: five fields and a submit is taller
@@ -78,19 +78,19 @@ export function InvoiceCreateForm({ clients }: { clients: InvoiceClientOption[] 
         </SheetHeader>
 
         {clients.length === 0 ? (
-          <GroupedSection>
-            <GroupedBlock>
+          <RecordSection>
+            <RecordBlock>
               No leads yet. Add someone under{" "}
               <Link
                 href="/leads"
-                className="text-app-tint underline underline-offset-2"
+                className="text-desk-ink underline underline-offset-2"
               >
                 Leads
               </Link>{" "}
               before raising an invoice — an invoice is always addressed to a
               record, never to a name typed into a box.
-            </GroupedBlock>
-          </GroupedSection>
+            </RecordBlock>
+          </RecordSection>
         ) : (
           // Mounted only while the sheet is open, so its action state starts
           // clean every time: an error from the attempt before would otherwise
@@ -138,14 +138,14 @@ function InvoiceForm({
       }}
       className="flex flex-col gap-4"
     >
-      <AppField label="Client">
-        <AppSelect name="clientId">
-          <AppSelectTrigger className="w-full">
-            <AppSelectValue placeholder="Choose a client…" />
-          </AppSelectTrigger>
-          <AppSelectContent>
+      <DeskField label="Client">
+        <DeskSelect name="clientId">
+          <DeskSelectTrigger className="w-full">
+            <DeskSelectValue placeholder="Choose a client…" />
+          </DeskSelectTrigger>
+          <DeskSelectContent>
             {clients.map((client) => (
-              <AppSelectItem
+              <DeskSelectItem
                 key={client.id}
                 value={client.id}
                 // No email means Stripe has nowhere to send the invoice — the
@@ -155,37 +155,37 @@ function InvoiceForm({
                 {client.name}
                 {client.company ? ` · ${client.company}` : ""}
                 {client.email ? ` — ${client.email}` : " — add email first"}
-              </AppSelectItem>
+              </DeskSelectItem>
             ))}
-          </AppSelectContent>
-        </AppSelect>
-      </AppField>
+          </DeskSelectContent>
+        </DeskSelect>
+      </DeskField>
 
-      <AppField label="Description">
-        <AppTextarea
+      <DeskField label="Description">
+        <DeskTextarea
           name="description"
           rows={2}
           autoCapitalize="sentences"
           placeholder="e.g. AI infrastructure consulting — June 2026"
           required
         />
-      </AppField>
+      </DeskField>
 
       {/* The amount takes the full width: it is the figure this whole form is
           about, and it should not have to share a line with a currency code. */}
-      <AppField label="Amount">
-        <AppInput
+      <DeskField label="Amount">
+        <DeskInput
           name="amount"
           inputMode="decimal"
           enterKeyHint="next"
           placeholder="1500.00"
           required
         />
-      </AppField>
+      </DeskField>
 
       <div className="grid grid-cols-2 gap-3">
-        <AppField label="Currency">
-          <AppInput
+        <DeskField label="Currency">
+          <DeskInput
             name="currency"
             defaultValue="eur"
             maxLength={3}
@@ -194,9 +194,9 @@ function InvoiceForm({
             spellCheck={false}
             enterKeyHint="next"
           />
-        </AppField>
-        <AppField label="Due in (days)">
-          <AppInput
+        </DeskField>
+        <DeskField label="Due in (days)">
+          <DeskInput
             name="daysUntilDue"
             type="number"
             inputMode="numeric"
@@ -204,7 +204,7 @@ function InvoiceForm({
             min={0}
             defaultValue={14}
           />
-        </AppField>
+        </DeskField>
       </div>
 
       {state.error ? (

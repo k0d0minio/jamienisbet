@@ -40,11 +40,13 @@ export function ChannelPicker({
           aria-checked={value === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "flex min-h-app-touch flex-col items-center justify-center gap-1 px-2 py-2",
-            "rounded-app-control text-app-caption transition-colors spring-press",
+            "flex min-h-desk-control flex-col items-center justify-center gap-1 border px-2 py-2",
+            "rounded-desk-control text-desk-meta transition-colors duration-100",
+            // Chosen is the sunken fill plus weight — the desk's one selected
+            // state, never a lift.
             value === option.value
-              ? "bg-app-group font-semibold text-app-label shadow-app-raised"
-              : "bg-app-track font-medium text-app-label-2 active:bg-app-press"
+              ? "border-desk-line-strong bg-desk-sunken font-semibold text-desk-fg"
+              : "border-desk-line bg-desk-surface text-desk-fg-2 hover:bg-desk-hover active:bg-desk-sunken"
           )}
         >
           <ChannelGlyph channel={option.value} />

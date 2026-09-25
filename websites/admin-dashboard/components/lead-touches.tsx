@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react"
 
 import {
-  AppField,
-  AppTextarea,
+  DeskField,
+  DeskSegmentedControl,
+  DeskTextarea,
   RecordBlock,
   RecordSection,
   Sheet,
@@ -214,39 +215,20 @@ export function LeadTouches({
                     only reason to touch this control is the call that came
                     the other way. A radio group, not links: it chooses a value
                     in a form. */}
-                <AppField label="Direction">
-                  <div
-                    role="radiogroup"
+                <DeskField label="Direction">
+                  <DeskSegmentedControl
                     aria-label="Direction"
-                    className="flex items-stretch gap-1 rounded-app-control bg-app-track p-1"
-                  >
-                    {(
-                      [
-                        { value: "out", label: "I reached out" },
-                        { value: "in", label: "They got in touch" },
-                      ] as const
-                    ).map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={direction === option.value}
-                        onClick={() => setDirection(option.value)}
-                        className={cn(
-                          "min-h-app-touch flex-1 rounded-app-control px-3 text-app-footnote",
-                          "transition-colors spring-press",
-                          direction === option.value
-                            ? "bg-app-group font-semibold text-app-label shadow-app-raised"
-                            : "font-medium text-app-label-2 active:bg-app-press"
-                        )}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </AppField>
+                    className="w-full *:flex-1"
+                    value={direction}
+                    onValueChange={setDirection}
+                    options={[
+                      { value: "out", label: "I reached out" },
+                      { value: "in", label: "They got in touch" },
+                    ]}
+                  />
+                </DeskField>
 
-                <AppField
+                <DeskField
                   label="Channel"
                   hint="Five doors and a catch-all — the ones this pool actually uses."
                 >
@@ -257,18 +239,18 @@ export function LeadTouches({
                       setChannel(next)
                     }}
                   />
-                </AppField>
+                </DeskField>
 
                 {/* Nothing else is asked until a channel is chosen: the
                     outcomes depend on it, and a sheet that shows everything at
                     once is a sheet you read instead of tapping. */}
                 {channel ? (
                   <>
-                    <AppField
+                    <DeskField
                       label="Note"
                       hint="Optional. The outcome below is what logs it."
                     >
-                      <AppTextarea
+                      <DeskTextarea
                         autoResize
                         rows={2}
                         value={note}
@@ -276,9 +258,9 @@ export function LeadTouches({
                         placeholder="What was said…"
                         autoCapitalize="sentences"
                       />
-                    </AppField>
+                    </DeskField>
 
-                    <AppField label={`What came of it — ${channelLabel(channel)}`}>
+                    <DeskField label={`What came of it — ${channelLabel(channel)}`}>
                       {/* Not radios: each of these *is* the submit, so they
                           are ordinary buttons in a named group. */}
                       <div
@@ -294,9 +276,9 @@ export function LeadTouches({
                             aria-busy={busyOutcome === outcome.value || undefined}
                             onClick={() => log(outcome.value)}
                             className={cn(
-                              "flex min-h-app-touch items-center justify-center gap-2 px-3",
-                              "rounded-app-control bg-app-track text-app-body font-medium text-app-label",
-                              "transition-colors spring-press active:bg-app-press",
+                              "flex min-h-desk-control items-center justify-center gap-2 px-3",
+                              "rounded-desk-control bg-desk-sunken text-desk-body font-medium text-desk-fg",
+                              "transition-colors duration-100 active:bg-desk-sunken",
                               "disabled:opacity-60"
                             )}
                           >
@@ -307,7 +289,7 @@ export function LeadTouches({
                           </button>
                         ))}
                       </div>
-                    </AppField>
+                    </DeskField>
                   </>
                 ) : null}
               </div>
