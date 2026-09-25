@@ -1,7 +1,7 @@
 # Build notes: leads-table-board
 
 - commits: feat (table, board, page, phone rows, skeleton, README) · chore (run files)
-- ci: see `## Release` / status.md — settled after the ready flip
+- ci: GREEN on b20a11e (full gate: Quality (advisory) pass; every Vercel project skipped the empty ready commit as not affected — the admin preview of this code is the branch alias, built and passed on the pre-flip head)
 
 ## What changed
 
@@ -35,9 +35,11 @@
 - [ ] Empty / closed-crack / DB-error states on the desk tier; skeleton matches both widths — built; needs the smoke.
 - [ ] Light and dark — built from desk tokens only; needs the smoke in both themes. No `force-dynamic` under `app/(app)/leads` — true (`grep`).
 - [x] README § Leads rewritten; "the wide table is gone" removed.
-- [ ] CI lint / typecheck / build and the admin preview — settled after the ready flip (status.md).
+- [x] CI lint / typecheck / build and the admin preview — Quality (advisory) pass on b20a11e; `Vercel – jamie-nisbet` built and passed on the pre-flip head (same code).
 
 ## Notes for Release
+
+- **The PR body's criteria boxes are unticked.** Build's re-render to tick them was refused (it also rewrites the gate lines — FAILURE.md); this file is the criteria status.
 
 - **Spec gaps Build decided (decisions.md D-36, D-37):** the Prospects button shows the pool's size only where the read holds it (not in the archive or a crack view); a not-won lead now reads muted on the phone too, matching the table's rule.
 - **Left as they are:** `deal-stage-chip.tsx` and `deal-badges.tsx` keep their current look on the phone row's third line — they are shared with the lead profile, which `lead-profile-columns` owns; restyling them here would have been an edit under another live run.

@@ -13,12 +13,19 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — the ready push built no preview
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: after the flip, the contract's empty commit (`chore: leads-table-board — ready`, b20a11e) came back with every Vercel project `Skipped - Not affected`; `ci-status.sh` settled GREEN with "no preview URL to test against".
+- why: this repo's Vercel ignored-build step diffs the push against the project's last deployment, and the previous push (the build notes, on top of the code commit) had already deployed the admin — so an empty commit changes nothing it watches. The admin preview of the finished code is the draft-era deployment of that previous head, served on the branch alias.
+- fixed by: nothing to fix in code — the operator smokes the branch alias (jamie-nisbet-git-claude-charming-archimedes-2b59uc-kodominio.vercel.app), which serves that head.
+
+### 2026-09-25 — criteria ticks in the PR body were not written
+
+- what happened: Build step 6 asks for the met criteria to be ticked in the PR body. Re-rendering the body with `project-body.sh` and re-sending it was refused, because the rewrite also re-writes the **Spec approved** gate line.
+- why: the only body writer the pipeline ships re-projects the whole body, gates included; a gate line is the operator's alone.
+- fixed by: left the PR body as it is; the criteria status is in `03_build/output/notes.md`.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- In this repo, don't count on the post-flip empty commit for a preview: Vercel skips it as "Not affected" when the previous push already deployed; point the operator at the branch alias of the last code push and say so.
+- Never re-render a whole PR body to tick acceptance criteria — that also rewrites the gate boxes; tick criteria only by editing those lines, or leave the ticks to `notes.md`.

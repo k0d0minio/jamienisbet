@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 9 (pre-flip verdict)
-- ci: none yet
+- step: done
+- ci: GREEN (full gate, b20a11e — Quality (advisory) pass; Vercel skipped the empty ready commit, the admin preview is the branch alias)
 - blocked: no
 - updated: 2026-09-25
