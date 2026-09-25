@@ -6,18 +6,18 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md`; change it with `revise shell-rail-palette "<what>"`.
+2. Operator: tick **Spec approved** in the body of https://github.com/k0d0minio/jamienisbet/pull/170.
+3. Then `/pipeline build shell-rail-palette` — execute `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/170
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the Spec approved box is ticked; never tick it.
+- Do not remove the Money route, its page, its Stripe code, or the feed's Money / Today's tickets
+  sections — `inbox-rebuild` and D-17 own that.
+- Do not restyle the screens inside the shell — the later stubs own them.
+- Do not add a GitHub fetch path for the palette — reuse `readBoard()`.

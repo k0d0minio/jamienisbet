@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Screens inside the shell keep their app-tier content; only the chrome moves to the desk tier (spec Out of scope).
+- Money stays routable by URL and out of the rail, tab bar and palette (D-17, D-24).
+- Tickets stay read-only; palette actions only open launch links (D-9).
+- The board's GitHub cache rules hold: no `force-dynamic`, no uncached read (header of `lib/tickets.ts`).
+- The marketing sites are untouched (D-22).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Read the design canvas's Main, WorkThreePane and WorkPhone artboards (the stub cites them) and the desk-tier spec to pin the primitives and the rail layout.

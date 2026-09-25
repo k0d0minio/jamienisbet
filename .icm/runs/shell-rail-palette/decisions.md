@@ -33,5 +33,6 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-23 — The desk layout starts at `md` (768px): an iPad in portrait gets the rail. Jamie, in Define, 2026-09-25 (closes scope.md's open point).
+- D-24 — Money is not in the command palette; `/money` stays reachable by URL only. Jamie, in Define, 2026-09-25.
+- D-25 — Until `inbox-rebuild`, the Inbox badge counts follow-ups only (stale open leads, outreach due, nurture wakes — uncapped, Neon only). Jamie, in Define, 2026-09-25.
