@@ -33,5 +33,18 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-43 — The phone's repo header is tappable and pushes a repo level (open tickets grouped by
+  epic, the desk's repo view with its maintenance launchers); today picks are a mark on their
+  row, not a section; Work's rows only tap — the swipe trays are dropped. Operator's answers at
+  Define (2026-09-25).
+- D-44 — Push and pop are instant; the edge swipe follows the finger directly and plays no
+  animation on release. Build, 2026-09-25: the spec said "a short linear slide", but
+  `design-dna` rules slides out of the desk tier ("instant or a ≤120ms colour change — no
+  springs, no slides"), and the brand is the source of truth. Spec gap, named in
+  `notes.md` → Notes for Release; the reduced-motion criterion holds trivially.
+- D-45 — The phone's levels live in the page's own scroll (not a scroll container per level):
+  pull-to-refresh listens to the window, so a level with its own scroller would refresh on
+  every downward drag at the top of the page. Each level's `window.scrollY` is kept by level key
+  and restored on a pop; the launch bar is `position: sticky` on the tab bar. Build,
+  2026-09-25 — plan.md pass 3 said "per-level scroll restore" without saying where the scroll
+  lives.

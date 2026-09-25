@@ -24,4 +24,9 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] work-model.ts + use-board-params.ts — phone levels, `?v=repos`, `pop` (92f6b50)
+- [x] ticket-reader.tsx — compact head, stacked body, launch bar (92f6b50)
+- [x] work-phone.tsx + globals.css `bottom-tabs` — the four levels, back, edge swipe, scroll (92f6b50)
+- [x] page.tsx swap; delete the old phone board and what only it used; prune board-model (92f6b50, adfc3d1)
+- [x] README — Work on the phone (adfc3d1)
+- [ ] Ready flip, then the post-flip push; full verdict from ci-status.sh

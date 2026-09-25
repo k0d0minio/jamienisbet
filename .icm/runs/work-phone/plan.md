@@ -7,42 +7,30 @@ reality disagrees with it — never left describing a plan that was abandoned.
 
 ## Passes
 
-1. **The model and the URL — `work-model.ts`, `use-board-params.ts`** — add the phone's reading
-   of the shared selection: `?v=repos` as a list value (at the desk `resolveWork` maps it to Up
-   next and does not rewrite it); a pure `phoneLevel(selection)` → `list(next|repos, scrollTo?)`
-   | `repo` | `batch` | `reader(parent)` and `parentQuery(level)` for the cold-link back; a back
-   label per level; `?v=today|running|blocked` → Up next with a section to scroll to, no rewrite;
-   `?repo=` → `?r=` rewrite. Segment switch goes through `replaceState`. Nothing here renders. —
-   done when: every URL in spec §5 maps to exactly one level and parent, and the desk resolves
-   each the way it did before (plus `v=repos` → Up next).
-2. **The shared reader parts — `ticket-reader.tsx`** — split the action row out of `ReaderHead`
-   into a `ReaderActions` (primary-act rules unchanged: Launch / Copy-primary when too long /
-   running line on an open PR / resume on a run folder) that takes a `layout: "desk" | "bar"`;
-   the side column renders in flow under the body when told to (the container query already
-   stacks it — make it explicit for the phone). Desk output byte-for-byte the same. — done when:
-   the desk reader at 1280px is visually unchanged and the phone can compose head + body + side
-   column + `ReaderActions` in one column.
-3. **The phone layout — new `components/work-phone.tsx` (+ `globals.css` only for what tokens
-   can't say)** — title bar (title, as-of, refresh, search), the sticky `SegmentedControl`, the
-   Up next sections and the Repos list (repo headers → `?r=`, epic / Triage / Backlog rows →
-   `?b=`), the repo level (grouped open tickets, `RepoMaintenance`, error), the epic level (every
-   stub; done rows inert), the reader with the sticky launch bar above the tab bar and its
-   safe-area padding where there is no tab bar (`md`+); per-level scroll restore; the edge-swipe
-   pop (port the threshold and pointer handling from `board-pane.tsx`, desk-tier surfaces, linear
-   slide, none under reduced motion) and the named back button through `useBoardParams`' prev
-   mechanism. Rows are `ListRow`-based two-line rows, taps only. — done when: at 390×844 every AC
-   from the list level to the launch bar holds on the preview.
-4. **Swap and delete — `app/(app)/page.tsx`, `work-screen.tsx`, `use-desk.ts`, `work-desk.tsx`**
-   — render `WorkPhone` in `WorkScreen`'s phone slot; move `BatchSummary` beside `work-desk.tsx`
-   (or into `work-views.tsx`); delete `tickets-board.tsx`, `board-pane.tsx`, `batch-row.tsx`,
-   `board-ticket-row.tsx`, `ticket-detail.tsx`, `board-views.tsx`; prune `ticket-look.ts` /
-   `board-model.ts` to what a live file imports; fix the comments that name the old board. —
-   done when: no import of a deleted file remains, `grep` finds no `Material` / `Grouped*` import
-   under Work's tree, and CI's typecheck and lint are green.
-5. **Docs — `websites/admin-dashboard/README.md`** — rewrite "Under `lg` — the phone board" for
-   the new levels, the `?v=repos` value and the phone's reading of desk links; drop the chip-rail
-   and swipe-tray lines. (Release owns the final README pass; Build keeps this paragraph true.) —
-   done when: the README describes what shipped and names no deleted file.
+Rewritten by Build (2026-09-25) where reality disagreed: the levels scroll with the page, not in
+their own containers (D-45); push and pop are instant (D-44); two more files the old board alone
+used were deleted (`launch-menu.tsx`, `repo-maintenance.tsx`).
+
+1. **The model and the URL — `work-model.ts`, `use-board-params.ts`** — `REPOS_VIEW` (`?v=repos`
+   read as Up next at the desk, never rewritten); `phoneLevel` / `phoneQuery` / `phoneParent` /
+   `phoneLabel` / `phoneLevelKey` / `epicNextLine`; repo-list headings carry their batch key;
+   `canonical()` treats a lone `?v=next` as `/`; `pop(parent)` = `history.back()` when the board
+   pushed the entry, else a push of the parent; `pushedFromQuery()`. — done: 92f6b50.
+2. **The shared reader parts — `ticket-reader.tsx`** — `ReaderHead compact` (no GitHub, no
+   action row), `ReaderBody stacked`, `ReaderLaunchBar` (the desk's primary-act rules, 44px
+   controls), `DeskCopyButton` `keys`/`className`, `understood` exported. Desk output unchanged.
+   — done: 92f6b50.
+3. **The phone layout — `components/work-phone.tsx`, `globals.css` `bottom-tabs`** — list level
+   (title bar, sticky switch, Up next sections, Repos), repo, epic and reader levels, back bar,
+   edge swipe, scroll kept per level in the window scroll, launch bar sticky on the tab bar. —
+   done: 92f6b50; proof is the preview after the ready flip.
+4. **Swap and delete — `page.tsx`, `work-desk.tsx` (+ `BatchSummary`), comments** — the phone
+   slot renders `WorkPhone` / `WorkPhoneNotConfigured`; deleted `tickets-board`, `board-pane`,
+   `batch-row`, `board-ticket-row`, `ticket-detail`, `board-views`, `ticket-look`, then
+   `launch-menu` and `repo-maintenance` (orphaned by the same deletion); `board-model.ts`
+   pruned of the level-0 cursor helpers. — done: 92f6b50, adfc3d1.
+5. **Docs — `websites/admin-dashboard/README.md`** — the phone section rewritten, the swipe and
+   split-button lines, the file tree. — done: adfc3d1.
 
 ## Risks
 
