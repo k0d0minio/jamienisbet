@@ -11,7 +11,6 @@ import {
   draftKindFor,
   getClient,
   listFormLinksForClient,
-  listOpenTasksForClient,
   listTouchesForClient,
   nextActionStatuses,
   normalizeSuppressionValue,
@@ -40,7 +39,6 @@ import { LeadReply } from "@/components/lead-reply"
 import { LeadSegments } from "@/components/lead-segments"
 import { LeadStatusRow } from "@/components/lead-status-row"
 import { LeadSuppress } from "@/components/lead-suppress"
-import { LeadTodos } from "@/components/lead-todos"
 import { LeadTouches } from "@/components/lead-touches"
 import { TouchRow } from "@/components/touch-row"
 import { isGatewayConfigured } from "@/lib/ai"
@@ -85,7 +83,7 @@ const TOUCH_HISTORY_LIMIT = 25
 //
 //   Person — the record. Status, contact, what they *are*, the deal, how they
 //            came in (folded, because it is read once), and the two red rows.
-//   Work   — the surface. Notes, todos, the questionnaires they've been sent.
+//   Work   — the surface. Notes, the questionnaires they've been sent.
 //
 // Nothing here converts anyone. The four-step walkthrough, the "Finish
 // conversion" row and the warning badges that nagged an active client about
@@ -104,9 +102,8 @@ async function loadLead(id: string) {
   // in Neon) are independent reads — one is what *can* be sent, the other what
   // already was — so they go together rather than in series. The library is
   // scoped to this lead: the house forms, plus any in their own delivery repo.
-  const [rawTasks, rawTouches, formLinks, formLibrary, optOuts, dealFolder] =
+  const [rawTouches, formLinks, formLibrary, optOuts, dealFolder] =
     await Promise.all([
-      listOpenTasksForClient(client.id),
       listTouchesForClient(client.id, TOUCH_HISTORY_LIMIT),
       listFormLinksForClient(client.id),
       listOnboardingForms(client.githubRepo),
@@ -119,16 +116,6 @@ async function loadLead(id: string) {
       // or when there is no token.
       readDealFolder(dealFolderSlug(client.githubRepo)),
     ])
-
-  // Every todo here is this lead's, so the rows carry no name and no lead
-  // picker — it would be the same name on each one.
-  const tasks = rawTasks.map((t) => ({
-    id: t.id,
-    title: t.title,
-    dueDate: t.dueDate?.toISOString() ?? null,
-    overdue: t.dueDate !== null && t.dueDate.getTime() < now,
-    completed: false,
-  }))
 
   // Dates are formatted here, on the server, for the same reason `lastWorked`
   // is: the history is handed to a client section as children, and nothing
@@ -227,7 +214,6 @@ async function loadLead(id: string) {
 
   return {
     client,
-    tasks,
     touches,
     formLinks,
     formLibrary,
@@ -273,7 +259,6 @@ export default async function LeadDetailPage({
 
   const {
     client,
-    tasks,
     touches,
     formLinks,
     formLibrary,
@@ -546,12 +531,6 @@ export default async function LeadDetailPage({
             />
 
             <LeadNotesCard id={client.id} notes={client.notes} />
-
-            <LeadTodos
-              clientId={client.id}
-              clientName={client.name}
-              tasks={tasks}
-            />
 
             <FormLinks
               clientId={client.id}

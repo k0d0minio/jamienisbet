@@ -19,9 +19,9 @@ fullscreen like a native app (see [Mobile & PWA](#mobile--pwa)).
 
 | Screen | Route | What it is |
 |---|---|---|
-| **Needs you** | `/` | The triaged feed: what is waiting on you right now, in four sections. Home. |
+| **Needs you** | `/` | The triaged feed: what is waiting on you right now, section by section. Home. |
 | **Leads** | `/leads` | Every lead and customer in one list, longest-waiting first; the cold pool is a view of it (`?view=prospects`). |
-| **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link, todos. |
+| **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link. |
 | **Tickets** | `/tickets` | Every repo's `.icm/intake/` backlog in one read-only board. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. |
 
@@ -33,7 +33,7 @@ feed.
 ## Needs you — the screen the app opens on
 
 The only question you have at 8am is *what needs me*, and a roster of everyone
-does not answer it. So home is a feed: one prioritised list, four sections, and
+does not answer it. So home is a feed: one prioritised list, in sections, and
 nothing in it that does not want something. A section renders only when it has
 rows.
 
@@ -43,13 +43,6 @@ rows.
   list's gestures: **swipe right** marks them worked — which is precisely the
   stroke that drops them out of the section — **swipe left** reaches them, and a
   tap opens the profile.
-- **Overdue** — todos that have come due, ticked in place; and compliance dates
-  past or inside a two-week horizon, marked done on a button beside the row
-  rather than by tapping it (completing a recurring obligation re-arms the next
-  occurrence, which is too much to hang off a mis-tap while scrolling).
-  Compliance rows stay **decision-support only** — the section says so under
-  them. A todo with no due date is filed rather than owed: it lives on its
-  lead's profile and is counted, not listed, in the section's footer.
 - **Money** — the two kinds of invoice waiting on a decision: a draft nobody
   finalized, and an open one past its due date, longest overdue first
   (`listInvoicesNeedingAction` in [`lib/finance.ts`](lib/finance.ts)). The rows
@@ -61,14 +54,13 @@ rows.
 
 **The rule that shapes every row:** a row either **acts in place** or
 **deep-links**. Nothing in the feed edits something that has a proper home
-elsewhere — marking a lead touched and ticking a todo happen under the thumb
-because there is nowhere better to send you; an invoice or a ticket is a link.
+elsewhere — marking a lead touched happens under the thumb because there is
+nowhere better to send you; an invoice or a ticket is a link.
 
-**Writing a todo down** is the one thing here that makes something, so it is a
-`+` on the title bar (`components/add-todo.tsx`): a sheet with the title, an
-optional date and an optional lead. The Overdue section's header would have hidden
-it on exactly the day you have nothing overdue and want to write something down.
-A todo about someone in particular is still added from their profile.
+Todos and the Portuguese compliance calendar used to live here too (an Overdue
+section, a `+` to write a todo down, a calendar sheet). They were dropped with
+their tables — todos are kept in Google Tasks — so the feed makes nothing; it
+only lists what is owed.
 
 **Empty is the point.** With nothing in any section the screen shows a designed
 **all clear** rather than a blank — the app opening on "nothing needs you" is a
@@ -158,8 +150,8 @@ relationship, and what was actually billed lives in Stripe.
   profile, but a swap filed as cash overstates the pipeline from the moment it is typed.
 
 The **working-list strip** that used to sit above this list — todos and Portuguese compliance
-dates folded into a `<details>` — is gone. Todos and compliance dates are attention, and
-attention now lives on [Needs you](#needs-you--the-screen-the-app-opens-on).
+dates folded into a `<details>` — is gone, and so are todos and compliance dates themselves.
+Attention lives on [Needs you](#needs-you--the-screen-the-app-opens-on).
 
 A lead's own page opens on *them*: the identity masthead (name, company · status, the deal's
 headline figure in mono) and, under it, the five things you do from a phone as a row of tinted
@@ -168,7 +160,7 @@ segments**:
 
 - **Person** — the record. Status (and when they were last worked), **Contact**, **Facts**,
   **Deal**, the folded **Intake** row, and the **Danger zone**.
-- **Work** — the surface you operate. **Touches**, **Notes**, **todos**, **Forms**.
+- **Work** — the surface you operate. **Touches**, **Notes**, **Forms**.
 
 Both segments are rendered and only one is shown, so switching costs no round trip and a
 half-typed note survives a look at the deal; the choice rides in the URL as `?tab=work` through
@@ -675,8 +667,8 @@ The app is built mobile-first and installs to a phone home screen as **Consultan
   blur): `prefers-reduced-transparency`, reactively in CSS, and `data-materials="opaque"` —
   stamped by the same pre-paint script when the device reports 4GB or less. A capability check,
   never a setting.
-- **Anything hover-only is a bug on a phone.** Row deletes in the todo and compliance lists are
-  always visible below `sm` and only fade in on hover from `sm` up.
+- **Anything hover-only is a bug on a phone.** A row action that only fades in on hover from
+  `sm` up must stay always visible below `sm`.
 - **Gestures, and their non-gesture twins** — list rows swipe
   ([`components/swipe-row.tsx`](components/swipe-row.tsx): pointer-events + `touch-action:
   pan-y`, so vertical stays native scroll; one row open at a time; a drag never fires the row's
@@ -739,12 +731,12 @@ app/
     error.tsx           # the four screens' error boundary — a read that refused
     page.tsx            # Needs you — the feed; also redirects the old /?filter= leads bookmarks
     loading.tsx         # the feed's layout-true skeleton (the widest read in the app)
-    actions.ts          # lead + touch + todo + compliance server actions (every lead screen
+    actions.ts          # lead + touch server actions (every lead screen
                         #   uses these); logTouchAction is the one that answers with what to
                         #   do next
     leads/              # Leads — the list, staleness-sorted; ?view=prospects is the cold
                         #   pool, tier-sorted; loading.tsx alongside
-    leads/[id]/         # one lead: Person / Work segments, repo + Stripe glyphs, their todos
+    leads/[id]/         # one lead: Person / Work segments, repo + Stripe glyphs
                         #   error.tsx — its own boundary, so it can name the record
     tickets/            # Tickets — every repo's .icm/intake/ backlog, read-only, copy-prompt
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
@@ -758,9 +750,6 @@ components/             # login form, nav, service-worker register, lead + money
                         #   lead-row.tsx — the leads list's gestures (call/email/archive, touched),
                         #                worn by the feed's "Waiting on you" rows too
                         #   lead-action-row.tsx — the profile's circular actions, Contacts-style
-                        #   overdue-list.tsx — the feed's Overdue section: todos + compliance,
-                        #                both acting in place
-                        #   add-todo.tsx — the feed's `+`: write a todo down from anywhere
                         #   lead-contact-card.tsx / lead-facts-card.tsx / lead-deal-card.tsx /
                         #   lead-notes-card.tsx
                         #                — the record as facts, each edited in a bottom sheet

@@ -183,6 +183,13 @@
       "when": 1790154333363,
       "tag": "0025_drop_deal_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1790332705515,
+      "tag": "0026_drop_tasks_and_compliance_dates",
+      "breakpoints": true
     }
   ]
 }

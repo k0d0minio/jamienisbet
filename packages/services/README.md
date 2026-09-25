@@ -34,8 +34,6 @@ src/
   queries/suppressions.ts # the permanent opt-out list, keyed to the contact not the lead
   queries/crack-finder.ts # the four reads that notice what the writes never refuse
   queries/enrichment.ts  # which rows a pass would read, and what saving one means
-  queries/tasks.ts       # todos
-  queries/compliance.ts  # the PT compliance calendar (recurrence re-arms on complete)
   queries/form-links.ts  # customer questionnaires: publish, read, submit once
   queries/prospects.ts   # the import's read and its write — dedupe keys, the batch
   queries/retention.ts   # the 12-month rule: what has aged out, and forgetting it

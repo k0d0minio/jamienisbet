@@ -82,7 +82,7 @@ export const metadata: Metadata = { title: "Leads" }
 // It is no longer the app's home: `/` is the Needs you feed, and this screen is
 // the roster you come to when you want everyone rather than what is owed today.
 // The working-list strip that used to sit above the list went with that move —
-// todos and compliance dates are attention, and attention lives on the feed.
+// attention lives on the feed.
 
 // Two views of one screen, and the cold pool is the reason there are two.
 //

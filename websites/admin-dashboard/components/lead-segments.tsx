@@ -16,7 +16,7 @@ import {
 //
 //   Person — the record. Who they are, where they stand, what was agreed, how
 //            they came in, and the two red rows.
-//   Work   — the surface you actually operate. Notes, todos, forms.
+//   Work   — the surface you actually operate. Notes, forms.
 //
 // Both are rendered and only one is shown, so switching costs nothing and a
 // half-typed note survives a look at the deal. The choice rides in the URL as

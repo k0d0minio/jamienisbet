@@ -22,7 +22,7 @@ import { hapticTick } from "@/lib/haptics"
 // another ninety days. The row itself is the first, because that is what a
 // wake is *for*; parking again is the deliberate one and takes the button.
 //
-// It acts in place for the same reason the Overdue section does: there is
+// It acts in place for the same reason the Waiting on you rows do: there is
 // nowhere better to send you. Both answers are recoverable from the lead's own
 // profile, and a row leaves the list the instant the thumb lifts — the server's
 // answer lands underneath, and a refused write puts the row back with a toast
