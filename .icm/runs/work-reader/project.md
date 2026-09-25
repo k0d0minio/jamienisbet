@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Tickets stay read-only; nothing is stored when Launch is pressed (D-9, D-11).
+- `lib/launchers/` is the only place a link is built; no new target, no model/effort in a link
+  no target documents (D-10).
+- Every new GitHub read goes through the board's cache path (force-cache, revalidate, 8-in-flight
+  cap) — never a live `cache: "no-store"` read.
+- Desk tier only in the reader; the phone board under `lg` is `work-phone`'s (D-3, D-4, D-7).
+- The Inbox's PR listing is `gates-read`'s — this run matches PRs to stubs and nothing more.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `lib/tickets.ts`, `lib/launchers/*`, `components/ticket-detail.tsx`, parts of
+  `work-desk.tsx`, `new-run.sh` and `project-labels.sh` (to settle the lane-PR match and the
+  launch-link question), and the round-2 mockup artboard `WorkThreePane.dc.html`.

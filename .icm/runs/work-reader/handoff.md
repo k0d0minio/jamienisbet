@@ -6,18 +6,17 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Once **Spec approved** is ticked on https://github.com/k0d0minio/jamienisbet/pull/176, run
+   `/pipeline build work-reader` and execute `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of PR #176.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the tick; do not tick it.
+- Do not touch the phone board layout under `lg` (`work-phone`) or list unmatched PRs in the
+  Inbox (`gates-read`).
+- Do not add a launch target or put model/effort into the Claude Code link.
+- Do not edit `.icm/scripts/new-run.sh` to add a `- stub:` line to lane PRs — template-owned.
