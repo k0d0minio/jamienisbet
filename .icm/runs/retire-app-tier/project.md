@@ -13,9 +13,18 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No behaviour change on any screen: the port is mechanical, and only the look moves. An audit fix
+  (a hover-only action made visible, a target raised to 44px) is the one exception.
+- Money stays dormant (D-17, D-46): no nav entry, and no change to Stripe or Money server code.
+- The marketing tier and the portfolio and sellers sites are untouched (D-22).
+- Desk-tier motion is instant or a ≤120ms colour change, with no springs or slides; sheets keep
+  their detents (D-48).
+- The learned rules in `_shared/project-rules.md` apply, notably the packages/ui `Omit` rule,
+  window scroll for pull-to-refresh, and `origin/main` as the diff base.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `packages/ui/src/index.ts`, `package.json`, the `app.css` header, the design-dna
+  tier and motion sections and the BRAND.md headings, and ran targeted import and utility
+  searches across `websites/admin-dashboard`. The stub's `touches:` had underestimated the
+  footprint (about 40 files, not 12), and the spec had to name the real one.

@@ -33,5 +33,7 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-46 — Money is ported mechanically to the desk tier, so the app tier is deleted whole rather than kept for Money's imports. Answers scope.md's open point; Money stays dormant (D-17). Define, with the operator.
+- D-47 — The desk tier gains its own form controls (`DeskField`, `DeskInput`, `DeskTextarea`, `DeskSelect`), prop-compatible with the `App*` set. The alternative, restyling the brand-level shadcn controls, would have reversed BRAND.md's rule that bars the marketing `Input` from desk screens. Define, with the operator.
+- D-48 — Sheets keep their phone detents but lose the spring and the slide: a drag follows the finger, and a release or tap settles on a detent at once. Define, with the operator.
+- D-49 — The sweep ships as one complex run. It is not split into a port and a later delete, because the deletion proves the port complete. Define, with the operator.
