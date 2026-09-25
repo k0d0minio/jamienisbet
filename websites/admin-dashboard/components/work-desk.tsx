@@ -945,12 +945,15 @@ export function WorkDesk({
             onHelp={() => setKeysOpen(true)}
           />
           <Pane aria-label={shown.kind === "ticket" ? "Reader" : "Detail"} className="min-w-0 flex-1">
+            {/* Head and body are siblings, so their keys must differ: sharing
+                one key left each old head orphaned in the DOM on every new
+                selection, stacking a column of past tickets. */}
             {shown.kind === "ticket" ? (
-              <ReaderHead key={selectionKey(shown)} ticket={shown.ticket} readAt={board.readAt} />
+              <ReaderHead key={`head:${selectionKey(shown)}`} ticket={shown.ticket} readAt={board.readAt} />
             ) : detail ? (
               <PaneHeader title={detail.title} meta={detail.meta} titleAs="h2" />
             ) : null}
-            <PaneBody key={selectionKey(shown)} ref={readerRef} tabIndex={0} className={LISTBOX}>
+            <PaneBody key={`body:${selectionKey(shown)}`} ref={readerRef} tabIndex={0} className={LISTBOX}>
               {shown.kind === "ticket" ? (
                 <ReaderBody ticket={shown.ticket} batch={shown.batch} onSelectTicket={onSelectTicket} />
               ) : detail ? (
