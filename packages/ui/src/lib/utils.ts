@@ -48,16 +48,71 @@ const appTextColors = [
   "material-label-3",
 ];
 
+// The desk tier has the same trap and the same fix: its steps are `desk-*`,
+// which exist only under `@jamie-nisbet/ui/desk.css`. Sizes and colours are
+// named disjointly (`text-desk-ui` is a size, `text-desk-fg` a colour), and
+// listing both keeps each in its own group.
+const deskTextSizes = [
+  "desk-title",
+  "desk-heading",
+  "desk-body",
+  "desk-ui",
+  "desk-meta",
+  "desk-micro",
+  "desk-figure",
+];
+
+const deskTextColors = [
+  "desk-fg",
+  "desk-fg-2",
+  "desk-fg-3",
+  "desk-ink",
+  "desk-ink-fg",
+  "desk-running",
+  "desk-blocked",
+  "desk-done",
+];
+
 // The elevation scale is a `shadow`, not a `shadow-color` — so one elevation
 // replaces another rather than stacking with it.
 const appShadows = ["app-raised", "app-chrome", "app-sheet", "app-popover"];
+const deskShadows = ["desk-float"];
+
+// The desk tier's named sizes, corners and tracking are theme *values*, not
+// classes: tailwind-merge's default theme only recognises numbers and t-shirt
+// sizes, so `h-desk-row` next to a caller's `h-8` would otherwise keep both and
+// leave the winner to stylesheet order. Declaring them makes every spacing
+// utility (h-, w-, size-, p-, gap-, …) and every rounded- one resolve.
+const deskSpacing = [
+  "desk-row",
+  "desk-control",
+  "desk-control-sm",
+  "desk-grid-row",
+  "desk-grid-header",
+  "desk-rail",
+  "desk-rail-item",
+  "desk-pane-header",
+  "desk-toolbar",
+  "desk-icon",
+  "desk-icon-rail",
+  "desk-dot",
+  "desk-check",
+  "desk-badge",
+];
+const deskRadius = ["desk-key", "desk-control", "desk-pane"];
+const deskTracking = ["desk-eyebrow"];
 
 const twMerge = extendTailwindMerge({
   extend: {
+    theme: {
+      spacing: deskSpacing,
+      radius: deskRadius,
+      tracking: deskTracking,
+    },
     classGroups: {
-      "font-size": [{ text: appTextSizes }],
-      "text-color": [{ text: appTextColors }],
-      shadow: [{ shadow: appShadows }],
+      "font-size": [{ text: [...appTextSizes, ...deskTextSizes] }],
+      "text-color": [{ text: [...appTextColors, ...deskTextColors] }],
+      shadow: [{ shadow: [...appShadows, ...deskShadows] }],
     },
   },
 });
