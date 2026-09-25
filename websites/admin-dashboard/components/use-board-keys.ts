@@ -12,7 +12,8 @@ import { useEffect, useRef } from "react"
 // the board (a menu, a sheet, a dialog — the key sheet included, whose own Esc
 // closes it), or with Ctrl, Cmd or Alt held: browser and OS shortcuts are
 // never taken — with one exception, ⌘↵ (Ctrl+↵ off macOS), the reader's
-// primary act (spec work-reader §2), which no browser binds on a page. Below
+// primary act (spec work-reader §2). It is left to the browser on a focused
+// link, where it means "open in a new tab". Below
 // `lg` the board is a phone board and has no keyboard map.
 
 export type BoardKeyIntent =
@@ -95,8 +96,9 @@ export function useBoardKeys(
       // letting those three through here steals no browser shortcut. Meta
       // stays blocked always; every other key keeps ignoring Ctrl/Alt.
       // ⌘↵ / Ctrl+↵ — launch. Still never while typing or under an overlay
-      // (the palette and the key sheet are dialogs), but it fires from a
-      // focused button too: Enter alone is that button's, ⌘↵ never is.
+      // (the palette and the key sheet are dialogs), and not on a focused
+      // link, whose ⌘↵ is the browser's; it fires from a focused button —
+      // Enter alone is that button's, ⌘↵ never is.
       if (
         event.key === "Enter" &&
         (event.metaKey || event.ctrlKey) &&
@@ -105,6 +107,7 @@ export function useBoardKeys(
       ) {
         const target = event.target instanceof Element ? event.target : null
         if (target?.closest(TEXT_FIELD)) return
+        if (target?.closest("a[href]")) return
         if (document.querySelector(OVERLAY)) return
         if (handler.current("launch", event)) event.preventDefault()
         return

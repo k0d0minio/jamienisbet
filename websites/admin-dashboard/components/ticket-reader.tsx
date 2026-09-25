@@ -63,12 +63,13 @@ type Section = { heading: string | null; text: string }
 function sections(body: string): Section[] {
   const out: Section[] = []
   let current: { heading: string | null; lines: string[] } = { heading: null, lines: [] }
+  // The open fence's marker: closed only by a run of the same character at
+  // least as long (CommonMark), so a shorter fence inside it stays content.
   let fence: string | null = null
   for (const line of body.split("\n")) {
     const marker = line.match(/^\s*(`{3,}|~{3,})/)?.[1]
-    if (marker) {
-      if (fence === null) fence = marker[0]
-      else if (marker[0] === fence) fence = null
+    if (marker && (fence === null || (marker[0] === fence[0] && marker.length >= fence.length))) {
+      fence = fence === null ? marker : null
     } else if (fence === null) {
       const heading = line.match(/^##\s+(.+?)\s*$/)
       if (heading) {
@@ -318,7 +319,9 @@ function ReaderActions({
   action: PrimaryAction
   readAt: string
 }) {
-  const running = ticket.status === "running"
+  // What GitHub says is under way — a matched PR — offers no Launch. A run
+  // folder on main with no PR is a run to resume, so it keeps its Launch.
+  const running = ticket.pr !== null
   const recommendation = primaryLaunch(ticket.launches)?.hint ?? null
   const what = ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"
   const note = running
@@ -333,7 +336,7 @@ function ReaderActions({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-2">
-        {running ? <RunningBadge ticket={ticket} readAt={readAt} /> : null}
+        {ticket.status === "running" ? <RunningBadge ticket={ticket} readAt={readAt} /> : null}
         {!running && action.kind === "launch" ? (
           <DeskButton asChild variant="primary">
             <a

@@ -1,0 +1,4 @@
+## 2026-09-25T15:40:00Z lint.sh — react-hooks/immutability in work-desk.tsx after the Release review fixes
+websites/admin-dashboard/components/work-desk.tsx:677:5  error  react-hooks/immutability  Error: Cannot access variable before it is declared (`focusPane`, called from a useEffect above its declaration)
+websites/admin-dashboard/components/work-desk.tsx:838:16  error  react-hooks/immutability  Error: This value cannot be modified (`window.location.href = …`)
+- resolved: The React Compiler lint only reached these once the component compiled further; the effect now sits below `focusPane`, and a non-web launch uses `window.location.assign(url)` instead of assigning `location.href`.

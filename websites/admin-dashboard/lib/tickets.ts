@@ -39,7 +39,8 @@ import "server-only"
 //     a ticket is running (D-11). A lane PR carries its own slug, not the
 //     triage stub's name, so each open lane PR costs one more request — its
 //     file list, on the discovery clock, where the stub's move to
-//     `triage/_done/` names it. Budget per repo: 1 + one per open lane PR.
+//     `triage/_done/` names it. Budget per repo with open stubs or runs: 1 +
+//     one per open lane PR while it has open triage stubs; none otherwise.
 //   • CONTENT (a month) — ticket bodies, and each epic's `breakdown.md`, read
 //     by blob SHA, not by path. A path read answers "what is in that file
 //     now" and has to be re-asked every minute, so a warm board re-read every
@@ -1061,7 +1062,11 @@ function prStage(labels: string[]): TicketPr["stage"] {
  * stub's move is in the lane's first commit and does not change. A failed
  * read is reported, never read as "nothing running".
  */
-async function fetchOpenPulls(repo: TicketRepo): Promise<OpenPulls> {
+async function fetchOpenPulls(
+  repo: TicketRepo,
+  /** Read lane PRs' file lists — only worth it while triage stubs are open. */
+  readLanes: boolean
+): Promise<OpenPulls> {
   const out: OpenPulls = { spine: new Map(), triage: new Map(), bySlug: new Map(), error: null }
   try {
     const res = await gh(
@@ -1086,7 +1091,7 @@ async function fetchOpenPulls(repo: TicketRepo): Promise<OpenPulls> {
     }
     const failed: string[] = []
     await Promise.all(
-      lanes.map(async (pr) => {
+      (readLanes ? lanes : []).map(async (pr) => {
         const files = await gh(
           `/repos/${repo.fullName}/pulls/${pr.number}/files?per_page=100`,
           "application/vnd.github+json",
@@ -1096,10 +1101,24 @@ async function fetchOpenPulls(repo: TicketRepo): Promise<OpenPulls> {
           failed.push(`#${pr.number}: ${await githubFailure(files)}`)
           return
         }
-        for (const file of (await files.json()) as { filename: string; status: string }[]) {
-          const moved = file.filename.match(/^\.icm\/intake\/triage\/_done\/([^/]+)\.md$/)
-          if (moved && (file.status === "renamed" || file.status === "added") && !out.triage.has(moved[1]))
-            out.triage.set(moved[1], pr)
+        // The stub's own move: renamed from `triage/<name>.md`, or — when git
+        // sees the rename as a delete and an add — both halves in the list.
+        // A new `_done/` file with no open stub leaving is not a consumption.
+        const list = (await files.json()) as {
+          filename: string
+          status: string
+          previous_filename?: string
+        }[]
+        const removed = new Set(list.filter((f) => f.status === "removed").map((f) => f.filename))
+        for (const file of list) {
+          const name = file.filename.match(/^\.icm\/intake\/triage\/_done\/([^/]+)\.md$/)?.[1]
+          if (!name || out.triage.has(name)) continue
+          const from = `.icm/intake/triage/${name}.md`
+          if (
+            (file.status === "renamed" && file.previous_filename === from) ||
+            (file.status === "added" && removed.has(from))
+          )
+            out.triage.set(name, pr)
         }
       })
     )
@@ -1246,7 +1265,10 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
           return raw === null ? null : ([epic, raw] as const)
         })
       ),
-      fetchOpenPulls(repo),
+      // Only a repo with something to match pays for the read.
+      stubPaths.length > 0 || runSlugs.size > 0
+        ? fetchOpenPulls(repo, stubPaths.some((p) => p.epic === "triage"))
+        : Promise.resolve<OpenPulls>({ spine: new Map(), triage: new Map(), bySlug: new Map(), error: null }),
     ])
     const breakdowns = Object.fromEntries(
       breakdownResults.filter((b): b is readonly [string, string] => b !== null)

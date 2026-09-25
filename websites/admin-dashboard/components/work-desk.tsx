@@ -595,6 +595,14 @@ function ListPane({
   )
 }
 
+/** The repos in this list whose pull requests couldn't be read, by slug —
+ *  matched on the full name, as the repo view matches them. */
+function prUnreadFor(board: BoardData, list: WorkList): string[] {
+  const only =
+    list.kind === "batch" ? list.section.repo.fullName : list.kind === "repo" ? list.focus.repo.fullName : null
+  return board.prErrors.filter((e) => only === null || e.repo.fullName === only).map((e) => e.repo.slug)
+}
+
 // ---------------------------------------------------------------------------
 
 export function WorkDesk({
@@ -662,12 +670,6 @@ export function WorkDesk({
 
   // Where focus goes once the view it lands in has rendered.
   const pendingFocus = useRef<PaneIndex | null>(null)
-  useEffect(() => {
-    const pending = pendingFocus.current
-    if (pending === null) return
-    pendingFocus.current = null
-    focusPane(pending)
-  })
 
   function focusPane(pane: PaneIndex) {
     const element = pane === 1 ? navRef.current : pane === 2 ? listRef.current : readerRef.current
@@ -676,6 +678,13 @@ export function WorkDesk({
     const active = element.getAttribute("aria-activedescendant")
     if (active) document.getElementById(active)?.scrollIntoView({ block: "nearest" })
   }
+
+  useEffect(() => {
+    const pending = pendingFocus.current
+    if (pending === null) return
+    pendingFocus.current = null
+    focusPane(pending)
+  })
 
   /** The pane holding focus — the list when focus is anywhere else. */
   function focusedPane(): PaneIndex {
@@ -823,11 +832,11 @@ export function WorkDesk({
         // browser counts it as the user's own gesture.
         if (target.kind !== "ticket") return false
         const { ticket } = target
-        if (ticket.status === "running") return true
+        if (ticket.pr) return true
         const action = primaryAction(ticket.launches, ticket.pickup)
         if (action.kind === "launch" && action.launch.url) {
           if (action.launch.surface === "web") window.open(action.launch.url, "_blank", "noopener,noreferrer")
-          else window.location.href = action.launch.url
+          else window.location.assign(action.launch.url)
         } else if (action.kind === "copy" && ticket.pickup) {
           void copyToClipboard(ticket.pickup, ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt")
         }
@@ -930,13 +939,7 @@ export function WorkDesk({
             rows={rows}
             selectedKey={ticketSelected}
             partial={partial}
-            prUnread={
-              list.kind === "batch"
-                ? board.prErrors.filter((e) => e.repo.slug === list.section.repo.slug).map((e) => e.repo.slug)
-                : list.kind === "repo"
-                  ? board.prErrors.filter((e) => e.repo.slug === list.focus.repo.slug).map((e) => e.repo.slug)
-                  : board.prErrors.map((e) => e.repo.slug)
-            }
+            prUnread={prUnreadFor(board, list)}
             listRef={listRef}
             onSelect={(key) => navigate({ ...lq, t: key })}
             onHelp={() => setKeysOpen(true)}

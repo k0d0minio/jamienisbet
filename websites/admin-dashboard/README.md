@@ -586,9 +586,10 @@ toolbar strip with "as of HH:MM" and the refresh button:
   rows dimmed), and the breakdown's *What I understood* with a link to the whole breakdown — the
   epic parts not shown for a triage stub. It sits beside the body once the pane is wide enough
   (a container query), under it otherwise. A prompt past the link's cap offers no Launch: Copy
-  prompt becomes primary, with the registry's "Too long for a link" line. A **running** ticket
-  shows what is running in place of Launch — `draft PR #n` linked, its stage, how long ago it
-  opened — and keeps Copy prompt. With no ticket selected, pane three is the desk's epic, repo
+  prompt becomes primary, with the registry's "Too long for a link" line. A ticket with an
+  open **PR** shows what is running in place of Launch — `draft PR #n` linked, its stage, how
+  long ago it opened — and keeps Copy prompt; a run folder with no PR shows the folder and keeps
+  its Launch, to resume it. With no ticket selected, pane three is the desk's epic, repo
   or estate-overview view ([`components/work-views.tsx`](components/work-views.tsx)) — the
   phone board's content, drawn on the desk tier (the overview's Blocked rows open in the Blocked
   view).
@@ -604,7 +605,11 @@ epic's lowest open stub whose dependency is unmet ("Waiting on <dep>", "— runn
 a PR or a run). **Running** is what GitHub says is under way (D-11), and nothing is stored when
 Launch is pressed: a stub with an open pull request, and any run folder in `.icm/runs/` on
 `main` (titled from the stub it consumed). A run folder holding only `01_scope/` is a scope
-waiting for review, not a run, and is left out.
+waiting for review, not a run, and is left out. **Today** is
+icm-board's `today.md`, in its order. Everything else open is queued. Done stubs are known by
+name from the tree (`<epic>/_done/`, never read); their titles and places come from the
+breakdown's `## Build order` lines, and one the breakdown doesn't name lists after the rest by
+its slug. The phone board's groups, the figures and the palette's dots read the same states.
 
 **Running, read from pull requests** (spec work-reader §3). `main` never holds a run's folder
 while its PR is open — the run lives on its branch until the squash archives it — so each repo's
@@ -613,15 +618,12 @@ tags, `force-cache`, the 8-in-flight cap). A **spine PR** (the `PIPELINE RUN` ma
 epic stub its Spec-table `Slug` row names, else a `claude/<slug>` head does; its stage is its
 `stage:*` label. A **lane PR** (`type:bug|tweak|chore|hotfix`) carries the lane's own slug, not
 the triage stub's name, so it costs one request more — its file list, on the discovery clock
-(an hour: the stub's move is the lane's first commit and doesn't change) — where a file at
-`.icm/intake/triage/_done/<name>.md` marks triage stub `<name>` running. Budget per repo: 1 + one
-per open lane PR. A PR that matches no stub is left alone here (the Inbox lists PRs,
+(an hour: the stub's move is the lane's first commit and doesn't change) — where the stub's rename from `.icm/intake/triage/<name>.md` to
+`.icm/intake/triage/_done/<name>.md` marks triage stub `<name>` running. Budget per repo with
+open stubs or runs: 1, plus one per open lane PR while it has open triage stubs; a repo with
+neither makes no PR read. A PR that matches no stub is left alone here (the Inbox lists PRs,
 `gates-read`). If a repo's PR read fails, its tickets still show, running there comes from run
-folders alone, and the list and the overview say so in a line. **Today** is
-icm-board's `today.md`, in its order. Everything else open is queued. Done stubs are known by
-name from the tree (`<epic>/_done/`, never read); their titles and places come from the
-breakdown's `## Build order` lines, and one the breakdown doesn't name lists after the rest by
-its slug. The phone board's groups, the figures and the palette's dots read the same states.
+folders alone, and the list and the overview say so in a line.
 
 **The URL.** The list is one of `?v=next|today|running|blocked`, `?b=<repo>/<batch>` or
 `?r=<repo>`; `?t=<repo>/<ticket id>` is the ticket open in it, beside the list key. Nothing set
@@ -640,7 +642,8 @@ pane right: pane one's entry into pane two, pane two's ticket into the detail. `
 moves focus a pane left, and in pane one closes the open ticket. `[`/`]` step through pane
 one's views and unfolded epics, opening each without moving focus. `⌘↵` (`Ctrl+↵` off macOS)
 presses the reader's primary act from any pane — Launch, or Copy prompt when no link can carry
-the prompt; nothing on a running ticket. `c` copies what the detail's own copy button would, `o`
+the prompt; nothing on a ticket with an open PR, and nothing on a focused link, where ⌘↵ is the
+browser's "open in a new tab". `c` copies what the detail's own copy button would, `o`
 opens it on GitHub, `r` refreshes. No key fires while you type, or while a menu, sheet or the
 palette is open. With Ctrl/Cmd/Alt held only `⌘↵` fires — and `[`, `]` and `?`, which still fire
 on the AltGr/Option layouts (Portuguese, German, Spanish among them) that type them that way. Each pane's list is a `listbox` whose `aria-activedescendant` is its cursor row.
