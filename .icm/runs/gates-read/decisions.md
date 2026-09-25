@@ -33,5 +33,8 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-38 — The PR read is one aliased GraphQL query across the roster (chunks of at most 10 repos), force-cached for 60 s under its own tag, on GraphQL's rate budget rather than the board's REST budget; no per-PR REST call. Jamie, in Define, 2026-09-25.
+- D-39 — A scope waits for review while its `scope.md` is on the default branch, its epic has open stubs and its `_done/` is empty; the row leaves when `new` takes the first stub. The scope's `status.md` is not the signal — Scope never rewrites it. Jamie, in Define, 2026-09-25.
+- D-40 — Red CI covers every open non-draft PR on a roster repo, pipeline or not; the green-waiting-for-merge row is lane PRs only; drafts never show as red. Jamie, in Define, 2026-09-25.
+- D-41 — A red-CI launch sends the run's verb on a spine PR (`/pipeline build <slug>`, or `release` once Ready to merge is ticked) and an authored fix prompt on any other PR. Jamie, in Define, 2026-09-25.
+- D-42 — One row per PR, by precedence Blocked run > Red CI > Spec approved > Ready to merge > Lane PR · merge; a blocked run is read from `status.md` on the PR's head (and on `main` for a PR-less run); ages come from the data the read already has (PR opened, check completed, `updated:`, `agreed:`). Define, 2026-09-25 — the spec's own residue, not asked.

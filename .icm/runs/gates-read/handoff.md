@@ -6,18 +6,17 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md` (or the PR's Spec block); to change it,
+   `revise gates-read "<what>"`.
+2. Operator: tick **Spec approved** in the body of https://github.com/k0d0minio/jamienisbet/pull/175.
+3. Then `/pipeline build gates-read` — Build follows `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** on PR #175.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the Spec approved tick.
+- Do not subscribe to PR activity on #175 (`_shared/github.md` → PR events).
+- Do not touch the Follow-ups rules or caps, or the files another live Inbox/Work run owns.

@@ -13,9 +13,17 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Read-only against GitHub: no tick, merge, re-run or comment from the dashboard (D-9).
+- The Follow-ups group and its rules, caps and actions are untouched (inbox-rebuild's D-30–D-35).
+- The board's caching invariants hold: `force-cache` on every read, no `dynamic = "force-dynamic"`
+  on a route that reads the board or the gates, requests through the board's queue
+  (`MAX_CONCURRENT_REQUESTS`), failures reported as sentences, never as an empty list.
+- The Inbox never waits on GitHub: Follow-ups render from Neon first; the gates group streams.
+- Launches go through `lib/launchers` — no new launch target.
+- Desk tier only (`packages/ui` desk primitives); the marketing tier is untouched (D-22).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Read `lib/tickets.ts` (roster, queue, cache clocks), `lib/inbox.ts`, the head of
+  `components/inbox-list.tsx`, `.icm/scripts/ci-status.sh`'s signal arithmetic and the design
+  canvas's Inbox artboards, to settle the request budget and the kind rules the stub left open.
