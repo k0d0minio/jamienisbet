@@ -2,7 +2,7 @@
 
 - commits: 299139c feat: work-reader — the ticket reader, one-click launch and running from PRs ·
   e0ecbb6 merge origin/main (gates-read) · 3931651 fix: doc order, park the PR-read overlap
-- ci: see the full-gate verdict recorded in status.md after the ready flip
+- ci: GREEN on cf2e6e7 — Vercel jamie-nisbet + portfolio previews, Quality (advisory) pass
 
 ## What changed
 

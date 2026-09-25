@@ -6,17 +6,22 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Once **Spec approved** is ticked on https://github.com/k0d0minio/jamienisbet/pull/176, run
-   `/pipeline build work-reader` and execute `plan.md` pass by pass.
+1. The operator smokes the admin preview
+   (https://jamie-nisbet-git-claude-sweet-noether-h8s54g-kodominio.vercel.app) at 1280px and
+   wider: select a stub (reader head, body, side column), Launch and ⌘↵, Copy prompt, a running
+   stub (this run's own `work-reader` reads running with PR #176 once main's tree still holds the
+   stub — it does not: the stub moved to `_done/` on this branch only, so on main it is open and
+   PR #176 matches it), a triage stub, an epic and a repo selection, both themes.
+2. Then **Ready to merge** — it is already ticked on PR #176 (ticked before Build ran); the
+   operator should confirm the tick reflects the smoke, then run `/pipeline release work-reader`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of PR #176.
+- none
 
 ## Do not
 
-- Do not start Build before the tick; do not tick it.
-- Do not touch the phone board layout under `lg` (`work-phone`) or list unmatched PRs in the
-  Inbox (`gates-read`).
-- Do not add a launch target or put model/effort into the Claude Code link.
-- Do not edit `.icm/scripts/new-run.sh` to add a `- stub:` line to lane PRs — template-owned.
+- Do not touch the phone board under `lg` (`work-phone`).
+- Do not unify Work's PR read with the Inbox's here — parked as
+  `.icm/intake/triage/work-and-gates-one-pr-read.md`.
+- Do not tick or untick gate boxes.
