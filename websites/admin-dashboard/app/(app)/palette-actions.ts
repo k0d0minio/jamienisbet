@@ -3,7 +3,7 @@
 import { clientStatusLabel, listClients } from "@jamie-nisbet/services"
 
 import { launchLinkProps, primaryLaunch, type Launch } from "@/lib/launchers"
-import { readBoard, type BoardTicket, type TicketGroup } from "@/lib/tickets"
+import { readBoard, type BoardTicket, type TicketStatus } from "@/lib/tickets"
 
 // What the command palette searches — read when it opens, never before.
 //
@@ -45,22 +45,20 @@ export type PaletteIndex = {
   notes: string[]
 }
 
-// A ticket's board group, as a dot. Today is the pick-up list — runnable now —
-// so it reads as "next"; queued is the part of an epic that isn't up yet.
-const STATUS: Record<TicketGroup, PaletteStatus> = {
-  today: "next",
-  "in-flight": "running",
-  blocked: "blocked",
+// A ticket's state, as a dot — Work's own four (lib/tickets.ts
+// `TicketStatus`), so the palette and the board never disagree.
+const STATUS: Record<TicketStatus, PaletteStatus> = {
   next: "next",
-  queued: "open",
+  open: "open",
+  running: "running",
+  blocked: "blocked",
 }
 
-const STATUS_LABEL: Record<TicketGroup, string> = {
-  today: "Today",
-  "in-flight": "Running",
-  blocked: "Blocked",
+const STATUS_LABEL: Record<TicketStatus, string> = {
   next: "Next",
-  queued: "Open",
+  open: "Open",
+  running: "Running",
+  blocked: "Blocked",
 }
 
 /** The board's own rule (launchLinkProps): a web target gets a new tab; a
@@ -151,8 +149,8 @@ function ticketEntry(ticket: BoardTicket, where: string): PaletteEntry {
     label: ticket.title,
     meta: `${repo} / ${where}`,
     href: boardQuery("t", `${repo}/${ticket.id}`),
-    status: STATUS[ticket.group],
-    statusLabel: STATUS_LABEL[ticket.group],
+    status: STATUS[ticket.status],
+    statusLabel: STATUS_LABEL[ticket.status],
   }
 }
 
