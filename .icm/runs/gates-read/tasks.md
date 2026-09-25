@@ -30,4 +30,8 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Share the board's plumbing — `lib/tickets.ts`: `githubGraphql`, `readRepoTree`, `readBlob`, `readRoster`, `GATES_CACHE_TAG`, `isBoardConfigured` (da4bc3f)
+- [x] The read and the rules — `lib/gates.ts` (new), the gate row types in `lib/inbox-row.ts` (da4bc3f)
+- [x] Badge and refresh — `countInbox` in `lib/inbox.ts`, the layout, `refreshGates` in `app/(app)/board-actions.ts` (da4bc3f)
+- [x] The Inbox UI — page, loading, `inbox-list.tsx`, `inbox-row.tsx`, `inbox-detail.tsx` (da4bc3f)
+- [x] Docs — `websites/admin-dashboard/README.md` (da4bc3f)
