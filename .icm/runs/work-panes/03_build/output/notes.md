@@ -34,3 +34,15 @@
 - Decisions B-1 to B-6 in `decisions.md` — B-3 (done rows not selectable) and B-4 (legacy tickets out of Up next) are this stage's calls on gaps the spec left.
 - Pane three is still app-tier inside a desk-tier root (by design until `work-reader`); it sits on `bg-app-canvas` so its grouped sections read as before.
 - Context budget: Build read `tickets-board.tsx`, `board-views.tsx` and the desk primitives in `packages/ui` beyond `touches:` — the panes reuse them.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head that merged (ci-status.sh, after the last push)
+- reviews: code high (10 findings — 6 fixed on the branch, 2 parked, 2 trivial cleanups fixed) · security security-check.sh --branch --audit: OK · /security-review n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth, payments or env var touched) · readiness env.sh audit --changed: OK
+- fixed from review: only the live layout corrects the URL and takes keys (work-screen.tsx context); the live layout is no longer remounted when the width settles; the phone board keeps only batches with open tickets; legacy `Status: today` tickets join the Today view; `[`/`]` step from a repo or a folded epic; wrapped build-order lines joined and `n of m` totals from the highest place
+- parked: up-next-pick-unsequenced-stubs.md, work-model-shared-helpers-and-memo.md
+- migrations: skip — none of this run's own
+- learned: skip — no error.log
+- docs: websites/admin-dashboard/README.md (Work section, in Build) · announce: public
+- Context budget: Release read the merged-in `lib/tickets.ts` diff from main (inbox-rebuild removed `listStrip`) to confirm the merge left no consumer of the phone groups behind.
