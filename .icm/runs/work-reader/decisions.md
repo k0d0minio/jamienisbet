@@ -35,3 +35,12 @@ decision made mid-run has one home.
 
 - <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
   make is a spec gap: say so in `notes.md` → Notes for Release>
+
+## Build — 2026-09-25
+
+- **Work keeps its own REST pull-request read; it does not reuse `gates-read`'s.** `gates-read`
+  merged to `main` during this Build with a GraphQL PR read of its own (`lib/gates.ts`), the
+  reverse of the spec's note that it would reuse this run's. Work's read stays REST and separate:
+  the lane-stub match needs each lane PR's file list, which the gates query does not carry, and
+  Work's board must not wait on the Inbox's bounded read. Cost: one REST call per repo per minute
+  on Work, beside the Inbox's GraphQL budget. Unifying the two is left as a triage stub.

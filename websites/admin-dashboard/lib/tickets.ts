@@ -221,8 +221,6 @@ export type TicketStatus = "next" | "open" | "blocked" | "running"
  *  has an active run, so it is on its way, not untouched. */
 export type WaitingOn = { slug: string; running: boolean }
 
-/** Where a run in flight came from: the stub it consumed, found by slug in
- *  the repo's `_done/` folders. */
 /** The open pull request a ticket is running in (D-11): a spine PR matched
  *  by the slug its body carries (or its `claude/<slug>` head), or a lane PR by
  *  the triage stub it moves to `triage/_done/`. */
@@ -236,6 +234,8 @@ export type TicketPr = {
   openedAt: string
 }
 
+/** Where a run in flight came from: the stub it consumed, found by slug in
+ *  the repo's `_done/` folders. */
 export type RunOrigin = {
   /** The epic folder, or "triage". */
   epic: string
