@@ -38,6 +38,7 @@ import {
   InboxDetail,
   type InboxHandlers,
 } from "@/components/inbox-detail"
+import { setLiveInboxCount } from "@/components/inbox-live-count"
 import { GateRowItem, InboxRowItem } from "@/components/inbox-row"
 import type { InboxRead } from "@/lib/inbox"
 import type {
@@ -419,6 +420,15 @@ export function InboxQueue({
     read.ok && visible.length === 0 && gateRead !== null && gateRows.length === 0
   const waiting = (read.ok ? visible.length : 0) + gateRows.length
   const countKnown = read.ok || gateRead?.state === "ok"
+
+  // The rail's and the tab bar's badge (components/nav.tsx): the same rule
+  // (lib/inbox.ts → countInbox) computed from what this screen already read,
+  // so it stays exact while the Inbox is open — cleared on unmount, so
+  // leaving falls back to the layout's streamed count rather than freezing.
+  useEffect(() => {
+    setLiveInboxCount(countKnown ? waiting : undefined)
+    return () => setLiveInboxCount(undefined)
+  }, [countKnown, waiting])
 
   function onRefresh() {
     startRefresh(async () => {

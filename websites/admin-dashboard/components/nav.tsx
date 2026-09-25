@@ -2,13 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Suspense, use } from "react"
+import { Suspense, use, useSyncExternalStore } from "react"
 import { Inbox, Layers, LogOut, Search, Users, type LucideIcon } from "lucide-react"
 
 import { LogoMark, RailItem, cn } from "@jamie-nisbet/ui"
 
 import { logout } from "@/app/login/actions"
 import { usePaletteOpener, useShortcutLabel } from "@/components/command-palette"
+import {
+  getLiveInboxCount,
+  subscribeLiveInboxCount,
+} from "@/components/inbox-live-count"
 
 // The shell's chrome, on the desk tier (D-5): a 56px icon rail from `md`, a
 // flat tab bar below it. Three screens, in the order you meet them — Work is
@@ -49,7 +53,10 @@ function isActive(pathname: string, href: string): boolean {
 export type InboxCount = Promise<number | null>
 
 /** Renders `children` with the count once it lands, and with no count until
- *  then — so the chrome paints at once and the badge arrives when it can. */
+ *  then — so the chrome paints at once and the badge arrives when it can. The
+ *  Inbox screen's own live count (inbox-live-count.ts) wins over the streamed
+ *  one while it is mounted, since a client-side navigation never re-runs the
+ *  layout that streamed `count` in. */
 function WithCount({
   count,
   children,
@@ -57,6 +64,12 @@ function WithCount({
   count: InboxCount
   children: (count: number | undefined) => React.ReactNode
 }) {
+  const live = useSyncExternalStore(
+    subscribeLiveInboxCount,
+    getLiveInboxCount,
+    () => undefined
+  )
+  if (live !== undefined) return children(live)
   return (
     <Suspense fallback={children(undefined)}>
       <Resolved count={count}>{children}</Resolved>
