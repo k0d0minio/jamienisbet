@@ -25,7 +25,7 @@ export type ListSection = BoardSection
  *  maintenance — reached from its row in the estate overview. */
 export type RepoFocus = {
   repo: TicketRepo
-  /** Its section on list level 0; null for a repo that couldn't be read. */
+  /** Its section on the board; null for a repo that couldn't be read. */
   section: ListSection | null
   /** What GitHub said when this repo's read failed, in full. */
   error: string | null
@@ -65,13 +65,6 @@ export const ticketKey = (ticket: BoardTicket) =>
 
 export const batchKey = (section: ListSection, batch: ListBatch) =>
   `${section.repo.slug}/${batch.slug}`
-
-/** The repo a selection sits in; null when nothing is selected. */
-export function selectedRepoSlug(selection: Selection): string | null {
-  if (selection.kind === "none") return null
-  if (selection.kind === "repo") return selection.focus.repo.slug
-  return selection.section.repo.slug
-}
 
 /** `<repo>/<rest>` → its two halves; null when it isn't that shape. */
 function splitKey(value: string): [string, string] | null {
@@ -246,44 +239,6 @@ export function blockedReason(ticket: BoardTicket): string | null {
   if (said) return said
   const waiting = ticket.meta.find(([key]) => key === "Waiting on")?.[1]
   return waiting ? `Waiting on ${waiting}` : null
-}
-
-// ---------------------------------------------------------------------------
-// The keyboard's view of the list (desktop only — components/use-board-keys.ts).
-
-/** A row list level 0's cursor can rest on: a repo's header, or one of its
- *  batches. `key` is the row's identity across renders; `query` is what
- *  selecting it writes, and what the pane previews while the cursor sits on
- *  it. */
-export type CursorRow = {
-  key: string
-  query: { r: string } | { b: string }
-}
-
-/** Level 0's rows in on-screen order: each section's header, then its
- *  batches. */
-export function levelZeroRows(sections: ListSection[]): CursorRow[] {
-  return sections.flatMap((section) => [
-    { key: `r:${section.repo.slug}`, query: { r: section.repo.slug } },
-    ...section.batches.map((batch) => {
-      const key = batchKey(section, batch)
-      return { key: `b:${key}`, query: { b: key } }
-    }),
-  ])
-}
-
-/** What a level-0 row selects — the same resolution a URL gets, so a preview
- *  and a committed selection can't show two different things. */
-export function rowSelection(
-  sections: ListSection[],
-  unreadable: Parameters<typeof resolveSelection>[1],
-  row: CursorRow
-): Selection {
-  const query =
-    "r" in row.query
-      ? { ticket: null, batch: null, repoSelection: row.query.r }
-      : { ticket: null, batch: row.query.b, repoSelection: null }
-  return resolveSelection(sections, unreadable, query).selection
 }
 
 /** What `c` puts on the clipboard for a selection, and what the toast calls

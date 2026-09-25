@@ -5,8 +5,8 @@ import { useEffect, useRef } from "react"
 // The tickets board's keyboard, from `lg` up. One listener on the document, so
 // the keys work from page load without a click into the list first. This file
 // only decides *whether* a keypress is the board's and *which* intent it is;
-// what each intent does lives with the board (components/tickets-board.tsx),
-// which holds the data and the cursor.
+// what each intent does lives with the desk (components/work-desk.tsx),
+// which holds the data and the cursors.
 //
 // A key is never the board's while you are typing, while anything floats over
 // the board (a menu, a sheet, a dialog — the key sheet included, whose own Esc
@@ -14,7 +14,8 @@ import { useEffect, useRef } from "react"
 // never taken — with one exception, ⌘↵ (Ctrl+↵ off macOS), the reader's
 // primary act (spec work-reader §2). It is left to the browser on a focused
 // link, where it means "open in a new tab". Below
-// `lg` the board is a phone board and has no keyboard map.
+// `lg` Work is the phone's levels (components/work-phone.tsx), which have no
+// keyboard map.
 
 export type BoardKeyIntent =
   | "down"
@@ -48,7 +49,7 @@ const INTENTS: Record<string, BoardKeyIntent> = {
   "?": "help",
 }
 
-/** Tailwind's `lg`, as the pane reads it (components/board-pane.tsx). */
+/** Tailwind's `lg` — where Work is the desk's (components/use-desk.ts). */
 const DESKTOP_QUERY = "(min-width: 64rem)"
 
 /** Anything that floats over the board and owns the keys while it is open.
@@ -72,8 +73,8 @@ const ACTIVATABLE = 'button, a[href], summary, [role="menuitem"]'
  */
 export function useBoardKeys(
   onIntent: (intent: BoardKeyIntent, event: KeyboardEvent) => boolean,
-  /** Off, no key is the board's. The phone board passes false: from `lg`,
-   *  where its keys used to live, Work is the desk's (work-desk.tsx). */
+  /** Off, no key is the board's — the desk passes false while it is not the
+   *  layout on screen (work-screen.tsx). */
   enabled = true
 ) {
   // The listener is attached once; the board's latest handler is read

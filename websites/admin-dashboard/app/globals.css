@@ -69,6 +69,12 @@
   bottom: calc(var(--admin-tab-clearance) + var(--space-4));
 }
 
+/* A sticky element resting directly on the bar (the phone reader's launch
+   bar, components/work-phone.tsx). */
+@utility bottom-tabs {
+  bottom: var(--admin-tab-clearance);
+}
+
 /* The scrolling page's own floor: clear the bar, and leave enough room
    that the last row can be scrolled out from under it rather than
    stopping half-covered. */

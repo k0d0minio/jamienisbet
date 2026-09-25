@@ -27,9 +27,9 @@ import type { BoardData, BoardTicket, LaunchSet, TicketFetchError } from "@/lib/
 
 // Work's pane three at the desk when what is selected is not a ticket — an
 // epic or pile, a repo, or nothing (the estate overview) — on the desk tier
-// (spec work-reader §1). The content is the phone board's views
-// (board-views.tsx) unchanged; only the drawing is the desk's: record
-// sections under mono eyebrows, hairlines, mono figures, no grouped slabs.
+// (spec work-reader §1): record sections under mono eyebrows, hairlines, mono
+// figures, no grouped slabs. The phone's repo level (work-phone.tsx) draws the
+// repo view too.
 
 const Markdown = dynamic(() =>
   import("@/components/markdown").then((m) => m.Markdown)
