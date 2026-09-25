@@ -33,11 +33,7 @@ import { LeadNotesCard } from "@/components/lead-notes-card"
 import { LeadProfile } from "@/components/lead-profile"
 import { LeadReply } from "@/components/lead-reply"
 import { LeadStatusMenu } from "@/components/lead-status-menu"
-import {
-  LeadOptOutSheet,
-  LeadOptOuts,
-  hasReachableChannel,
-} from "@/components/lead-suppress"
+import { LeadOptOutSheet, LeadOptOuts } from "@/components/lead-suppress"
 import { LeadTouches } from "@/components/lead-touches"
 import { CameInRow, TouchRow } from "@/components/touch-row"
 import { isGatewayConfigured } from "@/lib/ai"
@@ -52,7 +48,7 @@ import { leadTabFrom } from "@/lib/lead-tabs"
 import { dealBadge, dealFolderSlug, readDealFolder } from "@/lib/deals"
 import { dealFigure } from "@/lib/leads"
 import { listOnboardingForms } from "@/lib/onboarding"
-import type { SuppressedChannels } from "@/lib/suppression"
+import { hasReachableChannel, type SuppressedChannels } from "@/lib/suppression"
 
 export const metadata: Metadata = { title: "Lead" }
 // No `dynamic = "force-dynamic"` (2026-09-22): the page is request-time anyway
