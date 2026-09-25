@@ -249,6 +249,9 @@ function SheetContent({
   return (
     <DialogContent
       ref={contentRef}
+      // The scrim appears and goes with the sheet — no fade of its own left
+      // behind once the panel has gone.
+      overlayClassName="data-[state=open]:animate-none data-[state=closed]:animate-none"
       className={cn(
         // Phone: pinned to the bottom edge, full-width, capped height with its
         // own scroll, padded past the home indicator.
@@ -307,7 +310,9 @@ function SheetContent({
           onPointerMove={onHandlePointerMove}
           onPointerUp={onHandlePointerUp}
           onPointerCancel={onHandlePointerUp}
-          className="-mx-4 -mt-4 mb-1 flex h-11 touch-none items-center justify-center sm:hidden"
+          // Centred and 3rem short of each edge, so the close button's 44px
+          // touch target in the corner never sits over the handle's end.
+          className="mx-auto -mt-4 mb-1 flex h-11 w-[calc(100%-6rem)] touch-none items-center justify-center sm:hidden"
         >
           <span className="h-1 w-10 rounded-full bg-border" aria-hidden />
         </button>

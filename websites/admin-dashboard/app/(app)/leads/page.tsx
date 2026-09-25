@@ -724,7 +724,7 @@ export default async function LeadsPage({
             )
           }
         >
-          <div className="desk-tier -mx-4 flex flex-col">
+          <div className="-mx-4 flex flex-col">
             <div className="flex flex-col gap-1.5 px-4 py-2">
               <LeadFilters
                 label={cold ? "Filter prospects" : "Filter leads"}

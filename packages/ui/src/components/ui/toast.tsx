@@ -106,7 +106,7 @@ function useToasts() {
   )
 }
 
-function ToastCard({ item }: { item: ToastItem }) {
+function ToastCard({ item, desk }: { item: ToastItem; desk: boolean }) {
   React.useEffect(() => {
     const timer = window.setTimeout(() => dismiss(item.id), item.duration)
     return () => window.clearTimeout(timer)
@@ -122,11 +122,23 @@ function ToastCard({ item }: { item: ToastItem }) {
       data-state={item.open ? "open" : "closed"}
       onClick={() => dismiss(item.id)}
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-md border bg-card px-4 py-3 text-sm text-card-foreground shadow-lg",
-        // Fade + 2px rise on the brand clock; instant under reduced motion.
-        "transition-[opacity,translate] duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none",
-        "starting:translate-y-0.5 starting:opacity-0",
-        "data-[state=closed]:translate-y-0.5 data-[state=closed]:opacity-0"
+        "pointer-events-auto flex w-full max-w-sm items-start gap-2.5 border px-4 py-3",
+        desk
+          ? // The desk tier (BRAND.md § Desk tier): a flat panel on a hairline,
+            // the tier's one float shadow because it floats, the ui step, and
+            // a 120ms fade with no rise.
+            [
+              "rounded-desk-pane border-desk-line bg-desk-surface text-desk-ui text-desk-fg shadow-desk-float",
+              "transition-opacity duration-(--duration-fast) ease-(--ease-out) motion-reduce:transition-none",
+              "starting:opacity-0 data-[state=closed]:opacity-0",
+            ]
+          : [
+              "rounded-md bg-card text-sm text-card-foreground shadow-lg",
+              // Fade + 2px rise on the brand clock; instant under reduced motion.
+              "transition-[opacity,translate] duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none",
+              "starting:translate-y-0.5 starting:opacity-0",
+              "data-[state=closed]:translate-y-0.5 data-[state=closed]:opacity-0",
+            ]
       )}
     >
       {Icon ? (
@@ -141,14 +153,23 @@ function ToastCard({ item }: { item: ToastItem }) {
       <div className="grid gap-0.5">
         <p className="font-medium">{item.message}</p>
         {item.description ? (
-          <p className="text-muted-foreground">{item.description}</p>
+          <p className={desk ? "text-desk-fg-3" : "text-muted-foreground"}>
+            {item.description}
+          </p>
         ) : null}
       </div>
     </div>
   )
 }
 
-function Toaster({ className, ...props }: React.ComponentProps<"section">) {
+function Toaster({
+  className,
+  desk = false,
+  ...props
+}: React.ComponentProps<"section"> & {
+  /** Draw the cards on the desk tier — the admin, which links desk.css. */
+  desk?: boolean
+}) {
   const items = useToasts()
 
   return (
@@ -167,7 +188,7 @@ function Toaster({ className, ...props }: React.ComponentProps<"section">) {
       {...props}
     >
       {items.map((item) => (
-        <ToastCard key={item.id} item={item} />
+        <ToastCard key={item.id} item={item} desk={desk} />
       ))}
     </section>
   )

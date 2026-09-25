@@ -104,8 +104,9 @@ function DeskSelectContent({
       <SelectPrimitive.Content
         data-slot="desk-select-content"
         className={cn(
-          // `desk-tier` again, because the portal lands outside any subtree
-          // that set it — the menu's type and focus come from the tier.
+          // `desk-tier` on the menu itself, as DeskMenu does: the portal
+          // lands on <body>, and the menu must not depend on the page having
+          // switched the tier on there.
           "desk-tier relative z-50 max-h-(--radix-select-content-available-height) min-w-[10rem]",
           "overflow-x-hidden overflow-y-auto",
           "rounded-desk-pane border border-desk-line bg-desk-surface p-1 text-desk-fg shadow-desk-float",

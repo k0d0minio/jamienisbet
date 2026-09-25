@@ -96,7 +96,7 @@ export default function LeadsLoading() {
           title="Leads"
           subtitle={<LoadingLine>Loading leads</LoadingLine>}
         >
-          <div className="desk-tier -mx-4 flex flex-col">
+          <div className="-mx-4 flex flex-col">
             <div className="px-4 py-3">
               <FilterSkeleton />
             </div>

@@ -163,10 +163,10 @@ function RecordRow({
         <span
           className={cn(
             "truncate",
-            // A label is a key — muted — when a value answers it. An action
-            // row has no value: its label is the action, and reads at full
-            // strength rather than as if it were disabled.
-            variant === "default" && interactive && value == null
+            // A label is a key — muted — when a value answers it. A row with
+            // no value (an action, a status line) is its own statement, and
+            // reads at full strength rather than as if it were disabled.
+            variant === "default" && value == null
               ? "text-desk-fg"
               : VARIANT_LABEL[variant]
           )}

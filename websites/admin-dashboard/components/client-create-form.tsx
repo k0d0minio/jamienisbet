@@ -205,7 +205,7 @@ export function ClientCreateForm({
             switched. */}
         <DeskSegmentedControl
           aria-label="What you're adding"
-          className="w-full"
+          className="w-full *:flex-1"
           value={kind.key}
           onValueChange={(key) =>
             setKind(KINDS.find((option) => option.key === key) ?? kind)

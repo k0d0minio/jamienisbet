@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { cn } from "../../lib/utils"
+import { useDeskFieldWiring } from "./field"
 
 // DESK TIER — the dense segmented control.
 //
@@ -51,6 +52,9 @@ function DeskSegmentedControl<T extends string>({
   className,
   ...props
 }: DeskSegmentedControlProps<T>) {
+  // Inside a DeskField the group is the field's control: its hint and error
+  // describe the group, and the label names it.
+  const wired = useDeskFieldWiring(props)
   const refs = React.useRef<(HTMLButtonElement | null)[]>([])
   const enabled = options
     .map((option, index) => ({ option, index }))
@@ -101,6 +105,7 @@ function DeskSegmentedControl<T extends string>({
         className
       )}
       {...props}
+      {...wired}
     >
       {options.map((option, index) => {
         const checked = option.value === value

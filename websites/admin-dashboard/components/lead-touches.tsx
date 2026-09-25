@@ -277,8 +277,8 @@ export function LeadTouches({
                             onClick={() => log(outcome.value)}
                             className={cn(
                               "flex min-h-desk-control items-center justify-center gap-2 px-3",
-                              "rounded-desk-control bg-desk-sunken text-desk-body font-medium text-desk-fg",
-                              "transition-colors duration-100 active:bg-desk-sunken",
+                              "rounded-desk-control border border-desk-line-strong bg-desk-surface text-desk-ui font-medium text-desk-fg",
+                              "transition-colors duration-100 hover:bg-desk-hover active:bg-desk-sunken",
                               "disabled:opacity-60"
                             )}
                           >

@@ -48,6 +48,7 @@ export default function AppLayout({
             Toaster adds the safe-area inset itself, so this is the bar and
             nothing else. */}
         <Toaster
+          desk
           style={
             {
               "--toaster-offset":

@@ -306,7 +306,7 @@ export function LeadDraft({
                 <DeskField label="Which message" hint={DRAFT_KIND_HINTS[kind]}>
                   <DeskSegmentedControl
                     aria-label="Which message"
-                    className="w-full"
+                    className="w-full *:flex-1"
                     value={kind}
                     onValueChange={setKind}
                     options={DRAFT_KINDS.map((option) => ({
@@ -326,7 +326,7 @@ export function LeadDraft({
                 >
                   <DeskSegmentedControl<DraftChannelValue | "">
                     aria-label="Down which door"
-                    className="w-full"
+                    className="w-full *:flex-1"
                     // No door chosen yet (none open) is "" — no option checked.
                     value={channel ?? ""}
                     onValueChange={(value) => setChannel(value || null)}
