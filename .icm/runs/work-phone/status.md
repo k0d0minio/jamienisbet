@@ -5,6 +5,6 @@ flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-pr
 
 - phase: release
 - step: done
-- ci: GREEN (full gate, 1d664f6)
-- blocked: yes — waiting on the operator's smoke and Ready to merge tick on #179
+- ci: GREEN
+- blocked: no
 - updated: 2026-09-25

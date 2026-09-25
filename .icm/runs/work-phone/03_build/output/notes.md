@@ -70,3 +70,22 @@ prove it — nothing here was run in a browser (blind-until-ready).
 - Context budget: Build read the desk's `work-desk.tsx` / `work-views.tsx` / `inbox-list.tsx`
   (for the phone chrome) and the desk-tier primitives in `packages/ui` beyond `touches:`, to reuse
   rather than fork them.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on e5a337c before the review fixes; re-read after the last push (ci-status.sh)
+- reviews: code medium — two findings, both in-ticket and fixed on the branch (6c1cd5f): back
+  from a cold deep link looped between the reader and its epic (`pop` stepped history into a
+  deeper level), and the 16px `touch-none` edge overlay ate taps and vertical scrolls at the
+  leading edge (now native touch listeners on the level) · security security-check.sh --branch
+  --audit: OK; /security-review n/a (no auth, payments, PII or route policy in the diff) ·
+  readiness env.sh audit --changed: OK; /production-readiness n/a (no DB, auth, payments or env)
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (FAILURE.md carries 4 rules for the close-out's sync)
+- docs: websites/admin-dashboard/README.md (Work on the phone, updated in Build and with the
+  review fixes) · announce: public
+- note: the review fixes landed after the operator's smoke of e5a337c; they change only the back
+  target from a cold link and how the edge swipe listens
+
