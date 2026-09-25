@@ -1,7 +1,7 @@
 # Build notes: work-panes
 
 - commits: 5ec6cc7 (status model), 2ed4d52 (three panes, keyboard, states, README), then Up next without legacy + run files
-- ci: see status.md — settled by `ci-status.sh` after the ready flip
+- ci: GREEN on the full gate (both previews built; Quality (advisory) passed on 27af4cc — the later heads change only run files)
 
 ## What changed
 
