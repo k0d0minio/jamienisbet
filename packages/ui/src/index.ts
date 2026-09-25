@@ -46,6 +46,20 @@ export * from "./components/app/monogram"
 export * from "./components/app/segmented-control"
 export * from "./components/app/select"
 
+// desk tier — opt-in, the admin's tier (BRAND.md § Desk tier). These need
+// "@jamie-nisbet/ui/desk.css" on top of styles.css; the marketing sites
+// import neither the stylesheet nor these components.
+export * from "./components/desk/command-palette"
+export * from "./components/desk/data-grid"
+export * from "./components/desk/desk-button"
+export * from "./components/desk/kbd"
+export * from "./components/desk/list-row"
+export * from "./components/desk/pane"
+export * from "./components/desk/priority-tag"
+export * from "./components/desk/rail-item"
+export * from "./components/desk/segmented-control"
+export * from "./components/desk/status-dot"
+
 // brand-only primitives
 export * from "./components/brand/eyebrow"
 export * from "./components/brand/icon-button"
