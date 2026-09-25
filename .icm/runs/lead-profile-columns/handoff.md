@@ -6,18 +6,24 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Once **Spec approved** is ticked on https://github.com/k0d0minio/jamienisbet/pull/172, run
-   `/pipeline build lead-profile-columns` and execute `plan.md` pass by pass.
-2. To change the spec first: `revise lead-profile-columns "<what>"`.
+1. Operator: smoke the admin preview
+   (https://jamie-nisbet-git-claude-tender-pasteur-nkhnw0-kodominio.vercel.app) against the
+   13 criteria on https://github.com/k0d0minio/jamienisbet/pull/172 — at ≥1024px and on the
+   iPhone. Paths worth a deliberate check are listed in `03_build/output/notes.md` → Notes for
+   Release (the menu → opt-out sheet → page still clickable; j / k from a filtered list).
+2. Tick **Ready to merge** in the PR body, then run `/pipeline release lead-profile-columns`.
+3. Anything wrong in the smoke: `revise lead-profile-columns "<what>"` if the spec was wrong, or
+   say what broke and re-run `build lead-profile-columns` to fix it on this branch.
 
 ## Blockers
 
-- blocked on operator: read the spec and tick **Spec approved** in the body of
+- blocked on operator: smoke the preview and tick **Ready to merge** on
   https://github.com/k0d0minio/jamienisbet/pull/172
 
 ## Do not
 
-- Do not tick either gate box; do not start Build before the tick.
-- Do not rebuild the leads list (`leads-table-board` owns it) — only mount the order recorder.
-- Do not add a status-history table or migration (out of scope, decided in Define).
+- Do not tick either gate box.
+- Do not rebuild the leads list here — `leads-table-board` owns `leads/page.tsx`; this run added
+  only the `LeadOrderRecorder` line to it.
+- Do not add a status-history table (D-23) or carry the list view in the URL (D-24).
 - Do not subscribe to PR activity on this PR (`_shared/github.md` → PR events).
