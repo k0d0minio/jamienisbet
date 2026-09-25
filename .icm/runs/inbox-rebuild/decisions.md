@@ -38,3 +38,4 @@ decision made mid-run has one home.
 - D-32 — On the phone, outreach and stale rows keep the swipe gestures (right = mark touched, left = reach tray) alongside the expanded row's buttons. Jamie, in Define, 2026-09-25.
 - D-33 — The Inbox's reach actions are plain wa.me / mailto: / tel: links; no AI draft from the Inbox. Jamie, in Define, 2026-09-25.
 - D-34 — The list-and-detail layout starts at `lg` (1024px); below it the rows expand in place like the phone. Define, 2026-09-25 — the rail already takes 56px from `md`, and two panes at 768px leave the list too narrow for its four columns.
+- D-35 — Tomorrow on an outreach row whose date is set but whose step was never decided is refused with a toast naming the lead ("No step was decided — open them and decide one"): there are no words to keep, and inventing a step would hide the crack. Logging a touch still clears such a row. Build, 2026-09-25 — a spec gap (the spec assumed every due row has a step).

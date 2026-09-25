@@ -26,4 +26,8 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Capped follow-up rule, queue read and badge — `lib/inbox.ts`, `lib/inbox-row.ts`, `listTouchSummaries` in `packages/services`
+- [x] `moveNextStepToTomorrow` and `wakeTomorrow` — `app/(app)/actions.ts`
+- [x] The page (Neon only) and its skeleton — `app/(app)/inbox/`
+- [x] The queue, row and detail pane — `components/inbox-list.tsx`, `inbox-row.tsx`, `inbox-detail.tsx`
+- [x] Cleanup: `nurture-wakes.tsx` and `listStrip` (orphaned), README
