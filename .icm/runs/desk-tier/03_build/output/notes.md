@@ -1,7 +1,7 @@
 # Build notes: desk-tier
 
 - commits: `feat: desk-tier — tokens and entry stylesheet` · `feat: desk-tier — primitives` · `docs: desk-tier — BRAND, design-dna, package docs`
-- ci: pending the ready flip (see status.md)
+- ci: GREEN (draft tier) on 4e15a2c after one fix (error.log); full gate on the post-flip head
 
 ## What changed
 
