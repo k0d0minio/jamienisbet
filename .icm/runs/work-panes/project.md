@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Tickets stay read-only (D-9); nothing written to a repo, nothing stored on the server.
+- Running comes from run folders only (D-11); no PR read — that is `gates-read`.
+- The GitHub cache invariants at the top of `lib/tickets.ts` hold: `force-cache`, no
+  `force-dynamic`, `MAX_CONCURRENT_REQUESTS`, `_done/` blobs never fetched, no new request.
+- Below `lg` the drill board stays as it is (`work-phone` owns it); pane three keeps today's
+  detail views (`work-reader` owns it).
+- Desk-tier primitives from `packages/ui` only; brand is one source of truth.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `lib/tickets.ts`, `board-model.ts` and `use-board-params.ts` headers and the
+  canvas artboard `WorkThreePane.dc.html` beyond its Inputs: the status rules and the URL model
+  could not be specified without the current shapes.
