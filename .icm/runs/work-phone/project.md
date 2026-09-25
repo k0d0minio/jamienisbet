@@ -13,9 +13,20 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- The desk (from `lg`, 1024px) is unchanged: its panes, keyboard map and URL handling — beyond
+  reading `?v=repos` as Up next without rewriting it.
+- One codepath for data: the phone reads `readBoard()` and resolves through `work-model.ts`
+  (`resolveWork`, `viewTickets`, `whereLine`, `rowNote`) — no second selection model, no
+  phone-only data shaping in `lib/tickets.ts`.
+- Desk tier only (`packages/ui` desk primitives, desk tokens); no app-tier import (`Material`,
+  `Grouped*`) in anything Work renders. Deleting the app tier itself is `retire-app-tier`'s.
+- Tickets stay read-only; Launch sends and stores nothing (D-9, D-11).
+- Flat motion: no spring; no slide under `prefers-reduced-motion` (D-3).
+- 44px floor on touch, nothing hover-only (D-3, spec §6).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the phone mockup (`project/WorkPhone.dc.html` on the design canvas) and targeted
+  greps of `components/` to name real `touches:` paths and what the desk still imports from the
+  old phone board — beyond the Inputs table, because the stub's `touches:` guess missed the files
+  the deletion (spec §7) needs.
