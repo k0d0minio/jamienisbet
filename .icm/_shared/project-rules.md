@@ -155,3 +155,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In the admin dashboard, fixed chrome sized by a token (the rail, the tab bar) grows by the safe-area inset it clears — width or height plus `env(safe-area-inset-*)` — and the content offset reads the same sum; padding the inset inside the token's size leaves no room for the items. (`FAILURE.md` — shell-rail-palette)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - In the admin dashboard, decide any refusal the row's own data already knows before an optimistic removal; only an outcome the server alone can know may roll a row back. (`FAILURE.md` — inbox-rebuild)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In the admin dashboard, state one screen leaves in session storage for another must also record how the second screen was reached, and be honoured only on that path — presence in storage is not proof the user came from there. (`FAILURE.md` — lead-profile-columns)
