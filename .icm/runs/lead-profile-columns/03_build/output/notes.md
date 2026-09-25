@@ -46,3 +46,14 @@ Every criterion is met in code (self-checked by reading the diff); none has been
 - The `L` / `T` shortcuts click the element carrying `data-lead-shortcut`; if a future bar has two, the first wins.
 - `DealBadges` in the head still renders the shared (marketing `Badge`) pills — it is the leads list's component too, and `leads-table-board` owns that restyle.
 - Local lint was run after installing dependencies (`pnpm install --frozen-lockfile`); typecheck and build were not run locally (the factory's job) — the new `packages/ui` files are not covered by any ESLint config, so the ready-head quality job and the Vercel build are their first check.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on d56d9dd (the merge of main, before the review fix) — re-read after the last push; the merging head is in the stop report
+- reviews: code medium — 1 finding, fixed on this branch (j / k honoured a stale list order on a profile the list never opened; see FAILURE.md) · security security-check.sh --branch --audit: OK · /security-review n/a (no auth, payments, route policy or new PII flow — the profile shows the same record it always did) · /production-readiness n/a (no DB, auth, payments or env change) · readiness env.sh audit --changed: OK
+- merge: origin/main (inbox-rebuild, #174) merged in; one conflict in the admin README's file map, both sides kept
+- parked: none
+- migrations: skip — none of this run's own
+- learned: 1 rule, from FAILURE.md (close-out syncs it); retrospective.sh: skip — no error.log
+- docs: websites/admin-dashboard/README.md and packages/ui/BRAND.md / SKILL.md (updated in Build) · announce: public

@@ -13,12 +13,16 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — j / k read a stale list order on a profile the list never opened
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Release's code review found that a profile opened from the Inbox or the palette
+  still showed "N of M" and stepped through whatever list order was last stored in the tab —
+  against the criterion "opened from anywhere else, j / k do nothing".
+- why: Build assumed "not in the stored order" was the whole test for "not opened from the
+  list"; any lead that *was* in an old order passed it.
+- fixed by: the list records the lead a click opens (the origin) and j / k re-record it; the
+  profile honours the order only when the origin is itself (Release, on this branch).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- In the admin dashboard, state one screen leaves in session storage for another must also record how the second screen was reached, and be honoured only on that path — presence in storage is not proof the user came from there.

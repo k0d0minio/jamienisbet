@@ -20,8 +20,10 @@ import { PaletteTitleBarButton } from "@/components/command-palette"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
   leadPosition,
+  markLeadOrigin,
   parseLeadOrder,
   readLeadOrderSnapshot,
+  readLeadOriginSnapshot,
 } from "@/lib/lead-order"
 import { DEFAULT_LEAD_TAB, LEAD_TABS, type LeadTabKey } from "@/lib/lead-tabs"
 
@@ -138,9 +140,17 @@ export function LeadProfile({
     readLeadOrderSnapshot,
     () => null
   )
+  const origin = useSyncExternalStore(
+    subscribeToNothing,
+    readLeadOriginSnapshot,
+    () => null
+  )
+  // Only a profile the list (or a j / k step) opened is *in* that order; any
+  // other way in has no neighbours to step to.
   const position = useMemo(
-    () => leadPosition(parseLeadOrder(storedOrder), id),
-    [storedOrder, id]
+    () =>
+      origin === id ? leadPosition(parseLeadOrder(storedOrder), id) : null,
+    [storedOrder, origin, id]
   )
 
   const showTab = useCallback((next: LeadTabKey, reveal = false) => {
@@ -164,6 +174,7 @@ export function LeadProfile({
         const target = key === "j" ? position?.next : position?.previous
         if (!target) return
         event.preventDefault()
+        markLeadOrigin(target)
         router.push(tabHref(target, tab))
         return
       }
