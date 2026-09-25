@@ -33,3 +33,13 @@
 - The CSS risks: `--text-desk-*--font-weight` (Tailwind v4 text-step weight), `border-(length:--desk-dot-ring)`, `not-last:border-r`, `[tbody>&]:hover:`. `check:css:desk` compiles the entry alone, like `check:css:app`, so a utility that fails to generate only shows at first use.
 - Nothing renders the primitives until `shell-rail-palette` (D-23): review the component source against the canvas sheet rather than a preview.
 - `utils.ts` was outside `touches:` (D-24) — additive, no existing name changed.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head after the review fixes (ci-status.sh); re-read after the last push
+- reviews: code high — 10 findings: 9 fixed in-ticket (`fix: desk-tier — review findings`), 1 (a malformed commit message on 931b24a) resolved by the squash's explicit message · security `security-check.sh --branch --audit`: OK · /security-review n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth, payments or env vars) · readiness `env.sh audit --changed`: OK
+- parked: none
+- migrations: skip — none of this run's own (check-migrations.sh after merging main: SKIP)
+- learned: 1 rule appended to _shared/project-rules.md (TS2322 — native attribute names); FAILURE.md adds 2 on close-out
+- docs: packages/ui/BRAND.md, packages/ui/README.md, packages/ui/SKILL.md, .claude/skills/design-dna/SKILL.md (updated in Build) · announce: internal

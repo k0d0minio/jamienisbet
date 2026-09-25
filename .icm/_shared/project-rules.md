@@ -142,3 +142,6 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In the admin dashboard's URL-state screens, any client state that overrides what the URL selects must record the selection it was set under and be ignored once the URL has moved on (back/forward, links), so the URL always wins. (`FAILURE.md` — keyboard-nav)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - A migration acceptance criterion must match `database.isolation` in `.icm/project.json`: with `none`, the proof is the PR's `Validate migrations (no DB writes)` plus the post-merge `Apply migrations to production` — never a Neon branch or a local `db:migrate`. (`FAILURE.md` — drop-todos-compliance)
+
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In `packages/ui`, a component prop that reuses a native attribute name (`align`, `size`, `title`, `value`, `type`, `label` on some elements) must `Omit` the native one from `React.ComponentProps<…>` first — the intersection otherwise narrows to `never`, and only the consuming app's `next build` type check catches it. (`TS2322`, seen 1× — desk-tier; .claude/skills, packages/ui)
