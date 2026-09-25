@@ -1,6 +1,7 @@
 # Build notes: work-reader
 
-- commits: 299139c feat: work-reader — the ticket reader, one-click launch and running from PRs
+- commits: 299139c feat: work-reader — the ticket reader, one-click launch and running from PRs ·
+  e0ecbb6 merge origin/main (gates-read) · 3931651 fix: doc order, park the PR-read overlap
 - ci: see the full-gate verdict recorded in status.md after the ready flip
 
 ## What changed
@@ -62,3 +63,7 @@
   existing dependency rule.
 - Typecheck and lint of the whole package are the advisory job's; `lint.sh` on the changed files
   was OK. Nothing was type-checked locally (the hook blocks it).
+- `gates-read` merged to `main` mid-Build with its own GraphQL PR read (`lib/gates.ts`). The
+  spec's Out-of-scope note that gates-read "reuses this run's pull-request read" is therefore
+  stale: the two reads are separate (decisions.md → Build), and unifying them is parked as
+  `.icm/intake/triage/work-and-gates-one-pr-read.md`. The merge itself was clean.
