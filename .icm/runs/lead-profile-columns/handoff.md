@@ -6,18 +6,18 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Once **Spec approved** is ticked on https://github.com/k0d0minio/jamienisbet/pull/172, run
+   `/pipeline build lead-profile-columns` and execute `plan.md` pass by pass.
+2. To change the spec first: `revise lead-profile-columns "<what>"`.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: read the spec and tick **Spec approved** in the body of
+  https://github.com/k0d0minio/jamienisbet/pull/172
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not tick either gate box; do not start Build before the tick.
+- Do not rebuild the leads list (`leads-table-board` owns it) — only mount the order recorder.
+- Do not add a status-history table or migration (out of scope, decided in Define).
+- Do not subscribe to PR activity on this PR (`_shared/github.md` → PR events).

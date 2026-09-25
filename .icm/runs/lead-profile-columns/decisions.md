@@ -33,5 +33,6 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-23 — The Activity timeline is touches plus a derived "came in" row; status changes are not shown, because nothing records them and an event log is a schema change. Operator's answer, Define.
+- D-24 — j / k read the leads list's rendered order from session storage; a profile opened from anywhere else has no j / k. Chosen over carrying the view in the URL, which would re-run the list query and couple to `leads-table-board`'s unbuilt sort. Operator's answer, Define.
+- D-25 — Two columns start at `lg` (1024px); between `md` and `lg` the rail shows and the profile stacks. Define's call: 712px of content width cannot hold a 420px record column and a usable activity column.

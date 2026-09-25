@@ -13,9 +13,17 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Behaviour of every existing sheet, panel and server action is unchanged — layout and styling
+  only (spec Out of scope).
+- No schema change: the "came in" row is derived from `created_at` + `source`; status history is
+  out of scope.
+- j / k order is session storage only; no list query is re-run on the profile.
+- Todos stay gone (D-16); the brand does not change (D-3, D-4); tickets are untouched.
+- `leads/page.tsx` belongs to `leads-table-board` too — one import and one mounted component,
+  nothing else there.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the current profile page, the canvas "Lead profile" artboard and a few targeted
+  files (action row, next-step pane, form-links copy, touches schema) to pin behaviour and
+  `touches:`; no wider codebase read.
