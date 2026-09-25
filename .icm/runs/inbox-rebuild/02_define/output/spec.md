@@ -28,7 +28,7 @@ planned next, gone quiet) are removed from `/inbox`, with the Stripe and GitHub 
 for them. The tallies stay reachable as the Leads filters they already are (`/leads?crack=unplanned`,
 `/leads?crack=idle`) (D-18). Money's route and Stripe code stay dormant and untouched (D-17).
 
-**2. The queue.** `/inbox` is rebuilt on the desk tier (Hanken Grotesk, mono for figures, flat,
+**2. The queue.** `/inbox` is rebuilt on the desk tier, designed at the desk and compressed for the phone, both real work surfaces (D-1, D-2) (Hanken Grotesk, mono for figures — D-4; flat,
 hairlines, 32px rows at the desk, 44px under a thumb — D-3). A header reads "Inbox" and
 "N waiting on you". Below it, groups — in this stub one: **Follow-ups** — each a header row with
 a chevron, its label and its row count; activating the header folds or unfolds the group, and the
@@ -50,7 +50,7 @@ A row reads: the **kind tag** in mono (`Outreach`, `Waiting on you`, `Wake`), th
 `today` or `Nd late` for outreach, `Nd` waited for a stale lead, `today` or `Nd` for a wake; an
 overdue outreach step and every stale lead set their age in the destructive colour.
 
-**3. The badge.** The rail's and the tab bar's Inbox badge counts exactly the rows the Inbox
+**3. The badge.** The rail's and the tab bar's Inbox badge (D-5) counts exactly the rows the Inbox
 shows: stale (≤6) + outreach (≤10) + wakes (≤3), from the one rule in `lib/inbox.ts` that the page
 also reads (D-30 supersedes D-25's "uncapped").
 
@@ -104,7 +104,7 @@ name, the who-line and the age. Tapping a row opens it in place (one open at a t
 text line, then its **primary and secondary** as two full-width 44px buttons, then a line of text
 buttons for the rest (Tomorrow, Mark touched, the other channels, Open lead). Outreach and stale
 rows keep today's swipe gestures (D-32): swipe right marks the lead touched, swipe left reveals the
-reach tray. Wake rows carry no swipe. Everything works one-handed at a 390px width.
+reach tray. Wake rows carry no swipe. Everything works one-handed at a 390px width — lead follow-ups are one of the phone's three jobs (D-21).
 
 **8. States.** A loading skeleton in the new shape replaces the current one. A failed Neon read
 shows an error line in place of the group, never "Nothing needs you".
@@ -130,7 +130,8 @@ shows an error line in place of the group, never "Nothing needs you".
 
 ## Out of scope
 
-- The Gates and PRs group and any GitHub read for the Inbox (`gates-read`).
+- The Gates and PRs group and any GitHub read for the Inbox (D-14, `gates-read`).
+- The marketing tier (D-22). D-6, D-7, D-8, D-9, D-10, D-11, D-12, D-16, D-19 and D-20 belong to the Work, todo and Leads stubs and do not bear on this one.
 - Any change to when outreach is due, when a lead is stale, the crack-finder's ordering, or the caps' values.
 - AI drafting from the Inbox (D-33) — the profile's draft panel is unchanged.
 - Removing Money's route or Stripe code (D-17); retiring app-tier pieces other screens still use (`retire-app-tier`).
