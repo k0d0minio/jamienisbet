@@ -36,3 +36,5 @@ decision made mid-run has one home.
 - D-23 — The desk layout starts at `md` (768px): an iPad in portrait gets the rail. Jamie, in Define, 2026-09-25 (closes scope.md's open point).
 - D-24 — Money is not in the command palette; `/money` stays reachable by URL only. Jamie, in Define, 2026-09-25.
 - D-25 — Until `inbox-rebuild`, the Inbox badge counts follow-ups only (stale open leads, outreach due, nurture wakes — uncapped, Neon only). Jamie, in Define, 2026-09-25.
+- D-26 — The moved feed's screen title reads "Inbox" (was "Needs you"), so the screen and its rail/tab item share one name. Build, 2026-09-25 — a spec gap (the spec said "moved as is").
+- D-27 — Deleting a lead from its profile now returns to `/inbox` (it returned to the feed at `/`); a login still lands on `/`, now Work. Build, 2026-09-25.
