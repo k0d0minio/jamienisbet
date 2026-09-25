@@ -15,8 +15,9 @@ import type { BoardData, BoardTicket, MaintenanceLauncher, TicketPr } from "@/li
 // the URL has open, the ticket open in it, and the rows each pane draws. Pure
 // functions of the board and the query, resolved on every render — the URL is
 // the one home of what is selected, so the panes and back/forward can't
-// disagree. The phone board below `lg` keeps its own model
-// (components/board-model.ts); this one reuses its pieces where they fit.
+// disagree. The phone below `lg` (components/work-phone.tsx, spec work-phone)
+// reads the same selection as a stack of levels — `phoneLevel` at the foot of
+// this file — so one link means the same thing at either width.
 
 export type WorkView = "next" | "today" | "running" | "blocked"
 
@@ -30,8 +31,13 @@ export const WORK_VIEWS: { view: WorkView; label: string; description: string }[
 const isView = (value: string | null): value is WorkView =>
   WORK_VIEWS.some((v) => v.view === value)
 
-/** The In flight pseudo-batch's slug on the phone board (board-model.ts
- *  `RUNS_SLUG`) — at the desk, a link to it means the Running view. */
+/** The phone's Repos segment (spec work-phone §5) — the one list value only
+ *  the phone draws. At the desk it reads as Up next and is left as it is, so
+ *  a window that widens and narrows again comes back to Repos. */
+export const REPOS_VIEW = "repos"
+
+/** The In flight pseudo-batch's slug (board-model.ts `RUNS_SLUG`) — a link
+ *  to it means the Running view. */
 const RUNS_SLUG = "_runs"
 
 /** What pane two lists. */
@@ -63,7 +69,7 @@ export type WorkQuery = {
   ticket: string | null
   batch: string | null
   repoSelection: string | null
-  /** The phone board's chip filter — at the desk, a way into a repo. */
+  /** The retired phone chip filter — a way into a repo. */
   repo: string | null
 }
 
@@ -114,7 +120,7 @@ function homeList(located: Located): WorkList {
   return { kind: "batch", section: located.section, batch: located.batch }
 }
 
-/** The ticket's batch slug read off its id, as the phone board reads it — so
+/** The ticket's batch slug read off its id, as board-model.ts reads it — so
  *  a ticket that has shipped still names the batch to fall back to. */
 function batchSlugOf(ticketId: string): string {
   const slash = ticketId.indexOf("/")
@@ -150,6 +156,7 @@ function namedList(
     }).selection
     return resolved.kind === "repo" ? { kind: "repo", focus: resolved.focus } : null
   }
+  if (query.view === REPOS_VIEW) return { kind: "view", view: "next" }
   if (query.view) return isView(query.view) ? { kind: "view", view: query.view } : null
   return undefined
 }
@@ -186,8 +193,16 @@ export function resolveWork(
       !query.view &&
       !query.batch &&
       !query.repoSelection
+    // The phone's Repos segment is Up next here, written as the phone wrote it.
+    const repos =
+      list.kind === "view" &&
+      list.view === "next" &&
+      query.view === REPOS_VIEW &&
+      !query.batch &&
+      !query.repoSelection
     const listOk =
       bare ||
+      repos ||
       (query.view === (want.v ?? null) &&
         query.batch === (want.b ?? null) &&
         query.repoSelection === (want.r ?? null))
@@ -227,9 +242,9 @@ export function resolveWork(
   return result(named ?? DEFAULT_LIST, null)
 }
 
-/** The phone board's `Selection` for what pane three shows — so the detail
- *  views, `c` and `o` read the desk exactly as they read the phone. A view
- *  with no ticket open shows the estate overview (`none`). */
+/** board-model.ts's `Selection` for what pane three shows — what the detail
+ *  views, `c` and `o` read. A view with no ticket open shows the estate
+ *  overview (`none`). */
 export function paneSelection(selection: WorkSelection): Selection {
   if (selection.ticket) return { kind: "ticket", ...selection.ticket }
   const { list } = selection
@@ -303,7 +318,14 @@ export type PaneRow =
       line: string | null
     }
   | { kind: "done"; key: string; title: string; sequence: number | null }
-  | { kind: "heading"; key: string; title: string }
+  | {
+      kind: "heading"
+      key: string
+      title: string
+      /** The batch it heads (`<repo>/<slug>`), for a layout that opens it;
+       *  null for the loose runs' heading. */
+      batch: string | null
+    }
 
 /** The mono line an estate-view row carries: where the ticket lives, and its
  *  place there. */
@@ -419,7 +441,12 @@ export function paneRows(
             ? epicRows(section, batch, all, false)
             : batch.tickets.map((t) => ticketRow(t, false))
         if (members.length === 0) continue
-        rows.push({ kind: "heading", key: `h:${batch.slug}`, title: batch.title })
+        rows.push({
+          kind: "heading",
+          key: `h:${batch.slug}`,
+          title: batch.title,
+          batch: batchKey(section, batch),
+        })
         for (const row of members) {
           rows.push(row)
           shown.add(row.key)
@@ -431,7 +458,7 @@ export function paneRows(
         (t) => !shown.has(ticketKey(t))
       )
       if (loose.length > 0) {
-        rows.push({ kind: "heading", key: "h:_runs", title: "Running" })
+        rows.push({ kind: "heading", key: "h:_runs", title: "Running", batch: null })
         rows.push(...loose.map((t) => ticketRow(t, true)))
       }
       return rows
@@ -533,4 +560,106 @@ export function entryQuery(entry: NavEntry): BoardQuery {
     case "batch":
       return { b: entry.query }
   }
+}
+
+// ---------------------------------------------------------------------------
+// The phone's levels (spec work-phone §1–§5).
+
+/** The two halves of the phone's list level. */
+export type PhoneSegment = "next" | "repos"
+
+/** What the phone shows: the list level (Up next or Repos), a repo, an epic
+ *  or pile, or the reader over the list it was opened from. */
+export type PhoneLevel =
+  | {
+      kind: "list"
+      segment: PhoneSegment
+      /** The desk view the URL named — Running and Blocked open the Up next
+       *  segment at their section. */
+      view: WorkView
+    }
+  | { kind: "repo"; focus: RepoFocus }
+  | { kind: "batch"; section: ListSection; batch: ListBatch }
+  | { kind: "reader"; located: Located; parent: PhoneLevel }
+
+/** The phone's reading of a resolved selection. `view` is the raw `?v=`,
+ *  which is how the Repos segment is told from Up next. */
+export function phoneLevel(selection: WorkSelection, view: string | null): PhoneLevel {
+  const { list } = selection
+  const base: PhoneLevel =
+    list.kind === "batch"
+      ? { kind: "batch", section: list.section, batch: list.batch }
+      : list.kind === "repo"
+        ? { kind: "repo", focus: list.focus }
+        : { kind: "list", segment: view === REPOS_VIEW ? "repos" : "next", view: list.view }
+  return selection.ticket ? { kind: "reader", located: selection.ticket, parent: base } : base
+}
+
+/** The query naming a level — what a push to it writes. Up next is the bare
+ *  `/`; a reader is its list's key beside `?t=`, so the list is where back
+ *  returns to. */
+export function phoneQuery(level: PhoneLevel): BoardQuery {
+  switch (level.kind) {
+    case "list":
+      if (level.segment === "repos") return { v: REPOS_VIEW }
+      return { v: level.view === "next" ? null : level.view }
+    case "repo":
+      return { r: level.focus.repo.slug }
+    case "batch":
+      return { b: batchKey(level.section, level.batch) }
+    case "reader": {
+      // `?t=` alone means "in its own epic" — Up next says so explicitly.
+      const parent = phoneQuery(level.parent)
+      const list = level.parent.kind === "list" && !parent.v ? { v: "next" } : parent
+      return { ...list, t: ticketKey(level.located.ticket) }
+    }
+  }
+}
+
+/** Where a level sits when nothing pushed it: a reader over its list, a repo
+ *  or an epic under Repos. The list level has none. */
+export function phoneParent(level: PhoneLevel): PhoneLevel | null {
+  switch (level.kind) {
+    case "list":
+      return null
+    case "reader":
+      return level.parent
+    case "repo":
+    case "batch":
+      return { kind: "list", segment: "repos", view: "next" }
+  }
+}
+
+/** What a back button pointing at this level says. */
+export function phoneLabel(level: PhoneLevel): string {
+  switch (level.kind) {
+    case "list":
+      return level.segment === "repos" ? "Repos" : "Up next"
+    case "repo":
+      return level.focus.repo.slug
+    case "batch":
+      return level.batch.title
+    case "reader":
+      return level.located.ticket.title
+  }
+}
+
+/** One string per level — its identity, for the scroll it is kept at. */
+export function phoneLevelKey(level: PhoneLevel): string {
+  const query = phoneQuery(level)
+  return ["v", "b", "r", "t"].map((k) => query[k as keyof BoardQuery] ?? "").join("|")
+}
+
+/** An epic's next line on the phone's Repos list: its lowest-sequence open
+ *  stub that is next, running or blocked. */
+export function epicNextLine(batch: ListBatch): string | null {
+  const open = new Map(batch.tickets.map((t) => [t.id, t]))
+  for (const row of batch.rows ?? []) {
+    const ticket = row.ticketId ? open.get(row.ticketId) : undefined
+    if (!ticket) continue
+    if (ticket.status === "next") return `Next: ${ticket.title}`
+    if (ticket.status === "running") return `Running: ${ticket.title}`
+    if (ticket.status === "blocked") return `Blocked: ${ticket.title}`
+  }
+  return null
 }

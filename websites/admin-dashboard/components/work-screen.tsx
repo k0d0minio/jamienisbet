@@ -5,7 +5,7 @@ import { createContext, useContext } from "react"
 import { useDesk } from "@/components/use-desk"
 
 // Work's two layouts, one of them live: the three desk panes from `lg`, the
-// phone board under it. Both arrive rendered from the server; until the width
+// phone's levels under it (work-phone.tsx). Both arrive rendered from the server; until the width
 // is known (hydration) both stand behind their CSS breakpoints so either
 // width paints right, and neither is live — neither may rewrite the URL or
 // take a key, or the hidden one would correct the address for the one on

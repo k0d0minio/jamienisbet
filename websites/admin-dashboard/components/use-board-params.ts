@@ -12,17 +12,19 @@ import { useCallback } from "react"
 //
 // Two independent things live in the query:
 //
-// - `repo` — the chip rail's filter (the phone board's; the desk has none).
+// - `repo` — the retired phone chip rail's filter, still read so an old link
+//   opens its repo (work-model.ts corrects it to `r`).
 // - the selection: `t` (a ticket, `<repo>/<ticket id>`), `b` (a batch — an
 //   epic, triage, backlog or `_runs` for In flight, `<repo>/<slug>`), `r` (a
-//   repo) or, at the desk, `v` (one of Work's views — components/work-model.ts).
-//   Naming any of them replaces all of them, so a caller states the whole
-//   selection: the phone board names one, the desk names its list (`v`, `b`
-//   or `r`) and, beside it, the ticket open in it (`t`). A batch is level 1 of
-//   the list on a phone and the pane's view on a desktop — one key for both.
-//   `pane`, the flag that once pushed a batch's view over its level 1 on a
-//   phone, is retired: an old link still carrying it is corrected, and any
-//   new selection clears it with the rest.
+//   repo) or `v` (one of Work's views, or the phone's Repos segment —
+//   components/work-model.ts). Naming any of them replaces all of them, so a
+//   caller states the whole selection: a list (`v`, `b` or `r`) and, beside
+//   it, the ticket open in it (`t`). The desk draws the list in pane two and
+//   the ticket in pane three; the phone draws the list as a level and the
+//   ticket as the reader pushed over it — one key for both. `pane`, the flag
+//   that once pushed a batch's view over its list on a phone, is retired: an
+//   old link still carrying it is corrected, and any new selection clears it
+//   with the rest.
 //
 // Every entry the board pushes remembers the query it was pushed from, so a
 // back affordance can tell "the previous entry is exactly where I'm going" —
@@ -46,9 +48,11 @@ const SELECTION_KEYS = ["v", "t", "b", "r"] as const
 const PREV_KEY = "jnBoardPrev"
 
 /** A query string in one canonical order, so two spellings of the same state
- *  compare equal. */
+ *  compare equal — `?v=next` with nothing else is the bare `/`, as Work
+ *  reads it. */
 function canonical(search: string): string {
   const params = new URLSearchParams(search)
+  if (params.get("v") === "next" && [...params.keys()].length === 1) params.delete("v")
   params.sort()
   return params.toString()
 }
@@ -122,6 +126,17 @@ export function useBoardParams() {
     else write(target, false)
   }, [])
 
+  /** The phone's back (spec work-phone §5): a real step back to the entry
+   *  that pushed this one when the board pushed it and the caller says that
+   *  entry is somewhere back may land (`viaHistory`) — otherwise a push of
+   *  `parent`. The caller decides, because only it knows the levels: a step
+   *  back into a deeper level (a cold link's parent, pushed over it) would
+   *  loop the two. */
+  const pop = useCallback((parent: BoardQuery, viaHistory: boolean) => {
+    if (viaHistory && pushedFrom() !== null) window.history.back()
+    else write(queryFor(parent), false)
+  }, [])
+
   return {
     repo: params.get("repo"),
     view: params.get("v"),
@@ -133,5 +148,12 @@ export function useBoardParams() {
     navigate,
     correct,
     back,
+    pop,
   }
+}
+
+/** The query the entry on screen was pushed from, when the board pushed it —
+ *  read after a render, never during one (the server has no history). */
+export function pushedFromQuery(): string | null {
+  return pushedFrom()
 }

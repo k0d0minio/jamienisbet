@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { ChevronDown } from "lucide-react"
+import { Check, ChevronDown, Copy } from "lucide-react"
 
 import {
   DeskButton,
@@ -31,7 +31,8 @@ import {
 import type { BoardTicket, TicketPr } from "@/lib/tickets"
 
 // Work's reader (spec work-reader, D-8, D-10) — pane three at the desk when a
-// ticket is selected. Everything needed before launching, at once, with no
+// ticket is selected, and the phone's pushed reader (spec work-phone §4): the
+// same head and body in one column there, with the act in a bar of its own. Everything needed before launching, at once, with no
 // tab and no disclosure: a head (where it lives, what it is, where it
 // stands, the one act), the stub as written with the exact text the launch
 // sends, and a side column with the stub's lines, its epic's build order and
@@ -104,7 +105,7 @@ function readerParts(body: string): { what: string; notes: string | null; prompt
 }
 
 /** The breakdown's `## What I understood` section, or null. */
-function understood(breakdown: string | null): string | null {
+export function understood(breakdown: string | null): string | null {
   if (!breakdown) return null
   const found = sections(breakdown).find(
     (s) => s.heading !== null && /^what i understood$/i.test(s.heading)
@@ -198,12 +199,17 @@ export function DeskCopyButton({
   what,
   label,
   primary = false,
+  keys = true,
+  className,
 }: {
   value: string
   /** What landed on the clipboard, for the toast. */
   what: string
   label: string
   primary?: boolean
+  /** Show and declare ⌘↵ when primary — the desk's; the phone has no keys. */
+  keys?: boolean
+  className?: string
 }) {
   const [copied, setCopied] = useState(false)
   const [, startTransition] = useTransition()
@@ -216,9 +222,10 @@ export function DeskCopyButton({
     <DeskButton
       type="button"
       variant={primary ? "primary" : "secondary"}
-      shortcut={primary ? ["⌘", "↵"] : undefined}
-      aria-keyshortcuts={primary ? "Meta+Enter Control+Enter" : undefined}
+      shortcut={primary && keys ? ["⌘", "↵"] : undefined}
+      aria-keyshortcuts={primary && keys ? "Meta+Enter Control+Enter" : undefined}
       onClick={onCopy}
+      className={className}
     >
       {copied ? "Copied" : label}
     </DeskButton>
@@ -227,10 +234,23 @@ export function DeskCopyButton({
 
 /** What is running, in place of Launch: the PR, its stage and its age — or
  *  the run folder, when no PR matched it. */
-function RunningBadge({ ticket, readAt }: { ticket: BoardTicket; readAt: string }) {
+function RunningBadge({
+  ticket,
+  readAt,
+  className,
+}: {
+  ticket: BoardTicket
+  readAt: string
+  className?: string
+}) {
   const pr: TicketPr | null = ticket.pr
   return (
-    <span className="inline-flex min-h-desk-control items-center gap-2 rounded-desk-control bg-desk-running-soft px-2.5 text-desk-ui text-desk-fg">
+    <span
+      className={cn(
+        "inline-flex min-h-desk-control min-w-0 items-center gap-2 rounded-desk-control bg-desk-running-soft px-2.5 text-desk-ui text-desk-fg",
+        className
+      )}
+    >
       <StatusDot status="running" />
       {pr ? (
         <>
@@ -377,21 +397,38 @@ function ReaderActions({
   )
 }
 
-/** Where the ticket lives, what it is, where it stands, and the one act. */
-export function ReaderHead({ ticket, readAt }: { ticket: BoardTicket; readAt: string }) {
+/** Where the ticket lives, what it is, where it stands, and the one act.
+ *  `compact` is the phone's: its back bar carries GitHub ↗ and its launch bar
+ *  the act, so the head is the path, the title and the status alone. */
+export function ReaderHead({
+  ticket,
+  readAt,
+  compact = false,
+}: {
+  ticket: BoardTicket
+  readAt: string
+  compact?: boolean
+}) {
   const reason = ticket.status === "blocked" ? blockedReason(ticket) : null
   const action = primaryAction(ticket.launches, ticket.pickup)
   return (
     <header className="flex shrink-0 flex-col gap-2 border-b border-desk-line px-5 py-3">
       <div className="flex items-center gap-3">
-        <p className="min-w-0 flex-1 truncate font-mono text-desk-meta text-desk-fg-3">
+        <p
+          className={cn(
+            "min-w-0 flex-1 font-mono text-desk-meta text-desk-fg-3",
+            compact ? "break-words" : "truncate"
+          )}
+        >
           {crumbs(ticket)}
         </p>
-        <DeskButton asChild variant="ghost" size="sm">
-          <a href={ticket.htmlUrl} target="_blank" rel="noreferrer">
-            GitHub ↗
-          </a>
-        </DeskButton>
+        {compact ? null : (
+          <DeskButton asChild variant="ghost" size="sm">
+            <a href={ticket.htmlUrl} target="_blank" rel="noreferrer">
+              GitHub ↗
+            </a>
+          </DeskButton>
+        )}
       </div>
       <h2 className="text-desk-title font-bold text-desk-fg">{ticket.title}</h2>
       <ReaderSummary ticket={ticket} />
@@ -400,10 +437,121 @@ export function ReaderHead({ ticket, readAt }: { ticket: BoardTicket; readAt: st
           <span className="font-semibold">Blocked:</span> {reason}
         </p>
       ) : null}
-      <div className="pt-1">
-        <ReaderActions ticket={ticket} action={action} readAt={readAt} />
-      </div>
+      {compact ? null : (
+        <div className="pt-1">
+          <ReaderActions ticket={ticket} action={action} readAt={readAt} />
+        </div>
+      )}
     </header>
+  )
+}
+
+/** Copy prompt as a 44px icon — the launch bar's secondary, beside Launch. */
+function CopyIconButton({ value, what }: { value: string; what: string }) {
+  const [copied, setCopied] = useState(false)
+  const [, startTransition] = useTransition()
+  async function onCopy() {
+    if (!(await copyToClipboard(value, what))) return
+    setCopied(true)
+    setTimeout(() => startTransition(() => setCopied(false)), 1500)
+  }
+  return (
+    <DeskButton
+      type="button"
+      variant="secondary"
+      size="icon"
+      aria-label={copied ? "Prompt copied" : "Copy prompt"}
+      onClick={onCopy}
+      className="size-11 shrink-0"
+    >
+      {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+    </DeskButton>
+  )
+}
+
+/**
+ * The phone reader's act (spec work-phone §4), in a bar that stays in view
+ * while the body scrolls: Launch full width, Copy prompt beside it, the other
+ * tools behind a menu once there are more than one, and the recommendation
+ * under them. The same decision the desk's action row makes — a prompt past
+ * the link's cap makes Copy prompt the primary, a matched PR shows what is
+ * running in place of Launch, a run folder with no PR keeps Launch to resume.
+ * Every control is 44px here by construction, not only under a thumb.
+ */
+export function ReaderLaunchBar({
+  ticket,
+  readAt,
+  className,
+}: {
+  ticket: BoardTicket
+  readAt: string
+  className?: string
+}) {
+  const action = primaryAction(ticket.launches, ticket.pickup)
+  const running = ticket.pr !== null
+  const recommendation = primaryLaunch(ticket.launches)?.hint ?? null
+  const what = ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt"
+  const note = running
+    ? null
+    : action.kind === "copy"
+      ? action.reason
+      : action.kind === "none"
+        ? ticket.kind === "run"
+          ? "A lane run in flight — the operator merges its PR; nothing to launch."
+          : "No prompt section in this ticket — nothing to launch."
+        : null
+  const menu = !running && ticket.pickup && ticket.launches.length > 1
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2 border-t border-desk-line bg-desk-surface px-4 py-2.5",
+        className
+      )}
+    >
+      {/* A run folder with no PR is resumed with Launch; say what it is. */}
+      {ticket.status === "running" && !running ? (
+        <RunningBadge ticket={ticket} readAt={readAt} className="min-h-11 w-full" />
+      ) : null}
+      <div className="flex items-center gap-2">
+        {running ? (
+          <RunningBadge ticket={ticket} readAt={readAt} className="min-h-11 flex-1" />
+        ) : action.kind === "launch" ? (
+          <DeskButton asChild variant="primary" className="h-11 flex-1 justify-center">
+            <a href={action.launch.url ?? undefined} {...launchLinkProps(action.launch)}>
+              Launch in {action.launch.label}
+            </a>
+          </DeskButton>
+        ) : action.kind === "copy" && ticket.pickup ? (
+          <DeskCopyButton
+            value={ticket.pickup}
+            what={what}
+            label="Copy prompt"
+            primary
+            keys={false}
+            className="h-11 flex-1 justify-center"
+          />
+        ) : (
+          <p className="flex min-h-11 flex-1 items-center text-desk-meta text-desk-fg-3">{note}</p>
+        )}
+        {ticket.pickup && (running || action.kind === "launch") ? (
+          <CopyIconButton value={ticket.pickup} what={what} />
+        ) : null}
+        {menu ? (
+          <div className="flex size-11 shrink-0 items-center justify-center">
+            <DeskLaunchMenu launches={ticket.launches} />
+          </div>
+        ) : null}
+      </div>
+      {!running && recommendation ? (
+        // No link can preselect a model or effort (lib/launchers), so the
+        // recommendation is said under the button, to pick in the session.
+        <p className="font-mono text-desk-meta text-desk-fg-3">{recommendation} · recommended</p>
+      ) : null}
+      {note && action.kind === "copy" ? (
+        <p className="text-desk-meta text-desk-fg-3">{note}</p>
+      ) : null}
+    </div>
   )
 }
 
@@ -570,12 +718,15 @@ export function ReaderBody({
   ticket,
   batch,
   onSelectTicket,
+  stacked = false,
 }: {
   ticket: BoardTicket
   /** The batch it sits in — the epic's build order, its breakdown, and the
    *  tickets a `depends-on` slug can link to. */
   batch: ListBatch
   onSelectTicket: (key: string) => void
+  /** The phone's one column: the side column under the body at any width. */
+  stacked?: boolean
 }) {
   const { what, notes, prompt } = readerParts(ticket.body)
   const epic = batch.kind === "epic"
@@ -592,7 +743,12 @@ export function ReaderBody({
 
   return (
     <div className="@container">
-      <div className="grid grid-cols-1 gap-8 p-5 @2xl:grid-cols-[minmax(0,1fr)_16rem]">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-8 p-5",
+          !stacked && "@2xl:grid-cols-[minmax(0,1fr)_16rem]"
+        )}
+      >
         <div className="flex min-w-0 flex-col gap-6">
           {what ? (
             <ReaderSection title="What this is">

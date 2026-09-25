@@ -23,9 +23,10 @@ import {
   repoFigures,
   selectionKey,
   ticketsInGroup,
+  type ListBatch,
+  type ListSection,
 } from "@/components/board-model"
 import { BoardRefresh, requestBoardRefresh } from "@/components/board-refresh"
-import { BatchSummary } from "@/components/board-views"
 import { EpicMeter, ReaderBody, ReaderHead } from "@/components/ticket-reader"
 import { useBoardKeys, type BoardKeyIntent } from "@/components/use-board-keys"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
@@ -52,10 +53,11 @@ import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 
 // Work at the desk — three panes (D-7, spec work-panes): the views and the
 // repos, the list the URL has open, and the detail of what is selected in it.
-// Mounted from `lg` only (work-screen.tsx); the phone board is under it.
+// Mounted from `lg` only (work-screen.tsx); the phone's levels are under it
+// (work-phone.tsx).
 //
 // The board is read once on the server and handed over as plain data, as the
-// phone board's is; every selection is URL state (use-board-params.ts),
+// phone's is; every selection is URL state (use-board-params.ts),
 // resolved on every render (work-model.ts `resolveWork`) — so a deep link
 // restores the list and the ticket, back/forward step through them, and a
 // click needs no request. Pane three is the reader for a ticket
@@ -966,6 +968,28 @@ export function WorkDesk({
 
       <BoardKeysSheet open={keysOpen} onOpenChange={setKeysOpen} />
     </div>
+  )
+}
+
+/** An epic's or pile's one line under its title: the repo, its progress,
+ *  what is open. */
+function BatchSummary({ section, batch }: { section: ListSection; batch: ListBatch }) {
+  return (
+    <>
+      <span className="font-mono">{section.repo.slug}</span>
+      {batch.planned !== null ? (
+        <>
+          {" · "}
+          <span className="font-mono tabular-nums">
+            {batch.done} of {batch.planned}
+          </span>{" "}
+          done
+        </>
+      ) : null}
+      {" · "}
+      <span className="font-mono tabular-nums">{batch.tickets.length}</span>
+      {batch.kind === "runs" ? " in flight" : " open"}
+    </>
   )
 }
 
