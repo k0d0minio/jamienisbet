@@ -900,7 +900,20 @@ export async function readRepoTree(
       `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
       "application/vnd.github+json"
     )
+    // 409: an empty repo — nothing to show yet, not an error (a repo is
+    // onboard the moment its first ticket lands).
     if (res.status === 409) return { entries: [], error: null }
+    // 404: the token can't see the repo. Only a pinned repo gets here — the
+    // swept ones were just listed by the same token — so it is a connected
+    // client's repo, or a house one, the board would otherwise drop without a
+    // word. That silence is how a client-hosted repo read as having no tickets.
+    if (res.status === 404) {
+      return {
+        entries: [],
+        error:
+          "The GitHub token can't see this repo. A fine-grained token only reaches repos under one account — a repo a client invited you to needs a classic token with repo scope, and an invitation has to be accepted first.",
+      }
+    }
     if (!res.ok) return { entries: [], error: await githubFailure(res) }
     const { tree } = (await res.json()) as { tree: TreeEntry[] }
     return { entries: tree, error: null }
@@ -1132,40 +1145,16 @@ async function fetchOpenPulls(
 
 async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
   try {
-    const res = await gh(
-      `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
-      "application/vnd.github+json"
-    )
-    // 409: an empty repo — nothing to show yet, not an error (a repo is
-    // onboard the moment its first ticket lands).
-    if (res.status === 409) return { tickets: [], breakdowns: {}, epicRows: {}, error: null, prError: null }
-    // 404: the token can't see the repo. Only a pinned repo gets here — the
-    // swept ones were just listed by the same token — so it is a connected
-    // client's repo, or a house one, the board would otherwise drop without a
-    // word. That silence is how a client-hosted repo read as having no tickets.
-    if (res.status === 404) {
+    const { entries: tree, error } = await readRepoTree(repo)
+    if (error) {
       return {
         tickets: [],
         breakdowns: {},
         epicRows: {},
         prError: null,
-        error: {
-          repo,
-          message:
-            "The GitHub token can't see this repo. A fine-grained token only reaches repos under one account — a repo a client invited you to needs a classic token with repo scope, and an invitation has to be accepted first.",
-        },
+        error: { repo, message: error },
       }
     }
-    if (!res.ok) {
-      return {
-        tickets: [],
-        breakdowns: {},
-        epicRows: {},
-        prError: null,
-        error: { repo, message: await githubFailure(res) },
-      }
-    }
-    const { tree } = (await res.json()) as { tree: TreeEntry[] }
 
     const stubPaths: { path: string; epic: string; sha: string }[] = []
     const legacyPaths: { path: string; sha: string }[] = []
