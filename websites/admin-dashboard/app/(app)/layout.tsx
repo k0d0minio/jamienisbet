@@ -3,7 +3,7 @@ import { Toaster } from "@jamie-nisbet/ui"
 import { PaletteProvider } from "@/components/command-palette"
 import { Rail, TabBar } from "@/components/nav"
 import { PullToRefresh } from "@/components/pull-to-refresh"
-import { countFollowUps } from "@/lib/inbox"
+import { countInbox } from "@/lib/inbox"
 
 // Chrome for the authenticated area. Access is gated by proxy.ts, so anything
 // rendered here is already behind a valid session.
@@ -17,11 +17,13 @@ export default function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  // The Inbox badge. Not awaited: it streams into the rail and the tab bar as
-  // a promise, so no screen's first paint waits on a Neon read for a number.
-  // It never rejects (lib/inbox.ts), so a failed read hides the badge rather
-  // than taking the shell's error boundary with it.
-  const inboxCount = countFollowUps()
+  // The Inbox badge: follow-ups plus gates. Not awaited: it streams into the
+  // rail and the tab bar as a promise, so no screen's first paint waits on a
+  // Neon or GitHub read for a number — and the GitHub half is the 60-second
+  // cached read the Inbox itself makes. It never rejects (lib/inbox.ts), so a
+  // failed read hides the badge rather than taking the shell's error boundary
+  // with it.
+  const inboxCount = countInbox()
 
   return (
     <PaletteProvider>

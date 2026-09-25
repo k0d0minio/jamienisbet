@@ -43,7 +43,8 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-/** The Inbox's follow-up count (lib/inbox.ts), streamed from the layout:
+/** The Inbox's count — its gate rows plus its follow-up rows (lib/inbox.ts
+ *  → countInbox), streamed from the layout:
  *  null when it could not be read, which hides the badge like a zero. */
 export type InboxCount = Promise<number | null>
 
