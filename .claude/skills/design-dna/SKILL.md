@@ -13,26 +13,25 @@ size, spacing, and real states, not from decoration. No gradients, no emoji, no 
 no bounce.
 
 That is the **marketing tier**, and it is the default. `websites/admin-dashboard` is the
-one exception: it is a work tool on the sanctioned **desk tier** (new work) — with the
-retiring **app tier** still under the screens not yet moved. Read § Which tier am I on?
-below before you decide anything looks wrong.
+one exception: it is a work tool on the sanctioned **desk tier**. There are two tiers and
+no third. Read § Which tier am I on? below before you decide anything looks wrong.
 
 Identity and token specifics live in one place — read them, don't restate them:
 
-- [`packages/ui/BRAND.md`](../../../packages/ui/BRAND.md) — voice, visual foundations, iconography, **§ Desk tier** (and § App tier (retiring)).
-- [`packages/ui/tokens/`](../../../packages/ui/tokens/) — the values (colour, type, spacing, radius, shadows, motion), plus `desk.css` for the desk tier and `app.css` for the retiring app tier.
+- [`packages/ui/BRAND.md`](../../../packages/ui/BRAND.md) — voice, visual foundations, iconography, **§ Desk tier**.
+- [`packages/ui/tokens/`](../../../packages/ui/tokens/) — the values (colour, type, spacing, radius, shadows, motion), plus `desk.css` for the desk tier.
 - [`packages/ui/SKILL.md`](../../../packages/ui/SKILL.md) — the package tour: assets, components, how to consume.
 
 ## Which tier am I on?
 
 **Marketing tier** — `websites/portfolio`, `websites/sellers-site`,
-and anything in `packages/ui` outside `src/components/desk/` and `src/components/app/`.
+and anything in `packages/ui` outside `src/components/desk/`.
 Everything on this page applies as written. Nothing below changes for you.
 
-**Desk tier** — new work in `websites/admin-dashboard`, and `packages/ui/src/components/desk/`.
+**Desk tier** — every screen in `websites/admin-dashboard`, and `packages/ui/src/components/desk/`.
 A dense, flat work tool designed at the desk and compressed for the phone — not a phone app
 stretched wide. It opts in by linking `@jamie-nisbet/ui/desk.css` *after* `styles.css`, and
-puts `desk-tier` once on the shell's root. Its visual reference is the canvas's
+puts `desk-tier` once, on `<body>`. Its visual reference is the canvas's
 "Desk — the design system" sheet. Three rules bend, scoped to it (decided 2026-09-25,
 recorded in
 [`.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md`](../../../.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md)
@@ -56,16 +55,9 @@ Its primitives: `RailItem` (the 56px rail, count in the accessible name), `Pane`
 `PaneHeader` / `PaneToolbar` / `PaneBody`, `ListRow`, `StatusDot`, `PriorityTag`, `Kbd`,
 `DeskSegmentedControl`, `DataGrid` and its parts (a real table), `CommandPalette` and its
 parts (the ⌘K shell), `DeskButton` (`primary` / `secondary` / `ghost`, `shortcut` for
-"Launch ⌘↵"). Reach for these before anything else on a desk screen; never the marketing
+"Launch ⌘↵"), `DeskMenu`, `DeskTabs`, `RecordSection` / `RecordRow` (a record's facts), and
+the form controls `DeskField` / `DeskInput` / `DeskTextarea` / `DeskSelect`. Reach for these before anything else on a desk screen; never the marketing
 `Button`, `Card` or `Input` inside one.
-
-**App tier (retiring)** — the admin screens not yet moved, and
-`packages/ui/src/components/app/`. The iOS-idiom tier (2026-08-29): materials, elevation,
-springs, the system font (`font-app`, `text-app-*`), the inset grouped list, the `App*` form
-controls. A fix to a screen still on it follows its rules (BRAND.md § App tier (retiring),
-and each component's header comment); **new admin work is never built on it**, and nothing
-moves a screen between tiers except the stub that owns that screen. `retire-app-tier`
-deletes it.
 
 Everything else holds on every tier, unchanged: there is one tint, ink (paper in dark; no
 per-domain accents), semantic colour is state-only and muted, sentence case, no emoji,
@@ -86,8 +78,7 @@ Every colour, radius, shadow, duration, and font comes from a semantic token
 (`bg-card`, `text-muted-foreground`, …). On the desk tier that means the desk tokens
 and their utilities (`bg-desk-sunken`, `text-desk-fg-3`, `border-desk-line`,
 `rounded-desk-control`, `text-desk-ui`, `h-desk-row`, `shadow-desk-float`) — every desk
-colour is an alias of a semantic one — and on the retiring app tier its own (`bg-app-group`,
-`text-app-body`, …). Each tier ships its own set precisely so a raw value never becomes the
+colour is an alias of a semantic one. Each tier ships its own set precisely so a raw value never becomes the
 answer. Never a raw hex, never a Tailwind palette
 colour (`bg-slate-100`), never a hardcoded `box-shadow` or duration. The reason is
 dark mode: the whole theme flips on `[data-theme="dark"]`, and any literal value is a
@@ -115,8 +106,7 @@ read on phones.
 - Interactive targets ≥ 44px under a thumb. On the desk tier that comes from the tokens:
   size every row and control with a `desk-*` spacing step (`h-desk-row`,
   `size-desk-control`) and the coarse-pointer step lifts it — a hand-picked `h-8` never
-  will. On the retiring app tier it is in the control's own class list (`min-h-app-touch`).
-  What is still lifted globally in the admin's `globals.css` is the marketing `Button`:
+  will. What is still lifted globally in the admin's `globals.css` is the marketing `Button`:
   don't undo that, and don't add controls that dodge any floor.
 - Primary actions live in the thumb zone; destructive ones do not.
 - One-handed entry points are bottom sheets (`Sheet`), not centred dialogs.
@@ -136,17 +126,16 @@ second on top of it, and don't invent another). The logo's only choreography is
 "rolling deploy" `Spinner` on a pending button; nothing else loops.
 
 The **desk tier** is stiller still: state changes are instant or a plain ≤120ms colour
-transition — no springs, no slides. On the retiring **app tier**, springs remain where they
-already are (`spring-sheet`, `spring-header`, `spring-press`, `spring-pop`); never add one to
-a desk screen. Press is a colour change on every tier, and reduced motion stands everything
+transition — no springs, no slides; a sheet or dialog simply appears. Press is a colour
+change on every tier, and reduced motion stands everything
 still.
 
 ## Type and copy
 
 Sentence case everywhere, including buttons and headings. Figures, labels, eyebrows,
 and table data go in mono (`--font-mono`) — numbers are the brand's rhetorical device,
-so set them where they can carry weight, on every tier. UI text is Hanken Grotesk on the
-marketing and desk tiers, and the system stack (`font-app`) only on the retiring app tier. First person singular, concrete outcomes, no
+so set them where they can carry weight, on every tier. UI text is Hanken Grotesk on both
+tiers. First person singular, concrete outcomes, no
 exclamation marks, no emoji. CTAs are quiet and specific ("Send brief", not "Get
 started now!").
 
@@ -162,9 +151,7 @@ Run this list against the diff:
 - [ ] Motion within brand rules and reduced-motion safe
 - [ ] On the desk tier: desk primitives reused (`ListRow`, `Pane`, `DataGrid`,
       `DeskButton`), every size a `desk-*` step (no hand-picked heights, no pointer or width
-      query in a component), state as a `StatusDot`, a shadow only on what floats — and no
-      app-tier primitive or utility on a desk screen
-- [ ] On a screen still on the app tier: its own primitives and tokens, and no new work
-      there that belongs on the desk tier
-- [ ] Nothing desk- or app-tier leaked into a marketing site
+      query in a component), state as a `StatusDot`, a shadow only on what floats, and no
+      marketing `Button`, `Card` or `Input` on a desk screen
+- [ ] Nothing desk-tier leaked into a marketing site
 - [ ] Copy is sentence case, mono where it's a figure, free of emoji and hype

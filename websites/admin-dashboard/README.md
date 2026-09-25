@@ -41,10 +41,11 @@ One shell, two readings of it, both built from the desk tier's primitives
   Leads (`RailItem`, the current one `aria-current="page"`), and at its foot the palette's
   search button and sign out. An iPad in portrait is a desk and gets it. The content takes the
   rest of the window: Work fills it, and every other screen keeps its reading column
-  (`AppScreen`'s `wide` is Work's alone).
+  (`DeskScreen`'s `wide` is Work's alone).
 - **Below `md`, a flat tab bar** welded to the bottom edge on a hairline — no floating glass —
   with the same three, each a third of the bar and 56px tall, extending under the home
-  indicator. The title bar carries the palette's search button beside the JN menu (sign out).
+  indicator. The title bar carries the palette's search button beside the account menu (the
+  JN mark: sign out).
 - **The Inbox badge** is the number of rows the Inbox shows (D-30): the outreach owed by today
   (at most 10), open leads gone quiet past the staleness threshold (at most 6) and the nurture
   wakes whose date has come (at most 3) — a lead both stale and due counted once
@@ -542,7 +543,7 @@ The estate's engineering backlog in one place, read **batch-first**. Every activ
 its work items as markdown in `.icm/intake/` — the estate-wide standard (canonical spec:
 `_system/contracts/TICKETS.md` in the `icm-board` repo) — and [`lib/tickets.ts`](lib/tickets.ts)
 reads those folders from each repo's **default branch** via the GitHub API (60-second revalidate, tag-busted by the
-board's refresh button) and folds them into `listBoard()`: one inset grouped list per repo —
+board's refresh button) and folds them into `listBoard()`: one group per repo —
 urgency-ordered — whose intake batches are its rows. Each epic folder is a batch row showing its
 progress as a mono `N of M` over the thin `Meter` (from the stubs' `sequence: N of M` lines) and
 its next stub; the `triage/` one-offs and any unmigrated legacy tickets ride as **Triage** and
@@ -885,33 +886,27 @@ business data.
 
 ## Mobile & PWA
 
-The app is built mobile-first and installs to a phone home screen as **Consultancy JN**.
+The app is designed at the desk and compressed for the phone (D-1), and installs to a phone
+home screen as **Consultancy JN**.
 
 - **Navigation** ([`components/nav.tsx`](components/nav.tsx)) — three destinations, Work
   first: a flat tab bar on phones and the 56px icon rail from `md` up, with the ⌘K palette over
   both (see [The shell](#the-shell--rail-tab-bar-command-palette)). Each tab is a full 3.5rem
   target — a third of the bar; content is padded to clear it and it extends under the
   home-indicator safe area.
-- **Touch targets and safe areas** ([`app/globals.css`](app/globals.css)) — the design system's
-  own controls are sized for a mouse (h-8/h-9), so rather than annotate every call site the
-  floor is lifted once under `@media (pointer: coarse)`: every button, input and select trigger
-  gets a 44px minimum. Nothing there affects a desktop pointer, and the app tier's own controls
-  already set their own floor (`min-h-app-touch` on a grouped row, a 3.5rem tab, a 48px action
-  disc). The same file defines the geometry utilities the fixed chrome and the rails use —
+- **Touch targets and safe areas** — every screen is on the desk tier, whose rows and controls
+  take the touch step from their tokens: 32px rows and 30px controls at the desk are 44px
+  under a coarse pointer, from the same markup (`packages/ui/tokens/desk.css`). What
+  [`app/globals.css`](app/globals.css) still lifts once under `@media (pointer: coarse)` is
+  the marketing `Button` where a screen uses one. Nothing there affects a desktop pointer.
+  The same file defines the geometry utilities the fixed chrome and the rails use —
   `bottom-above-tabs`, `pb-tabs`, `no-scrollbar`, and `pt-screen-safe` /
   `pb-screen-safe` for the two screens outside the shell (login and "not here"), which have no
   tab bar to clear but still open under a notch.
-- **Appearance follows the system**, with no in-app toggle — the app tier's rule. An inline,
+- **Appearance follows the system**, with no in-app toggle (BRAND.md § Desk tier). An inline,
   render-blocking script in [`app/layout.tsx`](app/layout.tsx) mirrors `prefers-color-scheme`
   onto `[data-theme]` before first paint, which is the whole point: a theme resolved in an
   effect is the white flash every dark-mode app is judged by.
-- **Materials degrade where the device can't afford them.** The title bar (still on the app
-  tier) is `backdrop-filter`s over a scrolling list, which is the most expensive thing this tier
-  asks of a GPU. Two things turn the blur off, both landing on the same opaque surfaces (see
-  [`packages/ui/tokens/app.css`](../../packages/ui/tokens/app.css) § Materials without the
-  blur): `prefers-reduced-transparency`, reactively in CSS, and `data-materials="opaque"` —
-  stamped by the same pre-paint script when the device reports 4GB or less. A capability check,
-  never a setting.
 - **Anything hover-only is a bug on a phone.** A row action that only fades in on hover from
   `sm` up must stay always visible below `sm`.
 - **Gestures, and their non-gesture twins** — list rows swipe
@@ -989,13 +984,15 @@ app/
                         #   error.tsx — its own boundary, so it can name the record
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
 components/             # login form, nav, service-worker register, lead + money UI
-                        #   app-screen.tsx — every app-tier screen's masthead: the collapsing
-                        #                header and the reading column (Work alone is `wide`)
+                        #   desk-screen.tsx — the one-column screens' flat title bar and
+                        #                reading column (Money, not-found, error, the
+                        #                phone's leads list)
                         #   nav.tsx      — the desk rail from `md`, the flat tab bar below it
                         #   command-palette.tsx — ⌘K: the shortcut, the index, filtering, the
                         #                title bar's search button
-                        #   app-menu.tsx — the monogram on the bar: what belongs to the app
-                        #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
+                        #   account-menu.tsx — the JN mark on the phone's bar: sign out
+                        #   chip.tsx     — the phone leads bar's archive / prospects switches
+                        #   money-figures.tsx — Money's row of mono figures
                         #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
                         #   lead-row.tsx — the leads list's gestures (call/email/archive, touched)
                         #   leads-table.tsx — Leads at the desk: the DataGrid, header sort,
