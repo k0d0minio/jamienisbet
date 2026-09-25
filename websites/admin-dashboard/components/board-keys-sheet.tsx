@@ -36,6 +36,7 @@ const GROUPS: { header: string; keys: { keys: string[]; label: string }[] }[] = 
   {
     header: "Act",
     keys: [
+      { keys: ["⌘", "↵"], label: "Launch the open ticket (Ctrl+↵ off a Mac)" },
       { keys: ["c"], label: "Copy the pick-up, or an epic's next" },
       { keys: ["o"], label: "Open on GitHub" },
       { keys: ["r"], label: "Refresh the board" },

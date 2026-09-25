@@ -501,23 +501,57 @@ toolbar strip with "as of HH:MM" and the refresh button:
 - **Pane two — the list.** An estate view lists its tickets as two-line rows — a `StatusDot`,
   the title, the `PriorityTag`, a "today" mark for a today.md pick, and under them the mono
   `repo / epic · n of m` (`repo / triage · <lane>`), a blocked row's red reason, a running row's
-  amber stage ("Build next", "Release next", "Lane — PR open for your merge"). An epic lists
+  amber PR and stage ("draft PR #176 · Build", "PR #180 · Lane") — or, for a run folder no PR
+  matched, "Build next", "Release next", "Lane — PR open for your merge". An epic lists
   **every** stub in sequence — open, running and done, done ones dimmed — over a thin meter; a
   repo lists its open tickets and runs grouped by epic. A quiet view says so in a line; a view
   missing a repo that couldn't be read says how many.
-- **Pane three — the detail.** The views below, unchanged until `work-reader` replaces them:
-  the selected ticket; with none, the epic's batch view, the repo view, or — for a view — the
-  estate overview (its Blocked rows open in the Blocked view).
+- **Pane three — the reader** ([`components/ticket-reader.tsx`](components/ticket-reader.tsx),
+  spec work-reader, D-8, D-10). A selected ticket shows everything at once, no tab and no
+  disclosure. The **head**: the mono path `repo / epic / slug` with GitHub ↗, the title, one
+  summary line (status, priority, `n of m`, size, client) and a blocked ticket's reason; then the
+  action row — **Launch in Claude Code** (`⌘↵`), the model and effort recommendation beside it,
+  **Copy prompt**, and the other registered tools in a menu once there is more than one. The
+  **body**: *What this is* (the stub's own sections), *Notes for Define*, and *Prompt · what the
+  launch sends* — the exact text Launch sends and Copy prompt copies, in mono, never folded (the
+  stub's own `## Prompt` follows it when the launch sends a `/pipeline` verb). The **side
+  column**: the stub's dash-lines (each `depends-on` slug on the board selects it), the epic's
+  progress and build order (current stub marked, every open or running row selectable, done
+  rows dimmed), and the breakdown's *What I understood* with a link to the whole breakdown — the
+  epic parts not shown for a triage stub. It sits beside the body once the pane is wide enough
+  (a container query), under it otherwise. A prompt past the link's cap offers no Launch: Copy
+  prompt becomes primary, with the registry's "Too long for a link" line. A **running** ticket
+  shows what is running in place of Launch — `draft PR #n` linked, its stage, how long ago it
+  opened — and keeps Copy prompt. With no ticket selected, pane three is the desk's epic, repo
+  or estate-overview view ([`components/work-views.tsx`](components/work-views.tsx)) — the
+  phone board's content, drawn on the desk tier (the overview's Blocked rows open in the Blocked
+  view).
 
-**What each view holds** (`TicketStatus` in [`lib/tickets.ts`](lib/tickets.ts)), all from the
-one tree read per repo — no request beyond it. A dependency is **merged** when its stub sits in
+**What each view holds** (`TicketStatus` in [`lib/tickets.ts`](lib/tickets.ts)), from the one
+tree read per repo plus its open pull requests. A dependency is **merged** when its stub sits in
 the epic's `_done/` with no active run folder; open in the epic, or in `_done/` with a run
 still going, it is unmet (a slug the epic doesn't hold blocks nothing). **Up next** is one stub
-per epic — its lowest-sequence open stub without a `blocked:` line, when every dependency is
-merged — plus every open triage stub, by priority (P0, P1, P2, none), then repo order, then
-sequence. **Blocked** is every stub with a `blocked:` line, plus each epic's lowest open stub
-whose dependency is unmet ("Waiting on <dep>", "— running" when it has a run). **Running** is
-every run folder in `.icm/runs/` (D-11), titled from the stub it consumed. **Today** is
+per epic — its lowest-sequence open stub without a `blocked:` line and not running, when every
+dependency is merged — plus every open triage stub not running, by priority (P0, P1, P2, none),
+then repo order, then sequence. **Blocked** is every stub with a `blocked:` line, plus each
+epic's lowest open stub whose dependency is unmet ("Waiting on <dep>", "— running" when it has
+a PR or a run). **Running** is what GitHub says is under way (D-11), and nothing is stored when
+Launch is pressed: a stub with an open pull request, and any run folder in `.icm/runs/` on
+`main` (titled from the stub it consumed). A run folder holding only `01_scope/` is a scope
+waiting for review, not a run, and is left out.
+
+**Running, read from pull requests** (spec work-reader §3). `main` never holds a run's folder
+while its PR is open — the run lives on its branch until the squash archives it — so each repo's
+read makes one more request, `pulls?state=open&per_page=100`, on the position clock (60s, both
+tags, `force-cache`, the 8-in-flight cap). A **spine PR** (the `PIPELINE RUN` marker) matches the
+epic stub its Spec-table `Slug` row names, else a `claude/<slug>` head does; its stage is its
+`stage:*` label. A **lane PR** (`type:bug|tweak|chore|hotfix`) carries the lane's own slug, not
+the triage stub's name, so it costs one request more — its file list, on the discovery clock
+(an hour: the stub's move is the lane's first commit and doesn't change) — where a file at
+`.icm/intake/triage/_done/<name>.md` marks triage stub `<name>` running. Budget per repo: 1 + one
+per open lane PR. A PR that matches no stub is left alone here (the Inbox lists PRs,
+`gates-read`). If a repo's PR read fails, its tickets still show, running there comes from run
+folders alone, and the list and the overview say so in a line. **Today** is
 icm-board's `today.md`, in its order. Everything else open is queued. Done stubs are known by
 name from the tree (`<epic>/_done/`, never read); their titles and places come from the
 breakdown's `## Build order` lines, and one the breakdown doesn't name lists after the rest by
@@ -538,11 +572,12 @@ step rewriting `?t=` in place (`replaceState`), so the detail follows and back d
 every row passed; in the detail pane they scroll it. `Enter`, `→` or `l` opens and moves focus a
 pane right: pane one's entry into pane two, pane two's ticket into the detail. `Esc`, `←` or `h`
 moves focus a pane left, and in pane one closes the open ticket. `[`/`]` step through pane
-one's views and unfolded epics, opening each without moving focus. `c` copies what the detail's
-own copy button would, `o` opens it on GitHub, `r` refreshes. No key fires while you type, while
-a menu, sheet or the palette is open, or with Ctrl/Cmd/Alt held — except `[`, `]` and `?`, which
-still fire on the AltGr/Option layouts (Portuguese, German, Spanish among them) that type them
-that way. Each pane's list is a `listbox` whose `aria-activedescendant` is its cursor row.
+one's views and unfolded epics, opening each without moving focus. `⌘↵` (`Ctrl+↵` off macOS)
+presses the reader's primary act from any pane — Launch, or Copy prompt when no link can carry
+the prompt; nothing on a running ticket. `c` copies what the detail's own copy button would, `o`
+opens it on GitHub, `r` refreshes. No key fires while you type, or while a menu, sheet or the
+palette is open. With Ctrl/Cmd/Alt held only `⌘↵` fires — and `[`, `]` and `?`, which still fire
+on the AltGr/Option layouts (Portuguese, German, Spanish among them) that type them that way. Each pane's list is a `listbox` whose `aria-activedescendant` is its cursor row.
 
 **Under `lg` — the phone board.** A list that drills and a pane that pushes
 ([`components/tickets-board.tsx`](components/tickets-board.tsx)), until `work-phone` replaces it.
@@ -599,8 +634,11 @@ none — through `launchesForTicket` and the maintenance launchers in
 [`components/launch-menu.tsx`](components/launch-menu.tsx) is drawn from that list alone. No
 component names a tool.
 
-**Copy is the default action everywhere** (decided 2026-09-23): no tool link is the default
-until it is proven, and the clipboard works on every surface, with every tool, at any length. A
+**Copy is the default action everywhere but the desk's reader** (decided 2026-09-23): no tool
+link is the default until it is proven, and the clipboard works on every surface, with every
+tool, at any length. The reader's **Launch** is the one exception (D-10, spec work-reader): the
+Claude Code link is proven, and launching is the act the desk exists for — Copy prompt sits
+beside it and takes over wherever the link can't carry the prompt. A
 `claude-cli://` terminal target was tried and dropped the same day — it opened nothing in a
 smoke test, and root-causing it turned out to depend on the operator's own machine (Claude Code
 CLI's local URL-scheme registration, then GNOME/Brave's MIME cache, then a corrupted

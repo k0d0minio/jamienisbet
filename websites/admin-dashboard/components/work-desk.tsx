@@ -25,17 +25,12 @@ import {
   ticketsInGroup,
 } from "@/components/board-model"
 import { BoardRefresh, requestBoardRefresh } from "@/components/board-refresh"
-import {
-  BatchSummary,
-  BatchView,
-  EstateOverview,
-  RepoView,
-  TicketView,
-} from "@/components/board-views"
-import { TicketSummary } from "@/components/ticket-detail"
+import { BatchSummary } from "@/components/board-views"
+import { EpicMeter, ReaderBody, ReaderHead } from "@/components/ticket-reader"
 import { useBoardKeys, type BoardKeyIntent } from "@/components/use-board-keys"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
 import { useWorkLive } from "@/components/work-screen"
+import { DeskBatchView, DeskEstateOverview, DeskRepoView } from "@/components/work-views"
 import {
   WORK_VIEWS,
   entryQuery,
@@ -52,6 +47,7 @@ import {
   type WorkSelection,
 } from "@/components/work-model"
 import { copyToClipboard } from "@/lib/clipboard"
+import { primaryAction } from "@/lib/launchers"
 import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 
 // Work at the desk — three panes (D-7, spec work-panes): the views and the
@@ -62,14 +58,16 @@ import type { BoardData, MaintenanceLauncher } from "@/lib/tickets"
 // phone board's is; every selection is URL state (use-board-params.ts),
 // resolved on every render (work-model.ts `resolveWork`) — so a deep link
 // restores the list and the ticket, back/forward step through them, and a
-// click needs no request. Pane three keeps the board's detail views as they
-// are until `work-reader` replaces them.
+// click needs no request. Pane three is the reader for a ticket
+// (ticket-reader.tsx, spec work-reader) and the desk's batch, repo and
+// overview views otherwise (work-views.tsx).
 //
 // The keyboard (use-board-keys.ts; `?` lists it): each pane has a cursor and
 // the focused pane is the one that moves. In pane two the cursor *is* the
 // selection — each step rewrites `?t=` in place, so the reader follows and
 // back doesn't replay every row passed. Enter opens and moves focus a pane
-// right, Esc moves it a pane left.
+// right, Esc moves it a pane left, and ⌘↵ presses the reader's primary act —
+// Launch, or Copy prompt when no link can carry it — from any pane.
 //
 // Read-only by design: every button copies a prompt, opens a tool with it,
 // or links out; a human sends it.
@@ -402,28 +400,12 @@ function emptyLine(list: WorkList): string {
   return "Nothing open here."
 }
 
-/** A thin progress bar under an epic's heading — done against total. */
-function EpicMeter({ done, total }: { done: number; total: number }) {
-  const percent = total > 0 ? Math.round((100 * done) / total) : 0
-  return (
-    <div
-      role="meter"
-      aria-valuemin={0}
-      aria-valuemax={total}
-      aria-valuenow={done}
-      aria-label={`${done} of ${total} done`}
-      className="h-0.5 w-full bg-desk-line"
-    >
-      <div className="h-full bg-desk-ink" style={{ width: `${percent}%` }} />
-    </div>
-  )
-}
-
 function ListPane({
   list,
   rows,
   selectedKey,
   partial,
+  prUnread,
   listRef,
   onSelect,
   onHelp,
@@ -433,6 +415,9 @@ function ListPane({
   selectedKey: string | null
   /** How many repos this list is missing because their read failed. */
   partial: number
+  /** The repos whose pull requests couldn't be read — their running comes
+   *  from run folders alone (spec work-reader §5). */
+  prUnread: string[]
   listRef: React.RefObject<HTMLDivElement | null>
   onSelect: (key: string) => void
   onHelp: () => void
@@ -453,6 +438,15 @@ function ListPane({
         <p className="flex items-center gap-2 border-b border-desk-line px-4 py-1.5 text-desk-micro text-desk-blocked">
           <TriangleAlert aria-hidden className="size-desk-check shrink-0" />
           {partial === 1 ? "1 repo couldn't be read" : `${partial} repos couldn't be read`}
+        </p>
+      ) : null}
+      {prUnread.length > 0 ? (
+        <p className="flex items-center gap-2 border-b border-desk-line px-4 py-1.5 text-desk-micro text-desk-running">
+          <TriangleAlert aria-hidden className="size-desk-check shrink-0" />
+          <span className="min-w-0 truncate">
+            Pull requests couldn&rsquo;t be read for{" "}
+            <span className="font-mono">{prUnread.join(", ")}</span> — running there is run folders only
+          </span>
         </p>
       ) : null}
       <PaneBody>
@@ -821,46 +815,58 @@ export function WorkDesk({
       case "help":
         setKeysOpen(true)
         return true
+
+      case "launch": {
+        // The reader's primary act, from any pane (spec work-reader §2): the
+        // same decision its button makes, so the two never disagree. A
+        // running ticket offers none. Opened here, inside the keydown, so the
+        // browser counts it as the user's own gesture.
+        if (target.kind !== "ticket") return false
+        const { ticket } = target
+        if (ticket.status === "running") return true
+        const action = primaryAction(ticket.launches, ticket.pickup)
+        if (action.kind === "launch" && action.launch.url) {
+          if (action.launch.surface === "web") window.open(action.launch.url, "_blank", "noopener,noreferrer")
+          else window.location.href = action.launch.url
+        } else if (action.kind === "copy" && ticket.pickup) {
+          void copyToClipboard(ticket.pickup, ticket.pickupKind === "verb" ? "Pick-up verb" : "Prompt")
+        }
+        return true
+      }
     }
   }
 
   useBoardKeys(onKey, live)
 
-  // ---- Pane three — the detail. -----------------------------------------
+  // ---- Pane three — the reader, or the desk's view of what is open. ------
   const shown = paneSelection(selection)
-  let detail: { title: React.ReactNode; meta?: React.ReactNode; body: React.ReactNode }
+  const onSelectTicket = (key: string) => navigate({ ...lq, t: key })
+  let detail: { title: React.ReactNode; meta?: React.ReactNode; body: React.ReactNode } | null
   switch (shown.kind) {
     case "ticket":
-      detail = {
-        title: shown.ticket.title,
-        meta: <TicketSummary ticket={shown.ticket} />,
-        body: (
-          <TicketView
-            ticket={shown.ticket}
-            batch={shown.batch}
-            onSelectTicket={(key) => navigate({ ...lq, t: key })}
-          />
-        ),
-      }
+      // The reader draws its own head (ticket-reader.tsx).
+      detail = null
       break
     case "batch":
       detail = {
         title: shown.batch.title,
         meta: <BatchSummary section={shown.section} batch={shown.batch} />,
-        body: (
-          <BatchView
-            batch={shown.batch}
-            selectedTicket={null}
-            onSelectTicket={(key) => navigate({ ...lq, t: key })}
-          />
-        ),
+        body: <DeskBatchView batch={shown.batch} onSelectTicket={onSelectTicket} />,
       }
       break
     case "repo":
       detail = {
         title: <span className="font-mono">{shown.focus.repo.slug}</span>,
         meta: shown.focus.repo.clientName ?? "House repo",
-        body: <RepoView focus={shown.focus} figures={repoFigures(board, shown.focus)} />,
+        body: (
+          <DeskRepoView
+            focus={shown.focus}
+            figures={repoFigures(board, shown.focus)}
+            prError={
+              board.prErrors.find((e) => e.repo.fullName === shown.focus.repo.fullName)?.message ?? null
+            }
+          />
+        ),
       }
       break
     default:
@@ -868,11 +874,12 @@ export function WorkDesk({
         title: "Overview",
         meta: "The whole estate",
         body: (
-          <EstateOverview
+          <DeskEstateOverview
             figures={boardFigures(board, null)}
             blocked={ticketsInGroup(board, "blocked", null)}
             board={{
               errors: board.errors,
+              prErrors: board.prErrors,
               rosterError: board.rosterError,
               estateCheck: board.estateCheck,
             }}
@@ -923,19 +930,29 @@ export function WorkDesk({
             rows={rows}
             selectedKey={ticketSelected}
             partial={partial}
+            prUnread={
+              list.kind === "batch"
+                ? board.prErrors.filter((e) => e.repo.slug === list.section.repo.slug).map((e) => e.repo.slug)
+                : list.kind === "repo"
+                  ? board.prErrors.filter((e) => e.repo.slug === list.focus.repo.slug).map((e) => e.repo.slug)
+                  : board.prErrors.map((e) => e.repo.slug)
+            }
             listRef={listRef}
             onSelect={(key) => navigate({ ...lq, t: key })}
             onHelp={() => setKeysOpen(true)}
           />
-          <Pane aria-label="Detail" className="min-w-0 flex-1">
-            <PaneHeader title={detail.title} meta={detail.meta} titleAs="h2" />
-            <PaneBody
-              key={selectionKey(shown)}
-              ref={readerRef}
-              tabIndex={0}
-              className={cn("bg-app-canvas", LISTBOX)}
-            >
-              <div className="flex max-w-3xl flex-col gap-app-section p-5">{detail.body}</div>
+          <Pane aria-label={shown.kind === "ticket" ? "Reader" : "Detail"} className="min-w-0 flex-1">
+            {shown.kind === "ticket" ? (
+              <ReaderHead key={selectionKey(shown)} ticket={shown.ticket} readAt={board.readAt} />
+            ) : detail ? (
+              <PaneHeader title={detail.title} meta={detail.meta} titleAs="h2" />
+            ) : null}
+            <PaneBody key={selectionKey(shown)} ref={readerRef} tabIndex={0} className={LISTBOX}>
+              {shown.kind === "ticket" ? (
+                <ReaderBody ticket={shown.ticket} batch={shown.batch} onSelectTicket={onSelectTicket} />
+              ) : detail ? (
+                <div className="flex max-w-3xl flex-col gap-6 p-5">{detail.body}</div>
+              ) : null}
             </PaneBody>
           </Pane>
         </div>
