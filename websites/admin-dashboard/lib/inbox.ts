@@ -5,8 +5,9 @@ import { countCracks, listClients, type Client } from "@jamie-nisbet/services"
 import { isStale } from "@/lib/leads"
 
 // The Inbox's follow-ups (D-15), as a rule the feed and the rail's badge both
-// read, so the number on the Inbox and the rows inside it can never disagree
-// about who is waiting.
+// read, so the number on the Inbox and the rows inside it count the same people.
+// The badge is read when the shell renders (a load, a refresh, a server
+// action), so between those it can trail the feed — never by a different rule.
 //
 // Three kinds: open leads gone quiet past the staleness threshold, the outreach
 // owed by today, and the nurture wakes whose date has come. Money and today's

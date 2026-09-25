@@ -25,7 +25,7 @@ export default function AppLayout({
 
   return (
     <PaletteProvider>
-      <div className="flex min-h-dvh flex-col md:pl-desk-rail">
+      <div className="flex min-h-dvh flex-col md:pl-rail-safe">
         <Rail inboxCount={inboxCount} />
         {/* Every screen is a live read with no reload button once installed —
             pulling down from the top re-fetches the lot. */}

@@ -88,7 +88,11 @@ export function Rail({ inboxCount }: { inboxCount: InboxCount }) {
   return (
     <nav
       aria-label="Primary"
-      className="vt-app-rail desk-tier fixed inset-y-0 left-0 z-30 hidden w-desk-rail md:block"
+      className="vt-app-rail desk-tier fixed inset-y-0 left-0 z-30 hidden md:block"
+      // 56px plus the left inset: an installed iPhone in landscape is past
+      // `md`, and its notch would otherwise eat most of the rail's width.
+      // The shell's content offset (`md:pl-rail-safe`) reads the same sum.
+      style={{ width: "calc(var(--desk-rail) + env(safe-area-inset-left))" }}
     >
       {/* The fill lives on this inner layer: `desk-tier` paints the canvas,
           and the rail sits a step off it. The insets are the device's — an

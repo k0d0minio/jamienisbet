@@ -57,6 +57,13 @@
   );
 }
 
+/* The rail's footprint from `md`: its 56px plus the left safe-area inset it
+   grows by (components/nav.tsx), so the content starts where the rail ends
+   on a notched phone in landscape as well as on a laptop. */
+@utility pl-rail-safe {
+  padding-left: calc(var(--desk-rail) + env(safe-area-inset-left, 0px));
+}
+
 /* A fixed element sitting just above the bar (the add-lead button). */
 @utility bottom-above-tabs {
   bottom: calc(var(--admin-tab-clearance) + var(--space-4));

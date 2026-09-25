@@ -316,7 +316,7 @@ export default async function InboxPage() {
 
   return (
     <AppScreen
-      title="Needs you"
+      title="Inbox"
       // One quiet line, and only when there is something to count — the
       // all-clear state below says its own piece, and a subtitle repeating it
       // would be the same sentence twice.

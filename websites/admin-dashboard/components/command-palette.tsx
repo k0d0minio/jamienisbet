@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   createContext,
   useCallback,
@@ -116,7 +116,8 @@ export function PaletteProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const mac = isMacLike()
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() !== "k" || event.altKey || event.shiftKey) return
+      // Chrome's autofill sends keydowns with no `key` at all.
+      if (event.key?.toLowerCase() !== "k" || event.altKey || event.shiftKey) return
       // One modifier per platform: Ctrl+K on a Mac is the text fields'
       // "delete to the end of the line", and ⌘ doesn't exist elsewhere.
       if (mac ? !event.metaKey || event.ctrlKey : !event.ctrlKey || event.metaKey) return
@@ -197,10 +198,14 @@ function CommandPalette({
   onOpenChange: (open: boolean) => void
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const listId = useId()
   const [query, setQuery] = useState("")
   const [loaded, setLoaded] = useState<Loaded>({ state: "loading" })
-  const [highlight, setHighlight] = useState(0)
+  // The highlighted row by id, not by position: when the index lands, whole
+  // groups arrive above Actions, and a position would silently move Enter to
+  // a row nobody picked. Null means the top row.
+  const [highlight, setHighlight] = useState<string | null>(null)
 
   // A fresh read on every open (each open is a new mount — the provider's
   // key); a read that lands after the palette closed again is dropped.
@@ -226,7 +231,8 @@ function CommandPalette({
   }, [loaded, query])
 
   const flat = useMemo(() => groups.flatMap((g) => g.entries), [groups])
-  const active = flat.length > 0 ? Math.min(highlight, flat.length - 1) : -1
+  const found = highlight === null ? -1 : flat.findIndex((e) => e.id === highlight)
+  const active = flat.length === 0 ? -1 : Math.max(found, 0)
   const activeId = active >= 0 ? optionId(listId, flat[active].id) : undefined
 
   // The highlighted row stays in view as the arrows walk past the fold.
@@ -238,7 +244,16 @@ function CommandPalette({
   function run(entry: PaletteEntry) {
     onOpenChange(false)
     if (entry.href) {
-      router.push(entry.href)
+      // On Work, a board selection is URL state the board writes with
+      // pushState (use-board-params.ts) — a router navigation would re-run
+      // the page and put the skeleton back. So write the URL the same way;
+      // the App Router syncs useSearchParams from it. Only our own state goes
+      // in (null), never history.state (_shared/project-rules.md → Learned).
+      if (pathname === "/" && entry.href.startsWith("/?")) {
+        window.history.pushState(null, "", entry.href)
+      } else {
+        router.push(entry.href)
+      }
     } else if (entry.launch) {
       // A launch opens a session a human then starts — the board's rule: the
       // palette sends nothing itself. A web target gets a new tab; a custom
@@ -254,7 +269,7 @@ function CommandPalette({
       event.preventDefault()
       if (flat.length === 0) return
       const step = event.key === "ArrowDown" ? 1 : -1
-      setHighlight((active + step + flat.length) % flat.length)
+      setHighlight(flat[(active + step + flat.length) % flat.length].id)
     } else if (event.key === "Enter") {
       event.preventDefault()
       if (active >= 0) run(flat[active])
@@ -274,7 +289,7 @@ function CommandPalette({
         value={query}
         onChange={(event) => {
           setQuery(event.target.value)
-          setHighlight(0)
+          setHighlight(null)
         }}
         onKeyDown={onKeyDown}
         placeholder="Repos, tickets, leads, actions"
@@ -303,7 +318,7 @@ function CommandPalette({
                   // Pointer and keyboard share one highlight, so hovering a
                   // row and pressing Enter runs the row under the pointer.
                   onPointerMove={() => {
-                    if (index !== active) setHighlight(index)
+                    if (index !== active) setHighlight(entry.id)
                   }}
                   // Keep focus in the field: a click must not blur it first.
                   onMouseDown={(event) => event.preventDefault()}

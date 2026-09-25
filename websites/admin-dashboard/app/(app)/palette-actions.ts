@@ -2,7 +2,7 @@
 
 import { clientStatusLabel, listClients } from "@jamie-nisbet/services"
 
-import { primaryLaunch } from "@/lib/launchers"
+import { launchLinkProps, primaryLaunch, type Launch } from "@/lib/launchers"
 import { readBoard, type BoardTicket, type TicketGroup } from "@/lib/tickets"
 
 // What the command palette searches — read when it opens, never before.
@@ -63,6 +63,12 @@ const STATUS_LABEL: Record<TicketGroup, string> = {
   queued: "Open",
 }
 
+/** The board's own rule (launchLinkProps): a web target gets a new tab; a
+ *  custom scheme is handed to the OS in place, where a tab would stay blank. */
+function opensNewTab(launch: Launch): boolean {
+  return launchLinkProps(launch).target === "_blank"
+}
+
 function boardQuery(key: "r" | "t", value: string): string {
   return `/?${new URLSearchParams({ [key]: value })}`
 }
@@ -109,7 +115,7 @@ async function boardEntries(): Promise<{ entries: PaletteEntry[]; note: string |
         group: "actions",
         label: `Launch next for ${repo}`,
         meta: batch.slug,
-        launch: { url: primary.url, newTab: primary.surface === "web" },
+        launch: { url: primary.url, newTab: opensNewTab(primary) },
       })
     }
   }
@@ -122,7 +128,7 @@ async function boardEntries(): Promise<{ entries: PaletteEntry[]; note: string |
           group: "actions",
           label: "Estate check",
           meta: null,
-          launch: { url: estate.url, newTab: estate.surface === "web" },
+          launch: { url: estate.url, newTab: opensNewTab(estate) },
         },
       ]
     : []
