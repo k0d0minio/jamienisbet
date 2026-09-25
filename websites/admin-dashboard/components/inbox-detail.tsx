@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
+import { Play } from "lucide-react"
 
 import { DeskButton, cn, toast } from "@jamie-nisbet/ui"
 
@@ -10,7 +11,15 @@ import {
   saveNextAction,
   type NextStepSuggestion,
 } from "@/app/(app)/actions"
-import type { InboxKind, InboxRow } from "@/lib/inbox-row"
+import type {
+  GateFact,
+  GateKind,
+  GateLaunch,
+  GateLink,
+  GateRow,
+  InboxKind,
+  InboxRow,
+} from "@/lib/inbox-row"
 import { CHANNELS, channelLabel, outcomesFor } from "@/lib/touches"
 
 // The Inbox's actions, and the pane they sit in at the desk.
@@ -481,6 +490,195 @@ export function InboxDetail({
       <p className="text-desk-meta text-desk-fg-3">
         Nothing is sent from here: WhatsApp, Mail or the phone opens with
         nothing sent, and you log the touch.
+      </p>
+    </article>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Gates and PRs — the same two surfaces, for a row the Inbox only points at.
+// Every action is a link that opens GitHub or a preview in a new tab; the one
+// act that starts anything is the launch, a session link Jamie still sends
+// (D-10). Nothing clears a gate row: GitHub does, on the next read.
+
+export const GATE_TAG: Record<GateKind, string> = {
+  blocked: "Blocked run",
+  red: "Red CI",
+  spec: "Spec approved",
+  merge: "Ready to merge",
+  lane: "Lane PR · merge",
+  scope: "Scope to review",
+}
+
+const toAction = (link: GateLink): InboxAction => ({
+  id: link.id,
+  label: link.label,
+  href: link.href,
+  external: true,
+})
+
+/** The row's launch — ⌘↵ at the desk. A target that can't carry this one
+ *  stays visible, disabled, with its reason. */
+function GateLaunchButton({
+  launch,
+  layout,
+  className,
+}: {
+  launch: GateLaunch
+  layout: "pane" | "phone"
+  className?: string
+}) {
+  const variant = layout === "pane" ? "secondary" : "ghost"
+  const hint = launch.hint ? (
+    <span className="font-mono text-desk-meta text-desk-fg-3">
+      Recommended {launch.hint}
+    </span>
+  ) : null
+
+  if (!launch.href) {
+    return (
+      <span className={cn("inline-flex flex-col gap-1", className)}>
+        <DeskButton variant={variant} disabled>
+          <Play aria-hidden />
+          {launch.label}
+        </DeskButton>
+        {launch.unavailable ? (
+          <span className="text-desk-meta text-desk-fg-3">
+            {launch.unavailable}
+          </span>
+        ) : null}
+      </span>
+    )
+  }
+
+  return (
+    <span className={cn("inline-flex flex-wrap items-center gap-2", className)}>
+      <DeskButton asChild variant={variant}>
+        <a
+          href={launch.href}
+          // The pane's launch is the one the desk's ⌘↵ presses.
+          data-inbox-launch={layout === "pane" ? "" : undefined}
+          aria-keyshortcuts={layout === "pane" ? "Meta+Enter" : undefined}
+          {...(launch.newTab ? { target: "_blank", rel: "noreferrer" } : {})}
+        >
+          <Play aria-hidden />
+          {launch.label}
+          {layout === "pane" ? (
+            <span
+              aria-hidden
+              className="font-mono text-desk-micro font-normal opacity-70"
+            >
+              ⌘↵
+            </span>
+          ) : null}
+        </a>
+      </DeskButton>
+      {hint}
+    </span>
+  )
+}
+
+/** A gate row's actions: at the desk a row of buttons, primary first; on the
+ *  phone the primary and secondary as two full-width buttons and the rest —
+ *  the launch included — as a line of text buttons. */
+export function GateActions({
+  row,
+  layout,
+}: {
+  row: GateRow
+  layout: "pane" | "phone"
+}) {
+  const primary = toAction(row.primary)
+  const secondary = row.secondary ? toAction(row.secondary) : null
+  const rest = row.rest.map(toAction)
+
+  if (layout === "phone") {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className={cn("grid gap-2", secondary && "grid-cols-2")}>
+          <ActionButton action={primary} variant="primary" role="primary" />
+          {secondary ? (
+            <ActionButton action={secondary} variant="secondary" />
+          ) : null}
+        </div>
+        {rest.length > 0 || row.launch ? (
+          <div className="-mx-2.5 flex flex-wrap items-center">
+            {row.launch ? (
+              <GateLaunchButton launch={row.launch} layout="phone" />
+            ) : null}
+            {rest.map((action) => (
+              <ActionButton key={action.id} action={action} variant="ghost" />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <ActionButton action={primary} variant="primary" role="primary" />
+      {secondary ? <ActionButton action={secondary} variant="secondary" /> : null}
+      {row.launch ? <GateLaunchButton launch={row.launch} layout="pane" /> : null}
+      {rest.map((action) => (
+        <ActionButton key={action.id} action={action} variant="ghost" />
+      ))}
+    </div>
+  )
+}
+
+const FACT_TONE: Record<GateFact["tone"], string> = {
+  ok: "text-desk-done",
+  fail: "text-desk-blocked",
+  muted: "text-desk-fg-3",
+  plain: "text-desk-fg",
+}
+
+/** The desk's detail pane for a gate row. */
+export function GateDetail({ row }: { row: GateRow }) {
+  return (
+    <article
+      aria-label={row.title}
+      className="flex max-w-2xl flex-col gap-4 px-8 py-7"
+    >
+      <p
+        className={cn(
+          "font-mono text-desk-meta",
+          row.late ? "text-desk-blocked" : "text-desk-fg"
+        )}
+      >
+        {GATE_TAG[row.kind]} · {row.refLong}
+      </p>
+      <h2 className="text-desk-title">{row.title}</h2>
+      <p className="font-mono text-desk-meta text-desk-fg-3">
+        {row.repo} · {row.ageSpoken}
+      </p>
+      <p className="text-desk-body">{row.text}</p>
+
+      <dl className="flex flex-col border-t border-desk-line">
+        {row.facts.map((fact) => (
+          <div
+            key={fact.label}
+            className="flex items-baseline justify-between gap-4 border-b border-desk-line py-2"
+          >
+            <dt className="min-w-0 text-desk-ui text-desk-fg-2">{fact.label}</dt>
+            <dd
+              className={cn(
+                "min-w-0 text-right font-mono text-desk-meta",
+                FACT_TONE[fact.tone]
+              )}
+            >
+              {fact.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <GateActions row={row} layout="pane" />
+
+      <p className="text-desk-meta text-desk-fg-3">
+        The tick itself happens on GitHub — the Inbox only tells you it is
+        waiting and drops the row when it is done.
       </p>
     </article>
   )

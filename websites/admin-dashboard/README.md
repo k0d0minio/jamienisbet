@@ -66,14 +66,78 @@ One shell, two readings of it, both built from the desk tier's primitives
 
 ## Inbox — what is waiting on you
 
-The Inbox answers *what needs me* as a fast queue (D-13): the business attention still owed by
-hand, and nothing else. Money left it with the rail (D-17), the "worth a look" counts stayed
-behind as the Leads filters they already were (`/leads?crack=unplanned`, `/leads?crack=idle` —
-D-18), today's tickets are Work's, and the Gates and PRs group arrives with `gates-read`. So the
-page reads Neon and nothing else ([`lib/inbox.ts`](lib/inbox.ts) → `loadInbox`).
+The Inbox answers *what needs me* as a fast queue (D-13) in two groups: **Gates and PRs** — the
+review work waiting on Jamie across the estate (D-14) — then **Follow-ups**, the business
+attention still owed by hand (D-15). Money left it with the rail (D-17), the "worth a look" counts
+stayed behind as the Leads filters they already were (`/leads?crack=unplanned`,
+`/leads?crack=idle` — D-18), and today's tickets are Work's. The follow-ups are a Neon read
+([`lib/inbox.ts`](lib/inbox.ts) → `loadInbox`); the gates a GitHub read
+([`lib/gates.ts`](lib/gates.ts) → `loadGates`) that streams in after them, so the follow-ups never
+wait on GitHub. Each group folds from its header row, and the fold is remembered in this browser.
+The header says how many are waiting on you, and — once GitHub has answered — the gates read's
+"as of" time beside a refresh control that re-reads GitHub now.
 
-**One group, Follow-ups** (D-15), foldable, its count in the header (the fold is remembered in
-this browser). Three kinds of row, in this order, each capped — the caps are the badge's too:
+The **badge** on the rail and the tab bar is the same number as the header: the gate rows plus
+the follow-up rows (`countInbox`). Streamed into the shell, never awaited; when one half can't be
+read it counts the other alone.
+
+### Gates and PRs
+
+Every repo on Work's roster (the same roster, from the same cached read), and at most one row per
+pull request, by the first rule that matches:
+
+| Row tag | When |
+|---|---|
+| **Blocked run** | The PR's body names its run (the spine Spec table's Slug row, or a lane's `- slug:` line) and that run's `status.md` on the PR's head reads `blocked: yes…` — or a run folder on `main` says so, with no PR. |
+| **Red CI** | Not a draft, and a signal on the head failed, read with `ci-status.sh`'s arithmetic: newest attempt per check name, "Vercel Preview Comments" ignored, a skipped Vercel build neither pass nor fail, advisory jobs counted. Any open PR on a roster repo, pipeline or not. |
+| **Spec approved** | The `<!-- gate:spec-approved -->` box is unticked. |
+| **Ready to merge** | Not a draft, the `<!-- gate:ready-to-merge -->` box unticked, every signal passed or skipped and none pending. |
+| **Lane PR · merge** | Not a draft, a lane PR (a `type:` label for bug, tweak, chore, hotfix or handover, or the `PIPELINE RUN (lane: …)` marker), every signal passed or skipped. |
+| **Scope to review** | On `main`: a scope's `scope.md` landed, its intake epic has open stubs and nothing in `_done/` — nobody has run `new` on it yet. It leaves when the first stub is taken. |
+
+A PR matching none waits on nobody yet (a draft in Build, checks still running, Ready to merge
+ticked and waiting on Release). Rows run in the table's order, oldest first within a kind; each
+reads its tag, the title, the repo and `#n` (or `main`), and how long it has waited — since the PR
+opened (Spec approved), since the head went green (Ready to merge, lane), since the check failed
+(Red CI), since `status.md`'s `updated:` (Blocked run) or `scope.md`'s `agreed:` (scope). Red CI
+and a blocked run are set in the destructive colour.
+
+The pane (and, on the phone, the row opened in place) says what to do, lists the head's checks
+and previews with their states, and links straight to where it is resolved — every link a new
+tab:
+
+| Kind | Primary (↵) | Secondary | Also |
+|---|---|---|---|
+| Blocked run | Read handoff.md | Open PR | Read status.md |
+| Red CI | Open failing check | Open PR | the other failed checks, **Launch a fix session** (⌘↵) |
+| Spec approved | Open PR | Read spec.md | — |
+| Ready to merge | Open preview | Open PR | the other previews |
+| Lane PR · merge | Open preview | Open PR | the other previews |
+| Scope to review | Read scope.md | Read breakdown.md | the intake folder, **Launch "new"** (⌘↵) |
+
+Without a preview, Open PR is the primary. The fix launch on a spine PR sends the run's own verb
+— `/pipeline build <slug>`, or `/pipeline release <slug>` once Ready to merge is ticked — and on
+any other PR a short prompt naming the repo, the PR, its branch and the failing checks. Launches
+go through the same launcher registry as Work. **Nothing is ticked, merged or re-run from the
+Inbox** (D-9), and no gate row is cleared here: it leaves when GitHub stops showing it waiting.
+
+**The request budget.** Pull requests come from GitHub's GraphQL API — one aliased query per ten
+roster repos, with each head's check runs, commit statuses and deployments in the same answer, and
+never a REST call per PR. A second query reads each run's `status.md` at its PR's head commit,
+keyed by commit id so it is only re-asked when a PR is pushed. Both ride the board's queue and
+cache (`lib/tickets.ts` → `githubGraphql`): `force-cache`, 60 seconds, under the
+`tickets:gates` tag beside the board's own, and on GraphQL's rate budget rather than the REST
+one Work spends. Scopes and runs on `main` come from Work's own tree read and blob cache. A warm
+Inbox makes no GitHub request.
+
+**When GitHub can't be read** — no `GITHUB_TOKEN`, a failure, or no answer within 10 seconds —
+the group is one muted line saying why, and the follow-ups stand on their own. A repo GraphQL
+couldn't resolve, or one with more than 30 open PRs, is named in the group's foot while the rest
+still show.
+
+### Follow-ups
+
+Three kinds of row, in this order, each capped — the caps are the badge's too:
 
 - **Outreach** — next steps dated today or earlier, in the crack-finder's order: overdue first,
   then fit tier. At most 10: ten is a morning's work.
@@ -98,8 +162,9 @@ touched, left reaches them on WhatsApp or email.
 | Waiting on you | Reach on their best channel | Mark touched (`e`) | other channels, Open lead |
 | Wake | Wake (`e`) | Later · +90 days | Tomorrow (`s`), Open lead |
 
-**Keys, at the desk:** `j` / `k` (or ↓ / ↑) move, `↵` runs the primary, `e` the done action, `s`
-Tomorrow. None fires while typing, while the palette or a menu is open, or with a modifier held.
+**Keys, at the desk:** `j` / `k` (or ↓ / ↑) move through both groups, `↵` runs the primary, `e`
+the done action, `s` Tomorrow (neither does anything on a gate row), and `⌘↵` a gate's launch.
+None fires while typing, while the palette or a menu is open, or with any other modifier held.
 
 **Clearing.** Every follow-up can be cleared without opening the lead: a stale lead by Mark
 touched; an outreach row by Tomorrow (the step keeps its words, dated tomorrow) or by logging a
@@ -112,8 +177,9 @@ Mark touched on an outreach row stamps the lead but leaves the row: the step is 
 with no draft — drafting stays on the lead's
 profile — and a touch is logged only by the operator's own submit.
 
-**Empty is the point:** with no rows the list reads "Nothing needs you". A failed database read
-says so in place of the group rather than pretending the day is clear.
+**Empty is the point:** with no rows in either group the list reads "Nothing needs you" — only
+once GitHub has answered, so a slow read never passes for a quiet day. A failed database read
+says so in place of the follow-ups rather than pretending the day is clear.
 
 ## Leads
 
@@ -920,8 +986,11 @@ Requires the `biz` schema to exist — run the migration in
 Import as a new Vercel project, attach the **same** Neon integration as the other sites (for
 `DATABASE_URL`), and set `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY` (the
 and optionally `GITHUB_TOKEN` for the delivery-repo
-connect/create and the Work board (plus `GITHUB_REPO_OWNER` to home new client repos under a
-specific user/org). Set `PORTFOLIO_BASE_URL` to the portfolio's origin so the Forms card builds
+connect/create, the Work board and the Inbox's Gates and PRs (plus `GITHUB_REPO_OWNER` to home
+new client repos under a specific user/org). The gates read needs pull-request, checks,
+commit-status and deployment read on the roster's repos — a classic token's `repo` scope covers
+it; a fine-grained one needs Pull requests, Checks, Commit statuses, Deployments and Contents
+read. Set `PORTFOLIO_BASE_URL` to the portfolio's origin so the Forms card builds
 customer links against the right host. `AI_GATEWAY_API_KEY` turns on the draft panel and
 *Read their website* — set a small monthly budget on the Gateway in the Vercel dashboard as the
 spend tripwire; without the key both degrade to a "not set up" note and nothing else changes.
