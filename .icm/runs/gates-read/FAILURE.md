@@ -13,12 +13,25 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — a queued re-run lost to the failed attempt it replaces
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Release's code review found `signalsOf` (`lib/gates.ts`) picking a check's
+  newest attempt by `startedAt`, so a re-run still queued (no start time yet) lost to the old
+  failure and the PR stayed Red CI.
+- why: the rule was mirrored from `ci-status.sh`'s `sort_by(.started_at, .id)` without asking what
+  a not-yet-started attempt looks like.
+- fixed by: the review-fix commit on the branch — newest by `databaseId`, start time only when an
+  id is missing.
+
+### 2026-09-25 — a GraphQL POST cached like a REST GET
+
+- what happened: the review found `githubGraphql` caching 200 answers that carry only errors
+  (rate limit, a per-repo failure) for 60 s; `gh()`'s "only 200s are stored" safety does not
+  carry over because GraphQL reports failure inside a 200.
+- why: the cache invariants were reused without re-reading what a GraphQL failure looks like.
+- fixed by: parked — `.icm/intake/triage/gates-graphql-errors-cached.md`.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- A GitHub check run's newest attempt is its highest id, not its latest start: a queued re-run has no start time yet.
+- A GraphQL call reports failure inside an HTTP 200, so any cache rule that keys on the status code must also read the answer's `errors` before trusting it.

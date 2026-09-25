@@ -69,3 +69,13 @@
   secondary button with the hint and the recommendation beside it.
 - Previews come from GitHub deployments Vercel creates per project; a head with none makes Open
   PR the primary, by design.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head after the review fix (ci-status.sh); re-read after the last push
+- reviews: code high — 10 findings: 5 fixed in-ticket (newest check attempt by id, not start time; "as of" from GitHub's answer date; main's trees read beside the PR query; ⌘↵ on a focused link left to the browser; clearing a row moves to a visible neighbour), 4 parked, 1 kept as specified (the desk selection follows the first row until the operator moves it — spec §9; opening the log form pins the selection) · security `security-check.sh --branch --audit`: OK · /security-review n/a (no auth, payments, PII or route policy touched; the page and the new server action sit behind proxy.ts's existing gate) · /production-readiness n/a (no schema, auth, payments or env vars — `GITHUB_TOKEN` was already declared) · readiness `env.sh audit --changed`: OK
+- parked: gates-graphql-errors-cached.md, gates-badge-full-read-every-screen.md, gates-graphql-cache-entry-size.md, tickets-tree-read-one-copy.md
+- migrations: skip — none of this run's own (check-migrations.sh after merging main: SKIP)
+- learned: skip — no error.log; FAILURE.md adds 2 on close-out
+- docs: websites/admin-dashboard/README.md (updated in Build) · announce: public
