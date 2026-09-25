@@ -1,23 +1,21 @@
 # Handoff: desk-tier
 
 For the next session — human or agent — what to do first and what stands in the way.
-Rewritten, not appended, at every stage stop; a stage that STOPs mid-way writes it before it
-stops, so nothing is carried in anyone's head.
+Rewritten, not appended, at every stage stop.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator reads the spec (`.icm/runs/desk-tier/02_define/output/spec.md`) and ticks
+   **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/169.
+2. Then `/pipeline build desk-tier` — execute `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/jamienisbet/pull/169
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the Spec approved tick; never tick it.
+- Do not link `desk.css` from the admin or touch anything under `websites/` — later stubs do.
+- Do not edit the shared `Button`, the app tier, or any existing token file.
+- Do not add a specimen page — the operator declined one.

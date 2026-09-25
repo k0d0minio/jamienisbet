@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No file under `websites/` changes; no existing token file, `styles.css`, `tokens.css`,
+  `app.css`, or `components/{ui,brand,motion,app}` file changes (D-22; spec criterion 10).
+- No new hue and no raw colour value: desk colours alias the semantic tokens (D-3, stub notes).
+- Flat: no materials, no springs; a shadow only on what floats (D-3).
+- Hanken Grotesk UI, IBM Plex Mono metadata (D-4).
+- The touch step lives in the tokens (one coarse-pointer block), never in a component.
+- No new dependency; no preview/specimen page (operator, 2026-09-25).
+- CI is the source of truth — no local build/lint/typecheck (`AGENTS.md`).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Read the design canvas's design-system sheet (`project/Main.dc.html`) and the Leads/Work desk
+  boards for exact row, header, rail and control sizes — the stub names the sheet as the reference.
