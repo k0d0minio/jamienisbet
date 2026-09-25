@@ -73,7 +73,81 @@ function RepoSectionSkeleton({ batches }: { batches: number }) {
   )
 }
 
+/** Work at the desk, before the board arrives: the three panes at their real
+ *  widths, hairline bars where the views, a few repos and the list's rows
+ *  will be, and an empty detail pane — so the board lands without the panes
+ *  moving. Still, like the rest of the desk tier: no shimmer beyond the
+ *  skeleton's own. */
+function DeskLoading() {
+  return (
+    <div
+      aria-hidden
+      className="desk-tier flex h-dvh min-h-0 flex-col bg-desk-canvas font-desk md:-mb-8"
+    >
+      <div className="flex h-desk-toolbar shrink-0 items-center border-b border-desk-line bg-desk-surface px-4">
+        <span className="text-desk-heading font-bold text-desk-fg">Work</span>
+      </div>
+      <div className="flex min-h-0 flex-1">
+        <div className="flex w-52 shrink-0 flex-col gap-0 border-r border-desk-line bg-desk-hover py-2 xl:w-58">
+          {["w-20", "w-14", "w-16", "w-16"].map((width, i) => (
+            <div key={i} className="mx-1.5 flex h-desk-row items-center gap-2 px-2.5">
+              <Skeleton className={cn("h-3 bg-desk-sunken", width)} />
+              <Skeleton className="ml-auto h-3 w-4 bg-desk-sunken" />
+            </div>
+          ))}
+          <div className="mt-4 px-3 pb-1">
+            <Skeleton className="h-2.5 w-10 bg-desk-sunken" />
+          </div>
+          {["w-24", "w-28", "w-20"].map((width, i) => (
+            <div key={i} className="mx-1.5 flex h-desk-row items-center gap-2 px-2.5 pl-8">
+              <Skeleton className={cn("h-3 bg-desk-sunken", width)} />
+              <Skeleton className="ml-auto h-3 w-6 bg-desk-sunken" />
+            </div>
+          ))}
+        </div>
+        <div className="flex w-80 shrink-0 flex-col border-r border-desk-line bg-desk-surface xl:w-98">
+          <div className="flex h-desk-pane-header shrink-0 items-center gap-3 border-b border-desk-line px-4">
+            <Skeleton className="h-4 w-20 bg-desk-sunken" />
+            <Skeleton className="h-3 w-32 bg-desk-sunken" />
+          </div>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="flex flex-col gap-1.5 border-b border-desk-line px-4 py-2.5">
+              <div className="flex items-center gap-2.5">
+                <Skeleton className="size-desk-dot rounded-full bg-desk-sunken" />
+                <Skeleton className="h-3 w-3/5 bg-desk-sunken" />
+              </div>
+              <Skeleton className="ml-4.5 h-2.5 w-2/5 bg-desk-sunken" />
+            </div>
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col bg-desk-surface">
+          <div className="flex h-desk-pane-header shrink-0 items-center border-b border-desk-line px-5">
+            <Skeleton className="h-4 w-24 bg-desk-sunken" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function WorkLoading() {
+  return (
+    <>
+      <div className="hidden lg:contents">
+        <DeskLoading />
+      </div>
+      <div className="lg:hidden">
+        <PhoneLoading />
+      </div>
+      <span className="sr-only" role="status">
+        Loading tickets
+      </span>
+    </>
+  )
+}
+
+/** The phone board's skeleton, as it was. */
+function PhoneLoading() {
   return (
     // The header is static copy — it renders for real, and having the title
     // hold still through the load is most of why this reads as loading rather
@@ -117,10 +191,6 @@ export default function WorkLoading() {
           <Skeleton className="h-7 w-40 bg-app-press" />
           <Skeleton className="h-3 w-28 bg-app-press" />
         </div>
-
-        <span className="sr-only" role="status">
-          Loading tickets
-        </span>
       </div>
     </AppScreen>
   )

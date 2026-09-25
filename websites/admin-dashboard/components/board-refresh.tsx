@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useTransition } from "react"
 import { RefreshCw } from "lucide-react"
 
-import { LogoLoader, cn } from "@jamie-nisbet/ui"
+import { DeskButton, LogoLoader, cn } from "@jamie-nisbet/ui"
 
 import { refreshBoard, refreshBoardPosition } from "@/app/(app)/board-actions"
 
@@ -50,10 +50,14 @@ const asOfFormat = new Intl.DateTimeFormat("en-GB", {
 // vibrancy-safe label colours rather than the page's.
 export function BoardRefresh({
   readAt,
+  desk = false,
 }: {
   /** When the board on screen was read, ISO. Absent on the loading skeleton,
    *  which has nothing to date yet. */
   readAt?: string
+  /** Drawn for Work's desk toolbar (the desk tier) rather than the app
+   *  tier's title bar. Same button, same refresh. */
+  desk?: boolean
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -117,6 +121,34 @@ export function BoardRefresh({
   }, [router, readAt])
 
   const asOf = readAt ? asOfFormat.format(new Date(readAt)) : null
+  const label = asOf
+    ? `Refresh the board from GitHub — showing it as of ${asOf}`
+    : "Refresh the board from GitHub"
+
+  if (desk) {
+    return (
+      <div className="flex items-center gap-1">
+        {readAt ? (
+          <time
+            dateTime={readAt}
+            className="font-mono text-desk-meta tabular-nums whitespace-nowrap text-desk-fg-3"
+          >
+            as of {asOf}
+          </time>
+        ) : null}
+        <DeskButton
+          variant="ghost"
+          size="icon-sm"
+          aria-label={label}
+          title="Refresh the board from GitHub"
+          onClick={onRefresh}
+          loading={pending}
+        >
+          {pending ? null : <RefreshCw aria-hidden />}
+        </DeskButton>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center">
@@ -131,11 +163,7 @@ export function BoardRefresh({
       ) : null}
       <button
         type="button"
-        aria-label={
-          asOf
-            ? `Refresh the board from GitHub — showing it as of ${asOf}`
-            : "Refresh the board from GitHub"
-        }
+        aria-label={label}
         title="Refresh the board from GitHub"
         onClick={onRefresh}
         disabled={pending}

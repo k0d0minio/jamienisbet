@@ -12,10 +12,13 @@ import { useCallback } from "react"
 //
 // Two independent things live in the query:
 //
-// - `repo` — the chip rail's filter.
-// - the selection, exactly one of `t` (a ticket, `<repo>/<ticket id>`), `b` (a
-//   batch — an epic, triage, backlog or `runs` for In flight, `<repo>/<slug>`)
-//   or `r` (a repo). Setting one clears the other two. A batch is level 1 of
+// - `repo` — the chip rail's filter (the phone board's; the desk has none).
+// - the selection: `t` (a ticket, `<repo>/<ticket id>`), `b` (a batch — an
+//   epic, triage, backlog or `_runs` for In flight, `<repo>/<slug>`), `r` (a
+//   repo) or, at the desk, `v` (one of Work's views — components/work-model.ts).
+//   Naming any of them replaces all of them, so a caller states the whole
+//   selection: the phone board names one, the desk names its list (`v`, `b`
+//   or `r`) and, beside it, the ticket open in it (`t`). A batch is level 1 of
 //   the list on a phone and the pane's view on a desktop — one key for both.
 //   `pane`, the flag that once pushed a batch's view over its level 1 on a
 //   phone, is retired: an old link still carrying it is corrected, and any
@@ -29,6 +32,7 @@ import { useCallback } from "react"
 
 export type BoardQuery = {
   repo?: string | null
+  v?: string | null
   t?: string | null
   b?: string | null
   r?: string | null
@@ -36,7 +40,7 @@ export type BoardQuery = {
   pane?: null
 }
 
-const SELECTION_KEYS = ["t", "b", "r"] as const
+const SELECTION_KEYS = ["v", "t", "b", "r"] as const
 
 /** The history-state key holding the query an entry was pushed from. */
 const PREV_KEY = "jnBoardPrev"
@@ -120,6 +124,7 @@ export function useBoardParams() {
 
   return {
     repo: params.get("repo"),
+    view: params.get("v"),
     ticket: params.get("t"),
     batch: params.get("b"),
     repoSelection: params.get("r"),

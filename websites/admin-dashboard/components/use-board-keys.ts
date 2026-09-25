@@ -67,7 +67,10 @@ const ACTIVATABLE = 'button, a[href], summary, [role="menuitem"]'
  * scroll, say.
  */
 export function useBoardKeys(
-  onIntent: (intent: BoardKeyIntent, event: KeyboardEvent) => boolean
+  onIntent: (intent: BoardKeyIntent, event: KeyboardEvent) => boolean,
+  /** Off, no key is the board's. The phone board passes false: from `lg`,
+   *  where its keys used to live, Work is the desk's (work-desk.tsx). */
+  enabled = true
 ) {
   // The listener is attached once; the board's latest handler is read
   // through this, so it always sees the board as it is now.
@@ -77,6 +80,7 @@ export function useBoardKeys(
   })
 
   useEffect(() => {
+    if (!enabled) return
     const desktop = window.matchMedia(DESKTOP_QUERY)
 
     function onKeyDown(event: KeyboardEvent) {
@@ -108,5 +112,5 @@ export function useBoardKeys(
 
     document.addEventListener("keydown", onKeyDown)
     return () => document.removeEventListener("keydown", onKeyDown)
-  }, [])
+  }, [enabled])
 }

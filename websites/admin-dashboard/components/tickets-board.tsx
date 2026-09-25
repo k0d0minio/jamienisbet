@@ -582,7 +582,10 @@ export function TicketsBoard({
     }
   }
 
-  useBoardKeys(onKey)
+  // From `lg` Work is the desk (work-screen.tsx mounts work-desk.tsx there),
+  // and this board is the phone's, which has no keyboard map: its keys stay
+  // off until `work-phone` retires them with the rest of this board.
+  useBoardKeys(onKey, false)
 
   // The list scrolls with the page. Level 0 keeps its place while a batch is
   // open, and a batch opens at its top.
