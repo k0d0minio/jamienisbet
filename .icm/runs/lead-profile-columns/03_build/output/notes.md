@@ -1,7 +1,7 @@
 # Build notes: lead-profile-columns
 
 - commits: feat: lead-profile-columns — the lead profile in two columns (one commit, all passes)
-- ci: draft GREEN on a7d5035 (the admin's Vercel build passed on it); full gate: see status.md
+- ci: GREEN — full gate on ae4ff5a (both Vercel previews pass, Quality (advisory) passed); draft GREEN on a7d5035
 
 ## What changed
 
