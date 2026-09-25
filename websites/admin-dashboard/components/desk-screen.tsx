@@ -76,7 +76,7 @@ export function DeskScreen({
           </div>
         </div>
       </header>
-      {masthead != null && <div className="px-4 pt-4">{masthead}</div>}
+      {masthead != null && <div className="px-4 pt-4 pb-3">{masthead}</div>}
       <div className="px-4">{children}</div>
     </div>
   )

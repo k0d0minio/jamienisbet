@@ -160,7 +160,19 @@ function RecordRow({
         </span>
       )}
       <span className="flex min-w-0 shrink-0 flex-col">
-        <span className={cn("truncate", VARIANT_LABEL[variant])}>{label}</span>
+        <span
+          className={cn(
+            "truncate",
+            // A label is a key — muted — when a value answers it. An action
+            // row has no value: its label is the action, and reads at full
+            // strength rather than as if it were disabled.
+            variant === "default" && interactive && value == null
+              ? "text-desk-fg"
+              : VARIANT_LABEL[variant]
+          )}
+        >
+          {label}
+        </span>
         {description != null && (
           <span className="truncate text-desk-meta text-desk-fg-3">
             {description}

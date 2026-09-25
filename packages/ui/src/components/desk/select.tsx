@@ -61,7 +61,7 @@ function DeskSelectTrigger({
       data-slot="desk-select-trigger"
       data-variant={variant}
       className={cn(
-        "flex min-h-desk-control items-center justify-between gap-2 text-left",
+        "flex min-h-desk-row items-center justify-between gap-2 text-left",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-desk-icon",
         variant === "field"
           ? [

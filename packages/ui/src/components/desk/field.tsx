@@ -12,7 +12,7 @@ import { cn } from "../../lib/utils"
 // that one is a transparent box with a `shadow-xs`, sized for a mouse and
 // rescued on a phone by a media query in the app. These are flat — a hairline
 // on the pane's surface, 6px corners, no shadow — and take their height from
-// the tier's control step, so a 32px field at the desk is a 44px field under a
+// the tier's row step, so a 32px field at the desk is a 44px field under a
 // thumb from the same markup (tokens/desk.css § The touch step). The value
 // sets at the body step, which is 16px on touch: the size at which iOS stops
 // zooming the page when a field takes focus.
@@ -172,7 +172,7 @@ function DeskInput({ className, ...props }: React.ComponentProps<"input">) {
         CONTROL_BASE,
         // `min-h` rather than `h`, so a date field — which Safari renders at
         // whatever height its own picker wants — grows instead of overflowing.
-        "min-h-desk-control px-2.5 py-1",
+        "min-h-desk-row px-2.5 py-1",
         "file:inline-flex file:border-0 file:bg-transparent file:text-desk-ui file:text-desk-fg",
         className
       )}

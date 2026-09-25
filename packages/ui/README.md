@@ -279,7 +279,7 @@ The tier's **form controls** are its own, not the marketing controls at another 
 
 `DeskField` owns the label, the hint, the error and the `id` / `aria-describedby` /
 `aria-invalid` wiring between them, so the control inside needs no id of its own (pass one
-and it wins). Every control sits on the control step — 30px at the desk, 44px under a
+and it wins). Every control sits on the row step — 32px at the desk, 44px under a
 thumb — with its value at the body step, which is 16px on touch: the size at which iOS stops
 zooming the page on focus. `DeskTextarea` takes `autoResize` for an editor that sits in the
 page. `DeskSelect` is the whole set rather than a restyled trigger: its menu is a flat

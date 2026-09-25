@@ -88,6 +88,24 @@
   }
 }
 
+/* The toast card, on the desk tier. The design system draws it as a brand
+   card (a 14px line, `shadow-lg`, a 2px rise on entry); in the admin it is a
+   flat desk panel — the surface on a hairline, 8px corners, the ui step, the
+   tier's one float shadow because it floats — and it appears with a 120ms fade,
+   no rise. Scoped to `desk-tier`, so nothing outside the admin changes. */
+.desk-tier [data-slot="toaster"] > [role] {
+  border-color: var(--desk-line);
+  border-radius: var(--desk-radius-pane);
+  background-color: var(--desk-surface);
+  color: var(--desk-fg);
+  font-size: var(--desk-text-ui);
+  line-height: var(--desk-leading-ui);
+  box-shadow: var(--desk-shadow-float);
+  translate: none;
+  transition-property: opacity;
+  transition-duration: var(--duration-fast);
+}
+
 /* ------------------------------------------------------------------
    Screens outside the shell — login, and "not here". They have no tab bar
    to clear, but `viewport-fit=cover` still runs the window under the notch
@@ -339,8 +357,8 @@
 
      This used to cover inputs and select triggers too. It no longer
      needs to: the desk tier's form controls (DeskInput, DeskTextarea,
-     DeskSelectTrigger) take their height from the control step, which
-     the tier's touch step lifts to 44px under a coarse pointer.
+     DeskSelectTrigger) take their height from the row step, which the
+     tier's touch step lifts to 44px under a coarse pointer.
 
      What is left is the marketing `Button`, still used by some screens
      here. Lifting it once for coarse pointers beats annotating every

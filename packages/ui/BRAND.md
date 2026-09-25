@@ -180,7 +180,7 @@ states per view — loading, empty, error, populated.
 - `DeskField` / `DeskLabel` / `DeskInput` / `DeskTextarea` — the tier's form controls. A
   field is the unit: its label, its control, and the hint or error under it, wired together
   (`aria-describedby`, `aria-invalid`, the error announced). Flat — a strong hairline on the
-  surface, 6px corners, no shadow — at the control step (30px at the desk, 44px under a
+  surface, 6px corners, no shadow — on the row step (32px at the desk, 44px under a
   thumb), the value at the body step (16px on touch, so iOS never zooms a focused field).
   `DeskTextarea` can `autoResize` to its content. Never the marketing `Input` on a desk
   screen.
