@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm"
+import { and, desc, eq, inArray, sql } from "drizzle-orm"
 
 import { getDb } from "../client"
 import { clients, touches } from "../schema"
@@ -189,6 +189,67 @@ export async function lastOutboundTouch(
     .orderBy(desc(touches.loggedAt), desc(touches.id))
     .limit(1)
   return row
+}
+
+/** What a queue row needs to know about a lead's history without reading it:
+ *  the latest touch, and how many times we have reached out. */
+export type TouchSummary = {
+  clientId: string
+  last: Pick<Touch, "channel" | "direction" | "outcome" | "loggedAt"> | null
+  /** Outbound touches, all-time — the cadence's rung count. */
+  outbound: number
+}
+
+/**
+ * The history of a handful of leads at once, summarised — what the Inbox's
+ * detail pane shows beside every follow-up. Two statements for the whole
+ * queue rather than two per row: the queue is capped, but a page of nineteen
+ * rows reading nineteen histories is how a screen gets slow one lead at a
+ * time. Leads with no touches come back with `last: null` and `outbound: 0`,
+ * in the order they were asked for.
+ */
+export async function listTouchSummaries(
+  clientIds: readonly string[]
+): Promise<TouchSummary[]> {
+  if (clientIds.length === 0) return []
+  const ids = [...clientIds]
+  const db = getDb()
+  const [latest, counts] = await Promise.all([
+    db
+      .selectDistinctOn([touches.clientId], {
+        clientId: touches.clientId,
+        channel: touches.channel,
+        direction: touches.direction,
+        outcome: touches.outcome,
+        loggedAt: touches.loggedAt,
+      })
+      .from(touches)
+      .where(inArray(touches.clientId, ids))
+      .orderBy(touches.clientId, desc(touches.loggedAt), desc(touches.id)),
+    db
+      .select({
+        clientId: touches.clientId,
+        outbound: sql<number>`count(*) filter (where ${touches.direction} = 'out')::int`,
+      })
+      .from(touches)
+      .where(inArray(touches.clientId, ids))
+      .groupBy(touches.clientId),
+  ])
+  return ids.map((clientId) => {
+    const last = latest.find((row) => row.clientId === clientId)
+    return {
+      clientId,
+      last: last
+        ? {
+            channel: last.channel,
+            direction: last.direction,
+            outcome: last.outcome,
+            loggedAt: last.loggedAt,
+          }
+        : null,
+      outbound: counts.find((row) => row.clientId === clientId)?.outbound ?? 0,
+    }
+  })
 }
 
 // ---- Writes -----------------------------------------------------------------
