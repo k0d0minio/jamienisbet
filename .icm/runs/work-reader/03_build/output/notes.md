@@ -67,3 +67,13 @@
   spec's Out-of-scope note that gates-read "reuses this run's pull-request read" is therefore
   stale: the two reads are separate (decisions.md → Build), and unifying them is parked as
   `.icm/intake/triage/work-and-gates-one-pr-read.md`. The merge itself was clean.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head after the review fixes (ci-status.sh); re-read after the last push
+- reviews: code high — 10 findings: 7 fixed in-ticket (a run folder with no PR keeps its Launch — only a matched PR withholds it, which also brings back the lane-run note; ⌘↵ on a focused link left to the browser; a lane PR matches its triage stub only by that stub's own move, renamed or delete+add; no PR read for a repo with no open stubs or runs, and no lane file lists without open triage stubs; CommonMark fence lengths in the reader's splitter; the PR-read banner matched by full name), 1 parked (the reader and the phone detail share no stub parser), 2 not real (feature slugs are unique per repo — the run folder carries the name; `new-run.sh` moves the triage stub before the PR opens, so no lane file list predates the move) · security `security-check.sh --branch --audit`: OK · /security-review n/a (no auth, payments, PII or route policy touched; a read-only GitHub read behind the existing gate) · /production-readiness n/a (no DB, auth, payments or env vars — `GITHUB_TOKEN` already declared) · readiness `env.sh audit --changed`: OK
+- parked: work-and-gates-one-pr-read.md (Build), reader-share-stub-parsing.md
+- migrations: skip — none of this run's own (check-migrations.sh after merging main: SKIP)
+- learned: none from error.log (retrospective.sh: NONE — one lint entry, below --min) · FAILURE.md adds 2 on close-out
+- docs: websites/admin-dashboard/README.md (Work section, Build + review fixes) · announce: public
