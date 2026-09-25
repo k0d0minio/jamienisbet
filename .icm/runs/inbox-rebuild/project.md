@@ -13,9 +13,11 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Nothing is sent from the Inbox — standing rule "no outbound action without review"; reach is a link, a touch is logged by hand (D-33).
+- No change to the due, stale or crack-finder rules, or to the caps' values (spec → Out of scope).
+- No Stripe or GitHub read on `/inbox`; Money's route and Stripe code stay dormant (D-17). Gates and PRs are `gates-read`'s.
+- Desk tier only for new UI; do not restyle Leads through shared `LeadRow`/`SwipeRow`.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `app/(app)/inbox/page.tsx`, `lib/inbox.ts`, the wake/touch actions in `actions.ts` and the canvas's two Inbox artboards beyond its Inputs — to settle exact behaviour and the badge rule.

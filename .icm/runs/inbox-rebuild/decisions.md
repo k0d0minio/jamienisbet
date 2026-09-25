@@ -33,5 +33,8 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-30 — The Inbox keeps today's caps (outreach 10, stale 6, wakes 3) and the badge counts the rows shown, not the uncapped total; supersedes D-25's "uncapped". Jamie, in Define, 2026-09-25.
+- D-31 — `e` and `s` act per kind: outreach e = log a touch (then accept the suggested next step), s = next step to tomorrow; stale e = mark touched, no s; wake e = wake, s = wake date to tomorrow, Later +90 stays a button. Jamie, in Define, 2026-09-25.
+- D-32 — On the phone, outreach and stale rows keep the swipe gestures (right = mark touched, left = reach tray) alongside the expanded row's buttons. Jamie, in Define, 2026-09-25.
+- D-33 — The Inbox's reach actions are plain wa.me / mailto: / tel: links; no AI draft from the Inbox. Jamie, in Define, 2026-09-25.
+- D-34 — The list-and-detail layout starts at `lg` (1024px); below it the rows expand in place like the phone. Define, 2026-09-25 — the rail already takes 56px from `md`, and two panes at 768px leave the list too narrow for its four columns.
