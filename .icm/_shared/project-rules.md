@@ -153,3 +153,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In the admin dashboard, a jump that only changes Work's board selection while already on `/` writes the URL with `window.history.pushState(null, "", href)`, never `router.push` — a router navigation re-runs the page and puts the skeleton back over the board. (`FAILURE.md` — shell-rail-palette)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - In the admin dashboard, fixed chrome sized by a token (the rail, the tab bar) grows by the safe-area inset it clears — width or height plus `env(safe-area-inset-*)` — and the content offset reads the same sum; padding the inset inside the token's size leaves no room for the items. (`FAILURE.md` — shell-rail-palette)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In the admin dashboard, decide any refusal the row's own data already knows before an optimistic removal; only an outcome the server alone can know may roll a row back. (`FAILURE.md` — inbox-rebuild)

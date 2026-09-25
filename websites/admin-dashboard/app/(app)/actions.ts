@@ -557,6 +557,47 @@ export async function pushWake(id: string) {
   revalidateLead(id)
 }
 
+/** The start of tomorrow, on the same clock the queue's "due today" is
+ *  measured on (the crack-finder's end of day). A date here has left today's
+ *  queue and is back on tomorrow's — never earlier, never a day later. */
+function startOfTomorrow(): Date {
+  const at = new Date()
+  at.setDate(at.getDate() + 1)
+  at.setHours(0, 0, 0, 0)
+  return at
+}
+
+/** "Not today." The Inbox's `s` on an outreach row: the step keeps its words
+ *  and is dated tomorrow. A row with a date and no step has nothing to move —
+ *  that is a decision still owed, and it is refused in words that say so.
+ *  Returned rather than thrown, because Next redacts a thrown message in
+ *  production and the refusal is the whole point of the answer. */
+export async function moveNextStepToTomorrow(
+  id: string
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const client = await getClient(id)
+  if (!client) return { ok: false, message: "That lead no longer exists." }
+  if (!client.nextAction) {
+    return {
+      ok: false,
+      message: `No step was decided for ${client.name} — open them and decide one.`,
+    }
+  }
+  await setClientNextAction(id, {
+    action: client.nextAction,
+    dueAt: startOfTomorrow(),
+  })
+  revalidateLead(id)
+  return { ok: true }
+}
+
+/** The Inbox's `s` on a wake: the row stays parked and comes back tomorrow.
+ *  The small sibling of `pushWake` — a day, not a quarter. */
+export async function wakeTomorrow(id: string) {
+  await setClientWakeAt(id, startOfTomorrow())
+  revalidateLead(id)
+}
+
 function addDays(from: Date, days: number): Date {
   const at = new Date(from.getTime())
   at.setDate(at.getDate() + days)
