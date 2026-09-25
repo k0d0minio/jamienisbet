@@ -51,11 +51,6 @@ export type SuppressibleChannel = {
   closed: { on: string; reason: string | null } | null
 }
 
-/** Whether anything is left to close — the menu offers the sheet only then. */
-export function hasReachableChannel(channels: SuppressibleChannel[]): boolean {
-  return channels.some((channel) => channel.closed === null)
-}
-
 /** The channels that have opted out, as a record. Nothing when none has. */
 export function LeadOptOuts({ channels }: { channels: SuppressibleChannel[] }) {
   const closed = channels.filter((channel) => channel.closed !== null)
