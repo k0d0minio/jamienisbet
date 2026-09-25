@@ -5,7 +5,7 @@
 // one opt-out) and the lookup. This module holds only the *answer* — four
 // booleans, resolved on the server where the normalizer lives.
 //
-// The same trick as `lib/lead-facts.ts` and `lib/lead-segments.ts`: a plain
+// The same trick as `lib/lead-facts.ts` and `lib/lead-tabs.ts`: a plain
 // module both a client component and a server render can import, rather than
 // pulling the services barrel — and its Drizzle client and Neon driver — into
 // the browser bundle to compare a string.

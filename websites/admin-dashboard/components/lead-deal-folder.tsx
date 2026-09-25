@@ -1,8 +1,7 @@
-import { ExternalLink, FolderGit2, TriangleAlert } from "lucide-react"
+import { ExternalLink, FolderGit2 } from "lucide-react"
 
-import { GroupedBlock, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
+import { RecordBlock, RecordRow, RecordSection } from "@jamie-nisbet/ui"
 
-import { DealStageChip } from "@/components/deal-stage-chip"
 import type { DealFolder } from "@/lib/deals"
 import { formatMoney } from "@/lib/money"
 
@@ -16,35 +15,21 @@ import { formatMoney } from "@/lib/money"
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <GroupedRow label={label} chevron={false} value={value} />
+    <RecordRow label={label} value={value} />
   )
 }
 
-export function LeadDealFolder({
-  folder,
-  badge,
-}: {
-  folder: DealFolder
-  /** The one line said when the rung and the folder cannot both be true
-   *  (`dealBadge`), or null. */
-  badge: string | null
-}) {
+export function LeadDealFolder({ folder }: { folder: DealFolder }) {
   const a = folder.agreement
   return (
-    <GroupedSection
+    <RecordSection
       header="Deal folder"
-      footer="Read live from icm-board on a one-minute clock. The rung above is the row's; the stage here is the folder's — when they disagree, one of them is wrong, and fixing it happens in whichever home holds that fact."
+      footer="Read live from icm-board on a one-minute clock. The rung in the head is the row's; the stage here is the folder's — when they disagree, one of them is wrong, and fixing it happens in whichever home holds that fact."
     >
       {folder.error ? (
-        <GroupedBlock className="text-destructive">{folder.error}</GroupedBlock>
+        <RecordBlock className="text-desk-blocked">{folder.error}</RecordBlock>
       ) : (
         <>
-          {badge ? (
-            <GroupedBlock className="flex items-start gap-2 text-foreground">
-              <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
-              <span>{badge}</span>
-            </GroupedBlock>
-          ) : null}
           <Row
             label="Folder"
             value={
@@ -52,7 +37,7 @@ export function LeadDealFolder({
                 href={folder.htmlUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 font-mono text-app-tint"
+                className="inline-flex items-center gap-1.5 font-mono text-desk-meta text-desk-fg underline-offset-2 hover:underline"
               >
                 <FolderGit2 className="size-4" aria-hidden />
                 {folder.slug}
@@ -65,19 +50,23 @@ export function LeadDealFolder({
             value={
               folder.engagement ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="font-mono">{folder.engagement}</span>
-                  {folder.stage ? <DealStageChip stage={folder.stage} /> : null}
+                  <span className="font-mono text-desk-meta">{folder.engagement}</span>
+                  {folder.stage ? (
+                    <span className="font-mono text-desk-meta text-desk-fg-2">
+                      {folder.stage.code} {folder.stage.name}
+                    </span>
+                  ) : null}
                   {folder.engagementEnded ? (
-                    <span className="text-app-label-3">ended</span>
+                    <span className="text-desk-fg-3">ended</span>
                   ) : null}
                 </span>
               ) : (
-                <span className="text-app-label-3">none live</span>
+                <span className="text-desk-fg-3">none live</span>
               )
             }
           />
           {folder.repo ? (
-            <Row label="Repo" value={<span className="font-mono">{folder.repo}</span>} />
+            <Row label="Repo" value={<span className="font-mono text-desk-meta">{folder.repo}</span>} />
           ) : null}
           {folder.language ? <Row label="Language" value={folder.language} /> : null}
           {a ? (
@@ -93,7 +82,7 @@ export function LeadDealFolder({
               <Row
                 label="Agreed"
                 value={
-                  <span className="font-mono">
+                  <span className="font-mono text-desk-meta">
                     {a.agreedMinor !== null ? formatMoney(a.agreedMinor, "eur") : "—"}
                     {a.recurringMinor ? ` + ${formatMoney(a.recurringMinor, "eur")}/mo` : ""}
                   </span>
@@ -103,9 +92,9 @@ export function LeadDealFolder({
                 label="Signed"
                 value={
                   a.signed && a.signed !== "pending" ? (
-                    <span className="font-mono">{a.signed}</span>
+                    <span className="font-mono text-desk-meta">{a.signed}</span>
                   ) : (
-                    <span className="text-app-label-3">pending</span>
+                    <span className="text-desk-fg-3">pending</span>
                   )
                 }
               />
@@ -117,7 +106,7 @@ export function LeadDealFolder({
                       href={a.drive}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-app-tint underline underline-offset-2"
+                      className="inline-flex items-center gap-1 text-desk-fg underline underline-offset-2"
                     >
                       the DOCX
                       <ExternalLink className="size-3.5" aria-hidden />
@@ -127,10 +116,10 @@ export function LeadDealFolder({
               ) : null}
             </>
           ) : folder.engagement ? (
-            <GroupedBlock>No 05-agreement.md in this engagement yet.</GroupedBlock>
+            <RecordBlock>No 05-agreement.md in this engagement yet.</RecordBlock>
           ) : null}
         </>
       )}
-    </GroupedSection>
+    </RecordSection>
   )
 }

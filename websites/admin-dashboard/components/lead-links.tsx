@@ -52,10 +52,16 @@ function Glyph({
 
   return (
     <Comp
-      // A 40px disc inside the 44px touch floor: it reads as a status light
-      // beside the badges, and still takes a thumb.
+      // A control-sized square on the desk, the touch floor under a thumb
+      // (the tokens decide): a status light beside the figure.
       className={cn(
-        "flex min-h-app-touch min-w-app-touch items-center justify-center",
+        "flex size-desk-control items-center justify-center rounded-desk-control border transition-colors duration-100 [&>svg]:size-desk-icon",
+        connected
+          ? // Live, and the jump to it: ink on the surface.
+            "border-desk-line-strong bg-desk-surface text-desk-fg hover:bg-desk-hover"
+          : // An empty slot, said without relying on colour alone: sunken,
+            // grey, and ringed the way an unfilled field is.
+            "border-dashed border-desk-line-strong bg-desk-sunken text-desk-fg-3 hover:text-desk-fg",
         className
       )}
       aria-label={label}
@@ -65,21 +71,7 @@ function Glyph({
         : { type: "button" as const })}
       {...props}
     >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex size-10 items-center justify-center rounded-full transition-colors spring-press [&>svg]:size-5",
-          connected
-            ? // The same soft tint an available action circle wears — this
-              // one is live, and pressing it deepens rather than shrinks.
-              "bg-app-fill text-app-fill-label active:bg-app-fill-press"
-            : // An empty slot, said without relying on colour alone: sunken,
-              // grey, and ringed the way an unfilled field is.
-              "border border-dashed border-app-separator bg-app-track text-app-label-3 active:bg-app-press"
-        )}
-      >
-        {icon}
-      </span>
+      {icon}
     </Comp>
   )
 }
@@ -105,7 +97,7 @@ export function LeadLinks({
   const [stripeOpen, setStripeOpen] = useState(false)
 
   return (
-    <div className="-my-0.5 flex items-center">
+    <div className="flex items-center gap-1.5">
       {githubRepo ? (
         <Glyph
           icon={<GitBranch />}

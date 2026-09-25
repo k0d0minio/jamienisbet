@@ -13,7 +13,7 @@ import {
   AppSelectTrigger,
   AppSelectValue,
   Button,
-  GroupedRow,
+  RecordRow,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -201,13 +201,16 @@ export function SendFormRow({
       }}
     >
       <SheetTrigger asChild>
-        <GroupedRow
+        <RecordRow
           icon={<Send />}
           label="Send a questionnaire"
-          description={
-            forms.length === 0
-              ? "Nothing in the library yet"
-              : `${forms.length} in the library`
+          variant="tint"
+          value={
+            <span className="font-mono text-desk-meta text-desk-fg-3">
+              {forms.length === 0
+                ? "Nothing in the library yet"
+                : `${forms.length} in the library`}
+            </span>
           }
         />
       </SheetTrigger>

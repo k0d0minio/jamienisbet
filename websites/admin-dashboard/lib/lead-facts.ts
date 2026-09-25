@@ -8,7 +8,7 @@
 // a client component, and importing the services barrel would pull the Drizzle
 // client and the Neon driver into the browser bundle to read four labels.
 //
-// The same trick as `lib/lead-segments.ts`, one level up: a plain module both
+// The same trick as `lib/lead-tabs.ts`, one level up: a plain module both
 // the client component and a server render can import, rather than a constant
 // exported out of a "use client" file, which arrives on the server as a
 // reference instead of a value.

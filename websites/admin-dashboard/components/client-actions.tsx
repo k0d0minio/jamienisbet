@@ -4,33 +4,26 @@ import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { ArchiveRestore, Archive, Trash2 } from "lucide-react"
 
-import { Button, GroupedRow, cn } from "@jamie-nisbet/ui"
+import { Button, cn } from "@jamie-nisbet/ui"
 
 import { archiveClient, removeClient } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
 
-export function ClientActions({
+/** Archive (or restore) and delete, with the confirmation delete asks for —
+ *  one set of handlers for the list's two icons and the profile's menu. */
+export function useClientActions({
   id,
   archived,
-  // When true (the detail page), a delete sends the user back to the list since
-  // the record they're viewing no longer exists.
-  redirectOnDelete = false,
-  // Two red rows for a grouped danger zone — the lead's own profile, where
-  // these sit at the very bottom of the page in a group of their own.
-  grouped = false,
-  className,
+  redirectOnDelete = null,
 }: {
   id: string
   archived: boolean
-  redirectOnDelete?: boolean
-  grouped?: boolean
-  className?: string
+  /** Where to go once the record is gone — the profile leaves a page that no
+   *  longer exists; the list stays where it is. */
+  redirectOnDelete?: string | null
 }) {
   const [pending, startTransition] = useTransition()
   const router = useRouter()
-
-  const archiveLabel = archived ? "Restore" : "Archive"
-  const ArchiveIcon = archived ? ArchiveRestore : Archive
 
   function onArchive() {
     startTransition(async () => {
@@ -44,38 +37,26 @@ export function ClientActions({
     startTransition(async () => {
       hapticTick()
       await removeClient(id)
-      if (redirectOnDelete) router.push("/inbox")
+      if (redirectOnDelete) router.push(redirectOnDelete)
     })
   }
 
-  if (grouped) {
-    return (
-      <>
-        <GroupedRow
-          icon={<ArchiveIcon />}
-          label={archived ? "Restore this lead" : "Archive this lead"}
-          variant="destructive"
-          chevron={false}
-          disabled={pending}
-          onClick={onArchive}
-        />
-        <GroupedRow
-          icon={<Trash2 />}
-          label="Delete this lead"
-          variant="destructive"
-          chevron={false}
-          disabled={pending}
-          onClick={onDelete}
-        />
-      </>
-    )
-  }
+  return { pending, onArchive, onDelete }
+}
 
-  // The list row's pair. Icon-only — spelling out "Archive" and "Delete" gave
-  // the rarest thing on a row the widest cell — and *always rendered*, never
-  // revealed on hover: a control you can only find with a mouse is a control
-  // half the surfaces here can't reach. Quiet at rest and full strength on
-  // hover or focus, which is a different thing from hidden.
+export function ClientActions({
+  id,
+  archived,
+  className,
+}: {
+  id: string
+  archived: boolean
+  className?: string
+}) {
+  const { pending, onArchive, onDelete } = useClientActions({ id, archived })
+  const archiveLabel = archived ? "Restore" : "Archive"
+  const ArchiveIcon = archived ? ArchiveRestore : Archive
+
   return (
     <div className={cn("flex items-center gap-0.5", className)}>
       <Button

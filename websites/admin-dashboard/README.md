@@ -24,7 +24,7 @@ on the desk tier (`packages/ui/BRAND.md` § Desk tier); the screens inside it mo
 | **Work** | `/` | Every repo's `.icm/intake/` backlog in one read-only board. Home. |
 | **Inbox** | `/inbox` | The triaged feed: what is waiting on you right now, section by section. |
 | **Leads** | `/leads` | Every lead and customer in one list, longest-waiting first; the cold pool is a view of it (`?view=prospects`). |
-| **Lead** | `/leads/<id>` | One person's profile: contact, value, notes, forms, repo, Stripe link. |
+| **Lead** | `/leads/<id>` | One person's profile: at the desk, the record beside the activity; j / k to the next lead. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. **Reachable by URL only** — it left the navigation and the palette (D-17), and its code stays in place, dormant. |
 
 The rail and the tab bar carry Work, Inbox and Leads, in that order. The board was
@@ -187,22 +187,41 @@ The **working-list strip** that used to sit above this list — todos and Portug
 dates folded into a `<details>` — is gone, and so are todos and compliance dates themselves.
 Attention lives on the [Inbox](#inbox--what-is-waiting-on-you).
 
-A lead's own page opens on *them*: the identity masthead (name, company · status, the deal's
-headline figure in mono) and, under it, the five things you do from a phone as a row of tinted
-discs — call / WhatsApp / email / mark touched / **work started**. Then the record, in **two
-segments**:
+A lead's own page ([`components/lead-profile.tsx`](components/lead-profile.tsx)) is on the desk
+tier. The **head** runs across the top: the monogram, the name, *company · status · deal stage ·
+tier* (the status is a menu on the word itself; the stage is the deal folder's, with the D24
+mismatch line under it when the rung and the folder disagree), when they were last worked, the
+deal's headline figure in mono, and the repo and Stripe lights. Under it, one **action bar** in a
+fixed order — Call, WhatsApp, Email, **Log a touch** (`L`), **Touched today** (`T`), **Write a
+draft**, **Start work** — and a menu at its end holding the three that can't be taken back:
+Archive (Restore), **Opt out…** and Delete.
 
-- **Person** — the record. Status (and when they were last worked), **Contact**, **Facts**,
-  **Deal**, the folded **Intake** row, and the **Danger zone**.
-- **Work** — the surface you operate. **Touches**, **Notes**, **Forms**.
+From `lg` (1024px) the page is **two columns**, each scrolling on its own (D-20):
 
-Both segments are rendered and only one is shown, so switching costs no round trip and a
-half-typed note survives a look at the deal; the choice rides in the URL as `?tab=work` through
-`history.replaceState`, so a refresh comes back where you left off.
+- **Left — the record.** **Next step** first, then **Contact**, **Facts**, **Deal**, **Deal
+  folder** and **Opt-out** (only once a channel has closed) as dense key–value lists, each edited
+  through its own Edit (a sheet) or in place (the deal's terms), and **How they came in** folded
+  last.
+- **Right — four tabs.** **Activity** (the touch timeline, newest first, with the reply paste at
+  its head and a "came in" line at its foot), **Draft**, **Forms**, **Notes**. All four are
+  rendered and one is shown, so switching costs no round trip and a half-typed note survives a
+  look at the timeline; the tab rides in the URL as `?tab=` through `history.replaceState`, and
+  the retired `?tab=person` / `?tab=work` open Activity.
 
-Directly under the identity, on its own line, is **what happens next**
+Below `lg` — a phone, an iPad in portrait — the same parts stack in one column: head, next step,
+the record, then the tabs.
+
+**j / k** step to the next and previous lead in the order the leads list was showing — its
+filter, view, crack or sort. The list records the ids it rendered in session storage
+([`lib/lead-order.ts`](lib/lead-order.ts)) and the head says *3 of 12*; a profile opened from
+anywhere else (a link, the palette, the Inbox, Work) has no list behind it, so no position and
+no j / k. None of the keys fire while typing, while a sheet or menu is open, or with a modifier
+held.
+
+First on the record is **what happens next**
 ([`components/lead-next-action.tsx`](components/lead-next-action.tsx)): the lead's `next_action`
-and its due date, tinted, in mono, and tinted red once the date has passed. It is a button —
+and its due date in mono, and the whole block tinted red — *"2 days late"* — once the date has
+passed. It is a button —
 tap it to write one, edit one, or clear it — and on a parked (**Nurture**) lead it says when
 they wake instead, because a parked relationship's plan *is* its date. A lead with nothing
 planned reads a quiet "No next step" on the rungs where one is expected, and renders nothing at
@@ -211,7 +230,7 @@ save for a missing next action** — that is Jamie's decision, and what notices 
 a read: the crack-finder queries in the services layer, which sequence 6 of the lead-engine epic
 puts on the Needs you feed.
 
-Riding with the identity are **two status glyphs — the delivery repo and the Stripe customer**.
+Riding with the identity are **two status lights — the delivery repo and the Stripe customer**.
 Lit and filled when connected (tap jumps to GitHub or Stripe); dim on a dashed outline when not
 (tap opens the control that links one, in a sheet). That is the whole of the delivery/billing
 surface — there is no Delivery & billing section, and no convert walkthrough: **moving the
@@ -309,7 +328,7 @@ Vercel dashboard as the spend tripwire.
 
 ### Read their website — facts proposed, never taken
 
-The **Facts** group on **Person** has two rows at its foot, because there are two ways a fact
+The **Facts** section of the record has two rows at its foot, because there are two ways a fact
 gets there: type it, or read it off their site. The second is
 [`components/lead-enrich.tsx`](components/lead-enrich.tsx) — it fetches one page of the
 business's own website, has a cheap model say what is on it, and puts the answer *beside* what
@@ -345,10 +364,9 @@ The batch counterpart is `leads-enrich` in
 [`packages/services/scripts/`](../../packages/services/scripts/) — `--dry-run`, rate-limited,
 skips recently-read rows, fills blanks only, and `--retier` to re-derive every letter at once.
 
-Reference material and irreversible actions sink to the bottom of **Person** — **Intake** is a
-`GroupedDisclosure` that folds open on a tap, and archive/delete are the last section, under a
-**Danger zone** header in red, rather than beside the title where a thumb reaching for the
-status could find them.
+Reference material sinks to the bottom of the record — **How they came in** folds open on a
+press — and the irreversible actions are in the action bar's menu, never a button in the page or
+in the bottom of a phone screen where a thumb rests.
 
 ### Delivery repos
 
@@ -773,13 +791,12 @@ app/
                         #   do next
     leads/              # Leads — the list, staleness-sorted; ?view=prospects is the cold
                         #   pool, tier-sorted; loading.tsx alongside
-    leads/[id]/         # one lead: Person / Work segments, repo + Stripe glyphs
+    leads/[id]/         # one lead: head + action bar, record | Activity · Draft · Forms · Notes
                         #   error.tsx — its own boundary, so it can name the record
     money/              # Stripe: balance, invoices, payment links, payments; actions.ts alongside
 components/             # login form, nav, service-worker register, lead + money UI
-                        #   app-screen.tsx — every screen's masthead: the tier's collapsing
-                        #                header, and the profile's identity form of it; the
-                        #                reading column (Work alone is `wide`)
+                        #   app-screen.tsx — every app-tier screen's masthead: the collapsing
+                        #                header and the reading column (Work alone is `wide`)
                         #   nav.tsx      — the desk rail from `md`, the flat tab bar below it
                         #   command-palette.tsx — ⌘K: the shortcut, the index, filtering, the
                         #                title bar's search button
@@ -788,11 +805,12 @@ components/             # login form, nav, service-worker register, lead + money
                         #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
                         #   lead-row.tsx — the leads list's gestures (call/email/archive, touched),
                         #                worn by the feed's "Waiting on you" rows too
-                        #   lead-action-row.tsx — the profile's circular actions, Contacts-style
+                        #   lead-profile.tsx — the profile's frame: columns, tabs, j / k / L / T
+                        #   lead-action-row.tsx — the profile's action bar and its menu
                         #   lead-contact-card.tsx / lead-facts-card.tsx / lead-deal-card.tsx /
                         #   lead-notes-card.tsx
-                        #                — the record as facts, each edited in a bottom sheet
-                        #   lead-next-action.tsx — what happens next, on the masthead; the one
+                        #                — the record as key–value lists, each edited in a sheet
+                        #   lead-next-action.tsx — what happens next, first on the record; the one
                         #                place the gentle invariant is ever said out loud
                         #   lead-touches.tsx / touch-row.tsx — the touch log: history rendered
                         #                on the server, two-tap logging and the cadence's

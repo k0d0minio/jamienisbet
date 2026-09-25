@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { GitCommitHorizontal } from "lucide-react"
 
-import { Button, cn } from "@jamie-nisbet/ui"
+import { DeskButton, cn } from "@jamie-nisbet/ui"
 
 import { writeFormAnswersToRepo } from "@/app/(app)/actions"
 import { hapticTick } from "@/lib/haptics"
@@ -35,7 +35,7 @@ export function WriteFormToRepoButton({
 
   return (
     <>
-      <Button
+      <DeskButton
         type="button"
         variant="ghost"
         size="sm"
@@ -44,12 +44,12 @@ export function WriteFormToRepoButton({
       >
         <GitCommitHorizontal />
         {pending ? "Committing…" : "Snapshot to deal folder"}
-      </Button>
+      </DeskButton>
       {result ? (
         <span
           className={cn(
-            "text-app-footnote break-all",
-            result.ok ? "text-app-label-3" : "text-destructive"
+            "text-desk-meta break-all",
+            result.ok ? "text-desk-fg-3" : "text-desk-blocked"
           )}
         >
           {result.message}

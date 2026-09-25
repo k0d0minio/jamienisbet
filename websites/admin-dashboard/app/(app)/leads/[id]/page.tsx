@@ -1,10 +1,8 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { ChevronLeft } from "lucide-react"
+import { TriangleAlert } from "lucide-react"
 
-import { Badge, GroupedList, GroupedRow, GroupedSection } from "@jamie-nisbet/ui"
 import {
-  clientStatusLabel,
   contactPointsOf,
   deriveFitTier,
   draftChannelOf,
@@ -20,9 +18,6 @@ import {
   type SuppressionKind,
 } from "@jamie-nisbet/services"
 
-import { AppProfileScreen } from "@/components/app-screen"
-import { ClientActions } from "@/components/client-actions"
-import { ViewTransitionLink } from "@/components/view-transition-link"
 import { DealBadges } from "@/components/deal-badges"
 import { FormLinks } from "@/components/form-links"
 import { LeadActionRow } from "@/components/lead-action-row"
@@ -31,16 +26,20 @@ import { LeadDealCard, type AgreementSuggestion } from "@/components/lead-deal-c
 import { LeadDealFolder } from "@/components/lead-deal-folder"
 import { LeadDraft } from "@/components/lead-draft"
 import { LeadFactsCard } from "@/components/lead-facts-card"
-import { LeadIntake } from "@/components/lead-intake"
+import { LeadIntake, sourceLabel } from "@/components/lead-intake"
 import { LeadLinks } from "@/components/lead-links"
 import { LeadNextAction } from "@/components/lead-next-action"
 import { LeadNotesCard } from "@/components/lead-notes-card"
+import { LeadProfile } from "@/components/lead-profile"
 import { LeadReply } from "@/components/lead-reply"
-import { LeadSegments } from "@/components/lead-segments"
-import { LeadStatusRow } from "@/components/lead-status-row"
-import { LeadSuppress } from "@/components/lead-suppress"
+import { LeadStatusMenu } from "@/components/lead-status-menu"
+import {
+  LeadOptOutSheet,
+  LeadOptOuts,
+  hasReachableChannel,
+} from "@/components/lead-suppress"
 import { LeadTouches } from "@/components/lead-touches"
-import { TouchRow } from "@/components/touch-row"
+import { CameInRow, TouchRow } from "@/components/touch-row"
 import { isGatewayConfigured } from "@/lib/ai"
 import {
   daysSince,
@@ -49,11 +48,7 @@ import {
   waitingLabel,
 } from "@/lib/format"
 import { clientSlug, isGithubConfigured } from "@/lib/github"
-import {
-  DEFAULT_LEAD_SEGMENT,
-  isLeadSegmentKey,
-  type LeadSegmentKey,
-} from "@/lib/lead-segments"
+import { leadTabFrom } from "@/lib/lead-tabs"
 import { dealBadge, dealFolderSlug, readDealFolder } from "@/lib/deals"
 import { dealFigure } from "@/lib/leads"
 import { listOnboardingForms } from "@/lib/onboarding"
@@ -73,23 +68,31 @@ export const metadata: Metadata = { title: "Lead" }
 // list is the cap rather than the whole story.
 const TOUCH_HISTORY_LIMIT = 25
 
-// One person, in the Contacts idiom: they are the masthead — disc, name, what
-// they are, what they're worth, and two glyphs saying whether their repo and
-// their Stripe customer exist — the five things you'd open this page on a
-// phone to do are discs directly under it, and the record itself is two
-// segments you switch between rather than one page you scroll past.
+// One person, on the desk tier (D-20): the head — who they are, what they are
+// worth, and a bar of everything you open the page to do — then, at the desk,
+// the record on the left and what has happened on the right, side by side
+// rather than behind two segments. `components/lead-profile.tsx` is the frame;
+// everything in it is built here, on the server.
 //
-// The two segments are the honest split in what this screen is for:
-//
-//   Person — the record. Status, contact, what they *are*, the deal, how they
-//            came in (folded, because it is read once), and the two red rows.
-//   Work   — the surface. Notes, the questionnaires they've been sent.
-//
-// Nothing here converts anyone. The four-step walkthrough, the "Finish
-// conversion" row and the warning badges that nagged an active client about
-// missing plumbing are gone: moving the status to Active client *is* the
-// conversion, and an unlit glyph in the header is the whole of the reminder
-// that a repo or a Stripe customer is still missing.
+// Nothing here converts anyone. Moving the status to Active client *is* the
+// conversion, and an unlit repo or Stripe light in the head is the whole of
+// the reminder that one is still missing.
+
+/** How late a next step is, for the block's eyebrow: "2 days late". A date
+ *  that passed earlier today is simply late. */
+function lateLabel(days: number): string {
+  if (days <= 0) return "late"
+  return days === 1 ? "1 day late" : `${days} days late`
+}
+
+/** Two letters for the monogram: the first of the first two words. */
+function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  return words
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("")
+}
 
 // Read outside the component so the render stays pure: `now` is sampled once
 // here, not during render (which the react-hooks/purity rule forbids).
@@ -227,6 +230,8 @@ async function loadLead(id: string) {
     // When the site was last read, formatted on the server like every other
     // date this page hands to a client component.
     enrichedOn: client.enrichedAt ? formatShortDay(client.enrichedAt) : null,
+    // The timeline's last line: the day the record began.
+    cameInOn: formatShortDay(client.createdAt),
     lastWorked: waitingLabel(
       daysSince(client.lastTouchedAt ?? client.createdAt, now)
     ),
@@ -236,6 +241,10 @@ async function loadLead(id: string) {
       dueLabel: nextDate ? formatShortDay(nextDate) : null,
       dueValue: nextDate ? nextDate.toISOString().slice(0, 10) : null,
       overdue: nextDate !== null && nextDate.getTime() < now,
+      lateLabel:
+        nextDate !== null && nextDate.getTime() < now
+          ? lateLabel(daysSince(nextDate, now))
+          : null,
       // A next step is only worth prompting for on the rungs something is
       // supposed to happen next on — plus `nurture`, whose wake date is the
       // same question asked the other way round.
@@ -270,53 +279,100 @@ export default async function LeadDetailPage({
     replyChannel,
     derivedTier,
     enrichedOn,
+    cameInOn,
     lastWorked,
     next,
   } = loaded
   const archived = client.archivedAt !== null
 
-  // Which segment to open on. The client rewrites this in place as you switch,
-  // so a refresh or a shared link comes back where it left off.
-  const tab: LeadSegmentKey = isLeadSegmentKey(query.tab)
-    ? query.tab
-    : DEFAULT_LEAD_SEGMENT
-
-  // The masthead reads the status through the one label lookup — the stored
-  // strings ("not_won", "discussing") are never capitalised into the UI.
-  const statusLabel = clientStatusLabel(client.status)
   // Whatever this deal leads with — its euros, or the percentage that *is* the
-  // deal when there are none. The caption below the figure says which.
+  // deal when there are none. The caption under the figure says which.
   const figure = dealFigure(client)
+  // Where the deal folder says the engagement stands, and the one line said
+  // when the rung and the folder cannot both be true (D24).
+  const stage = dealFolder?.error ? null : (dealFolder?.stage ?? null)
+  const mismatch = dealBadge(client.status, dealFolder)
+  const configured = isGatewayConfigured()
 
-  return (
-    <AppProfileScreen
-      name={client.name}
-      // Who they are, in one quiet line: the company they're from and where
-      // they stand. The status is also the first row of the Person segment,
-      // where it can be changed — here it is only being said.
-      meta={[client.company, statusLabel].filter(Boolean).join(" · ")}
-      // The figure that qualifies the whole record, in mono beside the name.
-      // Captioned, so it needs no word of its own: "12%" under "Equity".
-      figure={figure?.value}
-      figureLabel={figure?.label}
-      badges={
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-          {/* What happens next, on its own line above the terms — the one
-              thing on this page that is about *doing* rather than about who
-              they are, and the reason the profile is worth opening. Silent on
-              a rung where nothing is planned by design. */}
-          <LeadNextAction
-            id={client.id}
-            action={next.action}
-            dueLabel={next.dueLabel}
-            dueValue={next.dueValue}
-            overdue={next.overdue}
-            parked={next.parked}
-            expected={next.expected}
-          />
-          {/* Repo and Stripe as two status lights: lit and tappable through to
-              GitHub or Stripe, or dim and tappable into the control that links
-              one. The whole of what used to be a Delivery & billing section. */}
+  // The head's metadata line, one fact per slot, joined by a middle dot.
+  const facts: React.ReactNode[] = [
+    client.company ? <span key="company">{client.company}</span> : null,
+    <LeadStatusMenu key="status" id={client.id} value={client.status} />,
+    stage ? (
+      <span
+        key="stage"
+        className="font-mono text-desk-meta"
+        title={`Deal folder stage: ${stage.code}-${stage.name}`}
+      >
+        {stage.code} {stage.name}
+      </span>
+    ) : null,
+    client.fitTier ? (
+      <span key="tier">
+        tier <span className="font-mono text-desk-meta">{client.fitTier}</span>
+      </span>
+    ) : null,
+    archived ? (
+      <span key="archived" className="text-desk-fg-3">
+        Archived
+      </span>
+    ) : null,
+  ].filter(Boolean)
+
+  const head = (
+    <div className="flex flex-col gap-3 pt-2">
+      <div className="flex flex-wrap items-start gap-x-4 gap-y-3">
+        <span
+          aria-hidden
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-desk-sunken font-mono text-desk-ui text-desk-fg-2"
+        >
+          {initialsOf(client.name)}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <h1 className="truncate text-desk-title text-desk-fg">
+            {client.name}
+          </h1>
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-desk-ui text-desk-fg-2">
+            {facts.map((fact, index) => (
+              <span key={index} className="inline-flex items-center gap-1.5">
+                {index > 0 ? (
+                  <span aria-hidden className="text-desk-fg-3">
+                    ·
+                  </span>
+                ) : null}
+                {fact}
+              </span>
+            ))}
+          </p>
+          <p className="font-mono text-desk-meta text-desk-fg-3">
+            {lastWorked === "today"
+              ? "last worked today"
+              : `last worked ${lastWorked} ago`}
+          </p>
+          {mismatch ? (
+            <p className="flex items-start gap-1.5 text-desk-meta text-desk-fg-2">
+              <TriangleAlert
+                className="mt-px size-3.5 shrink-0 text-desk-running"
+                aria-hidden
+              />
+              {mismatch}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          {figure ? (
+            <div className="flex flex-col items-end">
+              <span className="font-mono text-desk-figure text-desk-fg tabular-nums">
+                {figure.value}
+              </span>
+              <span className="text-desk-meta text-desk-fg-3">
+                {figure.label}
+              </span>
+            </div>
+          ) : null}
+          {/* Repo and Stripe as two status lights: lit and pressable through
+              to GitHub or Stripe, or dim and pressable into the control that
+              links one. */}
           <LeadLinks
             id={client.id}
             name={client.name}
@@ -326,224 +382,187 @@ export default async function LeadDetailPage({
             suggestedRepoName={clientSlug(client.name)}
             stripeCustomerId={client.stripeCustomerId}
           />
-          {archived ? <Badge variant="outline">Archived</Badge> : null}
-          {/* The same badges the leads list carries, so what kind of deal
-              this is is answered before you scroll — minus whichever term
-              the figure above has already said. */}
-          <DealBadges client={client} omit={figure?.kind} />
+          <DealBadges
+            client={client}
+            omit={figure?.kind}
+            className="justify-end"
+          />
         </div>
-      }
-      back={
-        // A real target, not a 14px arrow, and tinted the way a back control
-        // is on this tier.
-        <ViewTransitionLink
-          href="/leads"
-          className="-ml-2 inline-flex min-h-app-touch items-center gap-0.5 rounded-app-control pr-2 pl-1 text-app-body text-app-tint transition-colors spring-press active:bg-app-press"
-        >
-          <ChevronLeft className="size-5" aria-hidden />
-          Leads
-        </ViewTransitionLink>
-      }
-      actions={
-        <LeadActionRow
-          id={client.id}
-          phone={client.phone}
-          whatsapp={client.whatsapp}
-          email={client.email}
-          lastWorked={lastWorked}
-          workStartedOn={
-            client.workStartedAt ? formatDate(client.workStartedAt) : null
-          }
-          suppressed={suppressed}
-        />
-      }
-    >
-      <LeadSegments
-        initial={tab}
-        person={
-          // One column from phone to laptop. The two-column desktop layout the
-          // nine-section page needed went with the sections: half of them are
-          // on the other segment now, and neither side is long enough to want
-          // splitting.
-          <GroupedList>
-            {/* Where they stand. No header — this group is the identity's
-                continuation, not a topic of its own. */}
-            <GroupedSection>
-              <LeadStatusRow id={client.id} value={client.status} />
-              <GroupedRow
-                label="Last worked"
-                chevron={false}
-                value={
-                  lastWorked === "today" ? (
-                    "Today"
-                  ) : (
-                    <>
-                      <span className="font-mono">{lastWorked}</span> ago
-                    </>
-                  )
-                }
-              />
-            </GroupedSection>
-
-            <LeadContactCard
-              client={{
-                id: client.id,
-                name: client.name,
-                company: client.company,
-                email: client.email,
-                phone: client.phone,
-                whatsapp: client.whatsapp,
-                instagram: client.instagram,
-              }}
-              suppressed={suppressed}
-            />
-
-            {/* What they *are*, as opposed to how you reach them — the block
-                the cold pool needed. Rendered for everyone: an inbound lead
-                starts with none of it and says so, and a sector and a town are
-                worth knowing about a client too. */}
-            <LeadFactsCard
-              client={{
-                id: client.id,
-                sector: client.sector,
-                town: client.town,
-                language: client.language,
-                hook: client.hook,
-                fitTier: client.fitTier,
-                websiteUrl: client.websiteUrl,
-                websiteGrade: client.websiteGrade,
-                reviewCount: client.reviewCount,
-              }}
-              derivedTier={derivedTier}
-              enrichConfigured={isGatewayConfigured()}
-              enrichedOn={enrichedOn}
-            />
-
-            <LeadDealCard
-              client={{
-                id: client.id,
-                valueMinor: client.valueMinor,
-                billingType: client.billingType,
-                dealType: client.dealType,
-                barterTerms: client.barterTerms,
-                commissionBps: client.commissionBps,
-                equityBps: client.equityBps,
-                supportMinor: client.supportMinor,
-              }}
-              // The folder is named after the repo (D28) — nothing to propose
-              // or set; the card only says which folder that is.
-              dealFolder={dealFolderSlug(client.githubRepo)}
-              suggestion={suggestion}
-            />
-
-            {/* The words beside the state: what the deal folder in icm-board
-                says, read live, with the badge when it and the rung cannot
-                both be true (D24). Only once the row has a repo (D28). */}
-            {dealFolder ? (
-              <LeadDealFolder
-                folder={dealFolder}
-                badge={dealBadge(client.status, dealFolder)}
-              />
-            ) : null}
-
-            {/* Provenance, read once and then never — one folded row at the
-                foot of the record rather than a section of its own. */}
-            <LeadIntake client={client} />
-
-            {/* The opt-out: irreversible in a different way from the two rows
-                below it, and about a person rather than about a record — so it
-                gets a section of its own rather than a third red row under a
-                footer that would be describing something else. */}
-            <LeadSuppress
-              clientId={client.id}
-              clientName={client.name}
-              channels={channels}
-            />
-
-            {/* Rare and irreversible — last on the segment, in red, and nowhere
-                near the thumb reaching for the status at the top. */}
-            <GroupedSection
-              header="Danger zone"
-              footer="Archiving takes them off the list and keeps the record. Deleting can't be undone."
-            >
-              <ClientActions
-                id={client.id}
-                archived={archived}
-                grouped
-                redirectOnDelete
-              />
-            </GroupedSection>
-          </GroupedList>
+      </div>
+      <LeadActionRow
+        id={client.id}
+        phone={client.phone}
+        whatsapp={client.whatsapp}
+        email={client.email}
+        lastWorked={lastWorked}
+        workStartedOn={
+          client.workStartedAt ? formatDate(client.workStartedAt) : null
         }
-        work={
-          <GroupedList>
-            {/* The memory of contact, first on the segment: what has already
-                been tried is what decides what to try next, so it reads above
-                the notes rather than under the forms. The rows are rendered
-                here, on the server — a draft is markdown, and the section
-                itself is a client component. */}
-            <LeadTouches
-              clientId={client.id}
-              clientName={client.name}
-              count={touches.length}
-              capped={touches.length === TOUCH_HISTORY_LIMIT}
-              // The other half of the memory of contact: what came back. Paste
-              // it, and the outcome, the rung, the next step and the answer are
-              // proposed one tap at a time — none of them applied until tapped,
-              // and the paste logged as an inbound touch whatever is done with
-              // them.
-              reply={
-                <LeadReply
-                  clientId={client.id}
-                  clientName={client.name}
-                  email={client.email}
-                  phone={client.phone}
-                  whatsapp={client.whatsapp}
-                  instagram={client.instagram}
-                  configured={isGatewayConfigured()}
-                  defaultChannel={replyChannel}
-                />
-              }
-            >
-              {touches.map((touch) => (
-                <TouchRow key={touch.id} touch={touch} />
-              ))}
-            </LeadTouches>
-
-            {/* What to say, and the doors it can go out of — directly under
-                the history it is grounded on, because the last thing that
-                happened is what decides the next message. Nothing here sends:
-                the panel hands the draft to a mail app, to WhatsApp or to the
-                clipboard, and offers to log the touch on the way past. */}
-            <LeadDraft
-              clientId={client.id}
-              clientName={client.name}
-              email={client.email}
-              phone={client.phone}
-              whatsapp={client.whatsapp}
-              instagram={client.instagram}
-              suppressed={suppressed}
-              configured={isGatewayConfigured()}
-              defaultKind={draft.kind}
-              defaultChannel={draft.channel}
-              hasHook={Boolean(client.hook)}
-              portuguese={client.language === "pt"}
-            />
-
-            <LeadNotesCard id={client.id} notes={client.notes} />
-
-            <FormLinks
-              clientId={client.id}
-              clientName={client.name}
-              clientEmail={client.email}
-              dealFolder={dealFolderSlug(client.githubRepo)}
-              links={formLinks}
-              forms={formLibrary.forms}
-              formErrors={formLibrary.errors}
-            />
-          </GroupedList>
-        }
+        archived={archived}
+        canOptOut={hasReachableChannel(channels)}
+        suppressed={suppressed}
       />
-    </AppProfileScreen>
+      {/* Opened from the bar's menu; mounted here so it is on every layout. */}
+      <LeadOptOutSheet
+        clientId={client.id}
+        clientName={client.name}
+        channels={channels}
+      />
+    </div>
+  )
+
+  const record = (
+    <>
+      {/* What happens next — first, on both layouts. Silent on a rung where
+          nothing is planned by design. */}
+      <LeadNextAction
+        id={client.id}
+        action={next.action}
+        dueLabel={next.dueLabel}
+        dueValue={next.dueValue}
+        overdue={next.overdue}
+        lateLabel={next.lateLabel}
+        parked={next.parked}
+        expected={next.expected}
+      />
+
+      <LeadContactCard
+        client={{
+          id: client.id,
+          name: client.name,
+          company: client.company,
+          email: client.email,
+          phone: client.phone,
+          whatsapp: client.whatsapp,
+          instagram: client.instagram,
+        }}
+        suppressed={suppressed}
+      />
+
+      {/* What they *are*, as opposed to how you reach them. Rendered for
+          everyone: an inbound lead starts with none of it and says so. */}
+      <LeadFactsCard
+        client={{
+          id: client.id,
+          sector: client.sector,
+          town: client.town,
+          language: client.language,
+          hook: client.hook,
+          fitTier: client.fitTier,
+          websiteUrl: client.websiteUrl,
+          websiteGrade: client.websiteGrade,
+          reviewCount: client.reviewCount,
+        }}
+        derivedTier={derivedTier}
+        enrichConfigured={configured}
+        enrichedOn={enrichedOn}
+      />
+
+      <LeadDealCard
+        client={{
+          id: client.id,
+          valueMinor: client.valueMinor,
+          billingType: client.billingType,
+          dealType: client.dealType,
+          barterTerms: client.barterTerms,
+          commissionBps: client.commissionBps,
+          equityBps: client.equityBps,
+          supportMinor: client.supportMinor,
+        }}
+        // The folder is named after the repo (D28) — nothing to propose or
+        // set; the card only says which folder that is.
+        dealFolder={dealFolderSlug(client.githubRepo)}
+        suggestion={suggestion}
+      />
+
+      {/* The words beside the state: what the deal folder in icm-board says,
+          read live (D24). Only once the row has a repo (D28). */}
+      {dealFolder ? <LeadDealFolder folder={dealFolder} /> : null}
+
+      {/* The channels that asked not to be contacted, and when. */}
+      <LeadOptOuts channels={channels} />
+
+      {/* Provenance, read once and then never — folded, last. */}
+      <LeadIntake client={client} />
+    </>
+  )
+
+  const panels = {
+    activity: (
+      // The memory of contact: what has already been tried is what decides
+      // what to try next. The rows are rendered here, on the server — a draft
+      // is markdown, and the section itself is a client component.
+      <LeadTouches
+        clientId={client.id}
+        clientName={client.name}
+        count={touches.length}
+        capped={touches.length === TOUCH_HISTORY_LIMIT}
+        // The other half of the memory of contact: what came back. Paste it,
+        // and the outcome, the rung, the next step and the answer are
+        // proposed one tap at a time — none of them applied until tapped.
+        reply={
+          <LeadReply
+            clientId={client.id}
+            clientName={client.name}
+            email={client.email}
+            phone={client.phone}
+            whatsapp={client.whatsapp}
+            instagram={client.instagram}
+            configured={configured}
+            defaultChannel={replyChannel}
+          />
+        }
+        cameIn={<CameInRow on={cameInOn} source={sourceLabel(client.source)} />}
+      >
+        {touches.map((touch) => (
+          <TouchRow key={touch.id} touch={touch} />
+        ))}
+      </LeadTouches>
+    ),
+    // What to say, and the doors it can go out of. Nothing here sends: the
+    // panel hands the draft to a mail app, to WhatsApp or to the clipboard,
+    // and offers to log the touch on the way past.
+    draft: (
+      <LeadDraft
+        clientId={client.id}
+        clientName={client.name}
+        email={client.email}
+        phone={client.phone}
+        whatsapp={client.whatsapp}
+        instagram={client.instagram}
+        suppressed={suppressed}
+        configured={configured}
+        defaultKind={draft.kind}
+        defaultChannel={draft.channel}
+        hasHook={Boolean(client.hook)}
+        portuguese={client.language === "pt"}
+      />
+    ),
+    forms: (
+      <FormLinks
+        clientId={client.id}
+        clientName={client.name}
+        clientEmail={client.email}
+        dealFolder={dealFolderSlug(client.githubRepo)}
+        links={formLinks}
+        forms={formLibrary.forms}
+        formErrors={formLibrary.errors}
+      />
+    ),
+    notes: <LeadNotesCard id={client.id} notes={client.notes} />,
+  }
+
+  return (
+    <LeadProfile
+      // A different lead is a different profile: j / k lands on fresh state
+      // (the tab, the sheets) rather than the last lead's.
+      key={client.id}
+      id={client.id}
+      initialTab={leadTabFrom(query.tab)}
+      formsCount={formLinks.length}
+      head={head}
+      record={record}
+      panels={panels}
+    />
   )
 }

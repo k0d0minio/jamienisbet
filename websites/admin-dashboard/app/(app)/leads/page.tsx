@@ -30,6 +30,7 @@ import { ClientCreateForm } from "@/components/client-create-form"
 import { ClientStatusSelect } from "@/components/client-status-select"
 import { DealBadges } from "@/components/deal-badges"
 import { DealStageChip } from "@/components/deal-stage-chip"
+import { LeadOrderRecorder } from "@/components/lead-order"
 import { LeadRow } from "@/components/lead-row"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
@@ -466,6 +467,9 @@ export default async function LeadsPage({
             <GroupedBlock>{error}</GroupedBlock>
           </GroupedSection>
         ) : null}
+
+        {/* The order on screen, for j / k on a lead's profile (D-24). */}
+        <LeadOrderRecorder ids={visible.map((row) => row.id)} />
 
         {visible.length === 0 ? (
           crack ? (

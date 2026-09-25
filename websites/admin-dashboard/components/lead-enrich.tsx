@@ -9,6 +9,7 @@ import {
   GroupedRow,
   GroupedSection,
   PendingButton,
+  RecordRow,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -176,11 +177,10 @@ export function LeadEnrich({
   // line of the record, which is what an unavailable action is here.
   if (blocked) {
     return (
-      <GroupedRow
+      <RecordRow
         icon={<ScanSearch />}
         label="Read their website"
         description={blocked}
-        chevron={false}
       />
     )
   }
@@ -188,13 +188,13 @@ export function LeadEnrich({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <GroupedRow
+        <RecordRow
           icon={<ScanSearch />}
           label="Read their website"
-          description={
-            enrichedOn
-              ? `Last read ${enrichedOn}`
-              : "Propose facts from the site"
+          value={
+            <span className="font-mono text-desk-meta text-desk-fg-3">
+              {enrichedOn ? `Last read ${enrichedOn}` : "Propose facts"}
+            </span>
           }
           variant="tint"
         />

@@ -22,11 +22,10 @@ import {
   AppSelectTrigger,
   AppSelectValue,
   AppTextarea,
-  Button,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
-  PendingButton,
+  DeskButton,
+  RecordBlock,
+  RecordRow,
+  RecordSection,
   toast,
 } from "@jamie-nisbet/ui"
 import { dealTermsOf, type DealTerms } from "@jamie-nisbet/services"
@@ -97,7 +96,7 @@ function TermRow({
   onEdit: () => void
 }) {
   return (
-    <GroupedRow
+    <RecordRow
       icon={icon}
       label={label}
       chevron={false}
@@ -107,7 +106,7 @@ function TermRow({
         <span className="inline-flex items-center gap-2">
           {value}
           {/* Visible on touch, not on hover — there is no hover here. */}
-          <Pencil className="size-3.5 shrink-0 text-app-label-3" aria-hidden />
+          <Pencil className="size-3.5 shrink-0 text-desk-fg-3" aria-hidden />
         </span>
       }
     />
@@ -139,7 +138,7 @@ function TermEditor({
   children: ReactNode
 }) {
   return (
-    <GroupedBlock>
+    <RecordBlock>
       <form
         className="grid gap-3"
         onSubmit={(event) => {
@@ -151,40 +150,39 @@ function TermEditor({
         }}
       >
         {title != null ? (
-          <span className="text-app-footnote text-app-label-3">{title}</span>
+          <span className="text-desk-meta text-desk-fg-3">{title}</span>
         ) : null}
 
         {children}
 
         <div className="flex flex-wrap items-center gap-2">
           {removable ? (
-            <Button
+            <DeskButton
               type="button"
               variant="ghost"
               disabled={pending}
-              className="px-3 text-destructive hover:text-destructive active:text-destructive"
+              className="text-desk-blocked hover:text-desk-blocked"
               onClick={onRemove}
             >
               Remove
-            </Button>
+            </DeskButton>
           ) : null}
           <div className="ml-auto flex items-center gap-2">
-            <Button
+            <DeskButton
               type="button"
               variant="ghost"
-              className="px-3"
               disabled={pending}
               onClick={onCancel}
             >
               Cancel
-            </Button>
-            <PendingButton pending={pending} pendingText="Saving…">
-              Save
-            </PendingButton>
+            </DeskButton>
+            <DeskButton type="submit" loading={pending}>
+              {pending ? "Saving…" : "Save"}
+            </DeskButton>
           </div>
         </div>
       </form>
-    </GroupedBlock>
+    </RecordBlock>
   )
 }
 
@@ -636,14 +634,14 @@ export function LeadDealCard({
   }
 
   return (
-    <GroupedSection
+    <RecordSection
       header="Deal"
       footer="Your own record of what was agreed — any combination of a fee, a swap, a stake, a cut and a support line. Stripe stays the authority on what was invoiced and paid; the deal folder in icm-board holds the words."
     >
       {/* The agreement's figures, offered when the folder has paper and the
           row says something else. A prefill, not a sync: Save is yours. */}
       {suggestion && editing === null && !picking ? (
-        <GroupedRow
+        <RecordRow
           icon={<FolderGit2 />}
           label="Use the agreement's figures"
           description={[
@@ -681,7 +679,7 @@ export function LeadDealCard({
           label="Fee"
           onEdit={() => openEditor("fee")}
           value={
-            <span className="font-mono">
+            <span className="font-mono text-desk-meta">
               {formatMoney(terms.cash.valueMinor, "eur")}
               {terms.cash.billingType === "monthly" ? "/mo" : ""}
             </span>
@@ -696,11 +694,11 @@ export function LeadDealCard({
             // A swap is a term whether or not anyone has put a figure on it,
             // so the row exists either way and only the figure waits.
             terms.barter.valueMinor > 0 ? (
-              <span className="font-mono">
+              <span className="font-mono text-desk-meta">
                 {formatMoney(terms.barter.valueMinor, "eur")}
               </span>
             ) : (
-              <span className="text-app-label-3">Agreed</span>
+              <span className="text-desk-fg-3">Agreed</span>
             )
           }
         />
@@ -709,12 +707,12 @@ export function LeadDealCard({
       {/* What is actually being swapped, in their words rather than a figure.
           It edits with the fee above, which is where it is written. */}
       {editing !== "fee" && terms.barter?.terms ? (
-        <GroupedBlock>
-          <span className="mb-1 block text-app-footnote text-app-label-3">
+        <RecordBlock>
+          <span className="mb-1 block text-desk-meta text-desk-fg-3">
             What&apos;s being exchanged
           </span>
           <p className="whitespace-pre-wrap">{terms.barter.terms}</p>
-        </GroupedBlock>
+        </RecordBlock>
       ) : null}
 
       {editing === "equity" ? (
@@ -730,7 +728,7 @@ export function LeadDealCard({
           icon={<PieChart />}
           label="Equity"
           onEdit={() => openEditor("equity")}
-          value={<span className="font-mono">{formatBps(terms.equity.bps)}</span>}
+          value={<span className="font-mono text-desk-meta">{formatBps(terms.equity.bps)}</span>}
         />
       ) : null}
 
@@ -748,7 +746,7 @@ export function LeadDealCard({
           label="Commission"
           onEdit={() => openEditor("commission")}
           value={
-            <span className="font-mono">{formatBps(terms.commission.bps)}</span>
+            <span className="font-mono text-desk-meta">{formatBps(terms.commission.bps)}</span>
           }
         />
       ) : null}
@@ -766,7 +764,7 @@ export function LeadDealCard({
           label="Support"
           onEdit={() => openEditor("support")}
           value={
-            <span className="font-mono">
+            <span className="font-mono text-desk-meta">
               {formatMoney(terms.support.valueMinor, "eur")}/mo
             </span>
           }
@@ -776,24 +774,24 @@ export function LeadDealCard({
       {/* Nothing agreed yet is a fact about the relationship, not a gap — so
           it is said plainly and the way out of it sits directly under it. */}
       {empty && editing === null && !picking ? (
-        <GroupedBlock>
+        <RecordBlock>
           Nothing agreed yet. A deal is any of these — a fee, a swap, a stake in
           the company, a cut of their revenue — and one of them is enough.
-        </GroupedBlock>
+        </RecordBlock>
       ) : null}
 
       {/* Where the words live. Always a row, even unset: a relationship with
           no folder is a fact worth seeing. Not editable — the folder is named
           after the repo (D28), so the way to get one is the repo row above. */}
-      <GroupedRow
+      <RecordRow
         icon={<FolderGit2 />}
         label="Deal folder"
         chevron={false}
         value={
           dealFolder ? (
-            <span className="font-mono">{dealFolder}</span>
+            <span className="font-mono text-desk-meta">{dealFolder}</span>
           ) : (
-            <span className="text-app-label-3">Named after the repo — connect one</span>
+            <span className="text-desk-fg-3">Named after the repo — connect one</span>
           )
         }
       />
@@ -803,13 +801,13 @@ export function LeadDealCard({
           {/* Said out loud, because these rows sit in the same slab as the
               terms the deal already has and a tinted label alone still reads
               as a fact when it is stacked under one. */}
-          <GroupedBlock className="py-2">
-            <span className="text-app-footnote text-app-label-3">
+          <RecordBlock className="py-2">
+            <span className="text-desk-meta text-desk-fg-3">
               Add a term
             </span>
-          </GroupedBlock>
+          </RecordBlock>
           {available.map((term) => (
-            <GroupedRow
+            <RecordRow
               key={term.label}
               icon={term.icon}
               label={term.label}
@@ -820,7 +818,7 @@ export function LeadDealCard({
               onClick={() => openEditor(term.key, term.intent)}
             />
           ))}
-          <GroupedRow
+          <RecordRow
             icon={<X />}
             label="Cancel"
             chevron={false}
@@ -830,7 +828,7 @@ export function LeadDealCard({
       ) : null}
 
       {editing === null && !picking && available.length > 0 ? (
-        <GroupedRow
+        <RecordRow
           icon={<Plus />}
           label="Add a term"
           variant="tint"
@@ -838,6 +836,6 @@ export function LeadDealCard({
           onClick={() => setPicking(true)}
         />
       ) : null}
-    </GroupedSection>
+    </RecordSection>
   )
 }

@@ -1,25 +1,16 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import {
-  AtSign,
-  Building2,
-  Check,
-  Copy,
-  Mail,
-  MessageCircle,
-  Pencil,
-  Phone,
-} from "lucide-react"
+import { Check, Copy } from "lucide-react"
 
 import {
   AppField,
   AppInput,
-  Button,
-  GroupedBlock,
-  GroupedRow,
-  GroupedSection,
+  DeskButton,
   PendingButton,
+  RecordBlock,
+  RecordRow,
+  RecordSection,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -46,7 +37,7 @@ import { NO_SUPPRESSIONS, type SuppressedChannels } from "@/lib/suppression"
 // the businesses whose WhatsApp is a different line are exactly the ones a
 // click-to-chat link would otherwise send to the wrong place.
 //
-// Editing lives behind the last row, in a sheet, so the page carries the
+// Editing lives behind the section's Edit, in a sheet, so the page carries the
 // details without carrying the input fields — the old profile form put four
 // text boxes front and centre for a record that changes maybe twice in its life.
 //
@@ -81,12 +72,12 @@ function CopyValueButton({
 }) {
   const [copied, setCopied] = useState(false)
   return (
-    <Button
+    <DeskButton
       type="button"
       variant="ghost"
       size="icon-sm"
       aria-label={label}
-      className="text-app-label-3"
+      className="text-desk-fg-3"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(value)
@@ -100,8 +91,8 @@ function CopyValueButton({
         }
       }}
     >
-      {copied ? <Check className="text-success" /> : <Copy />}
-    </Button>
+      {copied ? <Check className="text-desk-done" /> : <Copy />}
+    </DeskButton>
   )
 }
 
@@ -131,12 +122,39 @@ export function LeadContactCard({
   )
 
   return (
-    <GroupedSection header="Contact">
+    <RecordSection
+      header="Contact"
+      actions={
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <DeskButton variant="ghost" size="sm" aria-label="Edit contact">
+              Edit
+            </DeskButton>
+          </SheetTrigger>
+          <ContactSheet
+            client={client}
+            pending={pending}
+            onSave={(formData) =>
+              startTransition(async () => {
+                hapticTick()
+                try {
+                  await saveClientContact(client.id, formData)
+                  setOpen(false)
+                } catch {
+                  // The sheet stays open on a failure, so the fields you
+                  // typed are still there to try again with.
+                  toast.error("Couldn't save the contact details")
+                }
+              })
+            }
+          />
+        </Sheet>
+      }
+    >
       {client.email ? (
-        <GroupedRow
-          icon={<Mail />}
+        <RecordRow
           label="Email"
-          value={client.email}
+          value={<span className="font-mono text-desk-meta">{client.email}</span>}
           description={suppressed.email ? OPTED_OUT : undefined}
           // No mailto on a closed channel: the row is the record of an address
           // that must not be written to.
@@ -157,10 +175,9 @@ export function LeadContactCard({
         // disc in the action row. It is the dedicated WhatsApp number when
         // there is one and the phone number otherwise, which is the same rule
         // the wa.me links everywhere else in the app follow.
-        <GroupedRow
-          icon={<MessageCircle />}
+        <RecordRow
           label="WhatsApp"
-          value={<span className="font-mono">{chat}</span>}
+          value={<span className="font-mono text-desk-meta">{chat}</span>}
           description={suppressed.whatsapp ? OPTED_OUT : undefined}
           href={suppressed.whatsapp ? undefined : whatsappUrl(chat)}
           target="_blank"
@@ -179,10 +196,9 @@ export function LeadContactCard({
           phone number the row above has already shown it, and a second row
           saying the same digits is noise. */}
       {client.phone && client.phone !== chat ? (
-        <GroupedRow
-          icon={<Phone />}
+        <RecordRow
           label="Phone"
-          value={<span className="font-mono">{client.phone}</span>}
+          value={<span className="font-mono text-desk-meta">{client.phone}</span>}
           description={suppressed.phone ? OPTED_OUT : undefined}
           chevron={false}
           accessory={
@@ -199,10 +215,13 @@ export function LeadContactCard({
         // Stored bare; the '@' is punctuation, so it is put back here rather
         // than kept in the column. `AtSign` rather than a brand glyph: Lucide
         // v1 dropped its logo set, and a handle is what this row actually is.
-        <GroupedRow
-          icon={<AtSign />}
+        <RecordRow
           label="Instagram"
-          value={`@${client.instagram}`}
+          value={
+            <span className="font-mono text-desk-meta">
+              @{client.instagram}
+            </span>
+          }
           description={suppressed.instagram ? OPTED_OUT : undefined}
           href={
             suppressed.instagram ? undefined : instagramUrl(client.instagram)
@@ -220,8 +239,7 @@ export function LeadContactCard({
       ) : null}
 
       {client.company ? (
-        <GroupedRow
-          icon={<Building2 />}
+        <RecordRow
           label="Company"
           value={client.company}
           chevron={false}
@@ -236,120 +254,117 @@ export function LeadContactCard({
       ) : null}
 
       {hasAny ? null : (
-        <GroupedBlock>
-          No contact details yet — add them below.
-        </GroupedBlock>
+        <RecordBlock>
+          No contact details yet — add them with Edit.
+        </RecordBlock>
       )}
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <GroupedRow icon={<Pencil />} label="Edit contact" />
-        </SheetTrigger>
-        <SheetContent detents={["medium", "large"]}>
-          <SheetHeader>
-            <SheetTitle>Edit contact</SheetTitle>
-            <SheetDescription>
-              Who they are and how to reach them.
-            </SheetDescription>
-          </SheetHeader>
-          <form
-            action={(formData) =>
-              startTransition(async () => {
-                hapticTick()
-                try {
-                  await saveClientContact(client.id, formData)
-                  setOpen(false)
-                } catch {
-                  // The sheet stays open on a failure, so the fields you
-                  // typed are still there to try again with.
-                  toast.error("Couldn't save the contact details")
-                }
-              })
-            }
-            className="grid gap-3"
-          >
-            <AppField label="Name">
-              <AppInput
-                name="name"
-                defaultValue={client.name}
-                required
-                autoComplete="name"
-                autoCapitalize="words"
-                enterKeyHint="next"
-              />
-            </AppField>
-            <AppField label="Company">
-              <AppInput
-                name="company"
-                defaultValue={client.company ?? ""}
-                placeholder="—"
-                autoComplete="organization"
-                autoCapitalize="words"
-                enterKeyHint="next"
-              />
-            </AppField>
-            <AppField label="Email">
-              <AppInput
-                name="email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                enterKeyHint="next"
-                defaultValue={client.email ?? ""}
-                placeholder="—"
-              />
-            </AppField>
-            <AppField label="Phone">
-              <AppInput
-                name="phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                enterKeyHint="next"
-                defaultValue={client.phone ?? ""}
-                placeholder="—"
-              />
-            </AppField>
-            <AppField
-              label="WhatsApp"
-              hint="Only if it isn't the phone number above."
-            >
-              <AppInput
-                name="whatsapp"
-                type="tel"
-                inputMode="tel"
-                autoComplete="off"
-                enterKeyHint="next"
-                defaultValue={client.whatsapp ?? ""}
-                placeholder="—"
-              />
-            </AppField>
-            <AppField label="Instagram" hint="The handle, with or without the @.">
-              <AppInput
-                name="instagram"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                // Last field in the sheet — the return key saves rather than
-                // asking for another one.
-                enterKeyHint="done"
-                defaultValue={client.instagram ? `@${client.instagram}` : ""}
-                placeholder="—"
-              />
-            </AppField>
-            <PendingButton
-              pending={pending}
-              pendingText="Saving…"
-              className="w-full sm:w-fit"
-            >
-              Save
-            </PendingButton>
-          </form>
-        </SheetContent>
-      </Sheet>
-    </GroupedSection>
+    </RecordSection>
+  )
+}
+
+/** The edit form, in its sheet — opened from the section's Edit. */
+function ContactSheet({
+  client,
+  pending,
+  onSave,
+}: {
+  client: ContactDetails
+  pending: boolean
+  onSave: (formData: FormData) => void
+}) {
+  return (
+    <SheetContent detents={["medium", "large"]}>
+      <SheetHeader>
+        <SheetTitle>Edit contact</SheetTitle>
+        <SheetDescription>
+          Who they are and how to reach them.
+        </SheetDescription>
+      </SheetHeader>
+      <form
+        action={onSave}
+        className="grid gap-3"
+      >
+        <AppField label="Name">
+          <AppInput
+            name="name"
+            defaultValue={client.name}
+            required
+            autoComplete="name"
+            autoCapitalize="words"
+            enterKeyHint="next"
+          />
+        </AppField>
+        <AppField label="Company">
+          <AppInput
+            name="company"
+            defaultValue={client.company ?? ""}
+            placeholder="—"
+            autoComplete="organization"
+            autoCapitalize="words"
+            enterKeyHint="next"
+          />
+        </AppField>
+        <AppField label="Email">
+          <AppInput
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="next"
+            defaultValue={client.email ?? ""}
+            placeholder="—"
+          />
+        </AppField>
+        <AppField label="Phone">
+          <AppInput
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            enterKeyHint="next"
+            defaultValue={client.phone ?? ""}
+            placeholder="—"
+          />
+        </AppField>
+        <AppField
+          label="WhatsApp"
+          hint="Only if it isn't the phone number above."
+        >
+          <AppInput
+            name="whatsapp"
+            type="tel"
+            inputMode="tel"
+            autoComplete="off"
+            enterKeyHint="next"
+            defaultValue={client.whatsapp ?? ""}
+            placeholder="—"
+          />
+        </AppField>
+        <AppField label="Instagram" hint="The handle, with or without the @.">
+          <AppInput
+            name="instagram"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            // Last field in the sheet — the return key saves rather than
+            // asking for another one.
+            enterKeyHint="done"
+            defaultValue={client.instagram ? `@${client.instagram}` : ""}
+            placeholder="—"
+          />
+        </AppField>
+        <PendingButton
+          pending={pending}
+          pendingText="Saving…"
+          className="w-full sm:w-fit"
+        >
+          Save
+        </PendingButton>
+      </form>
+    </SheetContent>
   )
 }

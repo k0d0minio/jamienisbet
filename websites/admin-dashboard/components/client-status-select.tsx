@@ -43,9 +43,8 @@ const STATUSES = [
 // construction now, rather than by the coarse-pointer floor that used to lift
 // every select trigger in the app, so an iPad at this width can still hit it.
 //
-// On a phone the same change is made on the lead's own page, where it is the
-// first row of the first group and opens a sheet of seven full-width rungs
-// (components/lead-status-row.tsx) — one tap away, and hittable without aiming.
+// On a phone the same change is made on the lead's own page, from the status
+// word in its head (components/lead-status-menu.tsx).
 export function ClientStatusSelect({
   id,
   value,
