@@ -20,4 +20,7 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Tokens + entry: `packages/ui/tokens/desk.css`, `packages/ui/desk.css`, `package.json` (export, files, `check:css:desk`), `src/lib/utils.ts` (tailwind-merge knows the desk names)
+- [x] Primitives + barrel: `packages/ui/src/components/desk/*`, `src/index.ts`
+- [x] Docs: `BRAND.md` § Desk tier + App tier (retiring), `packages/ui/SKILL.md`, `packages/ui/README.md`, `.claude/skills/design-dna/SKILL.md`
+- [ ] Ready flip + full verdict (`ci-status.sh desk-tier` → GREEN on the post-flip head)

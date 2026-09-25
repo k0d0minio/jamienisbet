@@ -23,11 +23,17 @@ generous whitespace, and a full light **+ dark** theme. The longer brand guide l
   the brand token variables, and maps the brand semantic aliases onto shadcn's color tokens
   (`@theme inline`) so utilities like `bg-primary` / `text-muted-foreground` render in the
   brand palette and flip with `[data-theme="dark"]`.
-- **`app.css`** — the **app tier** entry, opt-in. An *operated* surface (the admin PWA)
+- **`desk.css`** — the **desk tier** entry, opt-in: the admin's tier. The admin links it
+  right after `styles.css` and gains the dense scale in Hanken Grotesk, 32px rows and 30px
+  controls at the desk (44px under a thumb, from the tokens), tight corners, hairline panes
+  and a single float shadow. No marketing site links it. Values live in `tokens/desk.css`.
+  See [`BRAND.md`](BRAND.md) § Desk tier and [Desk tier](#desk-tier) below.
+- **`app.css`** — the **app tier** entry, opt-in and **retiring** (the admin's screens move
+  to the desk tier one by one; `retire-app-tier` deletes it). An *operated* surface
   links it right after `styles.css` and gains translucent materials, real elevation, spring
   motion, the native type scale on the system font stack, and larger continuous corners. No
   marketing site links it, and nothing in `styles.css` reaches it. Values live in
-  `tokens/app.css`. See [`BRAND.md`](BRAND.md) § App tier and [App tier](#app-tier) below.
+  `tokens/app.css`. See [`BRAND.md`](BRAND.md) § App tier (retiring) and [App tier](#app-tier) below.
 - **`tokens.css`** — the **variables-only** layer (no Tailwind). Link this from non-React /
   non-Tailwind surfaces (static HTML, email, slides). `styles.css` is built on top of it.
 - **`tokens/`** — CSS custom properties, one file per concern (`colors`, `typography`,
@@ -61,7 +67,8 @@ Idiomatic shadcn APIs (compositional, standard variant names), themed with the b
 | Machine-readable | `QrCode` (+ `canEncodeQr`) — see [QR codes](#qr-codes) |
 | Brand-only | `Eyebrow`, `IconButton`, `LogoMark`, `LogoMarkSolid`, `LogoFull`, `LogoLoader` |
 | Motion | `Reveal`, `RevealGroup`, `RevealItem`, `LogoLockup` — see [Motion & feedback](#motion--feedback) |
-| App tier | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material`, `AppField` (+ `AppLabel`/`AppInput`/`AppTextarea`), `AppSelect` (+ its parts) — see [App tier](#app-tier) |
+| Desk tier | `RailItem`, `Pane` (+ `PaneHeader`/`PaneToolbar`/`PaneBody`), `ListRow`, `StatusDot`, `PriorityTag`, `Kbd`, `DeskSegmentedControl`, `DataGrid` (+ `DataGridHeader`/`DataGridBody`/`DataGridRow`/`DataGridHeaderCell`/`DataGridCell`), `CommandPalette` (+ `CommandPaletteInput`/`List`/`Group`/`Item`/`Empty`), `DeskButton` — see [Desk tier](#desk-tier) |
+| App tier (retiring) | `GroupedList` (+ `GroupedSection`/`GroupedRow`/`GroupedBlock`/`GroupedDisclosure`), `CollapsingHeader`, `LargeTitleHeader`, `IdentityHeader`, `Monogram`, `ActionCircle` (+ `ActionCircleRow`), `Material`, `AppField` (+ `AppLabel`/`AppInput`/`AppTextarea`), `AppSelect` (+ its parts) — see [App tier](#app-tier) |
 
 Brand tunings over stock shadcn: control radius `5px` (`rounded-sm`), card radius `12px`
 (`rounded-lg`), cards rest on a hairline border (no resting shadow), `Badge` is a mono
@@ -210,7 +217,67 @@ export function Brief() {
 }
 ```
 
+### Desk tier
+
+The admin's tier: a dense, flat work tool designed at the desk and compressed for the phone.
+It is **opt-in** — link it after the theme, and nothing else in the estate changes. It can sit
+beside `app.css` while the admin's screens move over: every name here is `desk-*`.
+
+```css
+/* app/globals.css — the desk tier, on top of the theme. Order matters:
+   desk.css assumes Tailwind and the brand tokens are already loaded. */
+@import "@jamie-nisbet/ui/styles.css";
+@import "@jamie-nisbet/ui/desk.css";
+@source "../../../packages/ui/src";
+```
+
+Then put `desk-tier` on the shell's root element — one class that sets Hanken Grotesk at the
+ui step on the page canvas, and draws focus inside the control.
+
+| | Utilities | Tokens |
+|---|---|---|
+| **Type** | `font-desk`, `text-desk-title` / `-heading` / `-body` / `-ui` / `-meta` / `-micro` / `-figure`, `tracking-desk-eyebrow` | `--desk-text-*`, `--desk-leading-*`, `--desk-weight-*` |
+| **Size** | `h-desk-row`, `h-desk-control` / `-control-sm`, `h-desk-grid-row` / `-grid-header`, `w-desk-rail`, `size-desk-rail-item`, `h-desk-pane-header`, `h-desk-toolbar`, `size-desk-icon` / `-icon-rail` / `-dot` / `-check` / `-badge` | `--desk-row`, `--desk-control`, … |
+| **Shape** | `rounded-desk-key` / `-control` / `-pane` | `--desk-radius-*` |
+| **Elevation** | `shadow-desk-float` — only what floats | `--desk-shadow-float` |
+| **Colour** | `bg-desk-canvas` / `-surface` / `-hover` / `-sunken`, `border-desk-line` / `-line-strong`, `text-desk-fg` / `-fg-2` / `-fg-3`, `bg-desk-ink` + `text-desk-ink-fg`, `desk-running` / `desk-blocked` / `desk-done` (+ `-soft`) | `--desk-*`, each an alias of a semantic token |
+
+**The touch step is in the tokens.** One `@media (pointer: coarse)` block in
+`tokens/desk.css` takes rows and controls to 44px and every type step up one (body 16, ui 15),
+so a component sized with the `desk-*` steps needs no query of its own.
+
+```tsx
+import {
+  DeskButton, ListRow, Pane, PaneBody, PaneHeader, PriorityTag, StatusDot,
+} from "@jamie-nisbet/ui"
+import { Play } from "lucide-react"
+
+<Pane aria-label="Tickets">
+  <PaneHeader
+    title="Tickets"
+    meta="quinta-do-sol · 5"
+    actions={
+      <DeskButton shortcut={["⌘", "↵"]} aria-keyshortcuts="Meta+Enter">
+        <Play /> Launch
+      </DeskButton>
+    }
+  />
+  <PaneBody>
+    <ListRow
+      href="?t=quinta-do-sol/content-model"
+      selected
+      leading={<StatusDot status="next" />}
+      label="Content model for services and team"
+      meta={<>1/4 <PriorityTag priority="P1" /></>}
+    />
+  </PaneBody>
+</Pane>
+```
+
 ### App tier
+
+*Retiring — new admin work goes on the [desk tier](#desk-tier); this stays until
+`retire-app-tier` deletes it.*
 
 `websites/admin-dashboard` is not a website with a login — it is an installed, one-handed
 PWA, and it ships on a second sanctioned tier of this package. The tier is **opt-in**: link

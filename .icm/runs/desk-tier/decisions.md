@@ -33,5 +33,10 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-23 — No preview surface for the primitives; the first visual check is `shell-rail-palette`'s preview. (Define, operator's answer 2026-09-25.)
+- D-24 — `packages/ui/src/lib/utils.ts` gains the desk names in tailwind-merge's config (text sizes, text colours, the float shadow, and the spacing / radius / tracking theme values). Without it `cn("text-desk-ui text-desk-fg")` drops the size, as the app tier once did. The file was not in `touches:` — a spec gap, additive only. (Build.)
+- D-25 — Selection semantics follow ARIA validity rather than the spec's shorthand: `ListRow` speaks `aria-selected` only under a role that carries it (option, row, tab…) and `aria-current="true"` otherwise; a sortable column puts `aria-sort` on the column header (`<th>`), which contains the sort button. (Build.)
+- D-26 — `DeskButton`'s `shortcut` renders the keys as quiet mono text inside the button, as the canvas draws "Launch ⌘↵" (a `Kbd` cap inside an ink button would read wrong); it is aria-hidden and the caller declares `aria-keyshortcuts` in its own spelling. (Build.)
+- D-27 — The palette has no scrim (a transparent overlay still closes on an outside click): the tier is flat, and a dim colour for both themes has no semantic token to alias. (Build.)
+- D-28 — `--desk-shadow-float` aliases the brand's `--shadow-xl`, which already carries its dark value — so `tokens/desk.css` holds no raw colour at all. (Build.)
+- D-29 — `PaneBody` added beside `Pane` / `PaneHeader` / `PaneToolbar` (the scrolling region), and `DataGridBody` beside the grid's parts; both are one-liners the screens would otherwise repeat. (Build.)
