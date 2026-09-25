@@ -52,8 +52,18 @@ function DeskSegmentedControl<T extends string>({
     .map((option, index) => ({ option, index }))
     .filter(({ option }) => !option.disabled)
 
-  function onKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
-    const at = enabled.findIndex(({ option }) => option.value === value)
+  // The roving tab stop: the checked option, or the first enabled one when
+  // nothing enabled is checked — so Tab always reaches the group.
+  const checkedEnabled = enabled.some(({ option }) => option.value === value)
+  const stop = checkedEnabled
+    ? options.findIndex((option) => option.value === value)
+    : (enabled[0]?.index ?? -1)
+
+  // Moves from the focused option, not from `value`: a URL-backed caller
+  // updates `value` only after navigating, and two quick presses must still
+  // move two steps.
+  function onKeyDown(event: React.KeyboardEvent<HTMLButtonElement>, from: number) {
+    const at = enabled.findIndex(({ index }) => index === from)
     let next: number | null = null
     switch (event.key) {
       case "ArrowRight":
@@ -99,12 +109,12 @@ function DeskSegmentedControl<T extends string>({
             type="button"
             role="radio"
             aria-checked={checked}
-            tabIndex={checked ? 0 : -1}
+            tabIndex={index === stop ? 0 : -1}
             disabled={option.disabled}
             data-slot="desk-segmented-item"
             data-checked={checked || undefined}
             onClick={() => onValueChange(option.value)}
-            onKeyDown={onKeyDown}
+            onKeyDown={(event) => onKeyDown(event, index)}
             className={cn(
               "inline-flex h-desk-control-sm items-center justify-center gap-1.5 rounded-desk-key border px-3 text-desk-ui whitespace-nowrap transition-colors duration-100 disabled:opacity-50",
               checked

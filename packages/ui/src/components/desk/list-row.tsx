@@ -89,7 +89,9 @@ function ListRow({
     >
       <Slot.Slottable>{children}</Slot.Slottable>
       {leading != null && (
-        <span className="flex shrink-0 items-center">{leading}</span>
+        <span className="flex shrink-0 items-center [&_svg:not([class*='size-'])]:size-desk-icon">
+          {leading}
+        </span>
       )}
       <span
         className={cn(

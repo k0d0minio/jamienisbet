@@ -59,7 +59,7 @@ function PaneHeader({
       )}
       {...props}
     >
-      <Title className="shrink-0 truncate text-desk-heading font-bold text-desk-fg">
+      <Title className="min-w-0 truncate text-desk-heading font-bold text-desk-fg">
         {title}
       </Title>
       {meta != null && (
@@ -82,7 +82,9 @@ function PaneToolbar({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="pane-toolbar"
       className={cn(
-        "flex h-desk-toolbar shrink-0 items-center gap-1 border-b border-desk-line px-5",
+        // A floor, not a height: under a thumb a segmented control's 44px
+        // options sit in a padded track, and the strip grows to hold it.
+        "flex min-h-desk-toolbar shrink-0 items-center gap-1 border-b border-desk-line px-5",
         className
       )}
       {...props}

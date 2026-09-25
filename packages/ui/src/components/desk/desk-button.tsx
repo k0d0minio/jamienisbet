@@ -77,7 +77,8 @@ function DeskButton({
   const classes = cn(deskButtonVariants({ variant, size }), className)
 
   // Under asChild the caller's element is the button; extra siblings would
-  // break the Slot, so the shortcut and spinner are the caller's to render.
+  // break the Slot, so the shortcut and spinner are the caller's to render —
+  // but the disabled and busy states still reach the element.
   if (asChild) {
     return (
       <Button
@@ -85,6 +86,8 @@ function DeskButton({
         variant={null}
         size={null}
         data-slot="desk-button"
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         className={classes}
         {...props}
       >

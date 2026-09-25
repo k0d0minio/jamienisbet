@@ -41,7 +41,9 @@ function DataGrid({ className, ...props }: React.ComponentProps<"table">) {
     <table
       data-slot="data-grid"
       className={cn(
-        "w-full border-collapse text-left text-desk-ui text-desk-fg",
+        // Separate borders, drawn on the cells: a collapsed border belongs to
+        // the table, so a sticky header's hairline would scroll away with it.
+        "w-full border-separate border-spacing-0 text-left text-desk-ui text-desk-fg",
         className
       )}
       {...props}
@@ -69,7 +71,10 @@ function DataGridRow({ selected = false, className, ...props }: DataGridRowProps
       data-selected={selected || undefined}
       aria-current={selected ? "true" : undefined}
       className={cn(
-        "h-desk-grid-row border-b border-desk-line transition-colors duration-100",
+        // No height and no border here: a header row and a body row differ, and
+        // under separate borders a row's own border is not drawn — the cells
+        // carry both.
+        "transition-colors duration-100",
         "[tbody>&]:hover:bg-desk-hover",
         selected && "bg-desk-sunken [tbody>&]:hover:bg-desk-sunken",
         className
@@ -151,7 +156,7 @@ function DataGridCell({
     <td
       data-slot="data-grid-cell"
       className={cn(
-        "truncate px-2.5 first:pl-5 last:pr-4",
+        "h-desk-grid-row truncate border-b border-desk-line px-2.5 first:pl-5 last:pr-4",
         (numeric || align === "end") && "text-right",
         numeric && "font-mono text-desk-meta tabular-nums",
         className

@@ -11,7 +11,11 @@
    What it adds is density and structure, never a hue. Every colour
    below is an alias of a semantic token in colors.css, so dark mode
    flips through the one [data-theme="dark"] block that already
-   exists and this file carries no dark block of its own. No
+   exists and this file carries no dark values of its own. The
+   aliases are declared on every [data-theme] element as well as
+   :root: a custom property holding var() resolves where it is
+   declared, so an alias set only on :root would keep the root's
+   theme inside a subtree that flips. No
    materials, no springs, no blur: a hairline does the structural
    work, a shadow means "floats" and nothing else.
 
@@ -31,7 +35,8 @@
    app.css while its screens move over, without a collision.
    ============================================================ */
 
-:root {
+:root,
+[data-theme] {
   /* ============================================================
      COLOUR — aliases only. Design against these, never the ramps.
      ============================================================ */
@@ -68,6 +73,16 @@
   --desk-done: var(--success);
   --desk-done-soft: var(--success-soft);
 
+  /* ============================================================
+     ELEVATION — one step, for what floats: the palette, a menu, a
+     sheet. Resting content never takes it. The brand's own step
+     already carries its dark value.
+     ============================================================ */
+
+  --desk-shadow-float: var(--shadow-xl);
+}
+
+:root {
   /* ============================================================
      TYPE — Hanken Grotesk for UI text, IBM Plex Mono for every
      figure, slug, date, key and piece of metadata (D-4).
@@ -146,14 +161,6 @@
   --desk-radius-key: 4px; /* a key hint, a segment inside its track */
   --desk-radius-control: 6px; /* buttons, rows, rail items, tracks */
   --desk-radius-pane: 8px; /* cards, the palette, a menu */
-
-  /* ============================================================
-     ELEVATION — one step, for what floats: the palette, a menu, a
-     sheet. Resting content never takes it. The brand's own step
-     already carries its dark value.
-     ============================================================ */
-
-  --desk-shadow-float: var(--shadow-xl);
 }
 
 /* ============================================================
