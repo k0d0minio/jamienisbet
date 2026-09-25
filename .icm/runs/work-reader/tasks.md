@@ -24,4 +24,10 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] `lib/tickets.ts` — open-PR read per repo, lane-PR file list, stub/run match, scope-run filter, `prErrors` (299139c)
+- [x] `lib/launchers/index.ts` — `primaryAction`, shared by the reader's button and ⌘↵ (299139c)
+- [x] `components/ticket-reader.tsx` + `app/globals.css` desk prose — head, action row, body, side column (299139c)
+- [x] `components/work-views.tsx` — desk batch, repo and overview views for pane three (299139c)
+- [x] `components/work-desk.tsx`, `use-board-keys.ts`, `board-keys-sheet.tsx`, `work-model.ts` — wiring, ⌘↵, PR line on rows (299139c)
+- [x] `websites/admin-dashboard/README.md` — the reader, ⌘↵, the PR read and its budget (299139c)
+- [ ] Verified on the preview — the operator's smoke
