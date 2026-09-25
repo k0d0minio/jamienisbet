@@ -29,9 +29,9 @@ import { hapticTick } from "@/lib/haptics"
 // the tint for the leading full swipe, a muted semantic for the tray actions,
 // grey for archive and red for the one thing that can't be undone.
 //
-// No radius and no border of its own: the row sits inside a grouped section
-// whose slab owns the corners and clips them, so a tray revealed at the top or
-// bottom of the list is clipped by the group rather than sticking out of it.
+// No radius and no border of its own: the row sits in the phone list, flat and
+// full-bleed on the desk tier, whose container clips it — so a tray revealed
+// at the top or bottom of the list never sticks out of it.
 export function LeadRow({
   id,
   name,
@@ -155,10 +155,10 @@ export function LeadRow({
           : {
               label: "Touched",
               icon: <Check className="size-6" aria-hidden />,
-              // The leading full swipe takes the tint, the way the native one
-              // does — it is the app's own affirmative action, not a semantic
+              // The leading full swipe takes the ink, the desk tier's one
+              // tint — it is the app's own affirmative action, not a semantic
               // state. Green stays with WhatsApp, where it means the app.
-              className: "bg-app-tint text-primary-foreground",
+              className: "bg-desk-ink text-desk-ink-fg",
               // The row's own "waiting" line is rendered on the server, so it
               // can't move until the revalidation lands — the tinted underlay
               // under the thumb, the tick fired at the threshold, and this

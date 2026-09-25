@@ -13,6 +13,7 @@ import {
   AppSelectValue,
   AppTextarea,
   Button,
+  DeskButton,
   PendingButton,
   SegmentedControl,
   SegmentedItem,
@@ -54,7 +55,7 @@ import { hapticTick } from "@/lib/haptics"
 
 // The two ways in. `status` is what actually gets stored — these are the two
 // ends of the ladder, and the rest of it (in discussion, past, not won) is a
-// dropdown away on the row itself.
+// dropdown away on their profile.
 //
 // The third copy of the status vocabulary in the dashboard, and the one the
 // cold pool deliberately did **not** grow. `prospect` and `nurture` are rungs a
@@ -98,7 +99,15 @@ const KINDS = [
 
 type Kind = (typeof KINDS)[number]
 
-export function ClientCreateForm() {
+export function ClientCreateForm({
+  trigger = "bar",
+}: {
+  /** `bar` — today's two triggers: the title bar's `+` from `md` and the
+   *  floating button below it. `desk` — the desk Leads header's one "Add
+   *  lead" button; that screen renders its phone tree separately, with the
+   *  `bar` form, so each breakpoint has exactly one way in. */
+  trigger?: "bar" | "desk"
+} = {}) {
   const [open, setOpen] = useState(false)
   const [kind, setKind] = useState<Kind>(KINDS[0])
   const [pending, startTransition] = useTransition()
@@ -127,46 +136,58 @@ export function ClientCreateForm() {
         }
       }}
     >
-      {/* Desktop: a bar button on the title bar's trailing edge. Keyed to
-          `md`, where the chrome swaps the tab bar for the rail — the
-          floating button below is positioned against that bar, so the two have
-          to hand over on the same breakpoint. Tinted, because it is the one
-          thing on this screen that makes something. */}
-      <SheetTrigger asChild>
-        <button
-          type="button"
-          aria-label="Add lead or client"
-          title="Add lead or client"
-          className={cn(
-            "hidden size-app-touch shrink-0 items-center justify-center rounded-app-control md:flex",
-            "text-app-tint transition-colors spring-press active:bg-app-press"
-          )}
-        >
-          <Plus className="size-5" aria-hidden />
-        </button>
-      </SheetTrigger>
+      {trigger === "desk" ? (
+        // The desk Leads header: the screen's one primary act, in words.
+        <SheetTrigger asChild>
+          <DeskButton variant="primary" title="Add lead or client">
+            <Plus aria-hidden />
+            Add lead
+          </DeskButton>
+        </SheetTrigger>
+      ) : (
+        <>
+          {/* Desktop: a bar button on the title bar's trailing edge. Keyed to
+              `md`, where the chrome swaps the tab bar for the rail — the
+              floating button below is positioned against that bar, so the two have
+              to hand over on the same breakpoint. Tinted, because it is the one
+              thing on this screen that makes something. */}
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              aria-label="Add lead or client"
+              title="Add lead or client"
+              className={cn(
+                "hidden size-app-touch shrink-0 items-center justify-center rounded-app-control md:flex",
+                "text-app-tint transition-colors spring-press active:bg-app-press"
+              )}
+            >
+              <Plus className="size-5" aria-hidden />
+            </button>
+          </SheetTrigger>
 
-      {/* Phone: a floating disc riding above the floating tab bar, reachable
-          one-handed. `bottom-above-tabs` reads the bar's own geometry, and
-          the gutter token puts it on the same margin as everything else on
-          the screen — the tab bar's pill is capped at `max-w-sm` and centred,
-          so on any phone this clears it sideways as well as vertically.
-          `shadow-app-chrome` is the tier's "this floats" step, the same one
-          the bar under it takes. */}
-      <SheetTrigger asChild>
-        <button
-          type="button"
-          aria-label="Add lead or client"
-          className={cn(
-            "fixed right-(--app-gutter) bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
-            "rounded-full bg-app-tint text-primary-foreground shadow-app-chrome",
-            // Press = colour deepens, never a shrink (BRAND.md § Motion).
-            "transition-colors spring-press active:bg-primary-active"
-          )}
-        >
-          <Plus className="size-6" aria-hidden />
-        </button>
-      </SheetTrigger>
+          {/* Phone: a floating disc riding above the floating tab bar, reachable
+              one-handed. `bottom-above-tabs` reads the bar's own geometry, and
+              the gutter token puts it on the same margin as everything else on
+              the screen — the tab bar's pill is capped at `max-w-sm` and centred,
+              so on any phone this clears it sideways as well as vertically.
+              `shadow-app-chrome` is the tier's "this floats" step, the same one
+              the bar under it takes. */}
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              aria-label="Add lead or client"
+              className={cn(
+                "fixed right-(--app-gutter) bottom-above-tabs z-20 flex size-14 items-center justify-center md:hidden",
+                "rounded-full bg-app-tint text-primary-foreground shadow-app-chrome",
+                // Press = colour deepens, never a shrink (BRAND.md § Motion).
+                "transition-colors spring-press active:bg-primary-active"
+              )}
+            >
+              <Plus className="size-6" aria-hidden />
+            </button>
+          </SheetTrigger>
+        </>
+      )}
 
       {/* A bottom sheet on a phone, a centred dialog from `sm` up — the Sheet
           primitive's whole job. One `large` detent rather than two: this is the

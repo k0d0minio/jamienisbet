@@ -52,7 +52,7 @@ Every criterion is met in code (self-checked by reading the diff); none has been
 - gate: Ready to merge ticked — merge authorised
 - ci: GREEN on d56d9dd (the merge of main, before the review fix) — re-read after the last push; the merging head is in the stop report
 - reviews: code medium — 1 finding, fixed on this branch (j / k honoured a stale list order on a profile the list never opened; see FAILURE.md) · security security-check.sh --branch --audit: OK · /security-review n/a (no auth, payments, route policy or new PII flow — the profile shows the same record it always did) · /production-readiness n/a (no DB, auth, payments or env change) · readiness env.sh audit --changed: OK
-- merge: origin/main (inbox-rebuild, #174) merged in; one conflict in the admin README's file map, both sides kept
+- merge: origin/main (inbox-rebuild, #174) merged in; one conflict in the admin README's file map, both sides kept; then again after the close-out for leads-table-board (#173) — the list page taken whole from main with the `LeadOrderRecorder` re-mounted over its `visible` order (table and phone rows; the board steps in the table's order), `client-status-select.tsx` deleted as main did, the dead `ClientActions` component dropped (the hook stays), README and learned rules kept from both sides
 - parked: none
 - migrations: skip — none of this run's own
 - learned: 1 rule, from FAILURE.md (close-out syncs it); retrospective.sh: skip — no error.log

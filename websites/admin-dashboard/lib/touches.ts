@@ -4,7 +4,7 @@
 // live in @jamie-nisbet/services, which is the authority: the server action
 // re-validates everything this file names and refuses anything it doesn't
 // recognise. They are copied here for the same reason `lib/lead-facts.ts` and
-// `components/client-status-select.tsx` copy theirs: the log sheet is a client
+// `components/lead-status-menu.tsx` copy theirs: the log sheet is a client
 // component, and importing the services barrel would pull the Drizzle client
 // and the Neon driver into the browser bundle to read a dozen labels.
 //

@@ -23,7 +23,7 @@ on the desk tier (`packages/ui/BRAND.md` § Desk tier); the screens inside it mo
 |---|---|---|
 | **Work** | `/` | Every repo's `.icm/intake/` backlog in one read-only board. Home. |
 | **Inbox** | `/inbox` | The follow-ups queue: outreach due, leads gone quiet, wakes — cleared from the list or the keyboard. |
-| **Leads** | `/leads` | Every lead and customer in one list, longest-waiting first; the cold pool is a view of it (`?view=prospects`). |
+| **Leads** | `/leads` | Every lead and customer: a sortable table or a read-only board by deal stage at the desk, swipeable rows on the phone; longest-waiting first by default; the cold pool is a view of it (`?view=prospects`). |
 | **Lead** | `/leads/<id>` | One person's profile: at the desk, the record beside the activity; j / k to the next lead. |
 | **Money** | `/money` | Stripe: balance, invoices, payment links, recent payments. **Reachable by URL only** — it left the navigation and the palette (D-17), and its code stays in place, dormant. |
 
@@ -122,34 +122,60 @@ meetup are all the same kind of record; `source` is the only thing that tells th
 is no second table for opportunities — a lead who comes back for more work is still the same
 relationship, and what was actually billed lives in Stripe.
 
-- **Sorted by who has waited longest.** The list orders on
-  `coalesce(last_touched_at, created_at)` ascending, so the page opens on the work rather than
-  on the newest arrival. Anything open and untouched for 7+ days is flagged in red. Changing a
-  status, editing a profile, or hitting **Mark touched** all stamp the row and drop it back down
-  the list.
-- **Filters** — All / Open / Clients / Not won, each with a count, in one segmented control:
-  they partition the list, so they belong in a single track rather than a rail of chips you
-  could read as independent toggles. From `md` up, status becomes a pull-down menu on the row
-  itself ([`components/client-status-select.tsx`](components/client-status-select.tsx)),
-  changed in place — the desktop half of "one design that grows".
-- **Two views, switched from the title bar.** **Archived** and **Prospects** are both switches
-  beside the page title rather than more chips, because each changes what you are looking at
-  rather than filtering it. The prospects view holds the cold pool — imported businesses on the
-  `prospect` and `nurture` rungs — sorted on their **fit tier** (A/B/C, in mono where a deal's
-  figure sits, untiered rows last) with the parked ones muted and last, its rows carrying
-  *sector · town* in place of a waiting line nobody is waiting on, and its own three segments
-  (All / Working / Nurture). Nothing in it is open, stale, or in a money total, and the `+` is
-  not offered there: the pool arrives by import, in a batch, not one business at a time.
-- **A row is two lines and its actions are gestures.** The whole row opens the lead;
-  **swipe left** reveals call / email / archive (restore / delete in the archive view),
-  **swipe right** marks them touched in one stroke — the mail-app idiom, built on
-  [`components/swipe-row.tsx`](components/swipe-row.tsx). Every gesture has a non-gesture twin
-  one tap away, on the lead's own page: the swipe is the shortcut, never the only way in.
-  Status reads on the row on a phone and changes on that page — a dropdown per row was most of
-  what made the old cards tall.
-- **One codepath from phone to laptop.** The wide table is gone: the same inset grouped rows
-  simply grow — more room, more of the record on the line — rather than a phone list being
-  swapped for a desktop table at `md`.
+- **Desk first, compressed for the phone** (leads-table-board, D-1, D-19). From `md` — where the
+  shell swaps the tab bar for the rail — the screen is one desk-tier pane across the content
+  area: a header with the cash totals, the **Table / Board** switch, **Prospects** (with the size
+  of the pool) and **Archived**, and **Add lead**; a filter bar; then the table or the board.
+  Below `md` it is the phone's list of rows under the title bar. One read and one sort feed both.
+  Everything lives in the URL — `view`, `archived`, `filter` or `crack`, `layout`, `sort`, `dir` —
+  so every control is a link that keeps the rest, and a reload or a shared link lands on the
+  same screen.
+- **The table** ([`components/leads-table.tsx`](components/leads-table.tsx), on the desk
+  `DataGrid`) — Name (and company), Status, Deal stage, Value, Next step, Due, Last worked, Tier,
+  and three row actions: **WhatsApp**, **Email**, **Mark touched** (in the archive: **Restore**
+  and **Delete**). A click anywhere else on the row opens the lead. Status is read here and
+  changed on the lead's page, where archive and delete also live — a live row carries no
+  destructive control (D-30).
+- **Sorted by who has waited longest — until you click a header.** With no `sort` in the URL the
+  roster orders on `coalesce(last_touched_at, created_at)` ascending (the table reads that as
+  *Last worked*, descending), so the page opens on the work rather than on the newest arrival.
+  Any of the eight data columns sorts on a click and reverses on the second; the choice rides the
+  URL as `?sort=<name|status|stage|value|next|due|last|tier>&dir=asc|desc` and is applied on the
+  server ([`lib/leads.ts`](lib/leads.ts) → `sortLeads`). Blanks — no stage, no deal, no next
+  step, no date, no tier — sort last in both directions. Anything open and untouched for 7+ days
+  reads `waiting N days` in red; changing a status, editing a profile, or **Mark touched** all
+  stamp the row.
+- **The keyboard** (desk, table) — `j` / `k` move a highlight through the rows, `Enter` opens the
+  highlighted lead, `t` marks it touched. Never while typing, while the palette or a sheet is
+  open, or with a modifier held — ⌘K stays the palette's (D-32).
+- **The board** ([`components/deal-board.tsx`](components/deal-board.tsx)) — `?layout=board`,
+  on every view: one column per deal stage, **01 intake** to **08 handover**, each with its
+  count, and **No folder** first for every lead whose stage can't be read — no repo, no deal
+  folder, no live engagement, or no `NN-` artefact yet (D-35). The stage is the deal folder's in
+  icm-board ([`lib/deals.ts`](lib/deals.ts) → `dealStages`), cached like every other GitHub read
+  here. Cards show name, figure, next step and a due / waiting / status foot, and link to the
+  lead. **Read-only** (D-19): nothing drags and nothing writes — a deal moves in its folder. When
+  the folders can't be listed at all (no `GITHUB_TOKEN`, a rate limit) the board says so in one
+  line instead of filing everyone under No folder in silence.
+- **Filters** — All / Open / Clients / Not won, each with a count that adds up to All, as links
+  in the filter bar. After a hairline, the two cracks the Inbox used to count — **Nothing
+  planned** and **Gone quiet** — each with its count, computed with the same predicates their
+  views list by (D-18, D-34). A crack view (`?crack=unplanned|idle`) stands the population
+  filters down, says in one line what its rows have in common, and links back to Leads.
+- **Two views, switched from the header.** **Archived** and **Prospects** change what you are
+  looking at rather than filtering it. The prospects view holds the cold pool — imported
+  businesses on the `prospect` and `nurture` rungs — sorted on their **fit tier** (A/B/C,
+  untiered rows last) with the parked ones muted and last, carrying *sector · town* where a
+  company would sit, and its own three filters (All / Working / Nurture). Nothing in it is open,
+  stale, or in a money total, and Add lead is not offered there: the pool arrives by import, in
+  a batch, not one business at a time.
+- **On the phone, a row is two lines and its actions are gestures.** Flat, full-bleed rows on the
+  desk tier, at least 44px. The whole row opens the lead; **swipe left** reveals WhatsApp / email
+  / archive (restore / delete in the archive view), **swipe right** marks them touched in one
+  stroke — the mail-app idiom, built on [`components/swipe-row.tsx`](components/swipe-row.tsx).
+  Every gesture has a non-gesture twin one tap away, on the lead's own page: the swipe is the
+  shortcut, never the only way in. The phone gets no Table / Board switch — nine columns is a
+  desk view — and its rows follow whatever sort the URL carries.
 - **The headline figure** — what a lead is worth, in mono beside the name. A deal is
   [composable](../../packages/services/README.md): cash, a swap,
   equity and commission are independent components and any one of them is a deal, so the figure
@@ -159,8 +185,8 @@ relationship, and what was actually billed lives in Stripe.
   the slot is `dealHeadline` in the services layer, so the list row and the profile masthead
   can't disagree about it.
 - **Deal terms, on the row** — not every engagement is euros invoiced monthly, and none of that
-  is legible from a number in a Value column. So a **Deal** column (badges under the name on a
-  phone) carries the four things that change how you treat a relationship:
+  is legible from a number in a Value column. So the phone row's third line (beside the deal
+  folder's stage) carries the four things that change how you treat a relationship:
   **Barter** (`deal_type = 'barter'` — services exchanged, not invoiced),
   **_n_% equity** (`equity_bps` — the stake negotiated in their company),
   **_n_% comm** (`commission_bps` — the cut of the client's revenue taken through Stripe), and
@@ -178,15 +204,14 @@ relationship, and what was actually billed lives in Stripe.
   stays the authority on what was actually invoiced and paid.
 - **Add lead / add customer** — leads mostly arrive by word of mouth, so adding someone by hand
   is a first-class button, not an afterthought: a floating button in the thumb zone above the tab
-  bar on a phone (opening the form as a bottom sheet), an ordinary button beside the heading on
-  desktop. The public contact form is one way in, not the only one. Because a lead and a customer
+  bar on a phone (opening the form as a bottom sheet), **Add lead** in the header at the desk. The public contact form is one way in, not the only one. Because a lead and a customer
   are the same row, the sheet opens on a **Lead / Customer** choice, which is all that sets
   `status` — `new` or `client`. A lead needs only a name; a customer also gets **Value** and
   **Billed**, so entering one who has been paying since before this dashboard existed doesn't
   leave the recurring-revenue total understated from the moment they're added. The free-text box
   follows the same split: a lead's words are intake (`intake_message`), a customer's are working
   notes (`notes`). The rung between the two — `talking` — and the drop-out `lost` are the
-  status dropdown on the row itself. The customer branch also asks **Paid in** (cash or
+  status menu on the lead's page. The customer branch also asks **Paid in** (cash or
   services) — and only that, of the deal terms: the rest skews no total by waiting for the
   profile, but a swap filed as cash overstates the pipeline from the moment it is typed.
 
@@ -796,7 +821,8 @@ app/
     actions.ts          # lead + touch server actions (every lead screen
                         #   uses these); logTouchAction is the one that answers with what to
                         #   do next
-    leads/              # Leads — the list, staleness-sorted; ?view=prospects is the cold
+    leads/              # Leads — the table / board at the desk, rows on the phone;
+                        #   staleness-sorted unless ?sort=; ?view=prospects is the cold
                         #   pool, tier-sorted; loading.tsx alongside
     leads/[id]/         # one lead: head + action bar, record | Activity · Draft · Forms · Notes
                         #   error.tsx — its own boundary, so it can name the record
@@ -811,6 +837,9 @@ components/             # login form, nav, service-worker register, lead + money
                         #   chip.tsx     — filter/view chips (finger-sized, rail-friendly)
                         #   swipe-row.tsx — swipe-left action tray / swipe-right commit, per row
                         #   lead-row.tsx — the leads list's gestures (call/email/archive, touched)
+                        #   leads-table.tsx — Leads at the desk: the DataGrid, header sort,
+                        #                row actions, j/k/Enter/t; the Table / Board switch
+                        #   deal-board.tsx — Leads by deal stage, read-only
                         #   inbox-list.tsx / inbox-row.tsx / inbox-detail.tsx — the Inbox
                         #                queue: fold, selection, keys and optimistic clears;
                         #                one row; the detail pane, the kind table of actions
