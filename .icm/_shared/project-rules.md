@@ -169,3 +169,11 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - A spec never promises how another, unbuilt stub will use this run's work; name the overlap as out of scope and let whichever run lands second reconcile it. (`FAILURE.md` — work-reader)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - For `new <stub-name>`, run the same `depends-on` merged check bare `new` runs before opening a run, and say which dependencies are unmet. (`FAILURE.md` — work-reader)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A spec for an admin screen names motion only after reading `.claude/skills/design-dna/SKILL.md` → Motion: the desk tier is instant or a ≤120ms colour change, never a slide. (`FAILURE.md` — work-phone)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In the admin dashboard, a phone screen scrolls the window, not a container of its own: pull-to-refresh (`components/pull-to-refresh.tsx`) listens to the page scroll. (`FAILURE.md` — work-phone)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In the admin dashboard, an in-app back that uses `history.back()` must first check the entry behind it is not deeper than the current level — a pushed parent over a cold link otherwise loops the two. (`FAILURE.md` — work-phone)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In the admin dashboard, an edge-swipe gesture listens on the view itself (non-passive `touchmove`, decided after a slop), never through a `touch-none` overlay, which eats the taps and scrolls under it. (`FAILURE.md` — work-phone)
