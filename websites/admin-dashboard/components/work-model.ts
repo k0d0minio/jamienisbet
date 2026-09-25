@@ -266,7 +266,11 @@ export function viewTickets(
     rank(a) - rank(b) || (position.get(ticketKey(a)) ?? 0) - (position.get(ticketKey(b)) ?? 0)
   switch (view) {
     case "next":
-      return ordered.filter((t) => t.status === "next").sort(byPriority)
+      // An unmigrated legacy ticket has no epic to be next in; it waits in its
+      // repo's Backlog rather than flooding the estate's Up next.
+      return ordered
+        .filter((t) => t.status === "next" && t.kind !== "legacy")
+        .sort(byPriority)
     case "blocked":
       return ordered.filter((t) => t.status === "blocked").sort(byPriority)
     case "running":

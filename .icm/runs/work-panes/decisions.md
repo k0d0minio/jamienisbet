@@ -35,3 +35,10 @@ decision made mid-run has one home.
 
 - <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
   make is a spec gap: say so in `notes.md` → Notes for Release>
+
+- B-1 — The desk model is a new pure module, `components/work-model.ts`, beside `board-model.ts` rather than inside it: the phone board keeps its model untouched until `work-phone`, and the desk reuses its pieces (`resolveSelection`, `blockedReason`, `copyTarget`, `githubUrl`).
+- B-2 — Only one layout is mounted once the width is known (`work-screen.tsx` + `use-desk.ts`); before hydration both render behind their breakpoints. Two mounted boards would mean two keyboards, two URL resolvers and two refresh buttons answering at once.
+- B-3 — Done rows in an epic's list are dimmed and not selectable: their files are never read, so there is nothing to open. The cursor steps over them.
+- B-4 — Unmigrated legacy tickets are left out of Up next (they wait in their repo's Backlog); the spec names only epic stubs and triage stubs for it.
+- B-5 — Pane one's fold chevron is a mouse affordance; from the keyboard, opening a repo (Enter on its row) unfolds it and records the fold.
+- B-6 — The phone board's figures and the palette's dots now read `status`/`today` rather than the phone group, so a blocked today-pick counts as blocked everywhere (spec §3, "no two surfaces disagree").
