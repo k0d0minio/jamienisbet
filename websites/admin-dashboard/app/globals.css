@@ -1,12 +1,14 @@
 /* ============================================================
    Admin dashboard — app stylesheet.
 
-   Links the Jamie Nisbet design system twice — the brand tokens and
-   shadcn theme, then the app tier on top (materials, elevation,
-   springs, the native type scale). No brand token is redefined here;
+   Links the Jamie Nisbet design system three times — the brand tokens
+   and shadcn theme, then the retiring app tier (materials, elevation,
+   springs, the native type scale) that the screens still wear, then
+   the desk tier the shell's chrome is built on (the rail, the tab bar,
+   the command palette) and every screen moves to in turn. No brand token is redefined here;
    one source of truth lives in @jamie-nisbet/ui.
 
-   Everything below the imports is *this app's* plumbing: the floating
+   Everything below the imports is *this app's* plumbing: the
    tab bar's geometry, touch-target minimums, and the markdown layer. It belongs here rather than in the design system
    because it is this app — an installed, one-handed PWA — that needs
    it; the marketing sites are read, not operated.
@@ -18,22 +20,27 @@
    reach it; the marketing sites import neither this line nor its tokens.
    See packages/ui/BRAND.md § App tier. */
 @import "@jamie-nisbet/ui/app.css";
+/* The desk tier — the admin's tier for new work (BRAND.md § Desk tier).
+   Every name in it is desk-*, so it sits beside app.css without a
+   collision while the screens move over; `desk-tier` is set on each
+   piece of chrome built on it, not on <body>, where `app-tier` stays
+   until the last screen has moved (retire-app-tier). */
+@import "@jamie-nisbet/ui/desk.css";
 
 /* Tailwind must scan the design system's TSX source for the utility classes
    its components use. Point at the real package source in the monorepo. */
 @source "../../../packages/ui/src";
 
 /* ------------------------------------------------------------------
-   The floating tab bar's geometry — one set of numbers, read by every
-   piece that has to clear it.
+   The tab bar's geometry — one set of numbers, read by every piece that
+   has to clear it.
 
-   The bar stopped being a fixed strip welded to the bottom edge: it is
-   a pill that hovers over the content with a margin, content scrolling
-   visibly under its blur. That turns "how tall is the bar" into three
-   numbers (height, the gap under it, the home-indicator inset), and
-   three call sites needed them — the bar, the floating add button, and
-   the page's bottom padding — so they live here rather than being
-   copied. The toast offset reads the same numbers from the layout.
+   The bar is a flat strip welded to the bottom edge on a hairline (D-5)
+   — no floating pill, no blur — so "how tall is the bar" is its row
+   height plus the home-indicator inset it extends under. Three call
+   sites need that — the floating add button, the page's bottom padding
+   and the toast offset — so it lives here rather than being copied.
+   `--admin-tab-gap` survives at 0 for the readers that still add it.
 
    Layout geometry for *this* app's chrome, not brand tokens: the
    design system ships no tab bar, and nothing outside this app has an
@@ -42,20 +49,12 @@
 
 :root {
   --admin-tab-height: 3.5rem;
-  /* Between the pill's bottom edge and the home indicator (or, on a
-     phone without one, the screen edge). Small enough that the bar
-     still reads as chrome rather than as a floating card. */
-  --admin-tab-gap: 0.5rem;
+  --admin-tab-gap: 0px;
   /* Everything a fixed element must clear to sit above the bar. */
   --admin-tab-clearance: calc(
     var(--admin-tab-height) + var(--admin-tab-gap) +
       env(safe-area-inset-bottom, 0px)
   );
-}
-
-/* Where the floating bar itself sits. */
-@utility bottom-tabs {
-  bottom: calc(var(--admin-tab-gap) + env(safe-area-inset-bottom, 0px));
 }
 
 /* A fixed element sitting just above the bar (the add-lead button). */
@@ -74,7 +73,7 @@
    by whatever `--toaster-offset` the app declares (app/(app)/layout.tsx
    sets it to the bar), and moves them to the bottom-right corner at `sm`
    — dropping the offset with them, which is right for an app whose fixed
-   chrome ends there. This one's floating bar stays until `md`, so for
+   chrome ends there. This one's tab bar stays until `md`, so for
    that one band the corner has to keep clearing it.
    `--admin-tab-clearance` already carries the safe-area inset. */
 @media (min-width: 40rem) and (max-width: 47.99rem) {
@@ -318,7 +317,7 @@
    at all.
 
    The chrome is named out of the root snapshot: a title bar, a tab
-   bar and a sidebar that are the same on both pages should hold their
+   bar and a rail that are the same on both pages should hold their
    position while the content under them changes, not slide with it.
    Naming them also lets the title itself cross-fade in place, which is
    the whole point of a bar that carries the screen's name.
@@ -335,8 +334,8 @@
   view-transition-name: app-tabs;
 }
 
-.vt-app-sidebar {
-  view-transition-name: app-sidebar;
+.vt-app-rail {
+  view-transition-name: app-rail;
 }
 
 @media (prefers-reduced-motion: no-preference) {

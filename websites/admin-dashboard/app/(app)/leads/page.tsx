@@ -79,7 +79,7 @@ export const metadata: Metadata = { title: "Leads" }
 // Nothing there is revealed by hover; a control you can only find with a mouse
 // is a control half the surfaces here can't reach.
 //
-// It is no longer the app's home: `/` is the Needs you feed, and this screen is
+// It is no longer the app's home: `/` is Work and `/inbox` the feed, and this screen is
 // the roster you come to when you want everyone rather than what is owed today.
 // The working-list strip that used to sit above the list went with that move —
 // attention lives on the feed.

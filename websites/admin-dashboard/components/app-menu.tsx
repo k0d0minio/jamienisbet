@@ -26,7 +26,7 @@ import { logout } from "@/app/login/actions"
 // app rather than to a screen lives. Today that is sign out; the sheet is a
 // list because the next one will just be another row.
 //
-// Phones only. From `md` up the sidebar carries the mark and sign out outright,
+// Phones only. From `md` up the rail carries the mark and sign out outright,
 // and a second copy in the bar would be one sign-out too many.
 
 function SignOutRow() {
@@ -72,8 +72,8 @@ export function AppMenu({ className }: { className?: string }) {
       <SheetContent>
         <SheetHeader>
           {/* Stays type, not the full lockup. The lockup reads "Jamie Nisbet."
-              — the person — where this names the app; the sidebar carries it
-              from `md` up, and this sheet is the phone's. And SheetTitle is
+              — the person — where this names the app; the rail carries the
+              mark from `md` up, and this sheet is the phone's. And SheetTitle is
               the sheet's accessible name, which wants a string. */}
           <SheetTitle>Consultancy JN</SheetTitle>
           <SheetDescription>

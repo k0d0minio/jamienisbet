@@ -35,8 +35,8 @@ export default function NotFound() {
           </GroupedSection>
 
           <GroupedSection>
-            <GroupedRow asChild icon={<Inbox />} label="Back to what needs you">
-              <Link href="/" />
+            <GroupedRow asChild icon={<Inbox />} label="Back to the Inbox">
+              <Link href="/inbox" />
             </GroupedRow>
           </GroupedSection>
         </GroupedList>

@@ -10,6 +10,13 @@ import type { NextConfig } from "next"
 const nextConfig: NextConfig = {
   // Shared packages ship TS/TSX source (no build step), so Next must transpile them.
   transpilePackages: ["@jamie-nisbet/ui", "@jamie-nisbet/services"],
+  // The board was /tickets until Work became home at `/` (D-6). Every old
+  // link — a bookmark, a home-screen shortcut, a `?t=` pasted into a note —
+  // lands on the same view: a redirect with no query in its destination
+  // passes the request's query through untouched.
+  async redirects() {
+    return [{ source: "/tickets", destination: "/", permanent: true }]
+  },
 }
 
 export default nextConfig

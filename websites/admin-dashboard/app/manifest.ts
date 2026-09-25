@@ -31,9 +31,9 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    // Not locked to portrait. The app is phone-first, but from `md` up it is a
-    // deliberate iPad-style scale-up — a leading sidebar and a wider grouped
-    // column — and an installed tablet app told "portrait" can never reach it.
+    // Not locked to portrait. From `md` up the app is a desk — the icon rail
+    // and the wider panes — and an installed tablet app told "portrait" could
+    // never reach its landscape reading.
     orientation: "any",
     // The splash and the installed chrome take the app's canvas (--bg) —
     // the logo's paper — so the icon's tile and the screen behind it are
