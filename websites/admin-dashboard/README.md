@@ -590,9 +590,8 @@ toolbar strip with "as of HH:MM" and the refresh button:
   open **PR** shows what is running in place of Launch — `draft PR #n` linked, its stage, how
   long ago it opened — and keeps Copy prompt; a run folder with no PR shows the folder and keeps
   its Launch, to resume it. With no ticket selected, pane three is the desk's epic, repo
-  or estate-overview view ([`components/work-views.tsx`](components/work-views.tsx)) — the
-  phone board's content, drawn on the desk tier (the overview's Blocked rows open in the Blocked
-  view).
+  or estate-overview view ([`components/work-views.tsx`](components/work-views.tsx)), on the
+  desk tier (the overview's Blocked rows open in the Blocked view).
 
 **What each view holds** (`TicketStatus` in [`lib/tickets.ts`](lib/tickets.ts)), from the one
 tree read per repo plus its open pull requests. A dependency is **merged** when its stub sits in
@@ -609,7 +608,7 @@ waiting for review, not a run, and is left out. **Today** is
 icm-board's `today.md`, in its order. Everything else open is queued. Done stubs are known by
 name from the tree (`<epic>/_done/`, never read); their titles and places come from the
 breakdown's `## Build order` lines, and one the breakdown doesn't name lists after the rest by
-its slug. The phone board's groups, the figures and the palette's dots read the same states.
+its slug. The phone's sections, the figures and the palette's dots read the same states.
 
 **Running, read from pull requests** (spec work-reader §3). `main` never holds a run's folder
 while its PR is open — the run lives on its branch until the squash archives it — so each repo's
@@ -648,20 +647,51 @@ opens it on GitHub, `r` refreshes. No key fires while you type, or while a menu,
 palette is open. With Ctrl/Cmd/Alt held only `⌘↵` fires — and `[`, `]` and `?`, which still fire
 on the AltGr/Option layouts (Portuguese, German, Spanish among them) that type them that way. Each pane's list is a `listbox` whose `aria-activedescendant` is its cursor row.
 
-**Under `lg` — the phone board.** A list that drills and a pane that pushes
-([`components/tickets-board.tsx`](components/tickets-board.tsx)), until `work-phone` replaces it.
-[`components/work-screen.tsx`](components/work-screen.tsx) mounts one layout or the other by the
-window's width (both render behind their breakpoints until it is known). List level 0 is the
-repo chip rail and one inset group per repo — its epics, Triage, Backlog and In flight; tapping a
-batch pushes level 1, that batch's tickets under a "‹ repo" back row; tapping a repo's header
-opens the repo, and a ticket or a repo is a full-screen pushed view with a back bar and an edge
-swipe. The estate overview is the foot of level 0. Its selection is one of `?t=`, `?b=` or
-`?r=` beside the `?repo=` chip filter — a desk link opens there too (`?t=` wins, `?v=` is
-ignored). It has no keyboard map.
+**Under `lg` — Work on the phone** ([`components/work-phone.tsx`](components/work-phone.tsx),
+spec work-phone, D-2, D-21). [`components/work-screen.tsx`](components/work-screen.tsx) mounts
+one layout or the other by the window's width (both render behind their breakpoints until it is
+known); an iPad in portrait keeps the rail and gets this layout. It is a stack of levels on the
+desk tier, read from the **same selection** as the desk (`resolveWork`, then `phoneLevel` in
+[`components/work-model.ts`](components/work-model.ts)) — one codepath for data, two layouts:
+
+- **The list level** — a "Work" title bar (as of HH:MM, refresh, the palette's search, the app
+  menu) over a sticky two-way switch. **Up next** is three sections — Up next, Running,
+  Blocked — holding exactly what the desk's views of those names hold, in their order; each
+  ticket a two-line row (status dot, title, a "today" mark on a today.md pick, priority; the mono
+  `repo / epic · n of m`; a blocked reason or a running PR and stage). There is no Today
+  section. **Repos** is every repo in the board's order: a tappable header (slug, client, a red
+  dot and GitHub's reason when its read failed), then its epics (a meter, `done of total`, and
+  "Next: / Running: / Blocked: <title>" for the lowest open stub in that state), then Triage and
+  Backlog with their open counts.
+- **The repo level** — its open tickets and runs grouped by epic (each heading opens the epic),
+  then the desk's repo view: figures, read errors, client, maintenance launchers.
+- **The epic level** — the path, title, meter and the breakdown's *What I understood*, then
+  every stub in sequence; done stubs dimmed and inert (known by name only).
+- **The reader** — the desk reader's head and body in one column, a back bar carrying GitHub ↗,
+  and the act in a **launch bar** that stays in view while the body scrolls: Launch full width
+  at 44px, Copy prompt beside it as a 44px icon, the other tools behind a menu once there is
+  more than one, the recommendation under them. The bar rests on the tab bar (`bottom-tabs` in
+  [`app/globals.css`](app/globals.css), which already clears the home indicator), and from `md`
+  on the bottom safe area; it sits in the flow after the body, so the last line always scrolls
+  clear of it. Its rules are the desk's: too long for a link makes Copy prompt the primary, an
+  open PR shows the running line in place of Launch, a run folder with no PR keeps Launch.
+
+**Every level has a URL, in the desk's grammar**: Up next is `/`; Repos is `?v=repos` (the one
+phone-only value — the desk reads it as Up next and leaves it, so a window that widens and
+narrows again returns to Repos); a repo `?r=`; an epic, Triage or Backlog `?b=`; the reader its
+list key plus `?t=` — the list it was opened from, and where back returns. Desk links open
+sensibly: `?v=running` and `?v=blocked` open Up next at that section, `?t=` alone opens the reader
+over its own epic, `?repo=` becomes `?r=`. Every tap is a `pushState`; the switch between Up next
+and Repos is a `replaceState`. The **back button** names where it lands and is `history.back()`
+when the board pushed the entry (use-board-params.ts `pop`), a push of the level's parent from a
+cold link; a **swipe from the leading edge** does the same, following the finger with no
+animation (D-3). The page scrolls — pull-to-refresh listens to it — and each level keeps its
+place: popping back to a list lands where it was left. Rows only tap: no swipe trays. There is no
+keyboard map.
 
 **Read once, used locally.** Work (`/`) reads the board once per visit (`readBoard()` in
-[`lib/tickets.ts`](lib/tickets.ts)) and hands it to the client — the desk's panes or the phone
-board, whichever the window is wide enough for — as plain data: ticket bodies and
+[`lib/tickets.ts`](lib/tickets.ts)) and hands it to the client — the desk's panes or the phone's
+levels, whichever the window is wide enough for — as plain data: ticket bodies and
 epic breakdowns as raw markdown, rendered only when that ticket or epic is opened, and every
 launcher already built. Views and chips filter in memory and every selection is resolved
 from the URL, written with
@@ -683,15 +713,14 @@ follows it. No per-repo probe, no badge, no fallback caveat.
 The board is **read-only by design**: a ticket is created, edited, and finished (moved to
 `_done/`) inside its repo by the session doing the work — the repo stays the source of truth
 and nothing is mirrored into the database. Every button therefore copies a prompt, or opens a
-tool with it pre-filled, and a human sends it: **Copy prompt** (with every registered tool in
-its menu) / swipe-right on a row or batch, and the maintenance launchers — per-repo *triage the backlog* and
+tool with it pre-filled, and a human sends it: **Launch** and **Copy prompt** (with every
+registered tool in its menu) in the reader, and the maintenance launchers — per-repo *triage the backlog* and
 *sweep finished work* (in the repo's view), per-batch *recut this batch* (in the batch's view),
 and the board-level *estate check* (the `/icm-check` pass on icm-board, in the estate
 overview). The triage, sweep and recut prompts end by
 telling the session its ticket changes commit straight to `main`, pointing at the
-`pr-conventions` skill's "Ticket commits" section for the shape (D39). Rows wear the Leads list's gestures: swipe
-left for a tray (copy, GitHub, client), swipe right to copy what it sends — with a haptic tick the
-moment a full swipe crosses its threshold.
+`pr-conventions` skill's "Ticket commits" section for the shape (D39). Work's rows only tap —
+the swipe trays the old phone board wore left with it (spec work-phone).
 
 That link is documented by Anthropic, built by the one target in the launcher registry
 [`lib/launchers/`](lib/launchers/) — `claude-web.ts`, carrying a comment naming its doc, ordered
@@ -699,8 +728,9 @@ in `index.ts`. A target declares what it can carry (repo, mode, model, effort) a
 `build()`. The board asks the registry for a `Launch[]` — one entry per registered target, in
 `LAUNCH_TARGETS` order, the default first, each with its link or the one-line reason it has
 none — through `launchesForTicket` and the maintenance launchers in
-[`lib/tickets.ts`](lib/tickets.ts), and every control in
-[`components/launch-menu.tsx`](components/launch-menu.tsx) is drawn from that list alone. No
+[`lib/tickets.ts`](lib/tickets.ts), and every launch control — the reader's
+([`components/ticket-reader.tsx`](components/ticket-reader.tsx)) and the maintenance rows'
+([`components/work-views.tsx`](components/work-views.tsx)) — is drawn from that list alone. No
 component names a tool.
 
 **Copy is the default action everywhere but the desk's reader** (decided 2026-09-23): no tool
@@ -714,11 +744,10 @@ CLI's local URL-scheme registration, then GNOME/Brave's MIME cache, then a corru
 `~/.local/share/applications` permission bit) rather than on anything this repo controls; see
 triage stub `claude-terminal-link-opens-nothing` (archived).
 
-- an opened ticket's **Copy prompt** (or **Copy pick-up**) is a split button — the primary half
-  copies, the chevron opens an `AppMenu` of every target with its recommendation beside it;
+- the reader's **Launch** opens the default target, **Copy prompt** copies what it sends, and a
+  chevron lists every target with its recommendation once there is more than one;
 - the maintenance rows (triage, sweep), a batch's **Recut this batch** and the board's **Estate
-  check** copy their prompt on tap and carry the same menu as a trailing `…`;
-- swipe-right on a ticket copies its pick-up, on a batch the next stub's;
+  check** copy their prompt on tap and carry the same menu as a trailing chevron;
 - a target that can't carry a launch — parked, or a prompt past its cap — stays in the menu,
   dimmed, with its reason; never hidden.
 
@@ -985,13 +1014,14 @@ components/             # login form, nav, service-worker register, lead + money
                         #                on the server, two-tap logging and the cadence's
                         #                prefilled next step in a client sheet over it
                         #   lead-intake.tsx — how they came in, folded shut until asked for
-                        #   tickets-board.tsx — Work's board, its client root: read once,
-                        #                master–detail, selection resolved from the URL
-                        #                (use-board-params.ts owns it; board-model.ts resolves it)
-                        #   board-pane.tsx / board-views.tsx — the pane from `lg`, the pushed
-                        #                view below it, and what it shows
-                        #   batch-row.tsx / board-ticket-row.tsx / ticket-detail.tsx
-                        #                — the list's two levels, and a ticket opened
+                        #   work-screen.tsx — Work's two layouts, the live one by width
+                        #   work-desk.tsx / work-views.tsx — the three panes from `lg`, and
+                        #                pane three's epic, repo and overview views
+                        #   work-phone.tsx — under `lg`: the list, repo, epic and reader
+                        #                levels, back, the edge swipe, the kept scroll
+                        #   work-model.ts / board-model.ts — the selection, resolved from the
+                        #                URL (use-board-params.ts owns it), and each layout's rows
+                        #   ticket-reader.tsx — the reader: head, body, the phone's launch bar
                         #   board-refresh.tsx — the board's refresh button, "as of" stamp and
                         #                quiet re-read on return
                         #   pull-to-refresh.tsx — pull down from the top to re-read everything
