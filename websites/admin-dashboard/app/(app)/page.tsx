@@ -25,28 +25,16 @@ import {
   countCracks,
   listClients,
   listDueOutreach,
-  listOpenComplianceDates,
-  listOpenTasks,
   listWokenNurture,
   touchChannelLabel,
   type Client,
   type CrackCounts,
 } from "@jamie-nisbet/services"
 
-import { AddTodo, type TodoLead } from "@/components/add-todo"
 import { AppScreen } from "@/components/app-screen"
 import { ChannelGlyph } from "@/components/channel-glyph"
-import {
-  ComplianceCalendar,
-  type ComplianceEntry,
-} from "@/components/compliance-calendar"
 import { LeadRow } from "@/components/lead-row"
 import { NurtureWakes, type Wake } from "@/components/nurture-wakes"
-import {
-  OverdueList,
-  type OverdueCompliance,
-  type OverdueTodo,
-} from "@/components/overdue-list"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
   listInvoicesNeedingAction,
@@ -89,8 +77,8 @@ export const metadata: Metadata = { title: "Needs you" }
 //
 // The rule that shapes every row: a row either **acts in place** or
 // **deep-links**. Nothing here edits something that has a proper home
-// elsewhere. Marking a lead touched and ticking a todo happen under the thumb,
-// because there is nowhere better to send you for either. An invoice and a
+// elsewhere. Marking a lead touched happens under the thumb, because there is
+// nowhere better to send you for it. An invoice and a
 // ticket are links — an invoice especially, because finalizing and emailing one
 // is a deliberate click on Money and the estate's "no outbound action without
 // review" rule does not bend for a feed.
@@ -122,11 +110,6 @@ const OUTREACH_LIMIT = 10
  *  day changes nothing), so they take the smallest slice of all. */
 const WAKE_LIMIT = 3
 
-/** A compliance date this close is worth seeing before it is late — the
- *  contabilista needs asking *before* the deadline, not after it. */
-const COMPLIANCE_HORIZON_DAYS = 14
-
-const DAY_MS = 24 * 60 * 60 * 1000
 
 // ---------------------------------------------------------------------------
 // Reads. Three sources, three failure modes, and none of them may take the
@@ -167,18 +150,6 @@ type DbReads = {
    *  business has no cold pool", and the first deserves saying out loud while
    *  the second is just a section nobody asked for. */
   onCadence: boolean
-  todos: OverdueTodo[]
-  compliance: OverdueCompliance[]
-  /** Every open obligation, not only the ones near enough for the section
-   *  above — the calendar sheet is where they are entered, and entering a
-   *  year of them is useless if the list you check against stops at a
-   *  fortnight. */
-  calendar: ComplianceEntry[]
-  /** Open todos that are filed but not yet due — counted, never listed, so
-   *  the Overdue section can say it is a filter rather than the whole list. */
-  filed: number
-  /** Everyone a todo can be pointed at, for the add sheet's picker. */
-  leads: TodoLead[]
   error: string | null
 }
 
@@ -194,23 +165,16 @@ async function loadDb(): Promise<DbReads> {
     wakes: [],
     cracks: { due: 0, unplanned: 0, woken: 0, idle: 0 },
     onCadence: false,
-    todos: [],
-    compliance: [],
-    calendar: [],
-    filed: 0,
-    leads: [],
   }
   try {
-    // Six reads, in parallel, and four of them are the crack-finder's — the
+    // Four reads, in parallel, and three of them are the crack-finder's — the
     // queue and the wakes as rows, everything else as one counting statement.
     // The lists are asked of the database rather than sliced out of `clients`
     // above on purpose: the ordering *is* the feature (overdue first, then fit
     // tier), it is written down once in packages/services, and the operator
     // scripts read the same functions.
-    const [clients, tasks, dates, due, woken, cracks] = await Promise.all([
+    const [clients, due, woken, cracks] = await Promise.all([
       listClients({ archived: false }),
-      listOpenTasks(),
-      listOpenComplianceDates(),
       listDueOutreach({ now: at, limit: OUTREACH_LIMIT }),
       listWokenNurture({ now: at, limit: WAKE_LIMIT }),
       countCracks({ now: at }),
@@ -236,41 +200,6 @@ async function loadDb(): Promise<DbReads> {
       (client) => isStale(client, now) && !onQueue(client)
     )
 
-    // Only what has actually come due. A todo with no date is filed, not
-    // owed — it is on its lead's profile and in the count under this section,
-    // and it starts chasing you the day it gets a date.
-    const todos = tasks
-      .flatMap((task) => {
-        const due = task.dueDate
-        if (due === null || due.getTime() > now) return []
-        return [
-          {
-            id: task.id,
-            title: task.title,
-            clientName: task.clientName,
-            dueDate: due.toISOString(),
-            // "Late" is a day past, not a minute past: a todo due today shows
-            // in the section but is not scolded for it until tomorrow.
-            late: due.getTime() < now - DAY_MS,
-          },
-        ]
-      })
-
-    // Mapped once and sliced twice: the calendar sheet takes every open
-    // obligation, the section above only the ones close enough to act on.
-    const horizon = now + COMPLIANCE_HORIZON_DAYS * DAY_MS
-    const calendar: ComplianceEntry[] = dates.map((date) => ({
-      id: date.id,
-      title: date.title,
-      notes: date.notes,
-      dueDate: date.dueDate.toISOString(),
-      recurrence: date.recurrence,
-      late: date.dueDate.getTime() < now,
-    }))
-    const compliance = calendar.filter(
-      (date) => Date.parse(date.dueDate) <= horizon
-    )
-
     return {
       now,
       waiting,
@@ -294,19 +223,6 @@ async function loadDb(): Promise<DbReads> {
       })),
       cracks,
       onCadence: clients.some((c) => isProspect(c) || c.nextActionDue !== null),
-      todos,
-      compliance,
-      calendar,
-      filed: tasks.length - todos.length,
-      // Everyone a todo can point at, the cold pool included — the picker
-      // groups them apart rather than dropping them, since a todo about a
-      // prospect is legitimate and the roster still has to stay scannable
-      // under eighty-odd imported businesses.
-      leads: clients.map((c) => ({
-        id: c.id,
-        name: c.name,
-        prospect: isProspect(c),
-      })),
       error: null,
     }
   } catch (err) {
@@ -418,8 +334,6 @@ export default async function NeedsYouPage({
     db.waiting.length +
     db.cracks.due +
     db.cracks.woken +
-    db.todos.length +
-    db.compliance.length +
     money.invoices.length +
     tickets.strip.length
 
@@ -436,7 +350,6 @@ export default async function NeedsYouPage({
           ? `${count} thing${count === 1 ? "" : "s"} waiting on you`
           : undefined
       }
-      actions={<AddTodo leads={db.leads} />}
     >
       <div className="flex flex-col gap-app-section pt-1 pb-2">
         {/* Neon is the spine: without it two of the four sections simply are
@@ -457,17 +370,9 @@ export default async function NeedsYouPage({
           <WaitingOnYou leads={db.waiting} now={db.now} />
         ) : null}
 
-        {db.todos.length > 0 || db.compliance.length > 0 ? (
-          <OverdueList
-            todos={db.todos}
-            compliance={db.compliance}
-            filed={db.filed}
-          />
-        ) : null}
-
-        {/* The day's block. It sits below the two sections with real deadlines
-            on them — somebody waiting on a reply, a date the contabilista set —
-            and above everything that is a link rather than a task. */}
+        {/* The day's block. It sits below the section with a real deadline on
+            it — somebody waiting on a reply — and above everything that is a
+            link rather than a task. */}
         {db.due.length > 0 ? (
           <OutreachDue rows={db.due} total={db.cracks.due} />
         ) : db.onCadence && !allClear ? (
@@ -490,18 +395,6 @@ export default async function NeedsYouPage({
         ) : null}
 
         {allClear ? <AllClear partial={notes.length > 0} /> : null}
-
-        {/* The compliance calendar, and the only way a date gets into it.
-            Below everything owed, because nothing in it is owed — the dates
-            that are have already been listed under Overdue. It renders on
-            every day, including the empty ones: the day the contabilista
-            returns the pack is exactly the day nothing else needs you, and a
-            way in that only appears when something is late is no way in.
-
-            Not while Neon is down, though: an empty calendar and an unreadable
-            one look identical, and this is the one section that would invite
-            you to type a dozen dates into a write that cannot land. */}
-        {db.error === null ? <ComplianceCalendar dates={db.calendar} /> : null}
 
         {/* Last, and quiet on purpose: these two inform, they never nag. */}
         <QuietCracks unplanned={db.cracks.unplanned} idle={db.cracks.idle} />

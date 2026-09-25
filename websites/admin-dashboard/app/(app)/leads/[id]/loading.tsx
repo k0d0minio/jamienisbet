@@ -10,7 +10,7 @@ import {
 import { AppProfileScreen } from "@/components/app-screen"
 import { LoadingLine } from "@/components/loading-line"
 
-// A lead's profile is four reads — the record, its todos, its sent forms, and
+// A lead's profile is several reads — the record, its sent forms, and
 // the questionnaire library out of two GitHub repos — so on mobile data there
 // is a beat of nothing. The shape arrives first: the identity, the two status
 // glyphs beside it, the five action discs, the segment control, then the

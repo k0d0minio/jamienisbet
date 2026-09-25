@@ -10,15 +10,10 @@ import {
   canTriageStage,
   clientStatusHints,
   clientStatusLabel,
-  completeComplianceDate,
   createClientManually,
-  createComplianceDate,
   createFormLink,
-  createTask,
   deleteClient,
-  deleteComplianceDate,
   deleteFormLink,
-  deleteTask,
   enrichmentChanges,
   enrichmentFieldLabels,
   enrichmentPatch,
@@ -28,7 +23,6 @@ import {
   isBillingType,
   isClientLanguage,
   isClientStatus,
-  isComplianceRecurrence,
   isDealType,
   isDraftChannel,
   isDraftKind,
@@ -55,8 +49,6 @@ import {
   setClientStatus,
   setClientWakeAt,
   setClientWorkStarted,
-  setTaskClient,
-  setTaskCompleted,
   setTouchOutcome,
   suggestNextTouch,
   suppressClient,
@@ -110,7 +102,7 @@ function revalidateLead(id: string) {
   revalidatePath(`/leads/${id}`)
 }
 
-/** The two screens that list leads, todos and compliance dates. */
+/** The two screens that list leads. */
 function revalidateLeadLists() {
   revalidatePath("/")
   revalidatePath("/leads")
@@ -1693,87 +1685,5 @@ export async function archiveClient(id: string, archived: boolean) {
 
 export async function removeClient(id: string) {
   await deleteClient(id)
-  revalidateLeadLists()
-}
-
-// ---- Todos ------------------------------------------------------------------
-// The working list on the leads screen. A todo can hang off a lead, in which
-// case it also shows on that lead's profile.
-
-export async function addTaskAction(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim()
-  if (!title) throw new Error("A todo needs a title.")
-
-  const dueRaw = String(formData.get("dueDate") ?? "").trim()
-  let dueDate: Date | null = null
-  if (dueRaw !== "") {
-    const parsed = new Date(dueRaw)
-    if (Number.isNaN(parsed.getTime())) {
-      throw new Error("Enter a valid due date, or leave it empty.")
-    }
-    dueDate = parsed
-  }
-
-  const clientId = String(formData.get("clientId") ?? "").trim() || null
-
-  await createTask({ title, dueDate, clientId })
-  revalidateLeadLists()
-  if (clientId) revalidatePath(`/leads/${clientId}`)
-}
-
-/** Attach a todo to a lead, or detach it (null). Both the lead it left and the
- * one it joined list this todo, so every lead page is refreshed rather than
- * reading the row back to work out which two moved. */
-export async function setTaskClientAction(id: string, clientId: string | null) {
-  await setTaskClient(id, clientId)
-  revalidateLeadLists()
-  revalidatePath("/leads/[id]", "page")
-}
-
-export async function setTaskCompletedAction(id: string, completed: boolean) {
-  const task = await setTaskCompleted(id, completed)
-  revalidateLeadLists()
-  if (task?.clientId) revalidatePath(`/leads/${task.clientId}`)
-}
-
-export async function deleteTaskAction(id: string) {
-  await deleteTask(id)
-  revalidateLeadLists()
-}
-
-// ---- Compliance calendar ------------------------------------------------------
-
-export async function addComplianceDateAction(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim()
-  if (!title) throw new Error("An obligation needs a title.")
-
-  const dueRaw = String(formData.get("dueDate") ?? "").trim()
-  const dueDate = new Date(dueRaw)
-  if (dueRaw === "" || Number.isNaN(dueDate.getTime())) {
-    throw new Error("A compliance obligation needs a valid due date.")
-  }
-
-  const recurrenceRaw = String(formData.get("recurrence") ?? "none")
-  const recurrence = isComplianceRecurrence(recurrenceRaw)
-    ? recurrenceRaw
-    : "none"
-
-  // Per the legal/tax standing rule, notes should carry source + as-of date;
-  // decision-support only either way.
-  const notes = String(formData.get("notes") ?? "").trim() || null
-
-  await createComplianceDate({ title, notes, dueDate, recurrence })
-  revalidateLeadLists()
-}
-
-/** Completing a recurring obligation re-arms the next occurrence (handled in
- * the query layer). */
-export async function completeComplianceDateAction(id: string) {
-  await completeComplianceDate(id)
-  revalidateLeadLists()
-}
-
-export async function deleteComplianceDateAction(id: string) {
-  await deleteComplianceDate(id)
   revalidateLeadLists()
 }
