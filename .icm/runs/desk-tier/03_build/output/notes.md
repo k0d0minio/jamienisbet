@@ -1,7 +1,7 @@
 # Build notes: desk-tier
 
 - commits: `feat: desk-tier — tokens and entry stylesheet` · `feat: desk-tier — primitives` · `docs: desk-tier — BRAND, design-dna, package docs`
-- ci: GREEN (draft tier) on 4e15a2c after one fix (error.log); full gate on the post-flip head
+- ci: GREEN (full gate) on 931b24a — Vercel jamie-nisbet + portfolio pass, Quality (advisory) pass; one type error fixed on the way (error.log)
 
 ## What changed
 
@@ -17,7 +17,7 @@
 ## Acceptance criteria status
 
 - [x] `desk.css` exists, exported and in `files`, imports `tokens/desk.css`; `styles.css` / `tokens.css` import neither (grep).
-- [ ] `check:css:desk` in `lint` — wired; CI's lint and typecheck on the ready head are the proof (pending).
+- [x] `check:css:desk` in `lint`; the advisory Quality job (typecheck + lint) passed on the ready head 931b24a.
 - [x] Every custom property in `tokens/desk.css` is `--desk-*`; colours are `var()` of semantic tokens; no hex / rgb / ramp (grep).
 - [x] Exactly one `@media (pointer: coarse)` block; no pointer or width query and no arbitrary size class in `components/desk/` (grep — the only "pointer" hits are `cursor-pointer`).
 - [x] All named primitives present and exported (plus `PaneBody`, `DataGridBody`).
