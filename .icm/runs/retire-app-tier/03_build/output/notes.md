@@ -1,7 +1,7 @@
 # Build notes: retire-app-tier
 
 - commits: bcf3283 desk form controls + sheet without the spring · 4c23d40 every admin screen and form on the desk tier · b23c6a4 delete the app tier from packages/ui · 6e54d38 docs, two tiers · (this commit) audit fixes and notes
-- ci: see status.md — the draft owes nothing; the full gate settles after the ready flip
+- ci: GREEN on 67d9f98 — full gate (ready): Vercel jamie-nisbet pass, Vercel portfolio pass, Quality (advisory) pass
 
 ## What changed
 
@@ -86,11 +86,12 @@ Fixed on the way: the sheet close ✕ (16px → 44px on touch), action rows read
 - [x] BRAND.md and design-dna: two tiers; § Desk tier lists the form controls.
 - [x] packages/ui README + SKILL.md and the admin README: no app tier.
 - [x] no file under `websites/portfolio/` or `websites/sellers-site/` changed.
-- [ ] CI lint / typecheck / build and the admin preview — settles on the post-flip head.
+- [x] CI lint / typecheck / build and the admin preview — GREEN on 67d9f98 (Quality (advisory) pass, both previews pass).
 
 ## Notes for Release
 
-- Typecheck was not run locally (the repo's rule); the first verdict on the ~40-file swap is the post-flip gate. Places worth a look if it is red: the JSX generic on the draft's door control (`<DeskSegmentedControl<DraftChannelValue | "">`), and `DeskSegmentedControl`'s inferred `T` in the touch-direction and new-lead switches.
+- Typecheck was not run locally (the repo's rule); the post-flip gate's Quality (advisory) and both Vercel builds passed on the whole swap.
+- The portfolio preview rebuilt because `packages/ui` changed; nothing it imports changed (the edits are desk components, `sheet.tsx`, `dialog.tsx`'s coarse-pointer close target, and the deleted app tier), and it does not render `Dialog` or `Sheet`.
 - `vt-app-header` / `vt-app-tabs` / `vt-app-rail` are view-transition names, not app-tier utilities, and were kept.
 - `RecordRow` now sets an action row's label at full strength — this also brightens action rows on the screens earlier runs built (lead profile), which is the intended reading.
 - The populated states (real leads, the board, gates, Money with Stripe, dragging a detent on an iPhone) could not be rendered in the session and are the operator's smoke on the preview.

@@ -21,7 +21,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `packages/ui/BRAND.md` and `.claude/skills/design-dna/SKILL.md` describe two tiers, marketing and desk. Neither has an app-tier section, checklist line or "retiring" note. BRAND.md § Desk tier lists the desk form controls.
 - [x] `packages/ui/README.md`, `packages/ui/SKILL.md` and `websites/admin-dashboard/README.md` no longer mention `app.css`, the app-tier components or the app tier.
 - [x] No file under `websites/portfolio/` or `websites/sellers-site/` changes.
-- [ ] CI's lint, typecheck and build pass on the PR head, and the admin's Vercel preview builds.
+- [x] CI's lint, typecheck and build pass on the PR head, and the admin's Vercel preview builds.
 
 ## Queue
 
