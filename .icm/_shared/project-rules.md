@@ -165,3 +165,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - A GitHub check run's newest attempt is its highest id, not its latest start: a queued re-run has no start time yet. (`FAILURE.md` — gates-read)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - A GraphQL call reports failure inside an HTTP 200, so any cache rule that keys on the status code must also read the answer's `errors` before trusting it. (`FAILURE.md` — gates-read)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A spec never promises how another, unbuilt stub will use this run's work; name the overlap as out of scope and let whichever run lands second reconcile it. (`FAILURE.md` — work-reader)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- For `new <stub-name>`, run the same `depends-on` merged check bare `new` runs before opening a run, and say which dependencies are unmet. (`FAILURE.md` — work-reader)

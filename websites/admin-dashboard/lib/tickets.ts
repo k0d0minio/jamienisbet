@@ -33,7 +33,14 @@ import "server-only"
 //     or the moment the refresh control is used.
 //   • POSITION (a minute) — one recursive git-tree call per repo that actually
 //     has an intake; epic folders and `runs/` come back in the same response.
-//     This is the read that notices a ticket landing or a run opening.
+//     This is the read that notices a ticket landing or a run opening. Beside
+//     it, one open-pull-requests call per repo (spec work-reader §3): `main`
+//     never holds a run's folder while its PR is open, so the PR is what says
+//     a ticket is running (D-11). A lane PR carries its own slug, not the
+//     triage stub's name, so each open lane PR costs one more request — its
+//     file list, on the discovery clock, where the stub's move to
+//     `triage/_done/` names it. Budget per repo with open stubs or runs: 1 +
+//     one per open lane PR while it has open triage stubs; none otherwise.
 //   • CONTENT (a month) — ticket bodies, and each epic's `breakdown.md`, read
 //     by blob SHA, not by path. A path read answers "what is in that file
 //     now" and has to be re-asked every minute, so a warm board re-read every
@@ -202,7 +209,8 @@ export type TicketGroup = (typeof TICKET_GROUPS)[number]
  *   open     queued behind something in its epic
  *   blocked  a `blocked:` line, or its epic's lowest open stub waiting on a
  *            dependency that isn't merged yet
- *   running  a run folder in `.icm/runs/` (D-11)
+ *   running  an open pull request matched to it (spec work-reader §3), or
+ *            a run folder in `.icm/runs/` (D-11)
  *
  * A dependency is merged when its stub sits in the epic's `_done/` with no
  * active run folder; open in the epic, or in `_done/` with a run still going,
@@ -213,6 +221,19 @@ export type TicketStatus = "next" | "open" | "blocked" | "running"
 /** The dependency a stub is waiting on, when one is unmet. `running` — it
  *  has an active run, so it is on its way, not untouched. */
 export type WaitingOn = { slug: string; running: boolean }
+
+/** The open pull request a ticket is running in (D-11): a spine PR matched
+ *  by the slug its body carries (or its `claude/<slug>` head), or a lane PR by
+ *  the triage stub it moves to `triage/_done/`. */
+export type TicketPr = {
+  number: number
+  url: string
+  draft: boolean
+  /** The PR's `stage:*` label; "lane" for a lane PR; null when unlabelled. */
+  stage: "define" | "build" | "release" | "lane" | null
+  /** ISO — when the PR was opened. */
+  openedAt: string
+}
 
 /** Where a run in flight came from: the stub it consumed, found by slug in
  *  the repo's `_done/` folders. */
@@ -244,6 +265,8 @@ export type Ticket = {
   waitingOn: WaitingOn | null
   /** A run's stub, when one matches; null for every other kind. */
   origin: RunOrigin | null
+  /** The open PR this ticket is running in; null when none matches. */
+  pr: TicketPr | null
   /** "stub" (new shape) | "legacy" (flat PREFIX-NNN) | "run" (.icm/runs/ in flight) */
   kind: "stub" | "legacy" | "run"
   /** Which stage a run ticket is next for — null for every other kind. The
@@ -835,6 +858,7 @@ function parseLegacy(
     lane: null,
     waitingOn: null,
     origin: null,
+    pr: null,
     kind: "legacy",
     runStage: null,
     batch: "backlog",
@@ -924,6 +948,9 @@ type RepoRead = {
   /** Each epic's full row set, open, running and done, by epic folder. */
   epicRows: Record<string, EpicRow[]>
   error: TicketFetchError | null
+  /** The pull-request read failed (or a lane PR's file list did): running
+   *  falls back to run folders for this repo, and the board says so. */
+  prError: TicketFetchError | null
 }
 
 /** One stub of an epic as its list shows it — open, running or done. Only an
@@ -978,6 +1005,131 @@ function buildOrder(markdown: string): Map<string, { sequence: number; title: st
   return order
 }
 
+// --- open pull requests — what is running (spec work-reader §3) -------------
+
+/** The open PRs, matched the ways a ticket can be found in one. */
+type OpenPulls = {
+  /** Spine PRs by the slug they carry — an epic stub's file name. */
+  spine: Map<string, TicketPr>
+  /** Lane PRs by the triage stub each moves to `triage/_done/`. */
+  triage: Map<string, TicketPr>
+  /** Every pipeline PR by its own slug — what a run folder on main matches. */
+  bySlug: Map<string, TicketPr>
+  error: string | null
+}
+
+type PullRow = {
+  number: number
+  html_url: string
+  draft: boolean
+  created_at: string
+  body: string | null
+  head: { ref: string }
+  labels: { name: string }[]
+}
+
+/** The labels a lane PR carries (`new-run.sh --lane` → `type:<lane>`). */
+const LANE_LABELS = new Set(["type:bug", "type:tweak", "type:chore", "type:hotfix"])
+
+/**
+ * The slug a PR carries: the spine body's Spec-table `Slug` row, or a lane
+ * body's `- slug:` line — both behind the `PIPELINE RUN` marker the scripts
+ * write — else a `claude/<slug>` head. A harness-named head yields a slug no
+ * stub has, which matches nothing.
+ */
+function prSlug(row: PullRow): string | null {
+  const body = row.body ?? ""
+  if (body.includes("PIPELINE RUN")) {
+    const spec = body.match(/^\|\s*\**slug\**\s*\|\s*`?([a-z0-9][a-z0-9-]*)`?\s*\|/im)
+    if (spec) return spec[1]
+    const lane = body.match(/^-\s+slug:\s*`?([a-z0-9][a-z0-9-]*)`?\s*$/im)
+    if (lane) return lane[1]
+  }
+  return row.head.ref.match(/^claude\/([a-z0-9][a-z0-9-]*)$/i)?.[1] ?? null
+}
+
+function prStage(labels: string[]): TicketPr["stage"] {
+  if (labels.some((l) => LANE_LABELS.has(l))) return "lane"
+  for (const stage of ["release", "build", "define"] as const) {
+    if (labels.includes(`stage:${stage}`)) return stage
+  }
+  return null
+}
+
+/**
+ * One repo's open PRs — one request on the position clock, one page of 100 —
+ * plus one file-list request per open lane PR on the discovery clock: the
+ * stub's move is in the lane's first commit and does not change. A failed
+ * read is reported, never read as "nothing running".
+ */
+async function fetchOpenPulls(
+  repo: TicketRepo,
+  /** Read lane PRs' file lists — only worth it while triage stubs are open. */
+  readLanes: boolean
+): Promise<OpenPulls> {
+  const out: OpenPulls = { spine: new Map(), triage: new Map(), bySlug: new Map(), error: null }
+  try {
+    const res = await gh(
+      `/repos/${repo.fullName}/pulls?state=open&per_page=100`,
+      "application/vnd.github+json"
+    )
+    if (!res.ok) return { ...out, error: await githubFailure(res) }
+    const lanes: TicketPr[] = []
+    for (const row of (await res.json()) as PullRow[]) {
+      const pr: TicketPr = {
+        number: row.number,
+        url: row.html_url,
+        draft: row.draft,
+        stage: prStage(row.labels.map((l) => l.name)),
+        openedAt: row.created_at,
+      }
+      const slug = prSlug(row)
+      if (slug && !out.bySlug.has(slug)) out.bySlug.set(slug, pr)
+      // A lane never consumes an epic stub, so its slug matches none.
+      if (pr.stage === "lane") lanes.push(pr)
+      else if (slug && !out.spine.has(slug)) out.spine.set(slug, pr)
+    }
+    const failed: string[] = []
+    await Promise.all(
+      (readLanes ? lanes : []).map(async (pr) => {
+        const files = await gh(
+          `/repos/${repo.fullName}/pulls/${pr.number}/files?per_page=100`,
+          "application/vnd.github+json",
+          DISCOVERY_REVALIDATE_SECONDS
+        )
+        if (!files.ok) {
+          failed.push(`#${pr.number}: ${await githubFailure(files)}`)
+          return
+        }
+        // The stub's own move: renamed from `triage/<name>.md`, or — when git
+        // sees the rename as a delete and an add — both halves in the list.
+        // A new `_done/` file with no open stub leaving is not a consumption.
+        const list = (await files.json()) as {
+          filename: string
+          status: string
+          previous_filename?: string
+        }[]
+        const removed = new Set(list.filter((f) => f.status === "removed").map((f) => f.filename))
+        for (const file of list) {
+          const name = file.filename.match(/^\.icm\/intake\/triage\/_done\/([^/]+)\.md$/)?.[1]
+          if (!name || out.triage.has(name)) continue
+          const from = `.icm/intake/triage/${name}.md`
+          if (
+            (file.status === "renamed" && file.previous_filename === from) ||
+            (file.status === "added" && removed.has(from))
+          )
+            out.triage.set(name, pr)
+        }
+      })
+    )
+    if (failed.length > 0)
+      out.error = `A lane pull request's files couldn't be read (${failed.join("; ")}).`
+    return out
+  } catch (err) {
+    return { ...out, error: err instanceof Error ? err.message : "network error" }
+  }
+}
+
 async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
   try {
     const res = await gh(
@@ -986,7 +1138,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     )
     // 409: an empty repo — nothing to show yet, not an error (a repo is
     // onboard the moment its first ticket lands).
-    if (res.status === 409) return { tickets: [], breakdowns: {}, epicRows: {}, error: null }
+    if (res.status === 409) return { tickets: [], breakdowns: {}, epicRows: {}, error: null, prError: null }
     // 404: the token can't see the repo. Only a pinned repo gets here — the
     // swept ones were just listed by the same token — so it is a connected
     // client's repo, or a house one, the board would otherwise drop without a
@@ -996,6 +1148,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         tickets: [],
         breakdowns: {},
         epicRows: {},
+        prError: null,
         error: {
           repo,
           message:
@@ -1008,6 +1161,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         tickets: [],
         breakdowns: {},
         epicRows: {},
+        prError: null,
         error: { repo, message: await githubFailure(res) },
       }
     }
@@ -1027,6 +1181,10 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     // notes.md present → release is next; a `lane/` folder → a lane run, not
     // resumable; otherwise build is next.
     const runStages = new Map<string, "build" | "release" | "lane">()
+    // Each run folder's own folders — a scope run (`01_scope/` alone) is a
+    // scope waiting for review on main, not a run in flight (spec
+    // work-reader §4).
+    const runChildren = new Map<string, Set<string>>()
 
     for (const entry of tree) {
       if (entry.type !== "blob") {
@@ -1039,6 +1197,11 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
           runSlugs.add(run[1])
         const lane = entry.path.match(/^\.icm\/runs\/([^/]+)\/lane$/)
         if (lane) runStages.set(lane[1], "lane")
+        const child = entry.path.match(/^\.icm\/runs\/([^/]+)\/([^/]+)$/)
+        if (child) {
+          if (!runChildren.has(child[1])) runChildren.set(child[1], new Set())
+          runChildren.get(child[1])!.add(child[2])
+        }
         continue
       }
       const notes = entry.path.match(/^\.icm\/runs\/([^/]+)\/03_build\/output\/notes\.md$/)
@@ -1074,7 +1237,12 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       }
     }
 
-    const [stubResults, legacyResults, breakdownResults] = await Promise.all([
+    for (const slug of runSlugs) {
+      const children = runChildren.get(slug)
+      if (children?.size === 1 && children.has("01_scope")) runSlugs.delete(slug)
+    }
+
+    const [stubResults, legacyResults, breakdownResults, pulls] = await Promise.all([
       Promise.all(
         stubPaths.map(async ({ path, epic, sha }) => {
           const raw = await fetchBlob(repo, sha)
@@ -1097,6 +1265,10 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
           return raw === null ? null : ([epic, raw] as const)
         })
       ),
+      // Only a repo with something to match pays for the read.
+      stubPaths.length > 0 || runSlugs.size > 0
+        ? fetchOpenPulls(repo, stubPaths.some((p) => p.epic === "triage"))
+        : Promise.resolve<OpenPulls>({ spine: new Map(), triage: new Map(), bySlug: new Map(), error: null }),
     ])
     const breakdowns = Object.fromEntries(
       breakdownResults.filter((b): b is readonly [string, string] => b !== null)
@@ -1117,9 +1289,15 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       if (!openByEpic.has(s.epic)) openByEpic.set(s.epic, new Set())
       openByEpic.get(s.epic)!.add(s.slug)
     }
+    // The open PR a stub is running in: a spine PR by its slug, or a lane PR
+    // by the triage stub it consumed.
+    const prOf = (s: Stub): TicketPr | null =>
+      (s.epic === "triage" ? pulls.triage.get(s.slug) : pulls.spine.get(s.slug)) ?? null
     const nextOf = new Map<string, string>()
     for (const s of stubs) {
-      if (s.epic === "triage" || s.blocked !== null) continue
+      // A running stub is under way, not runnable: the next one in sequence
+      // is the epic's candidate, waiting on it.
+      if (s.epic === "triage" || s.blocked !== null || prOf(s)) continue
       const current = nextOf.get(s.epic)
       const currentSeq = current
         ? (stubs.find((x) => x.epic === s.epic && x.slug === current)
@@ -1133,7 +1311,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     // blocks nothing — it stays visible in the stub's own fields.
     const unmetDependency = (s: Stub): WaitingOn | null => {
       for (const d of s.dependsOn) {
-        if (openByEpic.get(s.epic)?.has(d)) return { slug: d, running: false }
+        if (openByEpic.get(s.epic)?.has(d)) return { slug: d, running: pulls.spine.has(d) }
         if (doneByEpic.get(s.epic)?.has(d) && runSlugs.has(d))
           return { slug: d, running: true }
       }
@@ -1142,8 +1320,10 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
 
     const tickets: Ticket[] = stubs.map((s) => {
       const waitingOn = s.epic === "triage" ? null : unmetDependency(s)
+      const pr = prOf(s)
       let status: TicketStatus
-      if (s.blocked !== null) status = "blocked"
+      if (pr) status = "running"
+      else if (s.blocked !== null) status = "blocked"
       else if (s.epic === "triage") status = "next"
       else if (nextOf.get(s.epic) === s.slug) status = waitingOn ? "blocked" : "next"
       else status = "open"
@@ -1166,6 +1346,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         lane: s.lane,
         waitingOn,
         origin: null,
+        pr,
         kind: "stub",
         runStage: null,
         batch: s.epic,
@@ -1217,6 +1398,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         origin: found
           ? { epic: found.epic, sequence: found.sequence, sequenceTotal: found.sequenceTotal }
           : null,
+        pr: pulls.bySlug.get(slug) ?? null,
         kind: "run",
         runStage,
         batch: null,
@@ -1255,7 +1437,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
           slug: s.slug,
           title: s.title,
           sequence: s.sequence ?? order?.get(s.slug)?.sequence ?? null,
-          state: "open" as const,
+          state: pulls.spine.has(s.slug) ? ("running" as const) : ("open" as const),
           ticketId: `${epic}/${s.slug}`,
         }))
       for (const slug of doneByEpic.get(epic) ?? []) {
@@ -1277,12 +1459,19 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       )
     }
 
-    return { tickets: tickets.map(withLaunchHint), breakdowns, epicRows, error: null }
+    return {
+      tickets: tickets.map(withLaunchHint),
+      breakdowns,
+      epicRows,
+      error: null,
+      prError: pulls.error ? { repo, message: pulls.error } : null,
+    }
   } catch (err) {
     return {
       tickets: [],
       breakdowns: {},
       epicRows: {},
+      prError: null,
       error: {
         repo,
         message: err instanceof Error ? err.message : "network error",
@@ -1737,6 +1926,9 @@ type EstateRead = {
    *  ticket keys — the Today view's order. */
   todayOrder: string[]
   errors: TicketFetchError[]
+  /** Repos whose pull requests couldn't be read — running there comes from
+   *  run folders alone. */
+  prErrors: TicketFetchError[]
   /** The owner sweep failed, so the roster is the pinned tier alone. */
   rosterError: string | null
   dbError: string | null
@@ -1762,6 +1954,7 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     epicRows: new Map<string, Record<string, EpicRow[]>>(),
     todayOrder: [],
     errors: [],
+    prErrors: [],
     rosterError: null,
   }
   if (!isConfigured()) {
@@ -1785,7 +1978,7 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     Promise.all(
       roster.repos.map((repo) =>
         skip.has(repo.fullName)
-          ? Promise.resolve<RepoRead>({ tickets: [], breakdowns: {}, epicRows: {}, error: null })
+          ? Promise.resolve<RepoRead>({ tickets: [], breakdowns: {}, epicRows: {}, error: null, prError: null })
           : fetchRepoTickets(repo)
       )
     ),
@@ -1825,6 +2018,9 @@ const readEstate = cache(async (): Promise<EstateRead> => {
         .map((r) => r.error)
         .filter((e): e is TicketFetchError => e !== null),
     ],
+    prErrors: results
+      .map((r) => r.prError)
+      .filter((e): e is TicketFetchError => e !== null),
     rosterError: roster.sweepError,
     dbError: null,
   }
@@ -1978,6 +2174,8 @@ export type BoardData = {
   sections: BoardSection[]
   strip: BoardTicket[]
   errors: TicketFetchError[]
+  /** Repos whose pull requests couldn't be read (spec work-reader §5). */
+  prErrors: TicketFetchError[]
   rosterError: string | null
   dbError: string | null
   estateCheck: LaunchSet
@@ -2019,6 +2217,7 @@ export async function readBoard(): Promise<BoardData | null> {
     })),
     strip: board.strip.map(boardTicket),
     errors: board.errors,
+    prErrors: board.prErrors,
     rosterError: board.rosterError,
     dbError: board.dbError,
     estateCheck: estateCheckLaunches(),

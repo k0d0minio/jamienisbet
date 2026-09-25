@@ -146,6 +146,27 @@ export function primaryLaunch(launches: readonly Launch[]): Launch | null {
   )
 }
 
+/**
+ * A ticket's one primary act (spec work-reader §2): launch the default
+ * target's link when it can carry the pick-up; copy it when it can't (a prompt
+ * past the cap, a parked target), saying why; nothing when there is nothing to
+ * send. The reader's button and ⌘↵ both read this, so the two never disagree.
+ */
+export type PrimaryAction =
+  | { kind: "launch"; launch: Launch }
+  | { kind: "copy"; reason: string | null }
+  | { kind: "none" }
+
+export function primaryAction(
+  launches: readonly Launch[],
+  pickup: string | null
+): PrimaryAction {
+  if (!pickup) return { kind: "none" }
+  const primary = primaryLaunch(launches)
+  if (primary?.url) return { kind: "launch", launch: primary }
+  return { kind: "copy", reason: primary?.unavailableReason ?? null }
+}
+
 /** A new tab for a web target; a custom scheme (a terminal, an IDE) is handed
  * to the OS in place, where a new tab would only leave a blank one behind. */
 export function launchLinkProps(

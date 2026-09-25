@@ -244,6 +244,70 @@
   border-top: 1px solid var(--app-separator);
   margin: var(--space-5) 0;
 }
+
+/* The same prose on the desk tier — the Work reader (spec work-reader §6).
+   Same elements, same rhythm, drawn from the desk tokens instead: Hanken
+   Grotesk on the dense scale, hairlines, the sunken fill for code, ink for
+   links. Scoped by the shell's `desk-tier` root, so a screen still on the app
+   tier keeps the rules above. */
+.desk-tier .prose {
+  color: var(--desk-fg-2);
+  font-size: var(--desk-text-body);
+  line-height: var(--desk-leading-body);
+}
+.desk-tier .prose > * + * {
+  margin-top: var(--space-2);
+}
+.desk-tier .prose h1,
+.desk-tier .prose h2,
+.desk-tier .prose h3,
+.desk-tier .prose h4 {
+  color: var(--desk-fg);
+  font-size: var(--desk-text-heading);
+  font-weight: var(--desk-weight-heading);
+  line-height: var(--desk-leading-heading);
+  letter-spacing: normal;
+}
+.desk-tier .prose h2 {
+  margin-top: var(--space-5);
+}
+.desk-tier .prose h3,
+.desk-tier .prose h4 {
+  font-size: var(--desk-text-body);
+  margin-top: var(--space-4);
+}
+.desk-tier .prose strong {
+  color: var(--desk-fg);
+  font-weight: var(--desk-weight-heading);
+}
+.desk-tier .prose a {
+  color: var(--desk-fg);
+}
+.desk-tier .prose li::marker {
+  color: var(--desk-fg-3);
+}
+.desk-tier .prose li > input[type="checkbox"] {
+  accent-color: var(--desk-ink);
+}
+.desk-tier .prose code {
+  background: var(--desk-sunken);
+  border-color: var(--desk-line);
+  border-radius: var(--desk-radius-key);
+}
+.desk-tier .prose pre {
+  font-size: var(--desk-text-meta);
+  line-height: var(--desk-leading-meta);
+  background: var(--desk-sunken);
+  border-color: var(--desk-line);
+  border-radius: var(--desk-radius-control);
+}
+.desk-tier .prose blockquote {
+  border-left-color: var(--desk-line-strong);
+  color: var(--desk-fg-3);
+}
+.desk-tier .prose hr {
+  border-top-color: var(--desk-line);
+}
 /* A table wider than the phone scrolls itself rather than the page. */
 .prose table {
   display: block;

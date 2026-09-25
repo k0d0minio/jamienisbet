@@ -9,7 +9,7 @@ import {
   type Selection,
 } from "@/components/board-model"
 import type { BoardQuery } from "@/components/use-board-params"
-import type { BoardData, BoardTicket, MaintenanceLauncher } from "@/lib/tickets"
+import type { BoardData, BoardTicket, MaintenanceLauncher, TicketPr } from "@/lib/tickets"
 
 // Work at the desk, as data (spec work-panes §2–§5): the four views, the list
 // the URL has open, the ticket open in it, and the rows each pane draws. Pure
@@ -328,6 +328,12 @@ export function whereLine(ticket: BoardTicket): string {
   return `${repo} / ${ticket.batch}${place}`
 }
 
+/** "draft PR #176 · Build" — a running ticket's PR, in one line. */
+export function prLine(pr: TicketPr): string {
+  const stage = pr.stage ? ` · ${pr.stage.charAt(0).toUpperCase()}${pr.stage.slice(1)}` : ""
+  return `${pr.draft ? "draft " : ""}PR #${pr.number}${stage}`
+}
+
 /** The note a row carries under its title: why it is blocked, or what is
  *  running. Null for every other row. */
 export function rowNote(ticket: BoardTicket): { tone: "blocked" | "running"; text: string } | null {
@@ -336,6 +342,8 @@ export function rowNote(ticket: BoardTicket): { tone: "blocked" | "running"; tex
     return reason ? { tone: "blocked", text: reason } : null
   }
   if (ticket.status === "running") {
+    // What GitHub says first (spec work-reader §3): the PR and its stage.
+    if (ticket.pr) return { tone: "running", text: prLine(ticket.pr) }
     const text =
       ticket.runStage === "lane"
         ? "Lane — PR open for your merge"

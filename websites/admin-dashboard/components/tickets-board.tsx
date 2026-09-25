@@ -587,6 +587,10 @@ export function TicketsBoard({
       case "help":
         setKeysOpen(true)
         return true
+
+      // The desk's key (work-desk.tsx); this board's keys are never on.
+      case "launch":
+        return false
     }
   }
 
