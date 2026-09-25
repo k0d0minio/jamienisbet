@@ -49,3 +49,13 @@
 - The preview runs against the shared production database (`database.isolation: none`), which
   still has both tables — the preview proves the code no longer reads them, not the migration.
 - Three READMEs outside `touches:` were corrected (see above) — docs only, no behaviour.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 7e82959 (ci-status.sh); re-read after the last push before the merge
+- reviews: code medium (/code-review origin/main...HEAD — no correctness findings; one stale "todos" comment in `lib/lead-segments.ts` fixed in-ticket) · security security-check.sh --branch --audit: OK · /security-review n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (the diff touches the DB, but the skill is not installed in this repo; the migration was reviewed in /code-review and by CI's Validate migrations) · readiness env.sh audit --changed: OK
+- parked: triage/template-change-select-model-run-slug.md
+- migrations: ok — 0026 forward-only (repo declares `migrations.reversible: false`); no revert path, recovery is fix-forward via hotfix; check-migrations.sh SKIP (drizzle numbering)
+- learned: skip — no error.log; 1 rule from FAILURE.md synced at close-out
+- docs: no docs tree; READMEs and AGENTS.md updated in Build · announce: public

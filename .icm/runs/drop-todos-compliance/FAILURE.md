@@ -13,12 +13,22 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — the stub asked for a proof this repo cannot run
+- what happened: the scope cut gave `drop-todos-compliance` the criterion "runs cleanly on a Neon
+  branch", but `.icm/project.json` declares `database.isolation: none` — no per-run branch, and a
+  run never migrates a database itself.
+- why: Scope wrote the migration criterion without reading `database.isolation`.
+- fixed by: Define asked the operator; the criterion became `Validate migrations (no DB writes)`
+  green on the PR plus `Apply migrations to production` green after the merge.
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+### 2026-09-25 — Build's model check failed on its own slug
+- what happened: `select-model.sh drop-todos-compliance --stage 03_build` → "no stub under
+  .icm/intake/", because `new-run.sh --stub` had already moved the stub to `_done/`.
+- why: the template resolver searches live intake only; it does not fall back to the run's spec.
+- fixed by: passed the spec path instead; parked `triage/template-change-select-model-run-slug.md`.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- A migration acceptance criterion must match `database.isolation` in `.icm/project.json`: with
+  `none`, the proof is the PR's `Validate migrations (no DB writes)` plus the post-merge
+  `Apply migrations to production` — never a Neon branch or a local `db:migrate`.
