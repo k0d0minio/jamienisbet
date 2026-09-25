@@ -161,3 +161,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In this repo, the post-flip push must change a file (an `.icm/` run file is enough): an empty commit is skipped by Vercel as "Not affected" and leaves the full gate with no preview. (`FAILURE.md` — leads-table-board)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - Never re-render a whole PR body to tick acceptance criteria — that also rewrites the gate boxes; tick criteria only by editing those lines, or leave the ticks to `notes.md`. (`FAILURE.md` — leads-table-board)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A GitHub check run's newest attempt is its highest id, not its latest start: a queued re-run has no start time yet. (`FAILURE.md` — gates-read)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A GraphQL call reports failure inside an HTTP 200, so any cache rule that keys on the status code must also read the answer's `errors` before trusting it. (`FAILURE.md` — gates-read)
