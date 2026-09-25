@@ -17,6 +17,7 @@ import {
 } from "@jamie-nisbet/services"
 
 import { daysSince, formatShortDay, whatsappUrl } from "@/lib/format"
+import { countGates } from "@/lib/gates"
 import type { InboxFact, InboxMore, InboxRow, ReachLink } from "@/lib/inbox-row"
 import {
   daysWaiting,
@@ -110,6 +111,19 @@ export async function countFollowUps(): Promise<number | null> {
   } catch {
     return null
   }
+}
+
+/**
+ * The rail's and the tab bar's badge: the Gates and PRs rows plus the
+ * follow-up rows — the same sum the Inbox header says is waiting on you. A
+ * half that couldn't be read counts nothing, so a GitHub outage leaves the
+ * follow-ups' count standing; null only when neither could be read. Never
+ * rejects, for the same reason `countFollowUps` doesn't.
+ */
+export async function countInbox(): Promise<number | null> {
+  const [followUps, gates] = await Promise.all([countFollowUps(), countGates()])
+  if (followUps === null && gates === null) return null
+  return (followUps ?? 0) + (gates ?? 0)
 }
 
 // ---------------------------------------------------------------------------

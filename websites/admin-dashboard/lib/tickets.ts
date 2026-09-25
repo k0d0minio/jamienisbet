@@ -142,6 +142,13 @@ export const BOARD_CACHE_TAG = "tickets"
  */
 export const BOARD_POSITION_TAG = "tickets:position"
 
+/**
+ * A third tag on the Inbox's pull-request read (lib/gates.ts) alone, so the
+ * Inbox's refresh control can expire it without re-reading the board. It rides
+ * beside `BOARD_CACHE_TAG`, so the board's own refresh takes it too.
+ */
+export const GATES_CACHE_TAG = "tickets:gates"
+
 // The pinned tier of the roster: read every render, never gated behind
 // discovery. The house repos are here so the board stands even when the owner
 // sweep fails, and every repo a client row points at is here because a
@@ -367,6 +374,10 @@ function isConfigured(): boolean {
   return Boolean(process.env.GITHUB_TOKEN)
 }
 
+/** The board's "can it read GitHub at all" — the Inbox's gates read asks the
+ *  same question of the same token. */
+export const isBoardConfigured = isConfigured
+
 // A queue of waiters, drained one permit at a time. Every request in this
 // module goes through it, and nothing holds a permit while waiting for
 // another — the tree call releases before its file reads start — so the fan-out
@@ -432,6 +443,89 @@ async function gh(
     })
   } finally {
     release()
+  }
+}
+
+/** One GraphQL answer: the data GitHub could resolve, the errors it named
+ *  alongside it (a repo the token can't see comes back as one of these, with
+ *  the rest of the answer intact), or — only when there is no data at all — the
+ *  sentence saying why. */
+export type GraphqlAnswer<T> =
+  | {
+      data: T
+      errors: { message: string; path?: (string | number)[]; type?: string }[]
+      failure: null
+      /** When GitHub answered (its `date` header), ms — older than now when
+       *  the cache served this answer. Null when the header is missing. */
+      at: number | null
+    }
+  | { data: null; errors: []; failure: string }
+
+/**
+ * A GitHub GraphQL query on the board's terms: through the same queue, cached
+ * the same way, failing out loud the same way. `force-cache` caches the POST
+ * by its body, so one query text is one cache entry — the caller keeps the
+ * text stable (the roster's order, no timestamps) or it re-reads every
+ * render. GraphQL spends its own rate budget, not the REST one the trees and
+ * blobs above draw on.
+ */
+export async function githubGraphql<T>(
+  query: string,
+  tags: string[]
+): Promise<GraphqlAnswer<T>> {
+  await acquire()
+  let res: Response
+  try {
+    res = await fetch(`${API}/graphql`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        "Content-Type": "application/json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: JSON.stringify({ query }),
+      // The same two load-bearing halves as `gh()`: caching is opt-in for a
+      // request with an Authorization header, and a POST, so `force-cache` is
+      // what makes it happen at all.
+      cache: "force-cache",
+      next: { revalidate: REVALIDATE_SECONDS, tags },
+    })
+  } catch (err) {
+    release()
+    return {
+      data: null,
+      errors: [],
+      failure: err instanceof Error ? err.message : "network error",
+    }
+  }
+  release()
+  if (!res.ok) {
+    return { data: null, errors: [], failure: await githubFailure(res) }
+  }
+  const body = (await res.json().catch(() => null)) as {
+    data?: T | null
+    errors?: { message: string; path?: (string | number)[]; type?: string }[]
+  } | null
+  const errors = body?.errors ?? []
+  if (!body?.data) {
+    const first = errors[0]
+    return {
+      data: null,
+      errors: [],
+      failure:
+        first?.type === "RATE_LIMITED"
+          ? `GitHub is rate-limiting these reads — ${first.message}`
+          : first?.message
+            ? `GitHub answered with an error — ${first.message}`
+            : "GitHub answered with nothing to read",
+    }
+  }
+  const date = Date.parse(res.headers.get("date") ?? "")
+  return {
+    data: body.data,
+    errors,
+    failure: null,
+    at: Number.isNaN(date) ? null : date,
   }
 }
 
@@ -765,10 +859,38 @@ function parseLegacy(
 // is only the files whose SHA moved. Best-effort per repo: one unreachable
 // repo becomes a banner on the board, not an empty page.
 
-type TreeEntry = { path: string; type: string; sha: string }
+export type TreeEntry = { path: string; type: string; sha: string }
 
 function blobUrl(repo: TicketRepo, path: string): string {
   return `https://github.com/${repo.fullName}/blob/HEAD/${path}`
+}
+
+/** A repo's default-branch tree, from the board's own minute-clock read —
+ *  the same request, so the same cache entry: on a warm board it costs
+ *  nothing. Empty for an empty repo; a sentence when GitHub refused. */
+export async function readRepoTree(
+  repo: TicketRepo
+): Promise<{ entries: TreeEntry[]; error: string | null }> {
+  try {
+    const res = await gh(
+      `/repos/${repo.fullName}/git/trees/HEAD?recursive=1`,
+      "application/vnd.github+json"
+    )
+    if (res.status === 409) return { entries: [], error: null }
+    if (!res.ok) return { entries: [], error: await githubFailure(res) }
+    const { tree } = (await res.json()) as { tree: TreeEntry[] }
+    return { entries: tree, error: null }
+  } catch (err) {
+    return {
+      entries: [],
+      error: err instanceof Error ? err.message : "network error",
+    }
+  }
+}
+
+/** One file by blob SHA, on the board's month-long content clock. */
+export function readBlob(repo: TicketRepo, sha: string): Promise<string | null> {
+  return fetchBlob(repo, sha)
 }
 
 /**
@@ -1314,7 +1436,7 @@ async function probeIntake(fullName: string): Promise<IntakeProbe> {
   }
 }
 
-type Roster = {
+export type Roster = {
   /** Everything the board will show: the pinned tier, plus the swept repos
    * discovery found an intake in. */
   repos: TicketRepo[]
@@ -1391,6 +1513,14 @@ async function loadRoster(): Promise<Roster> {
 
   return { repos, unreadable, sweepError: sweep.error }
 }
+
+/**
+ * The roster, read once per request. Work and the Inbox's gates read both
+ * stand on it, and the shell's badge reads the gates on every screen — so one
+ * render never pays the database lookup twice. The GitHub half is already
+ * shared by the Data Cache.
+ */
+export const readRoster = cache(loadRoster)
 
 // ---------------------------------------------------------------------------
 // Batch assembly — the board's shape. A batch is one line item: an epic folder
@@ -1640,7 +1770,7 @@ const readEstate = cache(async (): Promise<EstateRead> => {
 
   let roster: Roster
   try {
-    roster = await loadRoster()
+    roster = await readRoster()
   } catch (err) {
     return {
       configured: true,

@@ -5,13 +5,15 @@ import { Check, Mail, MessageCircle } from "lucide-react"
 import { cn } from "@jamie-nisbet/ui"
 
 import {
+  GATE_TAG,
+  GateActions,
   InboxActions,
   KIND_TAG,
   LogTouch,
   type InboxHandlers,
 } from "@/components/inbox-detail"
 import { SwipeAction, SwipeRow } from "@/components/swipe-row"
-import type { InboxRow } from "@/lib/inbox-row"
+import type { GateRow, InboxRow } from "@/lib/inbox-row"
 
 // One follow-up in the queue.
 //
@@ -146,5 +148,84 @@ function ReachTray({ row }: { row: InboxRow }) {
           />
         ))}
     </>
+  )
+}
+
+/**
+ * One gate in the queue — the same row shape as a follow-up: kind tag, the
+ * PR's or scope's title, the repo and its `#n`, the age. Red CI and a blocked
+ * run set their tag and age in the destructive colour. On the phone a tap
+ * opens it in place; there is no swipe, because nothing is cleared from here.
+ */
+export function GateRowItem({
+  row,
+  selected,
+  desk,
+  onPick,
+  rowRef,
+}: {
+  row: GateRow
+  selected: boolean
+  desk: boolean
+  onPick: () => void
+  rowRef: (node: HTMLButtonElement | null) => void
+}) {
+  const open = !desk && selected
+
+  return (
+    <li>
+      <button
+        ref={rowRef}
+        type="button"
+        onClick={onPick}
+        aria-current={desk && selected ? "true" : undefined}
+        aria-expanded={desk ? undefined : open}
+        className={cn(
+          "flex w-full min-w-0 items-start gap-3 border-b border-desk-line bg-desk-surface px-5 text-left",
+          "min-h-desk-row py-2 transition-colors duration-100 hover:bg-desk-hover",
+          "lg:h-desk-row lg:items-center lg:py-0",
+          selected && "bg-desk-sunken hover:bg-desk-sunken",
+          open && "border-b-0"
+        )}
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5 lg:flex-row lg:items-center lg:gap-3">
+          <span
+            className={cn(
+              "truncate font-mono text-desk-micro lg:w-32 lg:shrink-0",
+              row.late ? "text-desk-blocked" : "text-desk-fg"
+            )}
+          >
+            {GATE_TAG[row.kind]}
+          </span>
+          <span
+            className={cn(
+              "truncate text-desk-ui lg:min-w-0 lg:flex-1",
+              selected ? "font-semibold" : "font-medium"
+            )}
+          >
+            {row.title}
+          </span>
+          <span className="truncate font-mono text-desk-meta text-desk-fg-3 lg:max-w-48 lg:shrink-0">
+            {row.repo} {row.ref}
+          </span>
+        </span>
+        <span
+          className={cn(
+            "shrink-0 font-mono text-desk-meta tabular-nums lg:w-16 lg:text-right",
+            row.late ? "text-desk-blocked" : "text-desk-fg-3"
+          )}
+        >
+          <span aria-hidden>{row.age}</span>
+          <span className="sr-only">{row.ageSpoken}</span>
+        </span>
+      </button>
+
+      {open ? (
+        <div className="flex flex-col gap-3 border-b border-desk-line bg-desk-sunken px-5 pt-1 pb-4">
+          <p className="text-desk-body text-desk-fg-2">{row.text}</p>
+          <GateActions row={row} layout="phone" />
+        </div>
+      ) : null}
+    </li>
   )
 }

@@ -48,3 +48,75 @@ export type InboxRow = {
 
 /** How many of each kind are waiting beyond what the queue shows. */
 export type InboxMore = Record<InboxKind, number>
+
+// ---------------------------------------------------------------------------
+// Gates and PRs (D-14) — what waits on Jamie's review across the estate, read
+// from GitHub by lib/gates.ts. Like the follow-ups, every word and link is
+// decided on the server; unlike them, nothing here is cleared from the Inbox —
+// the tick, the merge and the fix all happen on GitHub, and a row leaves when
+// GitHub stops showing it waiting.
+
+/** The six kinds, in the order the group lists them (spec gates-read §3). */
+export type GateKind = "blocked" | "red" | "spec" | "merge" | "lane" | "scope"
+
+/** A place to go: GitHub, a preview. Always a new tab. */
+export type GateLink = { id: string; label: string; href: string }
+
+/** One line of the pane's list: a check with its state, or a fact. */
+export type GateFact = {
+  label: string
+  value: string
+  tone: "ok" | "fail" | "muted" | "plain"
+}
+
+/** A launch the row offers — a Work-style session link. */
+export type GateLaunch = {
+  label: string
+  /** The default target's link; null when it can't carry this launch. */
+  href: string | null
+  /** A new tab for a web target (`launchLinkProps`). */
+  newTab: boolean
+  /** "Opus · high" where the link can't carry the recommendation. */
+  hint: string | null
+  /** Why there is no link, when there isn't. */
+  unavailable: string | null
+}
+
+export type GateRow = {
+  /** Unique across the estate: repo plus PR number, scope or run. */
+  key: string
+  kind: GateKind
+  title: string
+  /** The repo's own name, mono on the row. */
+  repo: string
+  /** "#12", or "main" for a scope or a run with no PR. */
+  ref: string
+  /** "PR #12", or "main" — the pane's ref. */
+  refLong: string
+  /** "now", "12m", "3h", "2d", "today". */
+  age: string
+  ageSpoken: string
+  /** Red CI and a blocked run — tag and age in the destructive colour. */
+  late: boolean
+  /** The pane's one line: what to do. */
+  text: string
+  facts: GateFact[]
+  primary: GateLink
+  secondary: GateLink | null
+  rest: GateLink[]
+  launch: GateLaunch | null
+}
+
+/** The group's read, as the browser gets it. Never an exception: an unset
+ *  token and a failed read are both stated, and the rest of the Inbox stands. */
+export type GatesRead =
+  | { state: "unconfigured" }
+  | { state: "failed"; message: string }
+  | {
+      state: "ok"
+      rows: GateRow[]
+      /** Repos that couldn't be read, or were read only in part. */
+      notes: string[]
+      /** When the read finished, ISO — the header's "as of". */
+      readAt: string
+    }
