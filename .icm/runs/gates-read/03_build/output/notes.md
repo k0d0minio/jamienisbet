@@ -1,7 +1,7 @@
 # Build notes: gates-read
 
 - commits: da4bc3f feat: gates-read — Gates and PRs at the head of the Inbox
-- ci: pending — see status.md; `lint.sh` → OK (0 errors in 12 changed files), `security-check.sh` → OK
+- ci: GREEN on c3b3093 (full gate: Vercel – jamie-nisbet, Vercel – portfolio; Quality (advisory) passed on 53f84c4); `lint.sh` → OK (0 errors in 12 changed files), `security-check.sh` → OK
 
 ## What changed
 

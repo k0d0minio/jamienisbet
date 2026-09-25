@@ -6,17 +6,20 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: read `02_define/output/spec.md` (or the PR's Spec block); to change it,
-   `revise gates-read "<what>"`.
-2. Operator: tick **Spec approved** in the body of https://github.com/k0d0minio/jamienisbet/pull/175.
-3. Then `/pipeline build gates-read` — Build follows `plan.md` pass by pass.
+1. Operator: smoke `/inbox` on the admin preview
+   (https://jamie-nisbet-git-claude-relaxed-archimedes-mudbha-kodominio.vercel.app/inbox) at the
+   desk and at 390px: the Gates and PRs group lands after the follow-ups, rows link out, the
+   badge counts both, refresh re-reads GitHub. The group has never run against live GitHub —
+   if it reads "Couldn't read GitHub — …", the message names the failing GraphQL field.
+2. Operator: tick **Ready to merge** on https://github.com/k0d0minio/jamienisbet/pull/175.
+3. Then `/pipeline release gates-read`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** on PR #175.
+- blocked on operator: smoke the preview and tick **Ready to merge** on PR #175.
 
 ## Do not
 
-- Do not start Build before the Spec approved tick.
+- Do not tick either gate box.
 - Do not subscribe to PR activity on #175 (`_shared/github.md` → PR events).
-- Do not touch the Follow-ups rules or caps, or the files another live Inbox/Work run owns.
+- Do not touch the Follow-ups rules or caps.
