@@ -823,18 +823,35 @@ export type EpicRow = {
  * never an error.
  */
 function buildOrder(markdown: string): Map<string, { sequence: number; title: string }> {
-  const order = new Map<string, { sequence: number; title: string }>()
+  // Each entry's text, with its hard-wrapped continuation lines (indented,
+  // not a new item) joined on.
+  const entries: { sequence: number; slug: string; text: string }[] = []
+  let open: { sequence: number; slug: string; text: string } | null = null
   let inSection = false
   for (const line of markdown.split("\n")) {
     if (/^##\s/.test(line)) {
       inSection = /^##\s+build order\b/i.test(line)
+      open = null
       continue
     }
     if (!inSection) continue
     const m = line.match(/^\s*(\d+)\.\s+`?([a-z0-9][a-z0-9-]*)`?\s+[—–]\s+(.+)$/i)
-    if (!m) continue
-    const title = m[3].replace(/\s+[—–]\s+depends-on:.*$/i, "").trim()
-    if (!order.has(m[2])) order.set(m[2], { sequence: Number(m[1]), title: title || m[2] })
+    if (m) {
+      open = { sequence: Number(m[1]), slug: m[2], text: m[3] }
+      entries.push(open)
+      continue
+    }
+    if (open && /^\s+\S/.test(line) && !/^\s*(\d+\.|[-*])\s/.test(line)) {
+      open.text = `${open.text} ${line.trim()}`
+      continue
+    }
+    open = null
+  }
+  const order = new Map<string, { sequence: number; title: string }>()
+  for (const { sequence, slug, text } of entries) {
+    if (!slug || order.has(slug)) continue
+    const title = text.replace(/\s+[—–]\s+depends-on:.*$/i, "").trim()
+    order.set(slug, { sequence, title: title || slug })
   }
   return order
 }
@@ -1048,7 +1065,9 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       for (const [epic, done] of doneByEpic) {
         if (!done.has(slug)) continue
         const placed = orders.get(epic)?.get(slug) ?? null
-        const total = orders.get(epic)?.size ?? 0
+        // The plan's size is its highest place, not how many lines matched
+        // the shape — a line that didn't would otherwise undercount it.
+        const total = Math.max(0, ...[...(orders.get(epic)?.values() ?? [])].map((o) => o.sequence))
         return {
           epic,
           sequence: placed?.sequence ?? null,

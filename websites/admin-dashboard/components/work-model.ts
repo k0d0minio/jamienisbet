@@ -1,5 +1,3 @@
-import type { DeskStatus } from "@jamie-nisbet/ui"
-
 import {
   batchKey,
   blockedReason,
@@ -277,9 +275,13 @@ export function viewTickets(
       return ordered.filter((t) => t.status === "running")
     case "today": {
       const byKey = new Map(ordered.map((t) => [ticketKey(t), t]))
-      return board.todayOrder
+      const picked = board.todayOrder
         .map((key) => byKey.get(key))
         .filter((t): t is BoardTicket => t !== undefined)
+      // A legacy ticket can say `today` in its own status table; it follows
+      // today.md's picks, in board order.
+      const listed = new Set(picked.map(ticketKey))
+      return [...picked, ...ordered.filter((t) => t.today && !listed.has(ticketKey(t)))]
     }
   }
 }
@@ -429,11 +431,6 @@ export function paneRows(
   }
 }
 
-/** A row's dot. */
-export function deskStatus(ticket: BoardTicket): DeskStatus {
-  return ticket.status
-}
-
 // ---------------------------------------------------------------------------
 // Pane one's entries.
 
@@ -528,9 +525,4 @@ export function entryQuery(entry: NavEntry): BoardQuery {
     case "batch":
       return { b: entry.query }
   }
-}
-
-/** The pane-one entry that shows a list — for its highlight. */
-export function entryKeyOf(list: WorkList): string {
-  return listKey(list)
 }

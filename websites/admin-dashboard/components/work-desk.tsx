@@ -35,6 +35,7 @@ import {
 import { TicketSummary } from "@/components/ticket-detail"
 import { useBoardKeys, type BoardKeyIntent } from "@/components/use-board-keys"
 import { useBoardParams, type BoardQuery } from "@/components/use-board-params"
+import { useWorkLive } from "@/components/work-screen"
 import {
   WORK_VIEWS,
   entryQuery,
@@ -613,6 +614,7 @@ export function WorkDesk({
 }) {
   const params = useBoardParams()
   const { navigate, correct } = params
+  const live = useWorkLive()
   const unreadable = { errors: board.errors, maintenance: unreadableMaintenance }
   const { selection, correction } = resolveWork(board.sections, unreadable, {
     view: params.view,
@@ -627,8 +629,8 @@ export function WorkDesk({
   // history entry.
   const fixKey = correction ? JSON.stringify(correction) : null
   useEffect(() => {
-    if (fixKey) correct(JSON.parse(fixKey) as BoardQuery)
-  }, [fixKey, correct])
+    if (live && fixKey) correct(JSON.parse(fixKey) as BoardQuery)
+  }, [live, fixKey, correct])
 
   const { list } = selection
   const current = listKey(list)
@@ -793,9 +795,24 @@ export function WorkDesk({
         // each without moving focus.
         const stops = entries.filter((e) => e.kind !== "repo")
         if (stops.length === 0) return false
-        const at = stops.findIndex((e) => e.key === current)
         const step = intent === "nextRepo" ? 1 : -1
-        const next = stops[at === -1 ? 0 : (at + step + stops.length) % stops.length]
+        const at = stops.findIndex((e) => e.key === current)
+        let next: NavEntry
+        if (at !== -1) {
+          next = stops[(at + step + stops.length) % stops.length]
+        } else {
+          // The open list is no stop (a repo, or an epic whose repo is
+          // folded): step from where it sits in pane one.
+          const here = entries.findIndex((e) => e.key === current)
+          const after = entries.slice(here + 1).find((e) => e.kind !== "repo")
+          const before = entries
+            .slice(0, Math.max(here, 0))
+            .reverse()
+            .find((e) => e.kind !== "repo")
+          next =
+            (step === 1 ? after : before) ??
+            (step === 1 ? stops[0] : stops[stops.length - 1])
+        }
         setNavCursor({ key: next.key, at: next.key })
         navigate(entryQuery(next))
         return true
@@ -807,7 +824,7 @@ export function WorkDesk({
     }
   }
 
-  useBoardKeys(onKey)
+  useBoardKeys(onKey, live)
 
   // ---- Pane three — the detail. -----------------------------------------
   const shown = paneSelection(selection)

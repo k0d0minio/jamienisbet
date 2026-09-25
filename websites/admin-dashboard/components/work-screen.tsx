@@ -1,12 +1,26 @@
 "use client"
 
+import { createContext, useContext } from "react"
+
 import { useDesk } from "@/components/use-desk"
 
 // Work's two layouts, one of them live: the three desk panes from `lg`, the
 // phone board under it. Both arrive rendered from the server; until the width
 // is known (hydration) both stand behind their CSS breakpoints so either
-// width paints right, and from then on only the live one is mounted — one
-// keyboard, one URL resolver, one refresh button, never two answering at once.
+// width paints right, and neither is live — neither may rewrite the URL or
+// take a key, or the hidden one would correct the address for the one on
+// screen. Once the width is known only the live one stays mounted: one
+// keyboard, one URL resolver, one refresh button. The two wrappers never
+// change place, so the live layout is not remounted when the width settles.
+
+const LiveContext = createContext(true)
+
+/** Whether this layout is the one on screen — false through hydration, and
+ *  for the other layout. */
+export function useWorkLive(): boolean {
+  return useContext(LiveContext)
+}
+
 export function WorkScreen({
   desk,
   phone,
@@ -15,12 +29,19 @@ export function WorkScreen({
   phone: React.ReactNode
 }) {
   const atDesk = useDesk()
-  if (atDesk === true) return desk
-  if (atDesk === false) return phone
+  const settled = atDesk !== null
   return (
     <>
-      <div className="hidden lg:contents">{desk}</div>
-      <div className="lg:hidden">{phone}</div>
+      <div className={settled ? "contents" : "hidden lg:contents"}>
+        <LiveContext.Provider value={atDesk === true}>
+          {atDesk === false ? null : desk}
+        </LiveContext.Provider>
+      </div>
+      <div className={settled ? "contents" : "lg:hidden"}>
+        <LiveContext.Provider value={atDesk === false}>
+          {atDesk === true ? null : phone}
+        </LiveContext.Provider>
+      </div>
     </>
   )
 }
