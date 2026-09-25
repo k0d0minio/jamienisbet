@@ -177,3 +177,11 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - In the admin dashboard, an in-app back that uses `history.back()` must first check the entry behind it is not deeper than the current level — a pushed parent over a cold link otherwise loops the two. (`FAILURE.md` — work-phone)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - In the admin dashboard, an edge-swipe gesture listens on the view itself (non-passive `touchmove`, decided after a slop), never through a `touch-none` overlay, which eats the taps and scrolls under it. (`FAILURE.md` — work-phone)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Measure a retirement's footprint with an import-and-utility scan at Define; never trust a stub's `touches:` guess for a sweep. (FAILURE.md — retire-app-tier) (`FAILURE.md` — retire-app-tier)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A mechanical class-rename regex runs on class tokens only — never over `var(--…)` names — and its residue is re-scanned before the commit. (FAILURE.md — retire-app-tier) (`FAILURE.md` — retire-app-tier)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a touch target grows, check what it now overlaps (a sheet's ✕ against the detent handle), not only its own size. (FAILURE.md — retire-app-tier) (`FAILURE.md` — retire-app-tier)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- In a cloud session, run `git remote set-head origin main` before `/security-review`, and delete the `AGENTS.md` / `CLAUDE.md` that `next dev` writes into `websites/admin-dashboard/` before committing. (FAILURE.md — retire-app-tier) (`FAILURE.md` — retire-app-tier)
