@@ -7,7 +7,7 @@
 export const LEAD_SEGMENTS = [
   /** The record: status, contact, the deal, how they came in, the red rows. */
   { key: "person", label: "Person" },
-  /** The surface you operate: notes, todos, forms. */
+  /** The surface you operate: notes, forms. */
   { key: "work", label: "Work" },
 ] as const
 

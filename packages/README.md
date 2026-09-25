@@ -18,8 +18,8 @@ wrapper, etc.) as they're extracted.
   code in [`ui/BRAND.md`](ui/BRAND.md). See [`ui/README.md`](ui/README.md).
 - [`services/`](services/) — **`@jamie-nisbet/services`**: the database models and business
   logic shared across the estate, built on **Drizzle ORM + Neon Postgres**. Typed schema (under
-  a dedicated `biz` Postgres schema), a lazy DB client, and query helpers for the three tables
-  the business runs on — leads, todos, compliance dates. Source-only like `ui`, consumed via
+  a dedicated `biz` Postgres schema), a lazy DB client, and query helpers for the tables the
+  business runs on — leads, their touches, suppressions and questionnaires. Source-only like `ui`, consumed via
   `transpilePackages`.
   See [`services/README.md`](services/README.md).
 - [`app-shell/`](app-shell/) — **`@jamie-nisbet/app-shell`**: the shared Next.js app shell for

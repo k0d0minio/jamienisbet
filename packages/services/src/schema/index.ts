@@ -361,25 +361,6 @@ export const suppressions = biz.table("suppressions", {
 (t) => [unique("suppressions_kind_value_key").on(t.kind, t.value)])
 
 // ---------------------------------------------------------------------------
-// The two working lists. Everything else on the dashboard is derived live from
-// the leads table or read straight from Stripe.
-
-// A manual business todo ("chase X", "prep for the Mafra meetup"). Optionally
-// linked to a lead; completing is a soft flag (same idiom as archived_at) so
-// the done history stays queryable.
-export const tasks = biz.table("tasks", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  title: varchar("title", { length: 200 }).notNull(),
-  notes: text("notes"),
-  clientId: uuid("client_id").references(() => clients.id, {
-    onDelete: "set null",
-  }),
-  dueDate: timestamp("due_date", { withTimezone: true }),
-  // Null = open; a timestamp = done.
-  completedAt: timestamp("completed_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-})
-
 // One questionnaire sent to one lead — the whole customer form builder, in a
 // table. Created by "Send form" on a lead's profile, read by the public page at
 // `<portfolio>/f/<id>`.
@@ -413,20 +394,4 @@ export const formLinks = biz.table("form_links", {
   // Null = sent, awaiting a response. A timestamp = submitted, and the link is
   // spent: revisiting it shows a dead-end rather than the form again.
   completedAt: timestamp("completed_at", { withTimezone: true }),
-})
-
-// A Portuguese compliance obligation (IRS payment-on-account, Segurança Social
-// declaration, IES, …). Rows are decision-support only — `notes` must carry the
-// source + as-of date per the legal/tax standing rule, and everything here
-// needs the contabilista's confirmation. Completing a recurring row inserts
-// the next occurrence (no calendar math at read time) — see queries/compliance.ts.
-export const complianceDates = biz.table("compliance_dates", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  title: varchar("title", { length: 200 }).notNull(),
-  notes: text("notes"),
-  dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
-  // 'none' | 'monthly' | 'quarterly' | 'yearly' — see complianceRecurrences.
-  recurrence: varchar("recurrence", { length: 20 }).notNull().default("none"),
-  completedAt: timestamp("completed_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 })

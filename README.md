@@ -32,8 +32,8 @@ jamienisbet/
 
 ## How it runs
 
-- **Business state lives in one store** — the Neon `biz.*` schema (leads, todos, compliance
-  dates), operated through the admin dashboard. Nothing is mirrored back into git; money
+- **Business state lives in one store** — the Neon `biz.*` schema (leads, touches, opt-outs,
+  questionnaires), operated through the admin dashboard. Nothing is mirrored back into git; money
   itself lives in Stripe.
 - **The Tickets screen** reads every active repo's `.icm/intake/` markdown backlog live from
   GitHub (read-only; the repos own their tickets) — the client repos plus the two house

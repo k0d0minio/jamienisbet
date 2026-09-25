@@ -72,7 +72,7 @@ export default function NeedsYouLoading() {
     >
       <div className="flex flex-col gap-app-section pt-1 pb-2">
         <SectionSkeleton header="Waiting on you" />
-        <SectionSkeleton header="Overdue" />
+        <SectionSkeleton header="Outreach due" />
 
         <span className="sr-only" role="status">
           Loading what needs you
