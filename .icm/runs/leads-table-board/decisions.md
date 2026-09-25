@@ -33,5 +33,9 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-30 — At the desk a live row shows status as read-only text and carries only WhatsApp, Email and Mark touched; status change, archive and delete stay on the profile; the archived view's row actions are Restore and Delete. `client-status-select.tsx` is deleted. Jamie, in Define, 2026-09-25 (mockup as drawn).
+- D-31 — The Board is offered in every view (Leads, prospects, archived, both cracks), showing the same rows as the table. Jamie, in Define, 2026-09-25.
+- D-32 — The Leads table takes `j` / `k` / `Enter` / `t` (highlight, open, mark touched). Jamie, in Define, 2026-09-25.
+- D-33 — The sort is kept in the URL (`sort`, `dir`) and applied on the server; the layout is `layout=board` (the existing `view` param stays the population). Jamie, in Define, 2026-09-25 (param names: Define).
+- D-34 — The two crack filters get a visible entry on the Leads view's filter bar, after a divider, with counts, so they stay reachable once `inbox-rebuild` removes them from the feed (D-18). Define, 2026-09-25.
+- D-35 — A lead whose stage cannot be read (no repo, no folder, no engagement, no `NN-` artefact, or GitHub unreadable) sits in the board's "No folder" column; an unreadable tree adds a one-line note. Define, 2026-09-25.

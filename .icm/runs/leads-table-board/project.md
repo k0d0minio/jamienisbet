@@ -13,9 +13,13 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Read-only board: no drag, no stage write (D-19, spec Out of scope).
+- Totals stay cash-only, computed as today (the `totals()` rule in the page).
+- The crack views list exactly what their counts count (`hasNoPlan`, `isIdleDiscussion` mirror `crack-finder.ts`).
+- Deal-folder reads keep `lib/deals.ts`'s caching; no `force-dynamic` on the route.
+- Every swipe action keeps a non-gesture twin on the profile.
+- Desk-tier primitives from `packages/ui` (`DataGrid`, `DeskSegmentedControl`, `DeskButton`); no tokens forked in the app (BRAND.md § Desk tier).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the design canvas's `LeadsDesk.dc.html` artboard (the column set and board layout) and the retire-app-tier / lead-profile-columns / inbox-rebuild stubs to draw the Out of scope lines.

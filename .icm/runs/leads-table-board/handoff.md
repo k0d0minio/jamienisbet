@@ -6,18 +6,15 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. The operator reads `02_define/output/spec.md` and ticks **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/173 (or asks for a change with `revise leads-table-board "<what>"`).
+2. Then `build leads-table-board` — Build follows `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/jamienisbet/pull/173.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the Spec approved box is ticked; never tick it.
+- Do not touch the lead profile (`app/(app)/leads/[id]/**`) — `lead-profile-columns` owns it.
+- Do not change `lib/deals.ts`'s fetch caching or add `force-dynamic` to the route.

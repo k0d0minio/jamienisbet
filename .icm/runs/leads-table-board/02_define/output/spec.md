@@ -26,7 +26,7 @@ shell's `md`, where the rail starts); "the phone" is below it.
 
 **1. The screen moves to the desk tier and widens.** `/leads` renders inside a `desk-tier` root
 with the desk tokens, Hanken Grotesk for UI text and IBM Plex Mono for figures, dates, stage
-codes and tiers. At the desk it spans the whole content area beside the rail (it no longer
+codes and tiers (D-4). Nothing here reaches the marketing sites (D-22). At the desk it spans the whole content area beside the rail (it no longer
 keeps the reading width). No inset grouped slabs, no glance row, no materials, no springs.
 
 **2. The header (desk).** One 56px bar on a bottom hairline, left to right:
@@ -172,6 +172,7 @@ URL-kept sort, the board, the crack filters, the keyboard, and the phone rows �
 - Multi-select and bulk actions on rows.
 - Retiring the app tier elsewhere — the phone title bar (`AppScreen`), pull-to-refresh and toasts move in `retire-app-tier`.
 - Removing the crack counts from the Inbox — `inbox-rebuild`.
+- The scope's decisions that belong to sibling stubs and do not apply to this screen: the shell, rail and palette (D-5, done in `shell-rail-palette`), Work and tickets (D-6, D-7, D-8, D-9, D-10, D-11, D-12), the Inbox (D-13, D-14, D-15), todos and compliance dates (D-16), Money (D-17) and the lead profile (D-20).
 
 ## Open questions
 
