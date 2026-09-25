@@ -47,3 +47,14 @@
 - Look closely at `components/leads-table.tsx` → the keyboard effect (attached once, reads through `keyState`) and the optimistic `gone` set.
 - The desk pane is `h-dvh` with `md:-mb-8` to take back the shell's desk bottom padding; if the shell's `md:pb-8` changes, this must follow.
 - Context budget: read the design canvas's `LeadsDesk.dc.html` in Define; Build read `use-board-keys.ts` for the guard pattern.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the close-out head (ci-status.sh, after the last push)
+- reviews: code medium — 1 finding, fixed in-ticket (`fix: leads-table-board — review findings`: `LeadsTable` keyed to the archive flag, so a row restored from the archive is not still hidden in the live view) · security `security-check.sh --branch --audit`: OK (gitleaks absent — built-in patterns only) · /security-review n/a (no auth, payments or route policy touched; the lead data shown is what the authed Leads route already read) · /production-readiness n/a (no schema, auth, payments or env vars; Neon read through the existing `listClients`) · readiness `env.sh audit --changed`: OK
+- parked: none
+- migrations: skip — none of this run's own (check-migrations.sh after merging main: SKIP)
+- learned: skip — no error.log; FAILURE.md adds 2 on close-out
+- docs: websites/admin-dashboard/README.md (updated in Build; merge conflict with inbox-rebuild's README resolved at Release — screens table and Layout tree carry both) · announce: public
+
