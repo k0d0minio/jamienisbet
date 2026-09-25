@@ -8,10 +8,10 @@ stops, so nothing is carried in anyone's head.
 
 1. The operator smokes the admin preview
    (https://jamie-nisbet-git-claude-sweet-noether-h8s54g-kodominio.vercel.app) at 1280px and
-   wider: select a stub (reader head, body, side column), Launch and ⌘↵, Copy prompt, a running
-   stub (this run's own `work-reader` reads running with PR #176 once main's tree still holds the
-   stub — it does not: the stub moved to `_done/` on this branch only, so on main it is open and
-   PR #176 matches it), a triage stub, an epic and a repo selection, both themes.
+   wider: select a stub (reader head, body, side column), Launch and ⌘↵, Copy prompt, a triage
+   stub, an epic and a repo selection, both themes. A live running case: the board reads main,
+   where the `work-reader` stub is still open while PR #176 is, so it should read as running with
+   `PR #176 · Build` and offer no Launch; `work-phone` should read blocked, waiting on it.
 2. Then **Ready to merge** — it is already ticked on PR #176 (ticked before Build ran); the
    operator should confirm the tick reflects the smoke, then run `/pipeline release work-reader`.
 
