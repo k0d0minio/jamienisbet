@@ -2,7 +2,7 @@
 
 - commits: 92f6b50 (the phone levels, the reader's parts, the swap and the deletions), adfc3d1
   (the two more orphaned files, the README)
-- ci: not read yet — draft (blind-until-ready); set at the flip
+- ci: GREEN on 1d664f6 — full gate (ready): Vercel jamie-nisbet and portfolio previews pass; main merged in at 4570f0b
 
 ## What changed
 
