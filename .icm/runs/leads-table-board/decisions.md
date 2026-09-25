@@ -39,3 +39,5 @@ decision made mid-run has one home.
 - D-33 — The sort is kept in the URL (`sort`, `dir`) and applied on the server; the layout is `layout=board` (the existing `view` param stays the population). Jamie, in Define, 2026-09-25 (param names: Define).
 - D-34 — The two crack filters get a visible entry on the Leads view's filter bar, after a divider, with counts, so they stay reachable once `inbox-rebuild` removes them from the feed (D-18). Define, 2026-09-25.
 - D-35 — A lead whose stage cannot be read (no repo, no folder, no engagement, no `NN-` artefact, or GitHub unreadable) sits in the board's "No folder" column; an unreadable tree adds a one-line note. Define, 2026-09-25.
+- D-36 — The desk Prospects button shows the cold pool's size only where the page's read holds it (the roster view); in the archive and a crack view it shows the word alone. Build, 2026-09-25 — a spec gap.
+- D-37 — A not-won lead reads muted on the phone row as well as in the table (the phone used to mute only past clients and parked prospects). Build, 2026-09-25 — a spec gap (the spec's muting rule was stated for the table).

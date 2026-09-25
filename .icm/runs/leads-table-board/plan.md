@@ -29,8 +29,8 @@ reality disagrees with it — never left describing a plan that was abandoned.
    unreadable-stages note — done when: the board ACs pass with and without `GITHUB_TOKEN`.
 5. **Phone rows and states** — restyle the row markup in `page.tsx` + `components/lead-row.tsx`
    to the desk tier (flat, hairlines, 44px, desk type), keeping `SwipeRow` and its trays
-   untouched in behaviour; `deal-stage-chip.tsx` / `deal-badges.tsx` onto desk tokens if they
-   show; the empty, closed-crack and DB-error states; `loading.tsx` skeleton for both widths —
+   untouched in behaviour; `deal-stage-chip.tsx` / `deal-badges.tsx` left as they are (shared
+   with the profile, which `lead-profile-columns` owns — Build, 2026-09-25); the empty, closed-crack and DB-error states; `loading.tsx` skeleton for both widths —
    done when: at 390 wide the rows swipe as before and nothing app-tier shows below the title bar.
 6. **README** — `websites/admin-dashboard/README.md` § Leads and the Layout tree — done when: it
    describes the shipped screen and nothing it replaced.

@@ -28,4 +28,12 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
+- [x] Sort helpers and the readable-stages signal (`lib/leads.ts`, `lib/deals.ts`)
+- [x] Table + layout switch (`components/leads-table.tsx`)
+- [x] Board (`components/deal-board.tsx`)
+- [x] Page: header, filter bar, desk and phone trees (`app/(app)/leads/page.tsx`), Add lead desk trigger, status select deleted
+- [x] Phone rows + tray on the desk tier, loading skeleton
+- [x] README § Leads
+- [ ] Ready flip, full gate green
+
 - [ ] <task — small enough for one commit; name the file or area>
