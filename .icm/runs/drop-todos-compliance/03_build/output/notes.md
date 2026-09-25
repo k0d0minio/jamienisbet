@@ -1,7 +1,7 @@
 # Build notes: drop-todos-compliance
 
 - commits: 09deca2 admin surface · 1365e42 schema + migration 0026 · 4511d18 docs
-- ci: draft head — lint.sh OK, security-check.sh OK; full verdict settled after the ready flip (below)
+- ci: GREEN on 335fb03 (full gate: both previews, Validate migrations; Apply migrations skipped on the PR as designed; Quality (advisory) passed)
 
 ## What changed
 
