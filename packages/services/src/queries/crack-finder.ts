@@ -1,6 +1,7 @@
 import {
   and,
   asc,
+  gt,
   inArray,
   isNotNull,
   isNull,
@@ -13,7 +14,12 @@ import {
 
 import { getDb } from "../client"
 import { clients } from "../schema"
-import { nextActionStatuses, nurtureStatuses, type Client } from "./clients"
+import {
+  nextActionStatuses,
+  nurtureStatuses,
+  openStatuses,
+  type Client,
+} from "./clients"
 
 // The crack-finder — the reads that notice what the writes never refuse.
 //
@@ -48,13 +54,21 @@ import { nextActionStatuses, nurtureStatuses, type Client } from "./clients"
 /**
  * How long a live conversation may go quiet before it counts as a crack.
  *
- * Deliberately longer than the leads list's `STALE_AFTER_DAYS` (7), which
- * measures something else: that one is "somebody arrived and nobody has
- * replied", which is rude at a week. This is "we are mid-conversation and it
- * stopped", where a fortnight is the point at which a deal is cooling rather
- * than a person waiting.
+ * Deliberately longer than `STALE_AFTER_DAYS` below (7), which measures
+ * something else: that one is "somebody arrived and nobody has replied",
+ * which is rude at a week. This is "we are mid-conversation and it stopped",
+ * where a fortnight is the point at which a deal is cooling rather than a
+ * person waiting.
  */
 export const IDLE_AFTER_DAYS = 14
+
+/**
+ * How long a lead may go untouched before it is stale — the leads list's own
+ * threshold (`isStale` in the admin dashboard's `lib/leads.ts`, which imports
+ * this rather than holding its own copy, the same way that file gets
+ * `IDLE_AFTER_DAYS` from here).
+ */
+export const STALE_AFTER_DAYS = 7
 
 /** Common to every question here: the row is still on the books. */
 const live = isNull(clients.archivedAt)
@@ -105,6 +119,28 @@ function wokenWhere(now: Date): SQL {
     inArray(clients.status, [...nurtureStatuses]),
     isNotNull(clients.wakeAt),
     lte(clients.wakeAt, now)
+  ) as SQL
+}
+
+/**
+ * An open lead nobody has worked in `STALE_AFTER_DAYS`, and not already owed
+ * a step on today's outreach queue — the SQL mirror of `isStale` +
+ * `isOnTodaysQueue` in the admin dashboard's `lib/leads.ts` / `lib/inbox.ts`.
+ * Not one of the four next-action questions above (a prospect can be
+ * unplanned or idle without ever being "waiting"), but it lives beside them
+ * so the Inbox badge can ask for it in the same round trip as `countCracks`
+ * instead of reading every client row to filter in JS. Kept in sync by hand,
+ * the same duplication `unplannedWhere`/`hasNoPlan` already accepts: the two
+ * definitions must always agree, since the page still renders the actual
+ * rows from a full read while the badge counts them here.
+ */
+function waitingWhere(now: Date): SQL {
+  const cutoff = new Date(now.getTime() - STALE_AFTER_DAYS * 24 * 60 * 60 * 1000)
+  return and(
+    live,
+    inArray(clients.status, [...openStatuses]),
+    lte(lastWorked, cutoff),
+    or(isNull(clients.nextActionDue), gt(clients.nextActionDue, endOfDay(now)))
   ) as SQL
 }
 
@@ -246,8 +282,10 @@ export async function findCracks(
   return { due, unplanned, woken, idle }
 }
 
-/** The same four questions asked for their size rather than their rows. */
-export type CrackCounts = Record<keyof Cracks, number>
+/** The same four questions asked for their size rather than their rows, plus
+ *  `waiting` — the Inbox badge's stale-lead count, riding in the same query
+ *  because nothing else needs its rows here (see `waitingWhere` above). */
+export type CrackCounts = Record<keyof Cracks, number> & { waiting: number }
 
 /**
  * How big each crack is, in one round trip.
@@ -273,9 +311,10 @@ export async function countCracks(
       unplanned: tally(unplannedWhere()),
       woken: tally(wokenWhere(now)),
       idle: tally(idleWhere(now, days)),
+      waiting: tally(waitingWhere(now)),
     })
     .from(clients)
-  return row ?? { due: 0, unplanned: 0, woken: 0, idle: 0 }
+  return row ?? { due: 0, unplanned: 0, woken: 0, idle: 0, waiting: 0 }
 }
 
 /** One crack's size as a column of the single count above. `count(*)` returns

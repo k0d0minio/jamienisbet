@@ -1,5 +1,7 @@
 import "server-only"
 
+import { cache } from "react"
+
 import {
   CADENCE_STEPS,
   bestChannel,
@@ -72,18 +74,21 @@ export function waitingOnYou(clients: Client[], now: number): Client[] {
 }
 
 /** Every kind's full size — what the "N more" lines and the badge are
- *  computed from. */
-function totals(
-  clients: Client[],
-  cracks: CrackCounts,
-  now: number
-): Record<keyof InboxMore, number> {
-  return {
-    outreach: cracks.due,
-    waiting: waitingOnYou(clients, now).length,
-    wake: cracks.woken,
-  }
+ *  computed from. `waiting` comes from the database's own count
+ *  (`waitingWhere` in the crack-finder), not from filtering a full client
+ *  read — it must still agree with `waitingOnYou` below, which is what the
+ *  Inbox page renders the actual rows from. */
+function totals(cracks: CrackCounts): Record<keyof InboxMore, number> {
+  return { outreach: cracks.due, waiting: cracks.waiting, wake: cracks.woken }
 }
+
+/**
+ * The crack counts, once per request. The shell's badge and the Inbox page
+ * both need them and, on `/inbox`, both run in the same request — sharing
+ * this the way `lib/gates.ts` → `loadGates` shares its read keeps that down
+ * to the one query instead of two.
+ */
+const readCracks = cache((): Promise<CrackCounts> => countCracks({ now: new Date() }))
 
 /** The rows the queue shows, summed: what the badge says. */
 function shownCount(total: Record<keyof InboxMore, number>): number {
@@ -95,21 +100,17 @@ function shownCount(total: Record<keyof InboxMore, number>): number {
 }
 
 /**
- * How many rows the Inbox shows: the rail's and the tab bar's badge. Neon
- * only — two reads, cheap enough for every screen.
+ * How many rows the Inbox shows: the rail's and the tab bar's badge. One
+ * counting query — cheap enough for every screen, and never the full client
+ * table `waitingOnYou` needs a real read for.
  *
  * Null when the database could not be read. It never rejects: it is streamed
  * into the shell as a promise, and a rejection there would take the shell's
  * error boundary with it for the sake of a badge.
  */
 export async function countFollowUps(): Promise<number | null> {
-  const now = Date.now()
   try {
-    const [clients, cracks] = await Promise.all([
-      listClients({ archived: false }),
-      countCracks({ now: new Date(now) }),
-    ])
-    return shownCount(totals(clients, cracks, now))
+    return shownCount(totals(await readCracks()))
   } catch {
     return null
   }
@@ -150,10 +151,10 @@ export async function loadInbox(): Promise<InboxRead> {
       listClients({ archived: false }),
       listDueOutreach({ now: at, limit: INBOX_CAPS.outreach }),
       listWokenNurture({ now: at, limit: INBOX_CAPS.wake }),
-      countCracks({ now: at }),
+      readCracks(),
     ])
     const waiting = waitingOnYou(clients, now).slice(0, INBOX_CAPS.waiting)
-    const total = totals(clients, cracks, now)
+    const total = totals(cracks)
 
     const leads = [...due, ...waiting, ...woken]
     const summaries = await listTouchSummaries(leads.map((lead) => lead.id))
