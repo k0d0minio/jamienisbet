@@ -1,0 +1,21 @@
+## 2026-09-26 — Vercel – jamie-nisbet (ci-status.sh RED, head adcb03f)
+
+Build error (Vercel build log, dpl_39BLVgLghKbnmVmY885yai1T5V2U, bld_k4cp8u7dm):
+
+    lib/tickets.ts(757,7): error TS2367: This comparison appears to be unintentional because the
+    types '"stub" | "legacy"' and '"run"' have no overlap.
+    Failed to type check.
+    Error: Command "pnpm run build" exited with 1
+
+`pickupOnly` used to wrap its whole branch in `if (repo.pipeline) { … }`, so TypeScript couldn't
+tell the `ticket.kind === "run"` branch inside it was exhaustive, and the trailing
+`if (ticket.kind === "run") return …` after the block was live code for the `repo.pipeline ===
+false` path. Flattening that gate (this run's own change) made the inner `"run"` branch
+unconditional and exhaustive (both its sub-branches return), so TS narrows `"run"` out of
+`ticket.kind` by the time control reaches the trailing check — an unreachable comparison, not a
+real bug, but the compiler is right that it can never be true.
+
+- resolved: deleted the now-dead trailing `if (ticket.kind === "run") return { pickup: null,
+  pickupKind: null }` line — the branch above already returns on every `"run"` ticket, so nothing
+  reached it.
+- learned: none — a straightforward consequence of removing the outer guard, not a repo constraint.

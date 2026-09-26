@@ -4,12 +4,13 @@
 // launcher is, and returns a tool-neutral `LaunchHint`; each target turns the
 // tier into its own model name, or ignores it.
 //
-// Where the repo carries the /pipeline router the board sends a verb, and the
-// pipeline picks its own model per stage (icm-board `select-model.sh`): Define
-// — what `new` starts — is the advisor, on the frontier tier; Build, Release
-// and every lane are the executor. Verb pick-ups mirror that, so the board
-// never recommends a different model from the one the stage asks for. A
-// prompt body has no stage behind it, so it is sized by the stub alone.
+// Wherever the board can form a bare verb + slug, the pipeline picks its own
+// model per stage (icm-board `select-model.sh`): Define — what `new` starts —
+// is the advisor, on the frontier tier; Build, Release and every lane are the
+// executor. Verb pick-ups mirror that, so the board never recommends a
+// different model from the one the stage asks for. A prompt body has no
+// stage behind it (a legacy ticket, a triage stub with no valid lane), so it
+// is sized by the stub alone.
 
 import type { LaunchHint } from "./types"
 
@@ -18,7 +19,7 @@ type Size = "S" | "M" | "L"
 
 /** The whole rule, in one place — tune freely. */
 export const HINT_RULES = {
-  /** `/pipeline <verb>` pick-ups: the tier is the pipeline's, the effort the
+  /** Bare verb + slug pick-ups: the tier is the pipeline's, the effort the
    * stub's. */
   verb: {
     newTier: "deep",
@@ -27,7 +28,7 @@ export const HINT_RULES = {
     laneEffort: { chore: "low", tweak: "medium", bug: "high" },
     fallbackEffort: "high",
   },
-  /** Prompt-body pick-ups, from repos without the router. */
+  /** Prompt-body pick-ups, where no verb can be formed. */
   prompt: {
     size: {
       S: { tier: "balanced", effort: "medium" },

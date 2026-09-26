@@ -181,10 +181,6 @@ export type TicketRepo = {
    * Null for house/unattributed repos. */
   clientId: string | null
   clientName: string | null
-  /** Carries the `/pipeline` router (`.claude/skills/pipeline/SKILL.md`), so
-   * the board sends the pick-up verb rather than the prompt body (icm-board
-   * decision D26). Probed once per repo on the discovery clock. */
-  pipeline: boolean
 }
 
 // Board order is workflow order: the day's picks, then what's moving, then
@@ -283,6 +279,9 @@ export type Ticket = {
   sequenceTotal: number | null
   /** "P0" | "P1" | "P2"; null when absent (sustentus stubs carry none). */
   priority: string | null
+  /** "low" | "medium" | "high" | "research"; null when absent (optional,
+   * `.icm/intake/CONTEXT.md` → Formats) or not a stub. */
+  complexity: string | null
   /** Remaining metadata (dash-lines or table rows), display order. */
   meta: [string, string][]
   /** The pasteable `## Prompt` body — synthesized from the path for stubs
@@ -290,12 +289,14 @@ export type Ticket = {
   prompt: string | null
   /**
    * What the board actually sends — the copy button, the session link, the
-   * terminal link (icm-board decision D26). Where the repo carries the
-   * `/pipeline` router it is the verb: `/pipeline new <epic>/<slug>` for an
-   * epic stub, `/pipeline <lane> .icm/intake/triage/<slug>.md` for a triage
-   * stub, `/pipeline build|release <slug>` for a run in flight by its stage.
-   * Where it does not, it is the `## Prompt` body as before. Null when there
-   * is nothing to send (a legacy ticket with no prompt, a lane run in flight).
+   * terminal link. The bare verb + slug wherever one can be formed: `new
+   * <scope>/<slug>` for a scope stub, `<lane> <slug>` for a triage stub,
+   * `build|release <slug>` for a run in flight by its stage — every repo's
+   * own router (skill or hook) reads the bare form, so this never carries a
+   * `/pipeline` prefix. The `## Prompt` body only where no verb can be formed
+   * (a legacy ticket, a triage stub whose lane the router doesn't know). Null
+   * when there is nothing to send (a legacy ticket with no prompt, a lane run
+   * in flight).
    */
   pickup: string | null
   /** `pickup` before the recommendation line was put on top — what each
@@ -631,6 +632,8 @@ type Stub = {
   /** The `- lane:` line — a triage stub's consuming lane. */
   lane: string | null
   priority: string | null
+  /** "low" | "medium" | "high" | "research"; optional per the format. */
+  complexity: string | null
   sequence: number | null
   sequenceTotal: number | null
   blocked: string | null
@@ -662,6 +665,7 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
   const fields = dashFields(lines)
   const priorityRaw = fields.get("priority") ?? null
   const priorityToken = priorityRaw?.match(/^p([0-2])\b/i)
+  const complexityToken = fields.get("complexity")?.match(/^(low|medium|high|research)\b/i)
   const seqMatch = fields.get("sequence")?.match(/^(\d+)\s+of\s+(\d+)/i)
   const dependsRaw = fields.get("depends-on") ?? ""
   const dependsOn = dependsRaw
@@ -679,6 +683,7 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
   }
   push("Lane", "lane")
   push("Size", "size")
+  if (complexityToken) meta.push(["Complexity", complexityToken[1].toLowerCase()])
   if (seqMatch) meta.push(["Sequence", `${seqMatch[1]} of ${seqMatch[2]}`])
   if (dependsOn.length > 0) meta.push(["Depends on", dependsOn.join(", ")])
   push("Blocked", "blocked")
@@ -692,6 +697,7 @@ function parseStub(path: string, epic: string, markdown: string): Stub {
     title,
     lane: fields.get("lane")?.toLowerCase() ?? null,
     priority: priorityToken ? `P${priorityToken[1]}` : null,
+    complexity: complexityToken ? complexityToken[1].toLowerCase() : null,
     sequence: seqMatch ? Number(seqMatch[1]) : null,
     sequenceTotal: seqMatch ? Number(seqMatch[2]) : null,
     blocked: fields.get("blocked") ?? null,
@@ -716,45 +722,38 @@ type PickupSubject = {
 }
 
 /**
- * What the board sends for one ticket (icm-board decision D26). The verb where
- * the repo carries the router; the `## Prompt` body where it does not, or
- * where a verb cannot be formed (a triage stub with no valid lane, a legacy
- * flat ticket). A lane run in flight is the operator's PR to merge and is
- * never resumed, so it sends nothing.
+ * What the board sends for one ticket: the bare verb + slug wherever one can
+ * be formed — every repo's own router (skill or hook) reads it, so this never
+ * gates on whether the repo carries the `/pipeline` skill file. The
+ * `## Prompt` body only where a verb cannot be formed (a triage stub with no
+ * valid lane, a legacy flat ticket). A lane run in flight is the operator's PR
+ * to merge and is never resumed, so it sends nothing.
  */
 function pickupFor(
-  repo: TicketRepo,
   ticket: PickupSubject,
   prompt: string | null
 ): Pick<Ticket, "pickup" | "pickupBody" | "pickupKind"> {
-  const { pickup, pickupKind } = pickupOnly(repo, ticket, prompt)
+  const { pickup, pickupKind } = pickupOnly(ticket, prompt)
   return { pickup, pickupBody: pickup, pickupKind }
 }
 
 function pickupOnly(
-  repo: TicketRepo,
   ticket: PickupSubject,
   prompt: string | null
 ): { pickup: string | null; pickupKind: Ticket["pickupKind"] } {
-  if (repo.pipeline) {
-    if (ticket.kind === "stub" && ticket.epic === "triage") {
-      if (ticket.lane && LANES.has(ticket.lane)) {
-        return {
-          pickup: `/pipeline ${ticket.lane} .icm/intake/triage/${ticket.slug}.md`,
-          pickupKind: "verb",
-        }
-      }
-    } else if (ticket.kind === "stub" && ticket.epic) {
-      return { pickup: `/pipeline new ${ticket.epic}/${ticket.slug}`, pickupKind: "verb" }
-    } else if (ticket.kind === "run") {
-      if (ticket.runStage === "lane") return { pickup: null, pickupKind: null }
-      return {
-        pickup: `/pipeline ${ticket.runStage === "release" ? "release" : "build"} ${ticket.slug}`,
-        pickupKind: "verb",
-      }
+  if (ticket.kind === "stub" && ticket.epic === "triage") {
+    if (ticket.lane && LANES.has(ticket.lane)) {
+      return { pickup: `${ticket.lane} ${ticket.slug}`, pickupKind: "verb" }
+    }
+  } else if (ticket.kind === "stub" && ticket.epic) {
+    return { pickup: `new ${ticket.epic}/${ticket.slug}`, pickupKind: "verb" }
+  } else if (ticket.kind === "run") {
+    if (ticket.runStage === "lane") return { pickup: null, pickupKind: null }
+    return {
+      pickup: `${ticket.runStage === "release" ? "release" : "build"} ${ticket.slug}`,
+      pickupKind: "verb",
     }
   }
-  if (ticket.kind === "run") return { pickup: null, pickupKind: null }
   return prompt ? { pickup: prompt, pickupKind: "prompt" } : { pickup: null, pickupKind: null }
 }
 
@@ -865,6 +864,7 @@ function parseLegacy(
     sequence: null,
     sequenceTotal: null,
     priority,
+    complexity: null,
     meta,
     prompt: extractPrompt(lines),
     // Decided per repo once the roster is known — `fetchRepoTickets` fills
@@ -1364,9 +1364,10 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         sequence: s.sequence,
         sequenceTotal: s.sequenceTotal,
         priority: s.priority,
+        complexity: s.complexity,
         meta,
         prompt,
-        ...pickupFor(repo, { kind: "stub", epic: s.epic, slug: s.slug, lane: s.lane }, prompt),
+        ...pickupFor({ kind: "stub", epic: s.epic, slug: s.slug, lane: s.lane }, prompt),
         hint: null,
         body: s.body,
       }
@@ -1416,12 +1417,13 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
         sequence: null,
         sequenceTotal: null,
         priority: null,
+        complexity: null,
         meta: [
           ["Run", `.icm/runs/${slug}`],
           ["Stage", runStage === "lane" ? "lane (the operator merges)" : `${runStage} next`],
         ],
         prompt: null,
-        ...pickupFor(repo, { kind: "run", slug, runStage }, null),
+        ...pickupFor({ kind: "run", slug, runStage }, null),
         hint: null,
         body: "",
       })
@@ -1430,7 +1432,7 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     tickets.push(
       ...legacyResults
         .filter((t): t is Ticket => t !== null)
-        .map((t) => ({ ...t, ...pickupFor(repo, { kind: "legacy", slug: t.id }, t.prompt) }))
+        .map((t) => ({ ...t, ...pickupFor({ kind: "legacy", slug: t.id }, t.prompt) }))
     )
 
     // Every stub of every epic, in sequence — open, running and done — for
@@ -1601,24 +1603,6 @@ type IntakeProbe = "present" | "absent" | { unknown: string }
  * clock, standing in for the recursive tree call the board used to spend on
  * every owned repo whether or not it had ever held a ticket.
  */
-/**
- * Does this repo carry the `/pipeline` router? One request on the discovery
- * clock, like the intake probe: it decides whether the board sends the
- * pick-up verb or the prompt body for every ticket in the repo (D26).
- */
-async function probeRouter(fullName: string): Promise<boolean> {
-  try {
-    const res = await gh(
-      `/repos/${fullName}/contents/.claude/skills/pipeline/SKILL.md`,
-      "application/vnd.github+json",
-      DISCOVERY_REVALIDATE_SECONDS
-    )
-    return res.ok
-  } catch {
-    return false
-  }
-}
-
 async function probeIntake(fullName: string): Promise<IntakeProbe> {
   try {
     const res = await gh(
@@ -1673,7 +1657,6 @@ async function loadRoster(): Promise<Roster> {
       slug: fullName.split("/").pop() ?? fullName,
       clientId: client?.clientId ?? null,
       clientName: client?.clientName ?? null,
-      pipeline: false,
     }
   }
 
@@ -1701,15 +1684,6 @@ async function loadRoster(): Promise<Roster> {
     repos.push(repo)
     if (probe !== "present") unreadable.push({ repo, message: probe.unknown })
   }
-
-  // The router probe, once per repo on the roster, on the same hourly clock
-  // as discovery — so a repo that gains the pipeline sends verbs within the
-  // hour.
-  await Promise.all(
-    repos.map(async (repo) => {
-      repo.pipeline = await probeRouter(repo.fullName)
-    })
-  )
 
   return { repos, unreadable, sweepError: sweep.error }
 }
