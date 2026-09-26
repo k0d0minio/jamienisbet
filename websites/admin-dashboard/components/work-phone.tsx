@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react"
 import dynamic from "next/dynamic"
 import { useSearchParams } from "next/navigation"
-import { ChevronLeft, ChevronRight, Search, TriangleAlert } from "lucide-react"
+import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react"
 
 import {
   DeskButton,
@@ -14,7 +14,6 @@ import {
   cn,
 } from "@jamie-nisbet/ui"
 
-import { AccountMenu } from "@/components/account-menu"
 import {
   batchKey,
   repoFigures,
@@ -24,7 +23,7 @@ import {
   type RepoFocus,
 } from "@/components/board-model"
 import { BoardRefresh } from "@/components/board-refresh"
-import { usePaletteOpener } from "@/components/command-palette"
+import { PhoneChrome } from "@/components/phone-chrome"
 import {
   EpicMeter,
   ReaderBody,
@@ -329,7 +328,7 @@ export function WorkPhone({
   }
 
   return (
-    <div className="desk-tier flex min-h-full flex-col bg-desk-canvas font-desk text-desk-fg">
+    <div className="flex min-h-full flex-col bg-desk-canvas font-desk text-desk-fg">
       <div
         ref={levelRef}
         className="flex flex-1 flex-col"
@@ -364,25 +363,6 @@ function depth(level: PhoneLevel): number {
 function subscribeHistory(onChange: () => void) {
   window.addEventListener("popstate", onChange)
   return () => window.removeEventListener("popstate", onChange)
-}
-
-// ---------------------------------------------------------------------------
-// Chrome.
-
-/** On the phone the title bar carries what the rail carries at the desk: the
- *  palette and the account menu. From `md` the rail has both. */
-function PhoneChrome() {
-  const openPalette = usePaletteOpener()
-  return (
-    <div className="flex items-center gap-1 md:hidden">
-      {openPalette ? (
-        <DeskButton variant="ghost" size="icon" aria-label="Go anywhere" onClick={openPalette}>
-          <Search aria-hidden />
-        </DeskButton>
-      ) : null}
-      <AccountMenu />
-    </div>
-  )
 }
 
 /** A pushed level's bar: the way back on the leading edge, named for where
@@ -958,7 +938,7 @@ function ReaderLevel({
  *  bar; everything else in the app works. */
 export function WorkPhoneNotConfigured() {
   return (
-    <div className="desk-tier flex min-h-full flex-col bg-desk-canvas font-desk text-desk-fg">
+    <div className="flex min-h-full flex-col bg-desk-canvas font-desk text-desk-fg">
       <header
         className="sticky top-0 z-10 flex min-h-12 items-center gap-2 border-b border-desk-line bg-desk-surface px-4"
         style={{ paddingTop: "env(safe-area-inset-top)" }}

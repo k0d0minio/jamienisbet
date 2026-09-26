@@ -59,7 +59,11 @@ function CommandPalette({
           data-slot="command-palette-content"
           aria-describedby={undefined}
           className={cn(
-            "fixed inset-x-4 top-24 z-50 mx-auto flex max-w-xl flex-col overflow-hidden rounded-desk-pane border border-desk-line bg-desk-surface font-desk text-desk-ui text-desk-fg shadow-desk-float outline-none",
+            // `desk-tier` on the dialog itself, as DeskMenuContent and
+            // DeskSelectContent carry: the portal lands on <body>, and the
+            // palette must not depend on the page having switched the tier
+            // on there.
+            "desk-tier fixed inset-x-4 top-24 z-50 mx-auto flex max-w-xl flex-col overflow-hidden rounded-desk-pane border border-desk-line bg-desk-surface font-desk text-desk-ui text-desk-fg shadow-desk-float outline-none",
             className
           )}
         >

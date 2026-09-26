@@ -24,7 +24,7 @@ export default function LeadError({
   }, [error])
 
   return (
-    <div className="desk-tier flex flex-col">
+    <div className="flex flex-col">
       <div className="border-b border-desk-line bg-desk-surface px-4 pt-2 pb-4 lg:px-6">
         <div className="flex min-h-desk-control items-center">
           <ViewTransitionLink

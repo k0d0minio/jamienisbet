@@ -25,7 +25,7 @@ export default function InboxLoading() {
     <div
       aria-busy
       aria-label="Loading the Inbox"
-      className="desk-tier flex flex-col lg:-mb-8 lg:h-dvh lg:flex-row"
+      className="flex flex-col lg:-mb-8 lg:h-dvh lg:flex-row"
     >
       <Pane
         aria-label="Inbox"

@@ -72,7 +72,7 @@ function PhoneRowSkeleton() {
 export default function LeadsLoading() {
   return (
     <>
-      <div className="desk-tier hidden h-dvh flex-col md:-mb-8 md:flex">
+      <div className="hidden h-dvh flex-col md:-mb-8 md:flex">
         <Pane aria-label="Leads" className="flex-1">
           <PaneHeader
             titleAs="h1"

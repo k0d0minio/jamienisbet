@@ -10,7 +10,7 @@ import {
 } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ChevronRight, RefreshCw, Search } from "lucide-react"
+import { ChevronRight, RefreshCw } from "lucide-react"
 
 import {
   DeskButton,
@@ -31,8 +31,6 @@ import {
   wakeTomorrow,
 } from "@/app/(app)/actions"
 import { refreshGates } from "@/app/(app)/board-actions"
-import { AccountMenu } from "@/components/account-menu"
-import { usePaletteOpener } from "@/components/command-palette"
 import {
   GateDetail,
   InboxDetail,
@@ -40,6 +38,7 @@ import {
 } from "@/components/inbox-detail"
 import { setLiveInboxCount } from "@/components/inbox-live-count"
 import { GateRowItem, InboxRowItem } from "@/components/inbox-row"
+import { PhoneChrome } from "@/components/phone-chrome"
 import type { InboxRead } from "@/lib/inbox"
 import type {
   GateRow,
@@ -453,7 +452,7 @@ export function InboxQueue({
   }
 
   return (
-    <div className="desk-tier flex flex-col lg:-mb-8 lg:h-dvh lg:flex-row">
+    <div className="flex flex-col lg:-mb-8 lg:h-dvh lg:flex-row">
       <Pane
         aria-label="Inbox"
         className="max-lg:border-r-0 lg:w-2/5 lg:max-w-xl lg:min-w-96 lg:shrink-0"
@@ -714,26 +713,5 @@ function GatesGroup({
         </>
       )}
     </section>
-  )
-}
-
-/** On the phone the screen's header carries what the rail carries at the
- *  desk: the palette and the account menu. From `md` the rail has both. */
-function PhoneChrome() {
-  const openPalette = usePaletteOpener()
-  return (
-    <div className="flex items-center gap-1 md:hidden">
-      {openPalette ? (
-        <DeskButton
-          variant="ghost"
-          size="icon"
-          aria-label="Go anywhere"
-          onClick={openPalette}
-        >
-          <Search aria-hidden />
-        </DeskButton>
-      ) : null}
-      <AccountMenu />
-    </div>
   )
 }
