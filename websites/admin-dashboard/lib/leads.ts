@@ -1,5 +1,6 @@
 import {
   IDLE_AFTER_DAYS,
+  STALE_AFTER_DAYS,
   activeStatuses,
   clientStatuses,
   customerStatuses,
@@ -24,9 +25,6 @@ import { formatBps } from "@/lib/percent"
 // the feed's whole first section is "the ones past the threshold", and a
 // threshold that drifted between the two screens would have the feed calling
 // for a lead the list wasn't flagging.
-
-/** A lead nobody has touched in this long is overdue a nudge. */
-export const STALE_AFTER_DAYS = 7
 
 /** Days since the lead was last worked — intake counts as the first touch. */
 export function daysWaiting(client: Client, now: number): number {
