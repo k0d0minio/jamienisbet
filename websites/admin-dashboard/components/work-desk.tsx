@@ -907,7 +907,7 @@ export function WorkDesk({
   const quiet = board.sections.length === 0 && board.errors.length === 0
 
   return (
-    <div className="desk-tier flex h-dvh min-h-0 flex-col bg-desk-canvas font-desk text-desk-fg md:-mb-8">
+    <div className="flex h-dvh min-h-0 flex-col bg-desk-canvas font-desk text-desk-fg md:-mb-8">
       <header className="flex h-desk-toolbar shrink-0 items-center gap-3 border-b border-desk-line bg-desk-surface px-4">
         <h1 className="text-desk-heading font-bold">Work</h1>
         <div className="ml-auto flex items-center">
@@ -997,7 +997,7 @@ function BatchSummary({ section, batch }: { section: ListSection; batch: ListBat
  *  absence rather than a broken screen; everything else in the app works. */
 export function WorkDeskNotConfigured() {
   return (
-    <div className="desk-tier flex h-dvh min-h-0 flex-col bg-desk-canvas font-desk text-desk-fg md:-mb-8">
+    <div className="flex h-dvh min-h-0 flex-col bg-desk-canvas font-desk text-desk-fg md:-mb-8">
       <header className="flex h-desk-toolbar shrink-0 items-center border-b border-desk-line bg-desk-surface px-4">
         <h1 className="text-desk-heading font-bold">Work</h1>
       </header>

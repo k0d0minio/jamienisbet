@@ -1,5 +1,4 @@
-import { AccountMenu } from "@/components/account-menu"
-import { PaletteTitleBarButton } from "@/components/command-palette"
+import { PhoneChrome } from "@/components/phone-chrome"
 
 // The screens that are one column rather than panes — Money, "not here",
 // "didn't load", the phone's leads list — open through this: a flat title bar
@@ -71,8 +70,7 @@ export function DeskScreen({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {actions}
-            <PaletteTitleBarButton />
-            <AccountMenu />
+            <PhoneChrome />
           </div>
         </div>
       </header>

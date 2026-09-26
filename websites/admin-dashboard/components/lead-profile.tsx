@@ -15,8 +15,7 @@ import { ChevronLeft } from "lucide-react"
 
 import { DeskTabs, cn, deskTabId, deskTabPanelId } from "@jamie-nisbet/ui"
 
-import { AccountMenu } from "@/components/account-menu"
-import { PaletteTitleBarButton } from "@/components/command-palette"
+import { PhoneChrome } from "@/components/phone-chrome"
 import { ViewTransitionLink } from "@/components/view-transition-link"
 import {
   leadPosition,
@@ -202,7 +201,7 @@ export function LeadProfile({
     <LeadProfileContext.Provider value={context}>
       {/* `lg:-mb-8` hands back the shell's bottom padding at the desk, where
           the columns scroll inside the window rather than the page. */}
-      <div className="desk-tier flex flex-col lg:-mb-8 lg:h-dvh">
+      <div className="flex flex-col lg:-mb-8 lg:h-dvh">
         <div className="shrink-0 border-b border-desk-line bg-desk-surface px-4 pt-2 lg:px-6">
           <div className="flex min-h-desk-control items-center gap-3">
             <ViewTransitionLink
@@ -223,9 +222,8 @@ export function LeadProfile({
             ) : null}
             {/* The phone's chrome: the palette and the account menu live in the
                 rail from `md`, and in the title bar every other screen has. */}
-            <div className="ml-auto flex items-center md:hidden">
-              <PaletteTitleBarButton />
-              <AccountMenu />
+            <div className="ml-auto">
+              <PhoneChrome />
             </div>
           </div>
           {head}

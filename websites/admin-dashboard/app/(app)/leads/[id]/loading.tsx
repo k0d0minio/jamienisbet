@@ -32,7 +32,7 @@ function RecordSkeleton({ rows }: { rows: string[] }) {
 
 export default function LeadLoading() {
   return (
-    <div className="desk-tier flex flex-col lg:-mb-8 lg:h-dvh">
+    <div className="flex flex-col lg:-mb-8 lg:h-dvh">
       <div className="shrink-0 border-b border-desk-line bg-desk-surface px-4 pt-2 lg:px-6">
         <div className="flex min-h-desk-control items-center">
           <Skeleton className="h-3 w-14 rounded-desk-key" />

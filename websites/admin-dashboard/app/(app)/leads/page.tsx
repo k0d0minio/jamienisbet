@@ -612,7 +612,7 @@ export default async function LeadsPage({
           so the table's header sticks and the board's columns scroll inside
           it rather than the page. `-mb-8` takes back the shell's desk
           bottom allowance, which a full-height pane has no use for. */}
-      <div className="desk-tier hidden h-dvh flex-col md:-mb-8 md:flex">
+      <div className="hidden h-dvh flex-col md:-mb-8 md:flex">
         <Pane aria-label={title} className="flex-1">
           <PaneHeader
             titleAs="h1"

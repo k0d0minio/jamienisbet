@@ -1,8 +1,7 @@
 import { Skeleton, cn } from "@jamie-nisbet/ui"
 
-import { AccountMenu } from "@/components/account-menu"
 import { BoardRefresh } from "@/components/board-refresh"
-import { PaletteTitleBarButton } from "@/components/command-palette"
+import { PhoneChrome } from "@/components/phone-chrome"
 
 // Work is a fan-out of GitHub reads — every connected repo's `.icm/intake/`
 // folder. On a phone on mobile data a cold read is a second or two of nothing,
@@ -26,7 +25,7 @@ function DeskLoading() {
   return (
     <div
       aria-hidden
-      className="desk-tier flex h-dvh min-h-0 flex-col bg-desk-canvas font-desk md:-mb-8"
+      className="flex h-dvh min-h-0 flex-col bg-desk-canvas font-desk md:-mb-8"
     >
       <div className="flex h-desk-toolbar shrink-0 items-center border-b border-desk-line bg-desk-surface px-4">
         <span className="text-desk-heading font-bold text-desk-fg">Work</span>
@@ -105,10 +104,7 @@ function PhoneLoading() {
           <h1 className="text-desk-heading font-bold">Work</h1>
           <div className="ml-auto flex items-center gap-1">
             <BoardRefresh />
-            <div className="flex items-center gap-1 md:hidden">
-              <PaletteTitleBarButton />
-              <AccountMenu />
-            </div>
+            <PhoneChrome />
           </div>
         </div>
         {/* The Up next / Repos switch, drawn — inert until the board lands. */}
