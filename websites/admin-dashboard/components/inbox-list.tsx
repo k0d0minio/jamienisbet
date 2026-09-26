@@ -201,6 +201,27 @@ export function InboxQueue({
       live = false
     }
   }, [gates])
+
+  // `githubGraphql` caches a rate limit or a per-repo error the same as a
+  // clean answer (both come back HTTP 200) — GATES_CACHE_TAG would otherwise
+  // hold a stale failure for the rest of its minute, on every render, until
+  // the refresh control is used. Self-heal instead: on a failed read, or an
+  // "ok" one still naming an unreadable repo, wait a beat and bust the tag
+  // itself, well inside that minute.
+  useEffect(() => {
+    if (
+      gateRead?.state !== "failed" &&
+      !(gateRead?.state === "ok" && gateRead.notes.length > 0)
+    ) {
+      return
+    }
+    const timer = setTimeout(() => {
+      refreshGates()
+        .then(() => router.refresh())
+        .catch(() => {})
+    }, 15000)
+    return () => clearTimeout(timer)
+  }, [gateRead, router])
   const gateRows = gateRead?.state === "ok" ? gateRead.rows : []
   const [removed, remove] = useOptimistic<string[], string>([], (keys, key) => [
     ...keys,
