@@ -22,9 +22,11 @@ import {
   GATES_CACHE_TAG,
   githubGraphql,
   isBoardConfigured,
+  LANE_LABELS,
   readBlob,
   readRepoTree,
   readRoster,
+  runSlugOf,
   type Roster,
   type TicketRepo,
   type TreeEntry,
@@ -62,14 +64,6 @@ const READ_BOUND_MS = 10_000
 /** The order the group lists its kinds in, and the precedence a PR's one row
  *  is picked by — Blocked run first, because it names what unblocks it. */
 const KIND_ORDER: GateKind[] = ["blocked", "red", "spec", "merge", "lane", "scope"]
-
-const LANE_LABELS = new Set([
-  "type:bug",
-  "type:tweak",
-  "type:chore",
-  "type:hotfix",
-  "type:handover",
-])
 
 // ---- The GraphQL answer's shape --------------------------------------------
 
@@ -285,15 +279,6 @@ export function gateTicked(body: string, anchor: string): boolean | null {
     if (line.trim() !== "") return null
   }
   return null
-}
-
-/** The run slug a pipeline PR names: the spine Spec table's Slug row, or a
- *  lane's `- slug:` line. */
-export function runSlugOf(body: string): string | null {
-  const m =
-    body.match(/^\|\s*\*\*Slug\*\*\s*\|\s*`?([A-Za-z0-9][A-Za-z0-9_-]*)`?\s*\|/m) ??
-    body.match(/^-\s+slug:\s*`?([A-Za-z0-9][A-Za-z0-9_-]*)`?\s*$/m)
-  return m ? m[1] : null
 }
 
 function isLanePr(pr: PrNode): boolean {
