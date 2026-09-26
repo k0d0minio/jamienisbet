@@ -20,4 +20,5 @@
   rule itself (keyed on `pickupKind`) did not change.
 - rollback: no schema touched — a plain `git revert` of this PR restores the router probe and
   the `/pipeline`-prefixed, gated verb.
-- learned: none
+- learned: none (a build-time TS2367 from flattening the `repo.pipeline` gate is logged and
+  resolved in `lane/output/error.log` — a consequence of this change, not a repo constraint)
