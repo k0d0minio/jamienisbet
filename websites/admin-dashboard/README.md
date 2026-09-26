@@ -46,12 +46,17 @@ One shell, two readings of it, both built from the desk tier's primitives
   with the same three, each a third of the bar and 56px tall, extending under the home
   indicator. The title bar carries the palette's search button beside the account menu (the
   JN mark: sign out).
-- **The Inbox badge** is the number of rows the Inbox shows (D-30): the outreach owed by today
-  (at most 10), open leads gone quiet past the staleness threshold (at most 6) and the nurture
-  wakes whose date has come (at most 3) — a lead both stale and due counted once
-  (`countFollowUps` in [`lib/inbox.ts`](lib/inbox.ts), the same rule and caps the queue reads).
-  Neon only. It streams into the chrome as a
-  promise, so no screen waits on it, and it is hidden at 0 and when the read fails.
+- **The Inbox badge** is the number of rows the Inbox shows (D-30): the follow-ups — the outreach
+  owed by today (at most 10), open leads gone quiet past the staleness threshold (at most 6) and
+  the nurture wakes whose date has come (at most 3), a lead both stale and due counted once
+  (`countFollowUps` in [`lib/inbox.ts`](lib/inbox.ts)) — plus the Gates and PRs rows (D-14) once
+  the Inbox has actually read GitHub this session. Only the Inbox screen ever reads GitHub for
+  this: the layout streams the cheap, Neon-only follow-ups count on every render (including every
+  screen's own pull-to-refresh), and
+  [`components/inbox-live-count.ts`](components/inbox-live-count.ts) carries the Inbox's exact
+  combined total to the rail and the tab bar instead, across navigation and a reload in this tab,
+  so no other screen's refresh pays for a GitHub read just to show a number. It streams into the
+  chrome as a promise, never awaited, and is hidden at 0 and when a read fails.
 - **The command palette** ([`components/command-palette.tsx`](components/command-palette.tsx)) —
   ⌘K on a Mac, Ctrl+K elsewhere, from any screen (a text field included), or the search button.
   Four groups: **Repos** (→ `/?r=`), **Tickets** (→ `/?t=`, with the ticket's status dot),
@@ -79,7 +84,11 @@ The header says how many are waiting on you, and — once GitHub has answered �
 "as of" time beside a refresh control that re-reads GitHub now.
 
 The **badge** on the rail and the tab bar is the same number as the header: the gate rows plus
-the follow-up rows (`countInbox`). Streamed into the shell, never awaited; when one half can't be
+the follow-up rows. The Inbox screen is the only one that reads GitHub for it (`loadGates`); once
+it has, [`components/inbox-live-count.ts`](components/inbox-live-count.ts) carries that exact
+total to the rail and the tab bar on every other screen too, so a screen's own refresh never
+re-triggers the gates read just for the badge. Before the Inbox has been read this session the
+badge is the follow-ups alone (`countFollowUps`), streamed from the layout; when a half can't be
 read it counts the other alone.
 
 ### Gates and PRs

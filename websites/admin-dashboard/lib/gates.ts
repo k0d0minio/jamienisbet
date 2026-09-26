@@ -847,9 +847,12 @@ async function readGates(): Promise<GatesRead> {
 }
 
 /**
- * The group's read, once per request — the page and the shell's badge share
- * it. Never rejects and never takes longer than READ_BOUND_MS: past that the
- * group says GitHub didn't answer in time, and the rest of the Inbox stands.
+ * The group's read, once per request — read only by the Inbox page (never by
+ * the shell's badge: components/inbox-live-count.ts carries its result to
+ * the rail and the tab bar instead, so no other screen's render pays for
+ * this). Never rejects and never takes longer than READ_BOUND_MS: past that
+ * the group says GitHub didn't answer in time, and the rest of the Inbox
+ * stands.
  */
 export const loadGates = cache(async (): Promise<GatesRead> => {
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -877,10 +880,3 @@ export const loadGates = cache(async (): Promise<GatesRead> => {
     clearTimeout(timer)
   }
 })
-
-/** The badge's share: the rows the group shows, or null when it couldn't be
- *  read — then the badge counts the follow-ups alone. */
-export async function countGates(): Promise<number | null> {
-  const read = await loadGates()
-  return read.state === "ok" ? read.rows.length : null
-}
