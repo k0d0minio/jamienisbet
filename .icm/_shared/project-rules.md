@@ -39,7 +39,7 @@ reads. A contract that says "see `_shared/project-rules.md`" means: the answer i
   `_shared/ci.md` → the cost floor, D43). `required_checks` in `.icm/project.json` is
   **empty**. Private on GitHub Free: no ruleset exists, so nothing is required by GitHub — the
   stage contracts and `ci-status.sh` are the gate.
-- **The advisory quality job** — `Quality (advisory)` in `.github/workflows/ci.yml`:
+- **The advisory quality job** — `Quality (advisory)` in `.github/workflows/quality.yaml`:
   `pnpm -r typecheck` · `pnpm -r lint`, one job, on a **ready** head only (`ready_for_review` /
   `synchronize` / `reopened` with a job-level draft guard), path-filtered out of `.icm/**`,
   markdown and `.github/**`, never on `main`, **no build matrix** (until 2026-09-24 it built all
