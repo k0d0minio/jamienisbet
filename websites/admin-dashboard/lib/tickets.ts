@@ -1299,6 +1299,13 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
     // by the triage stub it consumed.
     const prOf = (s: Stub): TicketPr | null =>
       (s.epic === "triage" ? pulls.triage.get(s.slug) : pulls.spine.get(s.slug)) ?? null
+    // Same key the epic's own row list sorts on (below, epicRows): a missing
+    // `sequence:` line falls back to the breakdown's `## Build order` place,
+    // and only then to the one "unplaced" sentinel — shared by both sides of
+    // the comparison, so an epic with no sequence lines at all still picks
+    // its build-order first stub instead of whichever the tree listed last.
+    const orderKeyOf = (s: Stub): number =>
+      s.sequence ?? orders.get(s.epic)?.get(s.slug)?.sequence ?? Number.MAX_SAFE_INTEGER
     const nextOf = new Map<string, string>()
     for (const s of stubs) {
       // A running stub is under way, not runnable: the next one in sequence
@@ -1306,11 +1313,9 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
       if (s.epic === "triage" || s.blocked !== null || prOf(s)) continue
       const current = nextOf.get(s.epic)
       const currentSeq = current
-        ? (stubs.find((x) => x.epic === s.epic && x.slug === current)
-            ?.sequence ?? Number.MAX_SAFE_INTEGER)
+        ? orderKeyOf(stubs.find((x) => x.epic === s.epic && x.slug === current)!)
         : Number.MAX_SAFE_INTEGER
-      if ((s.sequence ?? Number.MAX_SAFE_INTEGER - 1) < currentSeq)
-        nextOf.set(s.epic, s.slug)
+      if (orderKeyOf(s) < currentSeq) nextOf.set(s.epic, s.slug)
     }
     // A dependency is unmet while it is open in the epic, or finished into
     // `_done/` with its run still going. A slug the epic doesn't hold at all
