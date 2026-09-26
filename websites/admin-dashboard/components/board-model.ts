@@ -8,6 +8,7 @@ import type {
   TicketRepo,
 } from "@/lib/tickets"
 
+import { RUNS_SLUG } from "@/lib/board-constants"
 import type { BoardQuery } from "@/components/use-board-params"
 
 // The board's shape as the list reads it, and what the URL has selected in it.
@@ -31,17 +32,6 @@ export type RepoFocus = {
   error: string | null
   maintenance: MaintenanceLauncher[]
 }
-
-/** The In flight pseudo-batch's own slug (`lib/tickets.ts`'s
- *  `RUNS_BATCH_SLUG`) — reserved so no epic folder can ever take it:
- *  icm-board's triage cut slugifies a title by collapsing every run of non
- *  `[a-z0-9]` into one hyphen and trimming the ends, so a leading underscore
- *  can never survive into a real epic slug. Deliberately NOT "runs" — an epic
- *  titled just that (as this bug proved) would otherwise share a slug with
- *  this pseudo-batch, producing duplicate React keys and an ambiguous
- *  `?b=<repo>/runs`. Kept apart from `RUN_TICKET_PREFIX` below, which can't
- *  move — keep this in sync with `lib/tickets.ts`'s `RUNS_BATCH_SLUG`. */
-const RUNS_SLUG = "_runs"
 
 /** The id prefix a run ticket carries (`lib/tickets.ts`: `runs/<slug>`) —
  *  unlike `RUNS_SLUG`, this can't be reserved away: icm-board's `/day` writes
@@ -80,7 +70,7 @@ function splitKey(value: string): [string, string] | null {
  *  the pseudo-batch's own slug is reserved as `RUNS_SLUG` — translated here
  *  so a stale run always falls back to In flight by identity, never to an
  *  epic that happens to share the word "runs". */
-function batchSlugOf(ticketId: string): string {
+export function batchSlugOf(ticketId: string): string {
   const slash = ticketId.indexOf("/")
   const prefix = slash > 0 ? ticketId.slice(0, slash) : "backlog"
   return prefix === RUN_TICKET_PREFIX ? RUNS_SLUG : prefix

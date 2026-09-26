@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react"
 
+import { DESK_QUERY } from "@/components/use-desk"
+
 // The tickets board's keyboard, from `lg` up. One listener on the document, so
 // the keys work from page load without a click into the list first. This file
 // only decides *whether* a keypress is the board's and *which* intent it is;
@@ -49,9 +51,6 @@ const INTENTS: Record<string, BoardKeyIntent> = {
   "?": "help",
 }
 
-/** Tailwind's `lg` — where Work is the desk's (components/use-desk.ts). */
-const DESKTOP_QUERY = "(min-width: 64rem)"
-
 /** Anything that floats over the board and owns the keys while it is open.
  *  Radix mounts these only while open, so being in the document is being
  *  open. */
@@ -86,7 +85,7 @@ export function useBoardKeys(
 
   useEffect(() => {
     if (!enabled) return
-    const desktop = window.matchMedia(DESKTOP_QUERY)
+    const desktop = window.matchMedia(DESK_QUERY)
 
     function onKeyDown(event: KeyboardEvent) {
       if (!desktop.matches) return

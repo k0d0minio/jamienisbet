@@ -37,6 +37,7 @@ import {
   entryQuery,
   listKey,
   listQuery,
+  locateAll,
   navEntries,
   paneRows,
   paneSelection,
@@ -620,13 +621,22 @@ export function WorkDesk({
   const { navigate, correct } = params
   const live = useWorkLive()
   const unreadable = { errors: board.errors, maintenance: unreadableMaintenance }
-  const { selection, correction } = resolveWork(board.sections, unreadable, {
-    view: params.view,
-    ticket: params.ticket,
-    batch: params.batch,
-    repoSelection: params.repoSelection,
-    repo: params.repo,
-  })
+  // Shared by `resolveWork` below and `paneRows` further down — one walk of
+  // every ticket on the board per render (the React Compiler keeps it to one
+  // per `board`), not one inside each.
+  const located = locateAll(board.sections)
+  const { selection, correction } = resolveWork(
+    board.sections,
+    unreadable,
+    {
+      view: params.view,
+      ticket: params.ticket,
+      batch: params.batch,
+      repoSelection: params.repoSelection,
+      repo: params.repo,
+    },
+    located
+  )
 
   // A stale, partial or foreign URL is corrected in place — the panes already
   // show what it resolves to; this makes the address say so, with no new
@@ -650,7 +660,7 @@ export function WorkDesk({
   }
 
   const entries = navEntries(board, expanded)
-  const rows = paneRows(board, list)
+  const rows = paneRows(board, list, located)
   const selectable = rows.filter((r) => r.kind === "ticket")
 
   // ---- Cursors and focus. -----------------------------------------------
