@@ -86,6 +86,7 @@ import { cache } from "react"
 
 import { listClientRepos } from "@jamie-nisbet/services"
 
+import { RUNS_SLUG, rank } from "@/lib/board-constants"
 import {
   DEFAULT_TARGET_ID,
   hintForMaintenance,
@@ -1495,8 +1496,9 @@ async function fetchRepoTickets(repo: TicketRepo): Promise<RepoRead> {
 
 // --- today.md — the one home of the today flag ------------------------------
 
-/** "<repo-slug> <path-id>" keys from icm-board's .icm/today.md, e.g.
- * "jamienisbet estate-board/tree-fetch" or legacy "icm-board ICM-001". */
+/** "<repo>/<id>" ticket keys from icm-board's .icm/today.md, e.g.
+ * "jamienisbet/estate-board/tree-fetch" or legacy "icm-board/ICM-001" — the
+ * same shape `ticketKey()` (board-model.ts) builds a ticket's own key in. */
 async function fetchTodayKeys(): Promise<Set<string>> {
   const keys = new Set<string>()
   try {
@@ -1508,7 +1510,7 @@ async function fetchTodayKeys(): Promise<Set<string>> {
     for (const line of (await res.text()).split("\n")) {
       const m = line.match(/^-\s+([^·]+)·\s*(\S+)/)
       if (!m) continue
-      keys.add(`${m[1].trim()} ${m[2].trim()}`)
+      keys.add(`${m[1].trim()}/${m[2].trim()}`)
     }
   } catch {
     // No today.md (or unreachable) just means no picks — never an error.
@@ -1517,14 +1519,6 @@ async function fetchTodayKeys(): Promise<Set<string>> {
 }
 
 // ---------------------------------------------------------------------------
-
-const PRIORITY_RANK: Record<string, number> = { P0: 0, P1: 1, P2: 2 }
-
-function rank(t: Ticket): number {
-  return t.priority !== null && t.priority in PRIORITY_RANK
-    ? PRIORITY_RANK[t.priority]
-    : 3
-}
 
 // --- the roster ------------------------------------------------------------
 // Two tiers. The pinned repos above are read every render. Everything else the
@@ -1704,18 +1698,6 @@ export const readRoster = cache(loadRoster)
 
 export type BatchKind = "epic" | "triage" | "backlog" | "runs"
 
-/** The In flight pseudo-batch's slug — reserved so no epic folder can ever
- *  take it: icm-board's triage cut slugifies a title by collapsing every run
- *  of non `[a-z0-9]` into one hyphen and trimming the ends, so a leading
- *  underscore can never survive into a real epic slug. Deliberately NOT
- *  "runs" — an epic titled just that would otherwise share this slug,
- *  producing duplicate batch keys and an ambiguous `?b=<repo>/runs` (board-
- *  model.ts's `RUNS_SLUG` mirrors this value; keep the two in sync). A run
- *  ticket's own id keeps the unrelated `runs/<slug>` prefix regardless — that
- *  one can't move, since icm-board's `/day` writes today.md picks against it
- *  across every repo. */
-const RUNS_BATCH_SLUG = "_runs"
-
 export type Batch = {
   /** The epic folder's name, or the pseudo-batch's ("triage"/"backlog"/"runs"). */
   slug: string
@@ -1797,7 +1779,7 @@ function batchOrder(kind: BatchKind) {
 function runsBatch(repo: TicketRepo, runs: Ticket[]): Batch {
   const ordered = [...runs].sort((a, b) => a.id.localeCompare(b.id))
   return {
-    slug: RUNS_BATCH_SLUG,
+    slug: RUNS_SLUG,
     kind: "runs",
     title: "In flight",
     breakdown: null,
@@ -1975,7 +1957,7 @@ const readEstate = cache(async (): Promise<EstateRead> => {
   const tickets = results
     .flatMap((r) => r.tickets)
     .map((t) =>
-      todayKeys.has(`${t.repo.slug} ${t.id}`)
+      todayKeys.has(`${t.repo.slug}/${t.id}`)
         ? { ...t, today: true, group: groupOf(t.status, true) }
         : t
     )
@@ -1996,7 +1978,7 @@ const readEstate = cache(async (): Promise<EstateRead> => {
     epicRows: new Map(
       roster.repos.map((repo, i) => [repo.fullName, results[i].epicRows])
     ),
-    todayOrder: [...todayKeys].map((key) => key.replace(" ", "/")),
+    todayOrder: [...todayKeys],
     errors: [
       ...roster.unreadable,
       ...results

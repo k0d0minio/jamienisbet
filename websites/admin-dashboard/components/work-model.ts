@@ -1,5 +1,6 @@
 import {
   batchKey,
+  batchSlugOf,
   blockedReason,
   resolveSelection,
   ticketKey,
@@ -9,6 +10,7 @@ import {
   type Selection,
 } from "@/components/board-model"
 import type { BoardQuery } from "@/components/use-board-params"
+import { RUNS_SLUG, rank } from "@/lib/board-constants"
 import type { BoardData, BoardTicket, MaintenanceLauncher, TicketPr } from "@/lib/tickets"
 
 // Work at the desk, as data (spec work-panes §2–§5): the four views, the list
@@ -35,10 +37,6 @@ const isView = (value: string | null): value is WorkView =>
  *  the phone draws. At the desk it reads as Up next and is left as it is, so
  *  a window that widens and narrows again comes back to Repos. */
 export const REPOS_VIEW = "repos"
-
-/** The In flight pseudo-batch's slug (board-model.ts `RUNS_SLUG`) — a link
- *  to it means the Running view. */
-const RUNS_SLUG = "_runs"
 
 /** What pane two lists. */
 export type WorkList =
@@ -120,14 +118,6 @@ function homeList(located: Located): WorkList {
   return { kind: "batch", section: located.section, batch: located.batch }
 }
 
-/** The ticket's batch slug read off its id, as board-model.ts reads it — so
- *  a ticket that has shipped still names the batch to fall back to. */
-function batchSlugOf(ticketId: string): string {
-  const slash = ticketId.indexOf("/")
-  const prefix = slash > 0 ? ticketId.slice(0, slash) : "backlog"
-  return prefix === "runs" ? RUNS_SLUG : prefix
-}
-
 /** The list the query names, if it names one that resolves; `undefined` when
  *  it names none, `null` when it names one that is gone. */
 function namedList(
@@ -172,9 +162,13 @@ function namedList(
 export function resolveWork(
   sections: ListSection[],
   unreadable: Unreadable,
-  query: WorkQuery
+  query: WorkQuery,
+  /** `locateAll(sections)`, precomputed — a caller resolving several times
+   *  a render (or memoizing across renders) builds it once and hands it in;
+   *  left off, it is built here as before. */
+  located: Map<string, Located> = locateAll(sections)
 ): { selection: WorkSelection; correction: BoardQuery | null } {
-  const all = locateAll(sections)
+  const all = located
   let named = namedList(sections, unreadable, query)
   let stale = named === null
   // The retired chip filter: with no list of its own, it opens its repo.
@@ -255,10 +249,6 @@ export function paneSelection(selection: WorkSelection): Selection {
 
 // ---------------------------------------------------------------------------
 // The views.
-
-const PRIORITY_RANK: Record<string, number> = { P0: 0, P1: 1, P2: 2 }
-const rank = (t: BoardTicket) =>
-  t.priority !== null && t.priority in PRIORITY_RANK ? PRIORITY_RANK[t.priority] : 3
 
 /** Every ticket on the board in board order: repos in urgency order, each
  *  repo's batches in theirs. */
@@ -411,9 +401,11 @@ function epicRows(
 /** Pane two's rows for a list. */
 export function paneRows(
   board: Pick<BoardData, "sections" | "todayOrder">,
-  list: WorkList
+  list: WorkList,
+  /** `locateAll(board.sections)`, precomputed — see `resolveWork`. */
+  located: Map<string, Located> = locateAll(board.sections)
 ): PaneRow[] {
-  const all = locateAll(board.sections)
+  const all = located
   const ticketRow = (ticket: BoardTicket, line: boolean): PaneRow => ({
     kind: "ticket",
     key: ticketKey(ticket),
