@@ -1041,24 +1041,41 @@ type PullRow = {
   labels: { name: string }[]
 }
 
-/** The labels a lane PR carries (`new-run.sh --lane` → `type:<lane>`). */
-const LANE_LABELS = new Set(["type:bug", "type:tweak", "type:chore", "type:hotfix"])
+/** The labels a lane PR carries (`new-run.sh --lane` → `type:<lane>`) — the
+ *  vocabulary `_shared/github.md` → Labels names for lane PRs. Shared with
+ *  gates.ts so the two screens' PR reads never drift apart. */
+export const LANE_LABELS = new Set([
+  "type:bug",
+  "type:tweak",
+  "type:chore",
+  "type:hotfix",
+  "type:handover",
+])
 
 /**
- * The slug a PR carries: the spine body's Spec-table `Slug` row, or a lane
- * body's `- slug:` line — both behind the `PIPELINE RUN` marker the scripts
- * write — else a `claude/<slug>` head. A harness-named head yields a slug no
- * stub has, which matches nothing.
+ * The run slug a pipeline PR's body names: the spine body's Spec-table
+ * `**Slug**` row, or a lane body's `- slug:` line — both behind the
+ * `PIPELINE RUN` marker the scripts write. Shared with gates.ts (same
+ * reasoning as `LANE_LABELS`) — a PR with no marker names no run.
+ */
+export function runSlugOf(body: string | null): string | null {
+  const text = body ?? ""
+  if (!text.includes("PIPELINE RUN")) return null
+  const spec = text.match(/^\|\s*\**slug\**\s*\|\s*`?([a-z0-9][a-z0-9-]*)`?\s*\|/im)
+  if (spec) return spec[1]
+  const lane = text.match(/^-\s+slug:\s*`?([a-z0-9][a-z0-9-]*)`?\s*$/im)
+  return lane ? lane[1] : null
+}
+
+/**
+ * The slug a PR carries: `runSlugOf`'s body read, else a `claude/<slug>`
+ * head. A harness-named head yields a slug no stub has, which matches
+ * nothing.
  */
 function prSlug(row: PullRow): string | null {
-  const body = row.body ?? ""
-  if (body.includes("PIPELINE RUN")) {
-    const spec = body.match(/^\|\s*\**slug\**\s*\|\s*`?([a-z0-9][a-z0-9-]*)`?\s*\|/im)
-    if (spec) return spec[1]
-    const lane = body.match(/^-\s+slug:\s*`?([a-z0-9][a-z0-9-]*)`?\s*$/im)
-    if (lane) return lane[1]
-  }
-  return row.head.ref.match(/^claude\/([a-z0-9][a-z0-9-]*)$/i)?.[1] ?? null
+  return (
+    runSlugOf(row.body) ?? row.head.ref.match(/^claude\/([a-z0-9][a-z0-9-]*)$/i)?.[1] ?? null
+  )
 }
 
 function prStage(labels: string[]): TicketPr["stage"] {
