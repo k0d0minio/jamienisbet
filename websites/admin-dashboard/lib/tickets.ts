@@ -754,7 +754,6 @@ function pickupOnly(
       pickupKind: "verb",
     }
   }
-  if (ticket.kind === "run") return { pickup: null, pickupKind: null }
   return prompt ? { pickup: prompt, pickupKind: "prompt" } : { pickup: null, pickupKind: null }
 }
 
