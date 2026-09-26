@@ -47,16 +47,20 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-/** The Inbox's count — its gate rows plus its follow-up rows (lib/inbox.ts
- *  → countInbox), streamed from the layout:
- *  null when it could not be read, which hides the badge like a zero. */
+/** The Inbox badge's default: the follow-ups count alone (lib/inbox.ts →
+ *  countFollowUps), streamed from the layout — null when it could not be
+ *  read, which hides the badge like a zero. `WithCount` below shows the
+ *  exact combined total (follow-ups plus gates) instead, once the Inbox has
+ *  actually read GitHub this session. */
 export type InboxCount = Promise<number | null>
 
 /** Renders `children` with the count once it lands, and with no count until
  *  then — so the chrome paints at once and the badge arrives when it can. The
- *  Inbox screen's own live count (inbox-live-count.ts) wins over the streamed
- *  one while it is mounted, since a client-side navigation never re-runs the
- *  layout that streamed `count` in. */
+ *  Inbox screen's own live count (inbox-live-count.ts) — the exact combined
+ *  total, once GitHub has actually been read — wins over the streamed
+ *  follow-ups-only one the moment it is known, and keeps winning after
+ *  leaving the Inbox: a client-side navigation never re-runs the layout that
+ *  streamed `count` in, so there is nothing fresher to fall back to. */
 function WithCount({
   count,
   children,

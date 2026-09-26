@@ -441,13 +441,14 @@ export function InboxQueue({
   const waiting = (read.ok ? visible.length : 0) + gateRows.length
   const countKnown = read.ok || gateRead?.state === "ok"
 
-  // The rail's and the tab bar's badge (components/nav.tsx): the same rule
-  // (lib/inbox.ts → countInbox) computed from what this screen already read,
-  // so it stays exact while the Inbox is open — cleared on unmount, so
-  // leaving falls back to the layout's streamed count rather than freezing.
+  // The rail's and the tab bar's badge (components/nav.tsx): the same sum
+  // (follow-ups plus gates) computed from what this screen already read.
+  // Never cleared on unmount — leaving the Inbox keeps showing this exact
+  // total (components/inbox-live-count.ts) rather than falling back to the
+  // layout's cheaper, follow-ups-only stream, which a soft nav never
+  // recomputes anyway.
   useEffect(() => {
-    setLiveInboxCount(countKnown ? waiting : undefined)
-    return () => setLiveInboxCount(undefined)
+    if (countKnown) setLiveInboxCount(waiting)
   }, [countKnown, waiting])
 
   function onRefresh() {
