@@ -280,14 +280,20 @@ function RunningBadge({
   )
 }
 
-/** Status · priority · `n of m` · size · client — anything the ticket lacks
- *  is left out with its separator. */
+/** Status · priority · complexity · `n of m` · size · client — anything the
+ *  ticket lacks is left out with its separator. */
 function ReaderSummary({ ticket }: { ticket: BoardTicket }) {
   const size = ticket.meta.find(([key]) => key === "Size")?.[1] ?? null
   const segments: React.ReactNode[] = [
     <StatusDot key="status" status={ticket.status} showLabel />,
   ]
   if (ticket.priority) segments.push(<PriorityTag key="priority" priority={ticket.priority} />)
+  if (ticket.complexity)
+    segments.push(
+      <span key="complexity" className="font-mono text-desk-meta">
+        {ticket.complexity}
+      </span>
+    )
   if (ticket.sequence !== null && ticket.sequenceTotal !== null)
     segments.push(
       <span key="sequence" className="font-mono text-desk-meta tabular-nums">
