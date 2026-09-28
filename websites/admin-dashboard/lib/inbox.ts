@@ -18,7 +18,7 @@ import {
   type TouchSummary,
 } from "@jamie-nisbet/services"
 
-import { daysSince, formatShortDay, whatsappUrl } from "@/lib/format"
+import { daysLate, daysSince, formatShortDay, whatsappUrl } from "@/lib/format"
 import type { InboxFact, InboxMore, InboxRow, ReachLink } from "@/lib/inbox-row"
 import {
   daysWaiting,
@@ -177,7 +177,7 @@ function outreachRow(
   summary: TouchSummary | undefined,
   now: number
 ): InboxRow {
-  const late = client.nextActionDue ? daysSince(client.nextActionDue, now) : 0
+  const late = client.nextActionDue ? daysLate(client.nextActionDue, now) : 0
   const facts: InboxFact[] = [lastTouchFact(summary)]
   if (client.nextActionDue) {
     facts.push({ label: "Due", value: formatShortDay(client.nextActionDue) })
