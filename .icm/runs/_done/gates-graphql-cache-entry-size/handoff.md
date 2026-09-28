@@ -6,18 +6,18 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. PR open — smoke, then squash-merge from GitHub.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
+- none
+- blocked on operator: smoke the previews on PR #194, then squash-merge it from the GitHub UI —
+  the merge button is this lane's gate.
 
 A blocking operator act is written here **and** in the stop report's `Operator:` list; a
 non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- re-invoke the chore lane for this slug — one invocation, one PR; a change after this needs its
+  own lane or run.
