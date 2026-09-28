@@ -58,6 +58,21 @@ export function daysSince(since: Date, now: number): number {
   return Math.max(0, Math.floor((now - since.getTime()) / DAY_MS))
 }
 
+/** Calendar days between a due date and today, on the day's own boundary —
+ * the crack-finder's `endOfDay` — not a rolling 24 hours: a date due at any
+ * time yesterday is 1 day late the moment today starts, not 10 hours later
+ * once a full 24 has elapsed. Never negative. */
+export function daysLate(due: Date, now: number): number {
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate()).getTime()
+  const today = new Date(now)
+  const nowDay = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  ).getTime()
+  return Math.max(0, Math.round((nowDay - dueDay) / DAY_MS))
+}
+
 /** How long a lead has been sitting, for the "last worked …" line: "today",
  * "1 day", "12 days". Callers pass `now` in so this stays pure — computing it
  * during a render is what the react-hooks/purity rule forbids. */
