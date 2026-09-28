@@ -491,7 +491,7 @@ function prRow(repo: TicketRepo, facts: PrFacts, kind: GateKind, now: number): G
         ? launchOf(
             repo,
             "Launch a fix session",
-            `/pipeline ${readyTicked ? "release" : "build"} ${slug}`,
+            `${readyTicked ? "release" : "build"} ${slug}`,
             EXECUTOR_HINT,
             false
           )
@@ -628,7 +628,7 @@ async function mainRows(
             href: `https://github.com/${repo.fullName}/tree/HEAD/.icm/intake/${slug}`,
           },
         ],
-        launch: launchOf(repo, "Launch “new”", "/pipeline new", DEFINE_HINT, false),
+        launch: launchOf(repo, "Launch “new”", "new", DEFINE_HINT, false),
       }, agreed))
     })
   )
