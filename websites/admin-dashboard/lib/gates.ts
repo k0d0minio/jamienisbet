@@ -46,9 +46,13 @@ import {
 // check runs, commit statuses and deployments ride in the same answer. The
 // query goes through the board's queue and cache (lib/tickets.ts), 60 seconds
 // under its own tag, on GraphQL's rate budget rather than the REST one Work's
-// trees and blobs spend. A second query reads each run's status.md at its PR's
-// head commit — keyed by commit id, so it is only re-asked when a PR moves.
-// Scopes and runs on main come from Work's own tree read and its blob cache.
+// trees and blobs spend. A PR's body — the gate ticks and run slug the
+// classifier reads — rides a second, narrower query of its own (readPrBodies)
+// so a chunk's cached answer never bundles a Dependabot or pipeline PR's long
+// body with the checks payload and outgrows Next's per-entry cache size. A
+// third query reads each run's status.md at its PR's head commit — keyed by
+// commit id, so it is only re-asked when a PR moves. Scopes and runs on main
+// come from Work's own tree read and its blob cache.
 //
 // Never makes the Inbox wait: `loadGates` never rejects, and gives up after
 // READ_BOUND_MS with a sentence rather than holding the group's loading line.
@@ -126,7 +130,7 @@ fragment gatePulls on Repository {
   pullRequests(states: OPEN, first: ${PRS_PER_REPO}, orderBy: {field: UPDATED_AT, direction: DESC}) {
     totalCount
     nodes {
-      number title url isDraft createdAt body headRefName
+      number title url isDraft createdAt headRefName
       labels(first: 20) { nodes { name } }
       commits(last: 1) {
         nodes {
@@ -711,6 +715,46 @@ async function readRunStatuses(
   return found
 }
 
+/**
+ * Each open PR's `body`, fetched apart from `gatePulls`: a PR's body can run
+ * to tens of KB (a Dependabot release-notes body, a pipeline spec table),
+ * and bundled into the checks-heavy `gatePulls` answer for a full chunk of
+ * repos it could push that answer past Next's 2 MB per-entry cache limit.
+ * Its own smaller, narrower query — one `pullRequest(number:)` alias per PR,
+ * chunked the same way `readRunStatuses` chunks its own follow-up read —
+ * keeps that overflow from recurring.
+ */
+async function readPrBodies(
+  wanted: { repo: TicketRepo; numbers: number[] }[]
+): Promise<Map<string, string>> {
+  const found = new Map<string, string>()
+  const withPrs = wanted.filter((w) => w.numbers.length > 0)
+  if (withPrs.length === 0) return found
+  await Promise.all(
+    chunks(withPrs, REPOS_PER_QUERY).map(async (group) => {
+      const query = `query GatePrBodies {\n${group
+        .map(
+          (item, r) =>
+            `  r${r}: repository(${repoArgs(item.repo)}) {\n${item.numbers
+              .map((num, f) => `    f${f}: pullRequest(number: ${num}) { body }`)
+              .join("\n")}\n  }`
+        )
+        .join("\n")}\n}`
+      const answer = await githubGraphql<
+        Record<string, Record<string, { body?: string | null } | null> | null>
+      >(query, [BOARD_CACHE_TAG, GATES_CACHE_TAG])
+      if (!answer.data) return
+      group.forEach((item, r) => {
+        item.numbers.forEach((num, f) => {
+          const body = answer.data?.[`r${r}`]?.[`f${f}`]?.body
+          found.set(`${item.repo.fullName}#${num}`, body ?? "")
+        })
+      })
+    })
+  )
+  return found
+}
+
 async function readGates(): Promise<GatesRead> {
   if (!isBoardConfigured()) return { state: "unconfigured" }
 
@@ -776,6 +820,20 @@ async function readGates(): Promise<GatesRead> {
       }
       pulls.set(repo.fullName, node.pullRequests.nodes)
     })
+  }
+
+  // Bodies ride a second, narrower query (see readPrBodies) so a chunk's
+  // answer never bundles them with the checks/deployments payload.
+  const bodies = await readPrBodies(
+    repos.map((repo) => ({
+      repo,
+      numbers: (pulls.get(repo.fullName) ?? []).map((pr) => pr.number),
+    }))
+  )
+  for (const repo of repos) {
+    for (const pr of pulls.get(repo.fullName) ?? []) {
+      pr.body = bodies.get(`${repo.fullName}#${pr.number}`) ?? ""
+    }
   }
 
   // Which PRs name a run, and that run's status.md at the head.
