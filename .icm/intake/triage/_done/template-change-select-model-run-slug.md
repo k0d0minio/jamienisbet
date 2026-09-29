@@ -2,6 +2,7 @@
 
 - lane: chore
 - found-by: template-change · 2026-09-25
+- superseded-by: icm-board #95 (7695f14)
 - complexity: low
 
 ## Problem
