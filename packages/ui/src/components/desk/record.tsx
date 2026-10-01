@@ -159,7 +159,10 @@ function RecordRow({
           {icon}
         </span>
       )}
-      <span className="flex min-w-0 shrink-0 flex-col">
+      {/* Shrinkable, so a long label or description truncates at the row's
+          edge instead of widening it; the value's heavy shrink weight keeps
+          it the first to give way. */}
+      <span className="flex min-w-0 flex-col">
         <span
           className={cn(
             "truncate",
@@ -182,7 +185,7 @@ function RecordRow({
       {value != null && (
         <span
           data-slot="record-row-value"
-          className="ml-auto min-w-0 truncate text-right"
+          className="ml-auto min-w-0 shrink-[999] truncate text-right"
         >
           {value}
         </span>

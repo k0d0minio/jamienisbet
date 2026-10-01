@@ -214,7 +214,10 @@ function NavPane({
               )
             }
             return (
-              <div key={entry.key} role="none">
+              // A column, so the row inside is stretched to the pane: a bare
+              // block would size the button to its full title and run it past
+              // the pane's edge instead of truncating.
+              <div key={entry.key} role="none" className="flex min-w-0 flex-col">
                 {eyebrow ? <ReposEyebrow rosterError={rosterError} /> : null}
                 {entry.kind === "repo" ? (
                   <div role="none" className="flex items-center">
