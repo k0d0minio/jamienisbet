@@ -92,11 +92,20 @@ function PaneToolbar({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// The body scrolls down, never sideways: every row in a pane truncates or
+// wraps to its width, so anything wider is a bug to fix, not a reason to grow
+// a horizontal scrollbar. `relative` makes it the containing block for what
+// it holds — without it a screen-reader label (`sr-only` is absolute) deep in
+// a long list is positioned against the page, escapes this scroll box, and
+// stretches the whole window by the list's height.
 function PaneBody({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="pane-body"
-      className={cn("min-h-0 flex-1 overflow-auto", className)}
+      className={cn(
+        "relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto",
+        className
+      )}
       {...props}
     />
   )

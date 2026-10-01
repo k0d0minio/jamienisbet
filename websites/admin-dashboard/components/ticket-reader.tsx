@@ -771,7 +771,7 @@ export function ReaderBody({
               <p className="font-mono text-desk-meta text-desk-fg-3">
                 {ticket.repo.fullName} · mode code
               </p>
-              <pre className="overflow-x-auto rounded-desk-control border border-desk-line bg-desk-sunken p-3 font-mono text-desk-meta break-words whitespace-pre-wrap text-desk-fg">
+              <pre className="rounded-desk-control border border-desk-line bg-desk-sunken p-3 font-mono text-desk-meta wrap-anywhere whitespace-pre-wrap text-desk-fg">
                 {ticket.pickup}
               </pre>
             </ReaderSection>

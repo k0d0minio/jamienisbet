@@ -217,7 +217,10 @@
   border: 1px solid var(--desk-line);
   border-radius: var(--desk-radius-control);
   padding: var(--space-3);
-  overflow-x: auto;
+  /* Wraps rather than scrolling sideways — nothing on this app scrolls
+     horizontally, a long command included. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .prose pre code {
   background: none;
@@ -234,17 +237,17 @@
   border-top: 1px solid var(--desk-line);
   margin: var(--space-5) 0;
 }
-/* A table wider than the phone scrolls itself rather than the page. */
+/* A table never scrolls sideways: it takes the column's width at most and
+   its cells wrap, down to breaking a long word. */
 .prose table {
-  display: block;
-  overflow-x: auto;
-  width: max-content;
+  width: auto;
   max-width: 100%;
   border-collapse: collapse;
   font-size: var(--desk-text-meta);
 }
 .prose th,
 .prose td {
+  overflow-wrap: anywhere;
   border: 1px solid var(--desk-line);
   padding: var(--space-1) var(--space-2);
   text-align: left;
@@ -267,6 +270,11 @@
     -webkit-tap-highlight-color: transparent;
     /* Keep an inner scroll from chaining into a page-level rubber band. */
     overscroll-behavior-y: contain;
+    /* Nothing in this app scrolls sideways — the window least of all. A
+       stray overflow is clipped here rather than handing the page a
+       horizontal scrollbar; `clip`, not `hidden`, so sticky chrome still
+       sticks. */
+    overflow-x: clip;
   }
 
   /* ----------------------------------------------------------------
