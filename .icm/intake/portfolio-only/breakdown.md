@@ -38,7 +38,7 @@ Not stubs here: one home per ticket, the repo where the work is. The paste-promp
 
 ## Jamie's hand
 
-- Before stub 4 merges: back up `biz.*` into `~/Desktop/legible-consulting/house/desk/app/biz-backup-<date>.tar.gz`. The commands are in stub 4's Notes.
+- The `biz.*` backup of 2026-10-22 is at `~/Desktop/legible-consulting/house/desk/app/biz-2026-10-22-backup.tar.gz`, untracked in the house: commit it or ignore it. A fresh copy before stub 4, when rows changed, follows stub 4's Notes.
 - Delete the Vercel projects `jamie-nisbet` and `client-referrals`. Remove `app.jamienisbet.com` and `sell.jamienisbet.com`. No redirect.
 - Stub 3: set `DESK_POOL_URL` and `DESK_POOL_TOKEN` on the Vercel project `portfolio`. Remove `DATABASE_URL`, `GITHUB_TOKEN` and the Neon integration from it.
 - Stub 5: set the Vercel project `portfolio`'s Root Directory to the repo root when that pull request is ready, before the merge, and push nothing to `main` in between.

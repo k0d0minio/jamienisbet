@@ -17,7 +17,7 @@ Delete the admin dashboard, `packages/services` and the migrations workflow. Tri
 
 ## Acceptance criteria
 
-- [ ] The backup `biz-backup-<date>.tar.gz` exists in `~/Desktop/legible-consulting/house/desk/app/` before this merges. The pull request body names its date.
+- [ ] The backup `~/Desktop/legible-consulting/house/desk/app/biz-2026-10-22-backup.tar.gz` still exists, and no row was added to `biz.*` after 2026-10-22. Otherwise a fresh backup is taken first (Notes).
 - [ ] `websites/admin-dashboard/`, `packages/services/` and `.github/workflows/db-migrations.yml` are gone.
 - [ ] `packages/ui/emails/` keeps `contact-form-notification.html` only, and `template-ids.ts` names only that one.
 - [ ] `pnpm-lock.yaml` has no `@jamie-nisbet/admin` or `@jamie-nisbet/services` entry, and no `drizzle-orm`, `stripe` or `ai` package.
@@ -31,14 +31,21 @@ Delete the admin dashboard, `packages/services` and the migrations workflow. Tri
 
 ## Notes
 
-The backup is Jamie's hand on the desktop, before this stub starts. The connection string lives in the gitignored `websites/admin-dashboard/.env.local`. When that file has no `DATABASE_URL`, run `vercel env pull` in that folder first. `pg_dump` is not installed on the machine. Homebrew's `libpq` provides it.
+The backup was taken on 2026-10-22 through the Neon connector, with Jamie's go-ahead:
+`~/Desktop/legible-consulting/house/desk/app/biz-2026-10-22-backup.tar.gz`. It holds `backup.json`
+(the whole export), `data/<schema>.<table>.json` (117 leads, 2 touches, 6 questionnaire links,
+0 suppressions, the 27-row Drizzle journal) and `restore.sql` (the DDL and one `insert` per row,
+for `psql "$DATABASE_URL" -f restore.sql` into an empty database). The archive is untracked in the
+house until Jamie commits or ignores it. The DDL also lives in `packages/services/drizzle/` in this
+repo's history.
+
+A fresh copy, when rows changed after 2026-10-22, is Jamie's hand on the desktop with `pg_dump`
+(Homebrew's `libpq`). The connection string is not in the local `.env.local`: pull it first.
 
 ```bash
-brew install libpq
+cd ~/Desktop/legible-consulting/projects/jamienisbet/websites/admin-dashboard && vercel env pull .env.production.local --environment=production
 ```
 
 ```bash
-cd ~/Desktop/legible-consulting/projects/jamienisbet && set -a && . websites/admin-dashboard/.env.local && set +a && d=~/Desktop/legible-consulting/house/desk/app && f="biz-$(date +%F)" && "$(brew --prefix libpq)/bin/pg_dump" "$DATABASE_URL" --schema=biz --schema=drizzle --no-owner --no-privileges -f "$d/$f.sql" && tar -czf "$d/$f-backup.tar.gz" -C "$d" "$f.sql" && rm "$d/$f.sql" && ls -l "$d"/biz-*-backup.tar.gz
+cd ~/Desktop/legible-consulting/projects/jamienisbet && set -a && . websites/admin-dashboard/.env.production.local && set +a && d=~/Desktop/legible-consulting/house/desk/app && f="biz-$(date +%F)" && "$(brew --prefix libpq)/bin/pg_dump" "$DATABASE_URL" --schema=biz --schema=drizzle --no-owner --no-privileges -f "$d/$f.sql" && tar -czf "$d/$f-backup.tar.gz" -C "$d" "$f.sql" && rm "$d/$f.sql" && ls -l "$d"/biz-*-backup.tar.gz
 ```
-
-On 2026-10-22 the schema held 117 leads, 2 touches, 6 questionnaire links, 0 suppressions and a 27-row Drizzle journal. The archive is untracked in the house until Jamie commits or ignores it. The DDL also lives in `packages/services/drizzle/` in this repo's history.
