@@ -1,0 +1,3 @@
+# Two `command -v curl >/dev/null || die "curl required"` lines in scripts deleted on 2026-08-26 (commit e4bd7cb). The curl-auth-user rule matches the words, not a credential: the line holds no variable and no key. Jamie approved the ignore on 2026-10-22.
+d723f3c3b16a1169cd60b6e5892ed1f55b35de54:scripts/stripe-income.sh:curl-auth-user:28
+d723f3c3b16a1169cd60b6e5892ed1f55b35de54:scripts/stripe-receivables.sh:curl-auth-user:17
