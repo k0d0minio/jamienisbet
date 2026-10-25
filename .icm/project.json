@@ -19,7 +19,7 @@
     "projects": [
       {
         "name": "portfolio",
-        "path": "websites/portfolio",
+        "path": ".",
         "status_context": "Vercel – portfolio",
         "class": "product",
         "production_url": "https://www.jamienisbet.com",

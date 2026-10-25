@@ -1,6 +1,6 @@
 ---
 name: design-dna
-description: The per-turn design checklist for any UI work in this repo. Use this skill whenever you create, change, or review anything a user sees — components, screens, pages, layouts, styling, forms, dialogs/sheets, navigation, loading or error handling, emails, or copy shown in the UI — in any of the websites/* apps or packages/ui, even if the task doesn't mention "design". It is how a change ends up looking and feeling like this product instead of default shadcn.
+description: The per-turn design checklist for any UI work in this repo. Use this skill whenever you create, change, or review anything a user sees — components, screens, pages, layouts, styling, forms, dialogs/sheets, navigation, loading or error handling, emails, or copy shown in the UI — in the portfolio app or its design system, even if the task doesn't mention "design". It is how a change ends up looking and feeling like this product instead of default shadcn.
 ---
 
 # Design DNA — how UI ships in this repo
@@ -12,30 +12,29 @@ mono figures, sentence case. Quiet does **not** mean flat — hierarchy comes fr
 size, spacing, and real states, not from decoration. No gradients, no emoji, no neon,
 no bounce.
 
-That is the **marketing tier**, and it is the default. `websites/admin-dashboard` is the
-one exception: it is a work tool on the sanctioned **desk tier**. There are two tiers and
-no third. Read § Which tier am I on? below before you decide anything looks wrong.
+That is the **marketing tier**, and it is the default. The sanctioned **desk tier** is the
+one exception, and no surface in this repo is on it since the admin dashboard left
+(2026-10-25). There are two tiers and no third. Read § Which tier am I on? below before you decide anything looks wrong.
 
 Identity and token specifics live in one place — read them, don't restate them:
 
-- [`packages/ui/BRAND.md`](../../../packages/ui/BRAND.md) — voice, visual foundations, iconography, **§ Desk tier**.
-- [`packages/ui/tokens/`](../../../packages/ui/tokens/) — the values (colour, type, spacing, radius, shadows, motion), plus `desk.css` for the desk tier.
-- [`packages/ui/SKILL.md`](../../../packages/ui/SKILL.md) — the package tour: assets, components, how to consume.
+- [`BRAND.md`](../../../BRAND.md) — voice, visual foundations, iconography, **§ Desk tier**.
+- [`tokens/`](../../../tokens/) — the values (colour, type, spacing, radius, shadows, motion), plus `desk.css` for the desk tier.
+- [`SKILL.md`](../../../SKILL.md) — the brand tour: assets and components.
 
 ## Which tier am I on?
 
-**Marketing tier** — `websites/portfolio`
-and anything in `packages/ui` outside `src/components/desk/`.
+**Marketing tier** — the whole portfolio: `app/`, `components/` and `emails/`.
 Everything on this page applies as written. Nothing below changes for you.
 
-**Desk tier** — every screen in `websites/admin-dashboard`, and `packages/ui/src/components/desk/`.
+**Desk tier** — no surface here since 2026-10-25. The rules stay for the desk in `legible-consulting/house`, which reads `tokens/desk.css`.
 A dense, flat work tool designed at the desk and compressed for the phone — not a phone app
-stretched wide. It opts in by linking `@jamie-nisbet/ui/desk.css` *after* `styles.css`, and
+stretched wide. A desk surface opts in by linking its Tailwind entry `desk.css` *after* `styles.css`, and
 puts `desk-tier` once, on `<body>`. Its visual reference is the canvas's
 "Desk — the design system" sheet. Three rules bend, scoped to it (decided 2026-09-25,
 recorded in
 [`.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md`](../../../.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md)
-and [`packages/ui/BRAND.md`](../../../packages/ui/BRAND.md) § Desk tier):
+and [`BRAND.md`](../../../BRAND.md) § Desk tier):
 
 1. **D-1 — desk first, compressed for the phone.** Panes side by side at the desk; the reader
    pushes over the list on the phone. The touch step lives **in the tokens** — one
@@ -65,11 +64,11 @@ semantic tokens only, the 44px touch floor, four designed states.
 
 ## Before writing any component
 
-Check the `@jamie-nisbet/ui` barrel first (`packages/ui/src/components/`). If a
-primitive exists, use it; if it *almost* exists, extend it in the package rather than
-forking a local copy — the package is the single brand source and every app inherits
-the fix. A new primitive that two screens could use belongs in `packages/ui`, not in an
-app's `components/`.
+Check `components/ui/`, `components/brand/`, `components/motion/` and `components/shell/`
+first. If a primitive exists, use it; if it *almost* exists, extend it there rather than
+forking a local copy — those folders are the single brand source. A new primitive that
+two screens could use belongs in `components/ui/` or `components/brand/`, not inline in a
+section.
 
 ## Tokens, not values
 
@@ -143,7 +142,7 @@ started now!").
 
 Run this list against the diff:
 
-- [ ] Reused or extended `@jamie-nisbet/ui` rather than forking styles locally
+- [ ] Reused or extended the design system in `components/` rather than forking styles locally
 - [ ] Zero raw colours/shadows/durations — semantic tokens only
 - [ ] Renders correctly in light **and** dark
 - [ ] Empty, loading, and error states designed, not defaulted

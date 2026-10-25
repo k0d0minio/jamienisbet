@@ -1,0 +1,24 @@
+---
+name: jamie-nisbet-design
+description: Use this skill to generate well-branded interfaces and assets for Jamie Nisbet (freelance AI-infrastructure consultant & software engineer), either for production or throwaway prototypes/mocks/decks. Contains the brand's design guidelines, colours, type, fonts, logo assets, icon system, and reusable React components.
+user-invocable: true
+---
+
+Read the `BRAND.md` file within this skill first — it holds the brand context, content fundamentals, visual foundations, and iconography rules. Then explore the other available files. (`README.md` covers how the app runs.)
+
+## What's here
+- `styles.css` — the **Tailwind v4 + shadcn/ui** theme entry; React apps link this one file. `tokens.css` + `tokens/` — the variables-only token system (colour, type, spacing, radius, shadow, motion, fonts) for non-Tailwind surfaces. Light + dark via `[data-theme="dark"]`. Design against the semantic aliases (`--surface`, `--text-1`, `--border`, `--primary`) / the shadcn utilities (`bg-card`, `text-muted-foreground`).
+- `tokens/desk.css` — the **desk tier**'s values: the only surface language besides the marketing tier's, opt-in, for the operator's cockpit, and linked by nothing in this repo. Hanken Grotesk on a dense scale, 32px rows and 30px controls at the desk and 44px under a thumb (the coarse-pointer step is in the tokens), tight 4/6/8px corners, hairline panes, one float shadow, no materials or springs, no new hue. Rules in `BRAND.md` → Desk tier.
+- `assets/logo/` — the 2026 logo: `reference/` (the delivered artwork, 2000px, light + dark, icon + full) and the traced SVGs (`logo-mark*.svg`, `logo-full*.svg`). In React render it through `LogoMark` / `LogoMarkSolid` / `LogoFull` (paths in `components/brand/logo-artwork.ts`, traced from the reference and pixel-diffed against it) — never by redrawing it. The full form goes wherever the name has room to read (headers, footers, heroes, 404s, OG cards, logins); the icon everywhere else (favicons, installed icons, bars, the `LogoLoader` loading indicator). `assets/brand/` — social card + email signature. `assets/lib/icons.js` — Lucide `<Icon>` helper for UMD/static surfaces.
+- `components/` — idiomatic shadcn/ui primitives in `ui/` (Button / Card / Input / Badge / Label / Textarea / Alert) themed with the brand tokens, brand-only Eyebrow / IconButton / logo marks / LogoLoader in `brand/`, the motion pieces (Reveal, LogoLockup — motion.dev) in `motion/`, and the site chrome in `shell/`. Import each from its file (`@/components/ui/button`).
+
+## How to work
+- **Voice:** quiet, casual confidence. First person ("I…"), sentence case, no emoji, no hype. Mono for labels/figures. Let numbers carry weight. (Full rules in `BRAND.md` → Content fundamentals.)
+- **Visuals:** monochrome — the logo's paper (`#FFFEFA`) and ink (`#1E1E1E`) are the canvas and the tint (ink in light, paper in dark), with warm-grey neutrals between and no second hue; semantic colour only for state, muted. Logo via `--logo-tile` / `--logo-ink`. Hairline borders, generous whitespace, blueprint-grid texture only, soft/low shadows, quick no-bounce motion; one entrance (`Reveal`) and the JN icon as the loader. (Full rules in `BRAND.md` → Visual foundations.)
+- **Icons:** Lucide, 1.5–2px stroke. React → `<Icon name="ArrowRight"/>`; static HTML → `<i data-lucide="…">` + `lucide.createIcons()`.
+
+If creating **visual artifacts** (slides, mocks, throwaway prototypes, social cards): copy the assets you need out of this skill and produce static HTML files that link `styles.css`, so the user can view them directly.
+
+If working on **production code**: copy assets and read the rules here to become an expert in designing with this brand. Reuse the component primitives rather than re-implementing them.
+
+If the user invokes this skill without other guidance, ask them what they want to build or design, ask a few focused questions (surface, audience, light/dark, how many variations), then act as an expert designer who outputs HTML artifacts *or* production code, depending on the need.
