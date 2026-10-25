@@ -31,3 +31,8 @@ Remove both routes and what only they use. The home page, `/work`, `/tech` and t
 ## Notes
 
 `lib/problems.ts` stays: `components/sections/problems.tsx` on the home page imports it. After this stub, `app/actions/contact.ts` and `next.config.ts` are the only files that name `@jamie-nisbet/services`. Jamie removes `GITHUB_TOKEN` from the Vercel project `portfolio` by hand.
+
+Decisions (Jamie, 2026-10-25, at the start of the ticket):
+
+1. The five `/start` links on the home page open a public route of `desk.jamienisbet.com` in a new tab. The forms and the questionnaires move to the desk, so the answers are written to git there.
+2. The link copy "Get a free look" stays.
