@@ -6,8 +6,8 @@
 ## What this repo is
 
 The personal web estate of **Jamie Nisbet** — a software engineer / AI consultant based in
-Mafra, Portugal. A pnpm monorepo, deliberately small: four Next.js apps and three shared
-packages, deployed as four Vercel projects.
+Mafra, Portugal. A pnpm monorepo, deliberately small: two Next.js apps and three shared
+packages, deployed as two Vercel projects.
 
 - **[`websites/portfolio/`](websites/portfolio/)** — the public portfolio (i18n, markdown
   case studies, contact form → Neon `biz.clients` + Resend).
@@ -16,8 +16,6 @@ packages, deployed as four Vercel projects.
   profile*, *Tickets* (every active repo's `.icm/intake/` backlog in one read-only board),
   and *Money* (Stripe). Business state lives in **one**
   store — the Neon `biz.*` schema — operated through the dashboard, never mirrored into git.
-- **[`websites/sellers-site/`](websites/sellers-site/)** — the affiliate program's public
-  front door (referral intake → Neon + Resend).
 - **[`packages/`](packages/)** — `ui` (the design system; **the** brand source of truth,
   human guide in [`packages/ui/BRAND.md`](packages/ui/BRAND.md)) · `app-shell`
   (marketing-site chrome/i18n) · `services` (Neon `biz.*` data layer).
@@ -44,7 +42,6 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 |---|---|
 | Change the portfolio (content, case studies, contact form) | [`websites/portfolio/`](websites/portfolio/) |
 | Change the admin cockpit (Leads, Tickets, Money) | [`websites/admin-dashboard/`](websites/admin-dashboard/) |
-| Change the affiliate/referral intake | [`websites/sellers-site/`](websites/sellers-site/) |
 | Brand colours, tokens, components, voice | [`packages/ui/`](packages/ui/) + [`packages/ui/BRAND.md`](packages/ui/BRAND.md) — the per-turn UI checklist auto-loads from [`.claude/skills/design-dna/`](.claude/skills/design-dna/SKILL.md) |
 | Data model / queries (`biz.*`) | [`packages/services/`](packages/services/) |
 | Deployment, Vercel Root Directories, build skipping | [`websites/README.md`](websites/README.md) § Deployment |

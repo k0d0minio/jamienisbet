@@ -60,7 +60,7 @@ The brand voice is *quiet, casual confidence* — professional without being cor
 ## Desk tier (the admin's tier)
 
 Everything above is the **marketing tier** — the flat, Swiss, read-it-once brand of the
-portfolio, the pay page, and the sellers site. It is unchanged and it is the default.
+portfolio and the pay page. It is unchanged and it is the default.
 
 The **desk tier** is the sanctioned surface language for the thing Jamie *operates* rather
 than publishes: the admin dashboard, a work tool used for real work on a laptop and on an

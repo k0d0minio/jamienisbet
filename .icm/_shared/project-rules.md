@@ -30,8 +30,7 @@ reads. A contract that says "see `_shared/project-rules.md`" means: the answer i
 - **Code rules** — `AGENTS.md` § Standing rules plus `packages/ui/BRAND.md` for anything visual
   (the `design-dna` skill auto-loads its checklist). `_shared/conventions.md` redirects there.
 - **Personas** — `visitor` (the portfolio's public reader), `operator` (Jamie in the admin
-  dashboard), `affiliate` (the sellers-site referrer) — the `personas` array in
-  `.icm/project.json`. A spec's `- personas:` line names at least one.
+  dashboard) — the `personas` array in `.icm/project.json`. A spec's `- personas:` line names at least one.
 
 ## The factory
 
@@ -53,8 +52,7 @@ reads. A contract that says "see `_shared/project-rules.md`" means: the answer i
   `DATABASE_URL` secret is why it is CI. Nothing else.
 - **Deploy** — `deploy` in `.icm/project.json`: Vercel team **`kodominio`**, token named
   `VERCEL_TOKEN_KODOMINIO` (the operator's shell). `portfolio` and `jamie-nisbet` (the admin
-  dashboard) are `product` — previews on every push. `client-referrals` (the sellers-site) is
-  `quiet`: its `vercel.json` disables every branch but `main`. Unaffected projects are skipped by
+  dashboard) are `product` — previews on every push. Unaffected projects are skipped by
   Vercel's built-in monorepo skipping (no `ignoreCommand` — `websites/README.md` § Deployment), so
   an absent Vercel status on a PR is normal, not a failure.
 - **Migrations** — Drizzle, in `packages/services/drizzle` (`NNNN_name.sql` + `meta/` journal),
@@ -75,8 +73,8 @@ reads. A contract that says "see `_shared/project-rules.md`" means: the answer i
   the `biz` schema), migrated only by CI on `main`. A run never migrates a database itself.
 - **The environments' databases** — none declared: previews read the same database the Vercel
   project is configured with; no per-preview Neon branches.
-- **Health endpoint** — per project under `deploy.projects[]`: `https://www.jamienisbet.com/en`,
-  `https://app.jamienisbet.com/login`, `https://sell.jamienisbet.com/en` (each answers 200;
+- **Health endpoint** — per project under `deploy.projects[]`: `https://www.jamienisbet.com/en` and
+  `https://app.jamienisbet.com/login` (each answers 200;
   the bare hosts redirect). `health-check.sh` reads them once after the merge.
 - **Archive** — the default `_done/` folders.
 

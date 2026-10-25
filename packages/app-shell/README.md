@@ -1,8 +1,8 @@
 # @jamie-nisbet/app-shell
 
 > **ICM role:** Layer 3 — reference (shared code)
-> **Purpose:** The shared Next.js app shell for the public marketing sites — one copy of the
-> chrome and i18n plumbing that portfolio and sellers-site used to duplicate.
+> **Purpose:** The shared Next.js app shell for the public marketing site — the portfolio's
+> chrome and i18n plumbing, kept out of `ui` so `ui` stays framework-light.
 
 ## What lives here
 - **`./i18n`** — the shared `next-intl` routing config (en/pt/fr + locale metadata), the

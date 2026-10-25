@@ -1,7 +1,7 @@
 # jamienisbet — the web estate
 
 The personal web estate of **Jamie Nisbet**, a software engineer / AI consultant based in
-Mafra, Portugal. Deliberately small: three Next.js apps and the shared packages beneath
+Mafra, Portugal. Deliberately small: two Next.js apps and the shared packages beneath
 them, deployed as separate Vercel projects off one pnpm monorepo.
 
 ## The map
@@ -14,9 +14,8 @@ jamienisbet/
 ├── websites/
 │   ├── portfolio/       the public portfolio — i18n (en/fr/pt), markdown case studies,
 │   │                    contact form → Neon biz.clients + Resend notification
-│   ├── admin-dashboard/ the cockpit — owner-only PWA, four screens:
-│   │                    Leads · a lead's profile · Tickets · Money (Stripe)
-│   └── sellers-site/    the affiliate program's front door — referral intake → Neon + Resend
+│   └── admin-dashboard/ the cockpit — owner-only PWA, four screens:
+│                        Leads · a lead's profile · Tickets · Money (Stripe)
 │
 ├── packages/            shared code
 │   ├── ui/              @jamie-nisbet/ui — the design system; THE brand source of truth
@@ -39,7 +38,7 @@ jamienisbet/
   GitHub (read-only; the repos own their tickets) — the client repos plus the two house
   repos, this one and `icm-board`. Canonical ticket spec: `_system/contracts/TICKETS.md`
   in `icm-board`; the copy that matters here is [`.icm/intake/README.md`](.icm/intake/README.md).
-- **CI** (`.github/workflows/`) typechecks, lints and builds all three apps and guards DB
+- **CI** (`.github/workflows/`) typechecks, lints and builds both apps and guards DB
   migrations. CI is the source of truth — don't run checks locally.
 
 ## History

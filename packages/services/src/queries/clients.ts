@@ -298,35 +298,6 @@ export async function createClientFromIntake(input: FormIntake): Promise<Client>
   return row
 }
 
-export type ReferralIntake = {
-  referralCode: string
-  customerName: string
-  customerPhone: string
-  customerEmail?: string | null
-  need: string
-  budget?: string | null
-  preferredCallTime?: string | null
-}
-
-export async function createClientFromReferral(
-  input: ReferralIntake
-): Promise<Client> {
-  const [row] = await getDb()
-    .insert(clients)
-    .values({
-      name: input.customerName,
-      email: input.customerEmail ?? null,
-      phone: input.customerPhone,
-      intakeMessage: input.need,
-      referralCode: input.referralCode,
-      budget: input.budget ?? null,
-      preferredCallTime: input.preferredCallTime ?? null,
-      source: "referral",
-    })
-    .returning()
-  return row
-}
-
 /**
  * Add a record by hand — someone met at a meetup, a word-of-mouth introduction,
  * a customer who has been paying since before this dashboard existed. Anything

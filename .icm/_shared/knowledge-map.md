@@ -17,8 +17,8 @@ Paths below are relative to the repo root.
 
 - Identity, routing, standing rules — `AGENTS.md`
 - Deployment, Vercel projects, build skipping — `websites/README.md`
-- Each app — `websites/portfolio/README.md`, `websites/admin-dashboard/README.md`,
-  `websites/sellers-site/README.md` (env vars each app needs, its routes)
+- Each app — `websites/portfolio/README.md`, `websites/admin-dashboard/README.md` (env vars
+  each app needs, its routes)
 - Brand and design system — `packages/ui/BRAND.md` (+ `packages/README.md`)
 - Data model (`biz.*`) — `packages/services/README.md` and `packages/services/src/schema/`
 - Direction of record — `.icm/docs/founder-brief.md`, `.icm/docs/decisions.md`
