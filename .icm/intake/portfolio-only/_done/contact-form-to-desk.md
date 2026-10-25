@@ -6,7 +6,6 @@
 - depends-on: drop-questionnaires
 - complexity: medium
 - priority: P1
-- blocked: the desk's pool API in the house is not merged (breakdown, "For the house"). Remove this line when it is.
 
 ## Problem
 
@@ -33,3 +32,10 @@ The contact action posts the lead to the desk's pool API and keeps the mail. The
 ## Notes
 
 The API's contract comes from the house pull request: the route, the JSON fields, the bearer header, the 422 answer for an open prospect with the same email. Names only in this repo. The honeypot and the Zod schema in `lib/contact-schema.ts` stay. Jamie sets the two variables on the Vercel project `portfolio` and removes `DATABASE_URL` and the Neon integration from it by hand.
+
+Decisions (Jamie, 2026-10-25, at the start of the ticket):
+
+1. `DESK_POOL_URL` is the full route, `https://desk.jamienisbet.com/api/pool`.
+2. A `422` (an open prospect with the same email) counts as success. The mail goes, and the pool gains no row.
+3. The service from the Services section stays in the mail only. The ask is the message as the visitor wrote it.
+4. The action waits 5 seconds for the desk, then counts the call as failed.
