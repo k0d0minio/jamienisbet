@@ -6,7 +6,6 @@
 - depends-on: drop-questionnaires
 - complexity: medium
 - priority: P1
-- blocked: the desk's pool API in the house is not merged (breakdown, "For the house"). Remove this line when it is.
 
 ## Problem
 
