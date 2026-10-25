@@ -6,14 +6,14 @@
 ## What this repo is
 
 The personal web estate of **Jamie Nisbet** — a software engineer / AI consultant based in
-Mafra, Portugal. A pnpm monorepo, deliberately small: one Next.js app and two shared
-packages, deployed as one Vercel project.
+Mafra, Portugal. Deliberately small: one Next.js app at the repo root — the public
+portfolio (i18n, markdown case studies, contact form → the desk's pool API + Resend) —
+deployed as one Vercel project.
 
-- **[`websites/portfolio/`](websites/portfolio/)** — the public portfolio (i18n, markdown
-  case studies, contact form → the desk's pool API + Resend).
-- **[`packages/`](packages/)** — `ui` (the design system; **the** brand source of truth,
-  human guide in [`packages/ui/BRAND.md`](packages/ui/BRAND.md)) · `app-shell`
-  (marketing-site chrome/i18n).
+- **The app** — `app/`, `components/`, `content/`, `i18n/`, `lib/`, `messages/`.
+- **The brand** — [`tokens/`](tokens/), [`styles.css`](styles.css), [`tokens.css`](tokens.css),
+  [`assets/`](assets/) and the design system in `components/{ui,brand,motion,shell}/`;
+  **the** brand source of truth, human guide in [`BRAND.md`](BRAND.md).
 
 ### This repo is one of many, and it is not the orchestrator
 
@@ -35,9 +35,9 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 
 | The task | Go to |
 |---|---|
-| Change the portfolio (content, case studies, contact form) | [`websites/portfolio/`](websites/portfolio/) |
-| Brand colours, tokens, components, voice | [`packages/ui/`](packages/ui/) + [`packages/ui/BRAND.md`](packages/ui/BRAND.md) — the per-turn UI checklist auto-loads from [`.claude/skills/design-dna/`](.claude/skills/design-dna/SKILL.md) |
-| Deployment, Vercel Root Directories, build skipping | [`websites/README.md`](websites/README.md) § Deployment |
+| Change the portfolio (content, case studies, contact form) | [`content/`](content/), [`app/`](app/), [`components/`](components/) |
+| Brand colours, tokens, components, voice | [`tokens/`](tokens/) + [`BRAND.md`](BRAND.md) — the per-turn UI checklist auto-loads from [`.claude/skills/design-dna/`](.claude/skills/design-dna/SKILL.md) |
+| Deployment, the Vercel project, previews | [`README.md`](README.md) § Deployment |
 | CI | [`.github/workflows/`](.github/workflows/) |
 | Plan or track engineering work on **this** repo | stubs in [`.icm/intake/`](.icm/intake/) — epics + triage, identity is the path — contract in [its README](.icm/intake/README.md) |
 | Customer questionnaires / onboarding forms, the free look | the **desk** in `legible-consulting/house` (public `desk.jamienisbet.com/start`, answers written to git there) — not this repo; the portfolio only links to it |
@@ -45,8 +45,8 @@ kept the remote, the history, the CI and the `JN-*` series; the control layer le
 
 ## Standing rules (do not break these)
 
-- **Brand is one source of truth** — [`packages/ui`](packages/ui/). Websites consume the
-  package; never fork tokens per site.
+- **Brand is one source of truth** — [`tokens/`](tokens/) and [`styles.css`](styles.css).
+  Components read the tokens; never inline a token value.
 - **Planning is stubs.** Any plan, backlog, or task list becomes markdown stubs in
   `.icm/intake/` — never a loose `TODO.md`/`BACKLOG.md`. Identity is the path
   (`<epic>/<slug>`) and status is positional: done is a `git mv` to `_done/`, never a

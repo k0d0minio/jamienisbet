@@ -3,7 +3,7 @@
 .env.*
 !.env.example
 
-# Web app builds (websites/* are Next.js on Vercel)
+# The Next.js app at the root (deployed on Vercel)
 node_modules/
 .next/
 out/
@@ -11,6 +11,8 @@ dist/
 build/
 .vercel/
 *.tsbuildinfo
+next-env.d.ts
+*.pem
 
 # OS / editor
 .DS_Store
