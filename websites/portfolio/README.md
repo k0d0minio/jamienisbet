@@ -25,39 +25,12 @@ light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tok
 
 ## Contents
 
-- `app/` — Next.js App Router: home (`page.tsx`, a single scrolling page), `work/` (index + `work/[slug]` case-study pages), `actions/contact.ts` and `actions/form.ts` (server actions), `f/[token]` (customer questionnaires — see below), plus `icon.png`, `opengraph-image.tsx`, `sitemap.ts`, `robots.ts`.
-- `components/` — site chrome (`site-header`, `site-footer`, `theme-*`), layout primitives (`section.tsx`), the contact form, the customer questionnaire form, the markdown renderer, and the home `sections/`.
+- `app/` — Next.js App Router: home (`page.tsx`, a single scrolling page), `work/` (index + `work/[slug]` case-study pages), `actions/contact.ts` (the contact form's server action), plus `icon.png`, `opengraph-image.tsx`, `sitemap.ts`, `robots.ts`.
+- `components/` — site chrome (`site-header`, `site-footer`, `theme-*`), layout primitives (`section.tsx`), the contact form, the markdown renderer, and the home `sections/`.
 - `content/work/*.md` — case studies as markdown + YAML front-matter, editable as plain text (ICM Principle 2). Four real engagements (Vine Cliff Vineyards, Agorasim, Collabimmo, Boys To Men Retreat). Front-matter `url` is optional: set it to the live site and the case-study page renders a "Visit the live site" link.
-- `lib/` — `site.ts` (copy/config), `work.ts` (content loader), `contact-schema.ts` (shared zod schema), `form-answer-schema.ts` (validation derived from a questionnaire snapshot), `services.ts` (the offered services as locale-invariant ids, shared by the Services section, contact form, and contact action).
+- `lib/` — `site.ts` (copy/config), `work.ts` (content loader), `contact-schema.ts` (shared zod schema), `services.ts` (the offered services as locale-invariant ids, shared by the Services section, contact form, and contact action).
 - Brand/theme are **not** redefined here — the design system from [`packages/ui`](../../packages/ui/) is the single source of truth, linked via `app/globals.css`. (The earlier `theme.config` idea is replaced by that import.)
-- The **marks** come from that same source. The header, footer, hero, 404 and Open Graph card render `LogoFull` — the full lockup, traced from the artwork — and the questionnaire's bar renders `LogoMark`, all from the package, so they follow it without this app holding any artwork. The one place that needs a raster is the favicon [`app/icon.png`](app/icon.png), the icon form's dark reading at 64px, cut from the brand artwork rather than redrawn. Nothing here draws the logo by hand; see [BRAND.md](../../packages/ui/BRAND.md) § Iconography → Logo.
-
-## Customer questionnaires — `/f/[token]`
-
-The site hosts one page that has nothing to do with marketing: the questionnaire a lead is sent
-from the admin dashboard's **Forms** card. It lives here because this app already has the brand
-chrome and a server action writing to `biz.clients` — a form doesn't justify a fifth app, and
-nothing customer-facing belongs on the owner-only dashboard.
-
-- **The token in the URL is the credential.** It is the `biz.form_links` row's uuid —
-  unguessable, so there is no account and no password. `dynamic = "force-dynamic"`, `noindex` on
-  the page *and* the layout, and `/f/` is disallowed in [`robots.ts`](app/robots.ts).
-- **The page never reads markdown.** Every question comes from the link's `form_snapshot`,
-  frozen when the dashboard sent it, so rewording a question in icm-board's
-  `workspaces/sell/references/forms/` afterwards can't change a form already in someone's inbox.
-  (`/start` is the other way round: it reads `intake-diagnostic.md` live from icm-board, creates
-  the lead row and a completed `form_links` row, so the answers reach the same Forms history.)
-- **Validated against that same snapshot.** [`lib/form-answer-schema.ts`](lib/form-answer-schema.ts)
-  builds a Zod schema from the frozen questions at submit time — required fields, select options,
-  yes/no coercion — so a hand-crafted POST can't smuggle in an answer that was never offered.
-  Submitting writes the answers and stamps the lead as touched.
-- **Exactly once.** The "not yet completed" guard is in the UPDATE's WHERE clause, so a
-  double-submit can only land one set of answers; an unknown or spent token renders a dead end
-  (two different ones — "check the link" vs "you're already done"), never the form.
-- **Its own root layout** ([`app/f/layout.tsx`](app/f/layout.tsx)): brand tokens and the
-  mark, no nav, and none of the locale machinery — questionnaires are authored in one
-  language, which is why the route sits outside `/[locale]` and is excluded from the
-  next-intl matcher in [`proxy.ts`](proxy.ts).
+- The **marks** come from that same source. The header, footer, hero, 404 and Open Graph card render `LogoFull` — the full lockup, traced from the artwork — from the package, so they follow it without this app holding any artwork. The one place that needs a raster is the favicon [`app/icon.png`](app/icon.png), the icon form's dark reading at 64px, cut from the brand artwork rather than redrawn. Nothing here draws the logo by hand; see [BRAND.md](../../packages/ui/BRAND.md) § Iconography → Logo.
 
 ## Notes
 - One job: present Jamie and his work. Client sites live in their **own external repos**, not here.
