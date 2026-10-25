@@ -1,8 +1,7 @@
 "use server"
 
 import { Resend } from "resend"
-import { getTranslations } from "next-intl/server"
-import { createClientFromContact } from "@jamie-nisbet/services"
+import { getLocale, getTranslations } from "next-intl/server"
 import { EMAIL_TEMPLATE_IDS } from "@jamie-nisbet/ui/emails/template-ids"
 
 import {
@@ -18,6 +17,42 @@ const TO_EMAIL = "jamie.nisbet@outlook.be"
 const FROM_EMAIL = "Jamie Nisbet Consultancy <noreply@mail.jamienisbet.com>"
 
 const CONTACT_NOTIFICATION_TEMPLATE_ID = EMAIL_TEMPLATE_IDS.contactFormNotification
+
+// A slow desk must not hold the form: past this, the call counts as failed.
+const POOL_TIMEOUT_MS = 5000
+
+/** Post the lead to the desk's pool (house `desk/app/app/api/pool/route.ts`).
+ *  The desk stores it as a prospect Jamie sourced, at `new`. 201 is a new row;
+ *  422 is an open prospect with the same email, so the lead is already there.
+ *  Both mean the lead is safe. Never throws — every failure is logged and
+ *  reported as `false`, so the mail below still goes. */
+async function postToPool(lead: {
+  name: string
+  email: string
+  message: string
+  language: string
+}): Promise<boolean> {
+  const url = process.env.DESK_POOL_URL
+  const token = process.env.DESK_POOL_TOKEN
+  if (!url || !token) {
+    console.info("[contact] pool not called — DESK_POOL_URL or DESK_POOL_TOKEN unset")
+    return false
+  }
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(lead),
+      signal: AbortSignal.timeout(POOL_TIMEOUT_MS),
+      cache: "no-store",
+    })
+    if (res.status === 201 || res.status === 422) return true
+    console.error("[contact] pool POST failed — falling back to email only:", res.status, await res.text())
+  } catch (err) {
+    console.error("[contact] pool POST failed — falling back to email only:", err)
+  }
+  return false
+}
 
 export async function submitContact(
   _prev: ContactState,
@@ -67,23 +102,15 @@ export async function submitContact(
     serviceLabel = tServices(`items.${serviceId}.title`)
   }
 
-  // The database is the source of truth — create the client first. If this fails
-  // we don't lose the enquiry: we fall through to the email notification below,
-  // and only then treat a failed email as fatal.
-  let persisted = false
-  try {
-    await createClientFromContact({
-      name: parsed.data.name,
-      email: parsed.data.email,
-      message: parsed.data.message,
-      source: "portfolio",
-      // Store the locale-invariant id (not the translated label) so it's stable.
-      service: isServiceId(serviceId) ? serviceId : null,
-    })
-    persisted = true
-  } catch (err) {
-    console.error("[contact] DB write failed — falling back to email only:", err)
-  }
+  // The desk's pool is the lead's one home — post it first. If this fails we
+  // don't lose the enquiry: we fall through to the email notification below,
+  // and only then treat a failed email as fatal. The service stays in the mail.
+  const persisted = await postToPool({
+    name: parsed.data.name,
+    email: parsed.data.email,
+    message: parsed.data.message,
+    language: await getLocale(),
+  })
 
   if (!process.env.RESEND_API_KEY || !CONTACT_NOTIFICATION_TEMPLATE_ID) {
     // No key/template configured — log so nothing is lost while testing locally.
@@ -115,7 +142,7 @@ export async function submitContact(
 
   if (error) {
     console.error("[contact] Resend send failed:", error)
-    // The lead is safe in the database — the email is only a notification, so a
+    // The lead is safe in the pool — the email is only a notification, so a
     // send failure is non-fatal. Only surface an error if nothing was persisted.
     if (!persisted) {
       return {

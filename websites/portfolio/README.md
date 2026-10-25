@@ -19,8 +19,8 @@ The app is a workspace member (`@jamie-nisbet/portfolio`) and consumes the desig
 light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tokens are forked here.
 
 ## How it connects to the architecture
-- **Upstream / reads from:** human input (Jamie's case studies, bio, selected projects); finished work in the client delivery repos (linked on `biz.clients`)
-- **Downstream / feeds:** new leads into Neon `biz.clients`, worked from the admin dashboard
+- **Upstream / reads from:** human input (Jamie's case studies, bio, selected projects); finished work in the client delivery repos
+- **Downstream / feeds:** new leads into the desk's pool (`desk.jamienisbet.com`, `POST /api/pool`), worked from the desk
 - **Draws on (Layer 3 reference):** [packages/ui](../../packages/ui/) — tokens, components, assets, and [BRAND.md](../../packages/ui/BRAND.md) (the brand guide)
 
 ## Contents
@@ -37,5 +37,5 @@ light/dark via the `data-theme` attribute (header toggle, `next-themes`). No tok
 - **Build first:** the portfolio is the first website to go live — it drives the word-of-mouth lead channel.
 - Portfolio entries are **auto-suggested from completed engagements** (the delivery acceptance + retro in each client repo), then curated before publishing.
 - Stack: Next.js App Router (React 19, Tailwind v4 via `@jamie-nisbet/ui`). Built and runnable locally; domains and Vercel deploy config come later.
-- The contact form is fully built but **does not send yet** — it validates and confirms. Wiring (Resend) is deferred until `RESEND_API_KEY` is set (see `.env.example`), per the repo rule "no outbound action without review".
+- The contact form posts each lead to the desk's pool (`DESK_POOL_URL` + `DESK_POOL_TOKEN`) and mails Jamie through Resend (`RESEND_API_KEY`); see `.env.example`. A failed pool call never loses the lead: the mail still goes. Without the keys it validates, confirms and logs.
 - Case studies should reference real delivered work without exposing any client-confidential material.

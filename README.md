@@ -13,7 +13,7 @@ jamienisbet/
 │
 ├── websites/
 │   ├── portfolio/       the public portfolio — i18n (en/fr/pt), markdown case studies,
-│   │                    contact form → Neon biz.clients + Resend notification
+│   │                    contact form → the desk's pool + Resend notification
 │   └── admin-dashboard/ the cockpit — owner-only PWA, four screens:
 │                        Leads · a lead's profile · Tickets · Money (Stripe)
 │

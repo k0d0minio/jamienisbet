@@ -10,7 +10,7 @@ Mafra, Portugal. A pnpm monorepo, deliberately small: two Next.js apps and three
 packages, deployed as two Vercel projects.
 
 - **[`websites/portfolio/`](websites/portfolio/)** — the public portfolio (i18n, markdown
-  case studies, contact form → Neon `biz.clients` + Resend).
+  case studies, contact form → the desk's pool API + Resend).
 - **[`websites/admin-dashboard/`](websites/admin-dashboard/)** — the owner-only cockpit.
   Four screens: *Needs you* (the triaged attention feed that is home), *Leads* and a *lead's
   profile*, *Tickets* (every active repo's `.icm/intake/` backlog in one read-only board),
