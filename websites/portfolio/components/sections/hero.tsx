@@ -1,13 +1,15 @@
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { Button, Eyebrow, LogoFull, RevealGroup, RevealItem } from "@jamie-nisbet/ui"
 import { ArrowRight } from "lucide-react"
 
 import { Link } from "@jamie-nisbet/app-shell/i18n"
 import { Container } from "@jamie-nisbet/app-shell"
+import { freeLookHref } from "@/lib/site"
 
 export async function Hero() {
   const t = await getTranslations("hero")
   const tRole = await getTranslations()
+  const locale = await getLocale()
 
   return (
     <section className="relative overflow-hidden border-b border-border">
@@ -37,12 +39,12 @@ export async function Hero() {
             </RevealItem>
             <RevealItem className="mt-2 flex flex-wrap items-center gap-3">
               {/* The primary call to action is the free look — every project
-                  starts there (icm-board positioning.md § The three verbs). */}
+                  starts there. It is a desk page, so it opens in a new tab. */}
               <Button asChild size="lg">
-                <Link href="/start">
+                <a href={freeLookHref(locale)} target="_blank" rel="noopener noreferrer">
                   {t("freeLook")}
                   <ArrowRight />
-                </Link>
+                </a>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link href="/#work">{t("seeWork")}</Link>

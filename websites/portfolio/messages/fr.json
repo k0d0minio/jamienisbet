@@ -282,31 +282,5 @@
   },
   "og": {
     "headline": "Des fonctionnalités d'IA et des logiciels qui sont livrés — et qui rapportent."
-  },
-  "start": {
-    "metaTitle": "Demander un regard gratuit",
-    "metaDescription": "Huit questions courtes, puis un appel. Vous recevez une page sur votre façon de travailler — ce qui relève du logiciel, d'une personne, et ce qui ne vaut pas la peine d'être construit. Gratuit, sans discours commercial.",
-    "eyebrow": "Le regard gratuit",
-    "title": "Dites-moi comment vous travaillez. Je vous dirai par où commencer.",
-    "intro": "Huit questions courtes pour que notre premier appel démarre là où vous en êtes. Après l'appel, vous recevez une page — ce que j'ai vu, à quoi appartient chaque partie du travail, trois choses que je ferais d'abord, et comment je commencerais. Gratuit, et rien n'a encore de prix.",
-    "identityTitle": "Comment vous joindre",
-    "name": "Votre nom",
-    "email": "E-mail",
-    "phone": "Téléphone ou WhatsApp",
-    "phoneHint": "Facultatif — si vous préférez que j'appelle.",
-    "questionsTitle": "À propos de l'activité",
-    "submit": "Envoyer — et réserver l'appel",
-    "submitting": "Envoi…",
-    "successTitle": "Merci — c'est bien reçu.",
-    "successBody": "Je le lis attentivement et je réponds sous un jour ou deux avec quelques créneaux pour l'appel. La page vient ensuite, et elle est gratuite.",
-    "unavailableTitle": "Le formulaire ne se charge pas pour le moment.",
-    "unavailableBody": "Écrivez-moi plutôt — quelques lignes sur l'activité et sur ce qui vous mange la semaine suffisent pour commencer.",
-    "errors": {
-      "name": "Dites-moi votre nom, s'il vous plaît.",
-      "email": "Un e-mail pour que je puisse répondre.",
-      "emailInvalid": "Cet e-mail ne semble pas correct.",
-      "fixFields": "Quelques réponses méritent un coup d'œil.",
-      "failed": "Un problème est survenu à l'envoi. Réessayez, ou écrivez-moi directement."
-    }
   }
 }

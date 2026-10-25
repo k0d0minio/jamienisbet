@@ -282,31 +282,5 @@
   },
   "og": {
     "headline": "Funcionalidades de IA e software que são entregues — e que compensam."
-  },
-  "start": {
-    "metaTitle": "Pedir um olhar gratuito",
-    "metaDescription": "Oito perguntas curtas, depois uma chamada. Recebe uma página sobre a forma como trabalha — o que pertence ao software, o que pertence a uma pessoa, e o que não vale a pena construir. Gratuito, sem discurso de venda.",
-    "eyebrow": "O olhar gratuito",
-    "title": "Diga-me como trabalha. Eu digo-lhe por onde começar.",
-    "intro": "Oito perguntas curtas para que a nossa primeira chamada comece onde está. Depois da chamada recebe uma página — o que vi, a que parte pertence cada pedaço do trabalho, três coisas que faria primeiro, e como começaria. Gratuito, e nada tem ainda um preço.",
-    "identityTitle": "Como o contactar",
-    "name": "O seu nome",
-    "email": "E-mail",
-    "phone": "Telefone ou WhatsApp",
-    "phoneHint": "Opcional — se preferir que lhe ligue.",
-    "questionsTitle": "Sobre o negócio",
-    "submit": "Enviar — e marcar a chamada",
-    "submitting": "A enviar…",
-    "successTitle": "Obrigado — recebido.",
-    "successBody": "Vou ler com atenção e respondo num dia ou dois com algumas horas para a chamada. A página vem depois, e é gratuita.",
-    "unavailableTitle": "O formulário não está a carregar neste momento.",
-    "unavailableBody": "Escreva-me antes — umas linhas sobre o negócio e sobre o que lhe come a semana chegam para começar.",
-    "errors": {
-      "name": "Diga-me o seu nome, por favor.",
-      "email": "Um e-mail para eu poder responder.",
-      "emailInvalid": "Esse e-mail não parece correto.",
-      "fixFields": "Algumas respostas precisam de um olhar.",
-      "failed": "Algo correu mal no envio. Tente outra vez, ou escreva-me diretamente."
-    }
   }
 }

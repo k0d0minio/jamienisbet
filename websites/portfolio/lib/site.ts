@@ -19,6 +19,14 @@ export const site = {
     { id: "about", href: "/#about" },
     { id: "contact", href: "/#contact" },
   ],
+  // The free look lives on the desk, which writes the answers to git. Public,
+  // outside the desk's sign-in; it reads the visitor's language from `lang`.
+  freeLookUrl: "https://desk.jamienisbet.com/start",
 } as const
+
+/** The free look in the visitor's locale (`en`, `fr` or `pt`). */
+export function freeLookHref(locale: string) {
+  return `${site.freeLookUrl}?lang=${locale}`
+}
 
 export type NavId = (typeof site.nav)[number]["id"]

@@ -1,5 +1,5 @@
 import type { ComponentType } from "react"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import {
   Button,
   Card,
@@ -13,6 +13,7 @@ import { ArrowRight, Clock, Sparkles, TrendingUp, Wrench } from "lucide-react"
 import { Link } from "@jamie-nisbet/app-shell/i18n"
 import { Container, Section, SectionHeading } from "@jamie-nisbet/app-shell"
 import { PROBLEM_IDS, PROBLEMS, type ProblemId } from "@/lib/problems"
+import { freeLookHref } from "@/lib/site"
 
 // Icon per problem is structure (locale-invariant); titles/descriptions are copy
 // in the "problems.items.<id>" namespace.
@@ -25,6 +26,7 @@ const icons: Record<ProblemId, ComponentType<{ className?: string }>> = {
 export async function Problems() {
   const t = await getTranslations("problems")
   const tServices = await getTranslations("services")
+  const freeLook = freeLookHref(await getLocale())
 
   return (
     <Section id="help" className="border-b border-border">
@@ -69,15 +71,15 @@ export async function Problems() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  {/* Every problem starts the same way — with the free look.
-                      The covered-service chips above still reach the contact
-                      form with their locale-invariant id, so the DB taxonomy
-                      is untouched. */}
+                  {/* Every problem starts the same way — with the free look, on
+                      the desk, in a new tab. The covered-service chips above
+                      still reach the contact form with their locale-invariant
+                      id. */}
                   <Button asChild variant="outline" size="sm" className="w-fit">
-                    <Link href="/start">
+                    <a href={freeLook} target="_blank" rel="noopener noreferrer">
                       {t("cta")}
                       <ArrowRight />
-                    </Link>
+                    </a>
                   </Button>
                 </CardFooter>
               </Card>
@@ -91,12 +93,14 @@ export async function Problems() {
         <p className="inline-flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Sparkles className="size-4 text-primary" />
           {t("aiAsideLead")}{" "}
-          <Link
-            href="/start"
+          <a
+            href={freeLook}
+            target="_blank"
+            rel="noopener noreferrer"
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             {t("aiAsideLink")}
-          </Link>
+          </a>
         </p>
       </Container>
     </Section>
