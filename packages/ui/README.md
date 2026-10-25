@@ -43,8 +43,8 @@ generous whitespace, and a full light **+ dark** theme. The longer brand guide l
 - **`src/lib/utils.ts`** — the `cn()` class-merge helper. **`src/index.ts`** — the barrel.
 - **`assets/`** — `logo/` (the reference artwork under `reference/`, and the traced icon + full-lockup SVGs), `brand/` (social card + email signature HTML),
   `lib/icons.js` (Lucide UMD helper for static HTML).
-- **`emails/`** — branded HTML source for Resend's dashboard **Templates** feature (contact/
-  referral notifications, invoice reminder, outreach, follow-up). See [`emails/README.md`](emails/README.md).
+- **`emails/`** — branded HTML source for Resend's dashboard **Templates** feature (the contact
+  form notification). See [`emails/README.md`](emails/README.md).
 - **`components.json`** — shadcn config, so `npx shadcn@latest add …` drops new components
   straight into `src/components/ui/`.
 

@@ -1,1 +1,0 @@
-ALTER TABLE "biz"."contact_submissions" ADD COLUMN "service" varchar(40);

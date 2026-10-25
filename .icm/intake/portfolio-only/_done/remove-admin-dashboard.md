@@ -42,3 +42,10 @@ cd ~/Desktop/legible-consulting/projects/jamienisbet && set -a && . websites/adm
 ```
 
 On 2026-10-22 the schema held 117 leads, 2 touches, 6 questionnaire links, 0 suppressions and a 27-row Drizzle journal. The archive is untracked in the house until Jamie commits or ignores it. The DDL also lives in `packages/services/drizzle/` in this repo's history.
+
+Decisions (Jamie, 2026-10-25):
+
+1. The backup archive carries the date 2026-10-25: `biz-backup-2026-10-25.tar.gz`. A local session makes it from a prompt Jamie runs.
+2. `.icm/project.json` loses the `jamie-nisbet` deploy entry and the `migrations` and `database` blocks.
+3. `.icm/_shared/`, `.icm/docs/`, `.icm/runs/` and the `design-dna` skill stay for stub 6. A separate session copies the `design-dna` toolbox into another repo from a prompt Jamie runs.
+4. The root `README.md` tree lists the portfolio and the two packages. Stub 6 rewrites the file. (Default, no answer given.)

@@ -1,8 +1,8 @@
 # jamienisbet — the web estate
 
 The personal web estate of **Jamie Nisbet**, a software engineer / AI consultant based in
-Mafra, Portugal. Deliberately small: two Next.js apps and the shared packages beneath
-them, deployed as separate Vercel projects off one pnpm monorepo.
+Mafra, Portugal. Deliberately small: one Next.js app and the shared packages beneath
+it, deployed as one Vercel project off a pnpm monorepo.
 
 ## The map
 
@@ -12,16 +12,13 @@ jamienisbet/
 ├── README.md            you are here
 │
 ├── websites/
-│   ├── portfolio/       the public portfolio — i18n (en/fr/pt), markdown case studies,
-│   │                    contact form → the desk's pool + Resend notification
-│   └── admin-dashboard/ the cockpit — owner-only PWA, four screens:
-│                        Leads · a lead's profile · Tickets · Money (Stripe)
+│   └── portfolio/       the public portfolio — i18n (en/fr/pt), markdown case studies,
+│                        contact form → the desk's pool + Resend notification
 │
 ├── packages/            shared code
 │   ├── ui/              @jamie-nisbet/ui — the design system; THE brand source of truth
 │   │                    (tokens, components, assets, BRAND.md)
-│   ├── app-shell/       @jamie-nisbet/app-shell — marketing-site chrome + i18n plumbing
-│   └── services/        @jamie-nisbet/services — Neon biz.* schema (Drizzle) + queries
+│   └── app-shell/       @jamie-nisbet/app-shell — marketing-site chrome + i18n plumbing
 │
 └── .icm/
     ├── intake/          this repo's work backlog — epics + triage stubs, identity is
@@ -31,15 +28,11 @@ jamienisbet/
 
 ## How it runs
 
-- **Business state lives in one store** — the Neon `biz.*` schema (leads, touches, opt-outs,
-  questionnaires), operated through the admin dashboard. Nothing is mirrored back into git; money
-  itself lives in Stripe.
-- **The Tickets screen** reads every active repo's `.icm/intake/` markdown backlog live from
-  GitHub (read-only; the repos own their tickets) — the client repos plus the two house
-  repos, this one and `icm-board`. Canonical ticket spec: `_system/contracts/TICKETS.md`
-  in `icm-board`; the copy that matters here is [`.icm/intake/README.md`](.icm/intake/README.md).
-- **CI** (`.github/workflows/`) typechecks, lints and builds both apps and guards DB
-  migrations. CI is the source of truth — don't run checks locally.
+- **Business state lives in the desk** (`legible-consulting/house`), not here. The contact
+  form posts each lead to the desk's pool API.
+- **Tickets** for this repo are markdown stubs in [`.icm/intake/`](.icm/intake/README.md).
+- **CI** (`.github/workflows/`) typechecks and lints the workspace. CI is the source of
+  truth — don't run checks locally.
 
 ## History
 

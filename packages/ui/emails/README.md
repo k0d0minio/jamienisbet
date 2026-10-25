@@ -15,9 +15,8 @@ and the wordmark lockup from [`../BRAND.md`](../BRAND.md).
 1. Resend Dashboard → **Emails → Templates → New**.
 2. Choose **Import HTML** and paste the file's contents.
 3. Set the template's **From**, **Subject**, and (optionally) **Preview text** fields in the
-   dashboard — these aren't in the HTML body. For the two notification templates, set Subject
-   to `{{{SUBJECT}}}` so the calling code controls it; for the other three, set a fixed subject
-   or write one using the template's own variables.
+   dashboard — these aren't in the HTML body. For the notification template, set Subject
+   to `{{{SUBJECT}}}` so the calling code controls it.
 4. Declare each variable listed below (key, type `string`, and a fallback — Resend won't send if
    a variable without a fallback is missing).
 5. **Publish** the template, then copy its template ID into [`template-ids.ts`](template-ids.ts).
@@ -29,30 +28,12 @@ Variable syntax in the body is Resend's triple-brace form: `{{{VARIABLE_NAME}}}`
 
 ## Templates
 
-### Wired into website code (sent automatically, no per-send review — same as today)
-
 | File | Used by | Key in `template-ids.ts` | Variables |
 |---|---|---|---|
 | [`contact-form-notification.html`](contact-form-notification.html) | `websites/portfolio` contact form → `app/actions/contact.ts` | `contactFormNotification` | `SUBJECT`, `NAME`, `EMAIL`, `SERVICE`, `MESSAGE` |
 
 This replaces the internal notification Jamie already receives automatically today — the
 refactor is template-vs-inline-text only, it doesn't change what gets sent or when.
-
-### Manual use only — do not call from code
-
-Per the repo's standing rule ("no outbound action without review"), client-facing email is
-drafted and sent by a human, not fired automatically. These are branded HTML you can compose,
-preview, and send by hand from the Resend dashboard (**Emails → Send → From a template**).
-Fill the variables per client/lead, review the preview, then send.
-
-| File | Variables |
-|---|---|
-| [`invoice-payment-reminder.html`](invoice-payment-reminder.html) | `CLIENT_NAME`, `INVOICE_NUMBER`, `AMOUNT`, `DUE_DATE`, `BUSINESS_EMAIL` |
-| [`outreach-first-touch.html`](outreach-first-touch.html) | `CLIENT_NAME`, `OPENER`, `WHAT`, `HOOK`, `CTA`, `BUSINESS_EMAIL` |
-| [`follow-up.html`](follow-up.html) | `CLIENT_NAME`, `CONTEXT`, `RECAP`, `NEXT_STEP` |
-
-`CONTEXT` should include its own leading punctuation/space if used, e.g. `" — great to finally
-put a voice to the emails"`, to match the "Good to talk{{{CONTEXT}}}." sentence it drops into.
 
 ## Brand reference
 
