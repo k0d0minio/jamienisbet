@@ -8,8 +8,7 @@
   "required_checks": [],
   "personas": [
     "visitor",
-    "operator",
-    "affiliate"
+    "operator"
   ],
   "runs_archive": ".icm/runs/_done",
   "intake_archive": ".icm/intake/_done",
@@ -33,14 +32,6 @@
         "class": "product",
         "production_url": "https://app.jamienisbet.com",
         "health_endpoint": "https://app.jamienisbet.com/login"
-      },
-      {
-        "name": "client-referrals",
-        "path": "websites/sellers-site",
-        "status_context": "Vercel – client-referrals",
-        "class": "quiet",
-        "production_url": "https://sell.jamienisbet.com",
-        "health_endpoint": "https://sell.jamienisbet.com/en"
       }
     ]
   },

@@ -67,6 +67,3 @@
 - name: "persona:operator"
   color: "ededed"
   description: "The operator — Jamie, in the admin dashboard"
-- name: "persona:affiliate"
-  color: "ededed"
-  description: "The affiliate — a referrer using the sellers-site"

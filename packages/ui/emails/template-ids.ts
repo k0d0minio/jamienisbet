@@ -3,5 +3,4 @@
 // Publish a template (see README.md), then paste its ID below.
 export const EMAIL_TEMPLATE_IDS = {
   contactFormNotification: "c86c107f-7e73-42e3-ac93-16c6ef18632e",
-  referralLeadNotification: "256d049d-bc87-4267-9e91-cbe80b3ca324",
 } as const

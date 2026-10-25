@@ -34,9 +34,8 @@ Variable syntax in the body is Resend's triple-brace form: `{{{VARIABLE_NAME}}}`
 | File | Used by | Key in `template-ids.ts` | Variables |
 |---|---|---|---|
 | [`contact-form-notification.html`](contact-form-notification.html) | `websites/portfolio` contact form → `app/actions/contact.ts` | `contactFormNotification` | `SUBJECT`, `NAME`, `EMAIL`, `SERVICE`, `MESSAGE` |
-| [`referral-lead-notification.html`](referral-lead-notification.html) | `websites/sellers-site` referral form → `app/actions/referral.ts` | `referralLeadNotification` | `SUBJECT`, `REFERRAL_CODE`, `CUSTOMER_NAME`, `CUSTOMER_PHONE`, `CUSTOMER_EMAIL`, `BUDGET`, `PREFERRED_CALL_TIME`, `NEED` |
 
-These two replace the internal notification Jamie already receives automatically today — the
+This replaces the internal notification Jamie already receives automatically today — the
 refactor is template-vs-inline-text only, it doesn't change what gets sent or when.
 
 ### Manual use only — do not call from code
