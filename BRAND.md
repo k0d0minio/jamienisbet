@@ -51,7 +51,7 @@ The brand voice is *quiet, casual confidence* — professional without being cor
 
 **Data & figures.** Numbers are the brand's rhetorical device, so they get a form of their own rather than a chart library. The stat tile is the canonical carrier: mono figure, sentence-case label, optional delta beside it. Trend reads as `↗ +12%` — a unicode arrow and a signed mono value, tinted with a **muted** semantic colour and only ever by a polarity the caller declares (a rise is not always good news). A series is drawn as a **hairline ~1.5px sparkline** — a shape, not a chart: no axes, no gridlines, no tooltips, and an area wash at most 10% of the same hue. Part-of-whole is a thin bar with a hairline track and a flat fill. **No gradients, no second axis, no neon.** The admin shipped them as `Stat` / `Delta` / `Sparkline` / `Meter`. They left this repo with it on 2026-10-25, and git history holds them.
 
-**Why three of those have no consumer.** Only `Meter` is on a screen today (the tickets board's batch arcs). `Stat`, `Delta` and `Sparkline` are **kept deliberately without one**: they are the executable form of the paragraph above, and deleting them would leave this page describing a numeric language the package cannot render — the rule and the implementation have to fail together or not at all. They are the **marketing tier's** numeric surface, waiting on the first page with figures to show (a case study's results, a proof strip on the portfolio), and they are designed as one composition — `Stat` takes a `Delta` and a `Sparkline` as slots, so the set is kept or dropped whole. In the admin, a summary of figures above a list is a plain row of mono figures at the desk tier's `text-desk-figure` step, not a `Stat`. Reach for `Stat` when a number is the point of a marketing surface. _(Audited 2026-08-29 — `.icm/intake/triage/_done/prune-unused-ui-primitives.md`.)_
+**Why three of those have no consumer.** Only `Meter` is on a screen today (the tickets board's batch arcs). `Stat`, `Delta` and `Sparkline` are **kept deliberately without one**: they are the executable form of the paragraph above, and deleting them would leave this page describing a numeric language the package cannot render — the rule and the implementation have to fail together or not at all. They are the **marketing tier's** numeric surface, waiting on the first page with figures to show (a case study's results, a proof strip on the portfolio), and they are designed as one composition — `Stat` takes a `Delta` and a `Sparkline` as slots, so the set is kept or dropped whole. In the admin, a summary of figures above a list is a plain row of mono figures at the desk tier's `text-desk-figure` step, not a `Stat`. Reach for `Stat` when a number is the point of a marketing surface. _(Audited 2026-08-29.)_
 
 **Transparency & blur.** *(Marketing tier only — the desk tier has none; see § Desk tier.)* Reserved: the sticky site header (`backdrop-filter: blur(10px)` over a translucent `--bg`) and the dialog overlay. Not used decoratively.
 
@@ -79,7 +79,7 @@ Every screen in the admin — login, "not here", the error and loading screens, 
 Money included — is on the desk tier, which the admin switches on once with `desk-tier` on
 `<body>`.
 
-*(Decided 2026-09-25 — see [`.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md`](.icm/runs/admin-cockpit-redesign/01_scope/output/scope.md).
+*(Decided 2026-09-25.
 It replaced the admin's earlier iOS-idiom tier, which has been deleted. These are amendments
 with a scope, not drift. A change outside that scope is drift.)*
 
@@ -226,5 +226,3 @@ source Claude Design bundle and is not re-shipped here — lift patterns from it
 - `components/motion/` — Reveal / RevealGroup / RevealItem (the marketing tier's entrance) and LogoLockup (the logo's hover, press and theme crossfade), on `motion` (motion.dev).
 - `components/shell/` — the site chrome: SiteHeader, SiteFooter, ThemeProvider, ThemeToggle, LanguageSwitcher, and the layout primitives Container / Section / SectionHeading.
 - `lib/utils.ts` — the `cn()` class-merge helper.
-
-**Skill** — `SKILL.md` makes this brand usable as an Agent Skill.
