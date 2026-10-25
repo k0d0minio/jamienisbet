@@ -18,9 +18,6 @@ name: Quality
 #   • ONE JOB: typecheck + lint of every workspace. No unit-test tier by design (backlog B5);
 #     no database, Stripe or Resend access is needed — the shared clients are lazy.
 #   • SUPERSEDED RUNS ARE CANCELLED. One run per branch; a newer push replaces the one in flight.
-#
-# `db-migrations.yml` is separate and unchanged: it validates the journal on PRs that touch
-# `packages/services/**` and applies it to production on `main`.
 
 on:
   pull_request:

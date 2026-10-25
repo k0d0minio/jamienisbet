@@ -1,1 +1,0 @@
-ALTER TABLE "biz"."deals" ADD COLUMN "onboarding_state" text;

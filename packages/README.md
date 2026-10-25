@@ -6,8 +6,7 @@
 ## What this folder accomplishes
 This is the home for reusable code shared across the web estate, so a fix or a brand change
 happens **once** and every site inherits it. Today it holds the design system; it is the
-landing place for future shared services (an API client, auth helpers, analytics, a Stripe
-wrapper, etc.) as they're extracted.
+landing place for future shared code as it's extracted.
 
 ## Contents
 - [`ui/`](ui/) — **`@jamie-nisbet/ui`**: the design system in code, built on
@@ -16,12 +15,6 @@ wrapper, etc.) as they're extracted.
   themed with those tokens, and brand assets (logo marks, social card, email signature, icon
   helper). It is the single source of truth for the brand — the human guide lives beside the
   code in [`ui/BRAND.md`](ui/BRAND.md). See [`ui/README.md`](ui/README.md).
-- [`services/`](services/) — **`@jamie-nisbet/services`**: the database models and business
-  logic shared across the estate, built on **Drizzle ORM + Neon Postgres**. Typed schema (under
-  a dedicated `biz` Postgres schema), a lazy DB client, and query helpers for the tables the
-  business runs on — leads, their touches, suppressions and questionnaires. Source-only like `ui`, consumed via
-  `transpilePackages`.
-  See [`services/README.md`](services/README.md).
 - [`app-shell/`](app-shell/) — **`@jamie-nisbet/app-shell`**: the shared Next.js app shell for
   the public marketing site (the portfolio). i18n routing +
   locale-aware navigation + a request-config factory (en/pt/fr), theme provider/toggle,

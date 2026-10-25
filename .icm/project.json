@@ -24,14 +24,6 @@
         "class": "product",
         "production_url": "https://www.jamienisbet.com",
         "health_endpoint": "https://www.jamienisbet.com/en"
-      },
-      {
-        "name": "jamie-nisbet",
-        "path": "websites/admin-dashboard",
-        "status_context": "Vercel – jamie-nisbet",
-        "class": "product",
-        "production_url": "https://app.jamienisbet.com",
-        "health_endpoint": "https://app.jamienisbet.com/login"
       }
     ]
   },
@@ -60,27 +52,6 @@
         "from_env": "REPORT_EMAIL_FROM",
         "to_env": "REPORT_EMAIL_TO"
       }
-    }
-  },
-  "migrations": {
-    "path": "packages/services/drizzle",
-    "reversible": false,
-    "stamp": "millis",
-    "tool": "drizzle",
-    "out_of_order": false
-  },
-  "database": {
-    "url_env": "DATABASE_URL",
-    "isolation": "none",
-    "image": "postgres:16",
-    "name": "app",
-    "provider": "",
-    "neon": {
-      "project_id": "",
-      "api_key_env": "NEON_API_KEY",
-      "production_branch": "main",
-      "previews": "none",
-      "uat_branch": ""
     }
   },
   "security": {
