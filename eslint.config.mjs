@@ -9,7 +9,7 @@ const eslintConfig = [
   {
     // The app is linted. The work layer's scripts and the static brand helper
     // (assets/lib/icons.js, a UMD file for plain HTML) are not app code.
-    ignores: [".next/**", "node_modules/**", ".icm/**", ".claude/**", ".opencode/**", "assets/**"],
+    ignores: [".next/**", "node_modules/**", ".icm/**", ".claude/**", "assets/**"],
   },
 ]
 

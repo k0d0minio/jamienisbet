@@ -13,7 +13,6 @@
    agent config are prose, not markup: keep their words out of the CSS. */
 @source not "../.icm";
 @source not "../.claude";
-@source not "../.opencode";
 
 /* Sticky-header anchor offset for the single-page nav. 88px: the bar carries
    the full logo, whose wordmark needs the 64px it gets inside that height. */
