@@ -1,6 +1,6 @@
 {
   "name": "jamienisbet",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Jamie Nisbet's portfolio website at jamienisbet.com (Next.js App Router), with the brand tokens and design system it renders from.",
   "license": "UNLICENSED",
