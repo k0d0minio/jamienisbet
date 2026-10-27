@@ -274,6 +274,15 @@
     "ctaTrail": "Vamos falar sobre isso.",
     "ctaButton": "Iniciar um projeto"
   },
+  "posts": {
+    "eyebrow": "Artigos",
+    "title": "Notas do trabalho",
+    "intro": "Textos curtos sobre o que aprendo ao construir para clientes.",
+    "allWork": "Todo o trabalho",
+    "ctaLead": "Quer falar sobre isto?",
+    "ctaTrail": "Diga-me em que está a trabalhar.",
+    "ctaButton": "Entrar em contacto"
+  },
   "notFound": {
     "eyebrow": "Não encontrado",
     "title": "Esta página perdeu-se.",

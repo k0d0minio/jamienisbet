@@ -274,6 +274,15 @@
     "ctaTrail": "Let's talk about it.",
     "ctaButton": "Start a project"
   },
+  "posts": {
+    "eyebrow": "Posts",
+    "title": "Notes from the work",
+    "intro": "Short pieces on what I learn as I build for clients.",
+    "allWork": "All work",
+    "ctaLead": "Want to talk this through?",
+    "ctaTrail": "Tell me what you are working on.",
+    "ctaButton": "Get in touch"
+  },
   "notFound": {
     "eyebrow": "Not found",
     "title": "That page wandered off.",

@@ -274,6 +274,15 @@
     "ctaTrail": "Parlons-en.",
     "ctaButton": "Démarrer un projet"
   },
+  "posts": {
+    "eyebrow": "Articles",
+    "title": "Notes tirées du travail",
+    "intro": "De courts textes sur ce que j'apprends en construisant pour mes clients.",
+    "allWork": "Tous les travaux",
+    "ctaLead": "Envie d'en parler ?",
+    "ctaTrail": "Dites-moi sur quoi vous travaillez.",
+    "ctaButton": "Prendre contact"
+  },
   "notFound": {
     "eyebrow": "Introuvable",
     "title": "Cette page s'est égarée.",
