@@ -1,6 +1,9 @@
-_commit: v0.6.0
+_commit: v1.0.0
 _src_path: gh:legible-consulting/blueprint
 client_name: Jamie Nisbet
+database: none
 language: en
+monorepo: false
+release: false
 slug: jamienisbet
-tier: app
+workspace: false
