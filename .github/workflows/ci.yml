@@ -1,4 +1,4 @@
-# ci: the client checks and the release, defined once in legible-consulting/.github (CI is
+# ci: the client checks, defined once in legible-consulting/.github (CI is
 # truth; never run locally).
 name: ci
 
@@ -17,12 +17,3 @@ concurrency:
 jobs:
   check:
     uses: legible-consulting/.github/.github/workflows/check-client.yml@main
-
-  release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-      pull-requests: write
-    uses: legible-consulting/.github/.github/workflows/release.yml@main
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
