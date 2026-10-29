@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
 import { getCaseStudySlugs } from "@/lib/work"
+import { getPostSlugs } from "@/lib/posts"
 import { site } from "@/lib/site"
 import { routing } from "@/i18n/routing"
 
@@ -8,7 +9,12 @@ import { routing } from "@/i18n/routing"
 // alternates (Google reads alternates.languages, not separate URLs).
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
-  const paths = ["", "/work", ...getCaseStudySlugs().map((slug) => `/work/${slug}`)]
+  const paths = [
+    "",
+    "/work",
+    ...getCaseStudySlugs().map((slug) => `/work/${slug}`),
+    ...getPostSlugs().map((slug) => `/work/posts/${slug}`),
+  ]
 
   return paths.flatMap((path) =>
     routing.locales.map((locale) => ({
