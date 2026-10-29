@@ -15,7 +15,8 @@
       "gray-matter>js-yaml": "^3.15.2",
       "@eslint/eslintrc>js-yaml": "^4.3.2",
       "minimatch@3>brace-expansion": "^1.1.16",
-      "minimatch@10>brace-expansion": "^5.0.7"
+      "minimatch@10>brace-expansion": "^5.0.7",
+      "source-map-js": "^1.2.2"
     }
   },
   "scripts": {
@@ -32,7 +33,7 @@
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.20.0",
     "motion": "13.1.1",
-    "next": "^16.3.6",
+    "next": "^16.4.3",
     "next-intl": "^4.13.0",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.6.0",
@@ -42,7 +43,7 @@
     "remark-gfm": "^4.0.1",
     "resend": "^6.16.0",
     "tailwind-merge": "^3.6.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
