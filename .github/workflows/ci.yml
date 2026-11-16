@@ -1,5 +1,6 @@
-# ci: the client checks, defined once in legible-consulting/.github (CI is
-# truth; never run locally).
+# ci: the code checks of this repo — lint, typecheck and build (CI is truth; never run
+# locally). The build needs no secret: DESK_POOL_URL, DESK_POOL_TOKEN and RESEND_API_KEY
+# are read at runtime only.
 name: ci
 
 on:
@@ -16,4 +17,18 @@ concurrency:
 
 jobs:
   check:
-    uses: legible-consulting/.github/.github/workflows/check-client.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: lint
+        run: pnpm lint
+      - name: typecheck
+        run: pnpm typecheck
+      - name: build
+        run: pnpm build
