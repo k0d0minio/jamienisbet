@@ -9,25 +9,17 @@ Vercel project `portfolio`. This file is identity and routing only. Copier write
 
 @.icm/_system/ROUTER.md
 
-The pipeline is `.icm/_system/` (BAXTER blueprint). In the table below, each row that names
-`.icm/intake/CONTEXT.md` or `.icm/lanes/` is from the blueprint of before. Those rows and
-their files leave with the ticket `triage/remove-old-icm-structure`. Until then, the router
-above wins.
+The pipeline is `.icm/_system/` (BAXTER blueprint). The router above is the one route for
+pipeline work: a ticket, a bug, a tweak, a chore, a build, a release and a pull request.
 
 ## Routing
 
 | You are asked to | Go to |
 |---|---|
-| build the next ticket, or any ticket | `.icm/intake/CONTEXT.md` (the loop), then the stub |
-| fix a bug, make a tweak or do a chore, with or without a stub | `.icm/lanes/<lane>/CONTEXT.md`: `bug`, `tweak` or `chore` |
-| fix a fault that production shows now | `.icm/lanes/hotfix/CONTEXT.md` |
-| do work that has no ticket | `.icm/intake/CONTEXT.md` § A request with no stub |
+| any pipeline work: a ticket, a lane, a pull request, a merge, a plan | `.icm/_system/ROUTER.md` |
 | answer a question about the build, or review | read and answer. No stub, no branch, no pull request |
-| open, fill or finish a pull request | `.github/pull_request_template.md`. The gates sit at its top |
-| merge after the tick | `.icm/intake/CONTEXT.md` § The loop, step 7 |
-| plan new work | `.icm/intake/CONTEXT.md` (an epic with a breakdown), never a loose list |
 | understand the app, its stack and its data | `README.md` |
-| change what CI checks | `legible-consulting/.github` (`check-client.yml`). `ci.yml` here only calls it |
+| change what CI checks | `.github/workflows/ci.yml` |
 | change a file the blueprint renders | the blueprint, then `copier update` here |
 | add or edit a case study | `content/work/` (markdown with YAML front-matter, read by `lib/work.ts`) |
 | change the site's pages, sections or the contact form | `app/`, `components/`, `lib/` |
@@ -49,7 +41,7 @@ above wins.
   credential found.
 - One ticket is one branch and one pull request. The pull request moves the stub to `_done/`.
 - `main` changes by pull request. Gates are human checkboxes: read them, never tick them.
-  Jamie ticks Ready to merge, and the session merges with `.icm/scripts/merge.sh`.
+  Jamie ticks Ready to merge. The merge follows the Release stage of `.icm/_system/`.
   Production follows `main`: the merge is the release.
 - The brand has one source of truth: `tokens/` and `styles.css`. Components read the tokens.
   Never inline a token value.

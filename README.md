@@ -27,8 +27,9 @@ jamienisbet/
 ├── assets/              logo artwork (logo/), the social card and email signature (brand/)
 │
 └── .icm/
-    ├── intake/          the tickets: epics and triage stubs. The contract is intake/CONTEXT.md
-    └── scripts/         new-run.sh starts a ticket, close-out.sh retires a finished epic
+    ├── _system/         the pipeline of the BAXTER blueprint. Start at _system/ROUTER.md
+    ├── intake/          the tickets: epics and triage stubs
+    └── runs/            one folder for each open run: the spec, the status, the handoff
 ```
 
 ## How it runs
@@ -39,9 +40,8 @@ jamienisbet/
   Resend. The desk (`legible-consulting/house`) holds the business state. This repo holds
   none. The variables the form needs are in [`.env.example`](.env.example).
 - **Tickets** for this repo are markdown stubs in [`.icm/intake/`](.icm/intake/README.md).
-- **CI** (`.github/workflows/ci.yml`) calls the shared client checks and the release
-  workflow in `legible-consulting/.github`. CI is the source of truth. Do not run checks
-  locally.
+- **CI** (`.github/workflows/ci.yml`) runs lint, typecheck and build. `icm.yml` checks the
+  pipeline files. CI is the source of truth. Do not run checks locally.
 
 ## The content
 
