@@ -5,5 +5,5 @@
 - link: `.icm/intake/triage/remove-old-icm-structure.md`
 - branch: triage/remove-old-icm-structure
 - lane: spine
-- pr: pending
+- pr: #218
 - started: 2026-11-16
