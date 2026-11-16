@@ -69,6 +69,7 @@ pointer() {
 pointer CLAUDE.md '@.icm/_system/ROUTER.md'
 pointer .claude/settings.json '.icm/_system/hooks/dispatch.sh'
 pointer .claude/skills/pipeline/SKILL.md '.icm/_system/ROUTER.md'
+pointer .claude/agents/review-shots.md '.icm/_system/agents/review-shots/CONTEXT.md'
 pointer .github/workflows/icm.yml '.icm/_system/ci/check.sh'
 
 # 3. In a pull request, a change of _system/ comes only with a new version.

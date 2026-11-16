@@ -160,7 +160,7 @@ git commit -q -m "chore(icm): record the pull request of $ID" -- "$run/run.md"
 git push -q
 # A question waits: show the question dialog on the BAXTER HUD now. The dialog must not
 # depend on a session that remembers to show it. No HUD on this computer: nothing happens.
-hud="${ICM_HUD:-$HOME/jarvis_system/bin/baxter_gate.py}"
+hud="${ICM_HUD:-$HOME/baxter_live/bin/baxter_gate.py}"
 if [ -x "$hud" ] && grep -qE '^- answer: *(_waiting_)? *$' "$run/questions.md" 2>/dev/null; then
   if "$hud" questions "$repo" "$number" >/dev/null 2>&1; then
     echo "questions: the dialog is on the HUD"
