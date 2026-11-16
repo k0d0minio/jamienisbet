@@ -36,7 +36,7 @@ After `new-run.sh`, the pull request body is the one home of the answers.
 1. Write the entries in `.icm/runs/<id>/questions.md` before `new-run.sh`. Take the
    entries of the stub's section Questions first.
 2. `new-run.sh` shows the question dialog on the HUD when a question waits. To show it
-   again: `~/jarvis_system/bin/baxter_gate.py questions <number>`, if that file exists.
+   again: `~/baxter_live/bin/baxter_gate.py questions <number>`, if that file exists.
 3. Set `status.md` to `blocked: yes — waits for answers`. Stop. The operator's act:
    answer on the HUD card, then say the command of the stage again.
 4. When the run continues: `.icm/_system/scripts/questions.sh <ticket>`. It copies the

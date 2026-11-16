@@ -3,14 +3,14 @@
 A gate is a checkbox in the body of the run's pull request. Only the operator ticks a gate.
 An agent reads a gate. An agent never ticks, edits or removes a gate box.
 
-The operator ticks Ready to merge in one of two ways:
+The operator ticks a gate in one of two ways:
 - in the pull request on GitHub, or
-- with the button "Tested, tick it" on the gate card of the BAXTER HUD. The HUD then
-  ticks that one box. The press is the operator's act.
+- with its button ("Spec approved, tick it", "Ready to merge") on the gate card of the
+  BAXTER HUD. The HUD then ticks that one box. The press is the operator's act.
 
-To show the gate card, run `~/jarvis_system/bin/baxter_gate.py card <number>` in the repo,
-if that file exists. The card shows the summary, the section How to test of `handoff.md`,
-the checks, and a link to the preview. BAXTER says the first words of How to test.
+To show the gate card, run `~/baxter_live/bin/baxter_gate.py card <number>`, if that file
+exists. For a page change, start the agent `review-shots` first. The card shows the
+summary, How to test of `handoff.md`, the checks and the preview.
 
 After the tick, the card has the button "Merge now". It runs the Release stage
 (`release.sh`) for that pull request. The tick does not merge. Release merges.
