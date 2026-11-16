@@ -1,5 +1,5 @@
 # Status remove-old-icm-structure
 
 - phase: define
-- blocked: yes — the answer to Q1 conflicts with the approved spec. `revise` is necessary. Q4 waits in pull request #218
+- blocked: no — the spec has the answers to Q1 and Q4. Spec approved waits for the operator
 - updated: 2026-11-16

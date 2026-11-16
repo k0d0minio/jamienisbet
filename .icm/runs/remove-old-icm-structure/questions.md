@@ -19,4 +19,4 @@
 - type: single
 - options: The same jobs as `check-client.yml`, copied into this repo | Only lint, typecheck and build | Keep `ci.yml` in this ticket and replace it in a new ticket
 - default: Keep `ci.yml` in this ticket and replace it in a new ticket
-- answer: _waiting_
+- answer: Only lint, typecheck and build

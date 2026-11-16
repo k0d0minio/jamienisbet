@@ -2,17 +2,18 @@
 
 ## Next action
 
-The operator answers Q4 on the HUD card of pull request #218. Then the operator says `revise triage/remove-old-icm-structure` with the change that Q1 and Q4 decide. The revise session edits `spec.md` and refreshes the body. Then the operator ticks Spec approved again and says `build triage/remove-old-icm-structure`.
+The operator reads the revised spec and ticks Spec approved again in pull request #218. Then the operator says `build triage/remove-old-icm-structure`.
 
 ## Answers of record
 
 - Q1: Replace `ci.yml` with a workflow of this repo in this ticket. This is not the default.
 - Q2: Remove the lane `hotfix`. A production fault uses the lane `bug`. This is the default.
 - Q3: Delete the skills `pr-conventions` and `ticket-craft`. This is the default.
+- Q4: The new `ci.yml` runs only lint, typecheck and build. This is not the default.
 
-## Why the build stopped
+## The revise of 2026-11-16
 
-The build session of 2026-11-16 found Spec approved ticked. The spec keeps `ci.yml` with no change: the section Proposed change, the second acceptance criterion and the section Out of scope. The answer to Q1 replaces `ci.yml`. The spec does not say what the new workflow runs. That is a requirement, so Build does not decide it. Q4 asks it.
+The spec now replaces the call in `ci.yml` with one job of this repo: pnpm install, lint, typecheck, build on Node 24. The workflow name stays `ci`. `CLAUDE.md` routes "change what CI checks" to `ci.yml`. Tests, a format check and the other jobs of `check-client.yml` are out of scope.
 
 ## How to test
 
@@ -20,8 +21,6 @@ Open the Vercel preview of pull request #218. Look at the home page and two case
 
 ## Blockers
 
-- Q4 waits for the operator (pull request #218).
-- `revise` is necessary: the spec conflicts with the answer to Q1.
 - Spec approved must be ticked again after the revise.
 
 ## Do not touch
