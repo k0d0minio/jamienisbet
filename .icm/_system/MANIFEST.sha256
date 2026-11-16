@@ -1,5 +1,6 @@
+6e3e6760a8a8f0677bc3ee7a577d65e6814974e7c8cf3667b29bb6cad96a4a60  .icm/_system/.gitignore
 875e93a8f862516560127c91c6432790fbc6d5e0ae3a5fb7c9c67558139e9610  .icm/_system/ROUTER.md
-35de8f478db2071e8142d3a33610ed7e077b26d80d5f0ffba2ed55a5b0df3c3f  .icm/_system/VERSION
+6b22ff7b6ae97cf35eb4cc2919c2d34463c0fa12c6e977ea907e9b689278c52f  .icm/_system/VERSION
 f3238f9fdfc50a2892576c2f794c48b570f5f68c398ec5388aef88e4cdc4ba5d  .icm/_system/ci/check.sh
 0acbec46347be4e843bcb6e88a5cd25e4431565c9e22582559dde786770dbb53  .icm/_system/hooks/dispatch.sh
 dc933987c8e274699df51fba885ad84ef0210ddc3765e598b88dc74d483f3418  .icm/_system/hooks/guard-system.sh
