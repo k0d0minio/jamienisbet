@@ -5,5 +5,5 @@
 - link: `.icm/intake/triage/trial-of-baxter-phase-14-4.md`
 - branch: triage/trial-of-baxter-phase-14-4
 - lane: spine
-- pr: pending
+- pr: #216
 - started: 2026-11-16
