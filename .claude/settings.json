@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/route-request.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.icm/_system/hooks/dispatch.sh\" user-prompt"
           }
         ]
       }
@@ -36,12 +36,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.icm/_system/hooks/dispatch.sh\" session-start"
           }
         ]
       }
     ],
     "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.icm/_system/hooks/dispatch.sh\" pre-tool-use"
+          }
+        ]
+      },
       {
         "matcher": "Bash",
         "hooks": [
@@ -65,6 +73,16 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-plaintext-secrets.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.icm/_system/hooks/dispatch.sh\" stop"
           }
         ]
       }

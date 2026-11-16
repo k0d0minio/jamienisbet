@@ -5,6 +5,15 @@ Jamie Nisbet's portfolio, the public site at `jamienisbet.com`, rendered from
 Vercel project `portfolio`. This file is identity and routing only. Copier writes it once:
 `copier update` never overwrites it, so the app's own routing rows go below.
 
+## Pipeline
+
+@.icm/_system/ROUTER.md
+
+The pipeline is `.icm/_system/` (BAXTER blueprint). In the table below, each row that names
+`.icm/intake/CONTEXT.md` or `.icm/lanes/` is from the blueprint of before. Those rows and
+their files leave with the ticket `triage/remove-old-icm-structure`. Until then, the router
+above wins.
+
 ## Routing
 
 | You are asked to | Go to |
