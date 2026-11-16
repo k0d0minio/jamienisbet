@@ -25,11 +25,10 @@ Make the change that the approved spec describes, on the run's branch, until CI 
 7. Change the pull request to ready (`rules/github.md`).
 8. `.icm/_system/scripts/ci-status.sh <number> --watch`. On RED, read the failed check,
    correct the cause, push and read again. On PENDING after the wait, stop and say so.
-9. Compare the result with each acceptance criterion, as its `verify:` says. `CI`: the
-   green run is the proof. Do not test it again by hand. `agent`: examine it on the
-   preview. `operator`: do not test it. Write in `handoff.md` which criteria are met.
-   Write the section How to test from the `operator` criteria: 1 to 3 short sentences
-   that can be said aloud. Do not tick a box.
+9. Check each acceptance criterion as its `verify:` says: `CI` by the green run and not
+   by hand, `agent` on the preview. Write in `handoff.md` which criteria are met. Write
+   the section How to test from the `operator` criteria: 1 to 3 short sentences that
+   can be said aloud. Do not tick a box.
 10. Set `status.md` to `phase: release`. Commit and push.
 11. Show the gate card (`rules/gates.md`).
 12. Stop with the stop report. The operator's acts: test the change on the preview,

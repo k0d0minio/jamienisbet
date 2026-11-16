@@ -24,10 +24,8 @@ Do not read the wider codebase. A few searches to confirm a path are permitted.
    (`.icm/_system/rules/questions.md`). Do not ask them in the chat. If only the business
    can close a gap, stop and say so.
 4. Write `.icm/runs/<id>/spec.md` from the template, with your default for each question.
-   Each acceptance criterion is a result that a person can see and check. End each
-   criterion with who verifies it: `(verify: CI)` when a check of CI holds it,
-   `(verify: agent)` when Build examines it on the preview, `(verify: operator)` when
-   only the operator can see it. Put each thing that you will not do in Out of scope.
+   Each acceptance criterion is a result that a person can see and check. It ends with
+   who verifies it: `(verify: CI)`, `(verify: agent)` or `(verify: operator)`. Put each thing that you will not do in Out of scope.
 5. `.icm/_system/scripts/validate-spec.sh <ticket>`. Correct each line that it lists.
 6. `.icm/_system/scripts/new-run.sh <ticket>` with the flags that `rules/ticket.md` asks
    for, and `--summary "<one sentence: what a user can do after this change>"`. It makes

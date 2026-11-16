@@ -15,10 +15,9 @@ One entry for each question. Eight questions at most in one run.
 - answer: _waiting_
 ```
 
-- `single`: the operator picks one option. `multi`: the operator picks some options.
-  `text`: the operator writes the answer. Omit `options` for `text`.
-- Two to six options. Each option is a short phrase. An option has no `|` in it.
-- Each question has a `default`. Write the default that you would choose.
+- `single`: one option. `multi`: some options. `text`: a written answer, with no
+  `options`.
+- Two to six options, each a short phrase with no `|`.
 - The operator can add a line `- note:` to an answer.
 - When the operator sends the form and leaves a question empty, that question takes its
   default. The note then says "the default, not chosen".
@@ -30,8 +29,8 @@ One entry for each question. Eight questions at most in one run.
 | Before `new-run.sh` | `.icm/runs/<id>/questions.md`: the entries only |
 | After `new-run.sh` | The pull request body, between `<!-- questions:start -->` and `<!-- questions:end -->` |
 
-`new-run.sh` puts `questions.md` in the pull request body. After that, the pull request
-body is the one home of the answers. `new-run.sh --refresh-body` keeps the block.
+After `new-run.sh`, the pull request body is the one home of the answers.
+`new-run.sh --refresh-body` keeps the block.
 
 ## The flow
 1. Write the entries in `.icm/runs/<id>/questions.md` before `new-run.sh`. Take the
