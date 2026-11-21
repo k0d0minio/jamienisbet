@@ -1,7 +1,7 @@
 # <title>
 
 - complexity: trivial | standard | complex
-- lane: spine | bug | tweak | chore
+- lane: spine | bug | tweak | chore | hotfix | handover | knowledge
 
 ## Problem
 

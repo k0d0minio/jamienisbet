@@ -6,4 +6,4 @@ The operator files these later. One entry for each finding.
 
 - where: <path, page or ticket>
 - what: <what is wrong or missing, in one or two sentences>
-- proposed: bug | tweak | chore | new ticket | question for the ticket
+- proposed: bug | tweak | chore | knowledge | new ticket | question for the ticket

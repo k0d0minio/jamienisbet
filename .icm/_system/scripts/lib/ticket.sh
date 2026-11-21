@@ -3,7 +3,7 @@
 #
 # A Linear ticket is a key (SUS-123). A markdown ticket is a stub path (<epic>/<slug>).
 # The scripts never call a ticket service. The session reads the ticket and gives the
-# values as flags.
+# values as flags. The one exception is linear-state.sh, which only CI runs.
 #
 #   ticket_norm <key>          SUS-123. Nothing for a value that is not a key
 #   ticket_slug <key>          sus-123. Nothing for a value that is not a key

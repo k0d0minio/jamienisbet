@@ -18,7 +18,7 @@ The stubs in `.icm/intake/` are the tickets. A stub is a markdown file.
   <epic>/breakdown.md     what the epic is. `## Order` is set by the operator
   <epic>/<slug>.md        one unit of work
   <epic>/_done/           stubs whose pull request merged
-  triage/<slug>.md        a bug, a tweak or a chore that belongs to no epic
+  triage/<slug>.md        a lane ticket that belongs to no epic
   triage/_done/
 ```
 
