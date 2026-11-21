@@ -22,6 +22,9 @@ Do not read the product code. One search to confirm a name or a path is permitte
    - `bug`: the product does not do what it did, or what was agreed.
    - `tweak`: a small change that a user sees, with no new behaviour.
    - `chore`: upkeep that no user sees.
+   - `hotfix`: production is broken now. Only when the operator says so.
+   - `handover`: the record that the client needs to run the repo alone.
+   - `knowledge`: one page of the project docs.
    - `spine`: all other work. It needs a spec and the Spec approved gate.
 3. Find the questions: only what changes the ticket, three at most. Do not ask them in
    the chat. Write them in the format of `.icm/_system/rules/questions.md`, each with a

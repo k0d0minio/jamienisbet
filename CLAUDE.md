@@ -1,9 +1,9 @@
 # Jamie Nisbet — app
 
-Jamie Nisbet's portfolio, the public site at `jamienisbet.com`, rendered from
-`legible-consulting/blueprint`. One Next.js app at the repo root, deployed as the
-Vercel project `portfolio`. This file is identity and routing only. Copier writes it once:
-`copier update` never overwrites it, so the app's own routing rows go below.
+Jamie Nisbet's portfolio, the public site at `jamienisbet.com`. One Next.js app at the
+repo root, deployed as the Vercel project `portfolio`. This file is identity and routing
+only. The BAXTER blueprint writes it one time: an update of the blueprint never overwrites
+it, so the app's own routing rows go below.
 
 ## Pipeline
 
@@ -19,8 +19,8 @@ pipeline work: a ticket, a bug, a tweak, a chore, a build, a release and a pull 
 | any pipeline work: a ticket, a lane, a pull request, a merge, a plan | `.icm/_system/ROUTER.md` |
 | answer a question about the build, or review | read and answer. No stub, no branch, no pull request |
 | understand the app, its stack and its data | `README.md` |
-| change what CI checks | `.github/workflows/ci.yml` |
-| change a file the blueprint renders | the blueprint, then `copier update` here |
+| change what CI checks | the scripts `lint`, `typecheck` and `test` of `package.json`. `.github/workflows/ci.yml` and `.icm/_system/ci/code.sh` belong to the blueprint |
+| change a file the blueprint renders | tell Jamie: the correction is made in the BAXTER blueprint and comes with its next update |
 | add or edit a case study | `content/work/` (markdown with YAML front-matter, read by `lib/work.ts`) |
 | change the site's pages, sections or the contact form | `app/`, `components/`, `lib/` |
 | change copy or a translation (en, fr, pt) | `messages/`, routing in `i18n/` |

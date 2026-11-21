@@ -11,7 +11,8 @@
 #   2. The checkout is at the head commit of the pull request.
 #   3. The checks are green. The script waits while a check is pending.
 #   4. If the pull request has a run (.icm/runs/<id>/ with this number): close-out.sh,
-#      then push. A pull request with no run has no close-out.
+#      then push, then wait until GitHub shows the new head on the pull request. A pull
+#      request with no run has no close-out.
 #   5. All checks are green on the new head, icm-gate too.
 #   6. merge.sh. It checks the tick, the checks and the conflicts again.
 #
@@ -59,6 +60,16 @@ if [ -n "$run" ]; then
   [ -d ".icm/archive/$run" ] || stop "close-out did not move the run $run"
   git push -q origin "HEAD:refs/heads/$branch" || stop "git push failed. The close-out commit is local"
   echo "close-out: the run $run is in .icm/archive/, and the branch $branch is pushed"
+  # GitHub needs a moment to read the push. Until then the pull request has the head of
+  # before, whose checks are green: a read of the checks at that moment is not a verdict.
+  head="$(git rev-parse HEAD)"
+  waited=0
+  until [ "$(gh_pr "$number" | jq -r '.head.sha')" = "$head" ]; do
+    [ "$waited" -lt "${ICM_HEAD_WAIT_S:-60}" ] \
+      || stop "GitHub does not show the close-out commit on #$number. The run is closed. Run the release again"
+    sleep 2
+    waited=$((waited + 2))
+  done
 else
   echo "close-out: #$number has no run folder. Nothing to close"
 fi
