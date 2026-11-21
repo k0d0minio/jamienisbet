@@ -1,10 +1,10 @@
-451996ee161277131da649fdba65509ed12bc742d0740b99441481cdf6fd826e  .claude/hooks/block-local-checks.sh
+41446b390ca20860ab4651f1b41d976458a4ec3b4c6df9865afba3d04f33643b  .claude/hooks/block-local-checks.sh
 fce493b5e27da1c9efae33b51da6f71f571c75bdbb6ad71b0a69e19d6916683d  .claude/hooks/confirm-git-writes.sh
 76a51cfa59286ef6725a250c852b0020347709c37faf1f98db22eb22fdc58d9a  .claude/hooks/guard-plaintext-secrets.sh
 6e3e6760a8a8f0677bc3ee7a577d65e6814974e7c8cf3667b29bb6cad96a4a60  .icm/_system/.gitignore
-141e354b6f0659e2f0a72f8a6a5c161d56aca6e8ce03ce3d4e4a02eeed50b598  .icm/_system/ROUTER.md
-e7d80912b6c3b17b46052193122d36f2a5f954075a55afdbceed3339e4aa93f0  .icm/_system/VERSION
-b03d3cf9601ea220d6fd9a7338044e36825646b1ad05de9e8b6d54c5228299bd  .icm/_system/agents/review-shots/CONTEXT.md
+5ba5e86d45e3e76d725b6169dcb315e21c52acb2cab222cbc63418dcf78186c8  .icm/_system/ROUTER.md
+a778a47387f74019ff9d34935e1da599edb8cc7b89da84e82687e0ccc45c8f21  .icm/_system/VERSION
+e63b762cfa09f93f86f2af7db472f194e21f6a78a6cf7a94ea61ddafdd5188a9  .icm/_system/agents/review-shots/CONTEXT.md
 cf3ba1897ac483a871a5d0a2ef6d338a884c1bd56779594751949b72e5ae0699  .icm/_system/ci/check.sh
 d1e5e4a4de2b85e4beeb11bce85fc810d8b1a3322e485ffe9b1fa45194b79920  .icm/_system/ci/code.sh
 0fc124d8440d58f68e9ffd1f183e1f23607fd46d8b4865e2f67fa77666f6cdab  .icm/_system/ci/guards.sh

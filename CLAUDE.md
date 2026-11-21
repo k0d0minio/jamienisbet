@@ -35,8 +35,9 @@ pipeline work: a ticket, a bug, a tweak, a chore, a build, a release and a pull 
 - Technical text (stubs, pull request bodies, commits, questions) in Simplified Technical
   English: short active sentences, one instruction each, no semicolons. A question for Jamie
   is numbered and carries a default answer.
-- CI is truth: never run build, lint, typecheck, test, format or dev locally. Push, then read
-  the `ci` run and the preview.
+- CI is truth: never run build, lint, typecheck, test or format locally. Push, then read
+  the `ci` run and the preview. A local dev server is permitted, to test a change: start it
+  in the background, and stop it (router rule 5).
 - Secrets never in git: names only, values in GitHub or Vercel settings. Flag any plaintext
   credential found.
 - One ticket is one branch and one pull request. The pull request moves the stub to `_done/`.

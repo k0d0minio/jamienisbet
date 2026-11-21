@@ -7,17 +7,17 @@
 # of blueprint/tests/ test it.
 #
 # Doctrine: the deploy is the verdict for the target app. This session does NOT run its
-# deterministic checks, dev/preview servers, or e2e/browser tests locally unless the user
-# explicitly asks.
+# deterministic checks or e2e/browser tests locally unless the user explicitly asks.
 #   • build                                   → the Vercel preview deploy
 #   • format / lint / typecheck               → CI's advisory quality job
-#   • dev / start / preview servers           → hang the session; not the agent's job
 #   • Playwright / e2e / unit test runners    → run in CI, not ad-hoc here
+# A dev server is permitted (1.0.0-rc19; J, 2026-11-21: "permit it"; the global rule since
+# JAM-328): a session starts it to test a change, in the background, and stops it. This
+# guard refuses no dev, start or preview server.
 # ALLOWED: the ICM pipeline's own scripts (.icm/_system/scripts/*.sh and
 # .icm/_system/ci/check.sh) are the factory's tooling, not
-# the target app's checks — running them in-session is the point. One of them starts a
-# server: .icm/_system/scripts/dev-server.sh, for the pictures of the agent review-shots
-# (J, 2026-11-19). It is the one permitted dev server. A direct `pnpm dev` stays blocked.
+# the target app's checks — running them in-session is the point. One of them is
+# .icm/_system/scripts/dev-server.sh: the agent review-shots starts the dev server with it.
 # Commit and push, then read the target app's results from the PR's check runs and the
 # preview deploy.
 #
@@ -67,12 +67,7 @@ printf '%s' "$cmd" | grep -Eq "${b}${pm}[[:space:]]+(run[[:space:]]+)?([^;&|]*[[
 # direct binaries the scripts wrap
 printf '%s' "$cmd" | grep -Eq "${b}(${runner})?(tsc|next[[:space:]]+build|prettier|eslint)([[:space:]]|$|[;&|])" && hit="tsc / next build / prettier / eslint"
 
-# 2) Dev / preview / production servers — they block the session and are the factory's job.
-printf '%s' "$cmd" | grep -Eq "${b}${pm}[[:space:]]+(run[[:space:]]+)?([a-z@/_:.-]*:)?(dev|start|preview|serve)${sfx}([[:space:]]|$|[;&|])" && hit="dev/start server"
-printf '%s' "$cmd" | grep -Eq "${b}turbo[[:space:]]+(run[[:space:]]+)?(dev|start|preview)${sfx}" && hit="dev/start server"
-printf '%s' "$cmd" | grep -Eq "${b}(${runner})?(next[[:space:]]+(dev|start)|vite([[:space:]]+(dev|preview))?|nodemon|serve)([[:space:]]|$|[;&|])" && hit="dev/start server"
-
-# 3) Browser / e2e / unit test runners — especially Playwright: no ad-hoc testing.
+# 2) Browser / e2e / unit test runners — especially Playwright: no ad-hoc testing.
 printf '%s' "$cmd" | grep -Eq "${b}(${runner})?(playwright|vitest|jest|cypress|mocha)([[:space:]]|$|[;&|])" && hit="playwright / e2e / unit test runner"
 printf '%s' "$cmd" | grep -Eq "${b}${pm}[[:space:]]+(run[[:space:]]+)?([a-z@/_:.-]*:)?(e2e|playwright)${sfx}([[:space:]]|$|[;&|])" && hit="playwright / e2e"
 # The e2e script behind flags (`pnpm --filter <package> e2e`), and through turbo (1.0.0-rc18).
@@ -83,14 +78,12 @@ printf '%s' "$cmd" | grep -Eq "${b}turbo[[:space:]]+(run[[:space:]]+)?([^;&|]*[[
 
 cat >&2 <<EOF
 Blocked ($hit): the deploy is the verdict for the target app — this session does not run its
-local checks, dev/preview servers, or e2e/browser tests unless you are explicitly asked to.
+local checks or e2e/browser tests unless you are explicitly asked to. A dev server is permitted.
   • build                                → the Vercel preview deploy
   • format / lint / typecheck            → CI's advisory quality job
-  • dev / start / preview servers        → they hang the session; not the agent's job
   • Playwright / e2e / unit tests        → run in CI, not ad-hoc here
 The ICM pipeline's own scripts (.icm/_system/scripts/*.sh) are unaffected by this guard — they are
-the factory's tooling, not the target app's checks. The one permitted dev server is
-.icm/_system/scripts/dev-server.sh start|stop, for the pictures of the agent review-shots.
+the factory's tooling, not the target app's checks.
 Commit and push, then read results from the PR's check runs and the preview deploy.
 If you must run one locally, ask the user to run it (or to lift this guard for that command).
 EOF

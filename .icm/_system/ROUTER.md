@@ -32,8 +32,8 @@ When the hook `route-request` prints `[icm-router] Route:`, follow that line. If
 4. Never tick a gate box. Read `.icm/_system/rules/gates.md`.
 5. Do not run a local build, test, lint or format command. CI is the source of truth.
    Read it with `.icm/_system/scripts/ci-status.sh`.
-   One exception: the agent `review-shots` starts and stops the local dev server with
-   `.icm/_system/scripts/dev-server.sh`, for its pictures. No other server.
+   A local dev server is permitted, to test a change: start it in the background, and
+   stop it. The agent `review-shots` uses `.icm/_system/scripts/dev-server.sh`.
 6. Write a finding that is not part of the ticket in `.icm/runs/<id>/findings.md`.
 7. End each session with the stop report of `.icm/_system/rules/output.md`.
 8. Write the documents of a run in the language at the top of this file.
