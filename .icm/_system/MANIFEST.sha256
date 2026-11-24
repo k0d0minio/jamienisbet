@@ -2,15 +2,16 @@
 fce493b5e27da1c9efae33b51da6f71f571c75bdbb6ad71b0a69e19d6916683d  .claude/hooks/confirm-git-writes.sh
 76a51cfa59286ef6725a250c852b0020347709c37faf1f98db22eb22fdc58d9a  .claude/hooks/guard-plaintext-secrets.sh
 6e3e6760a8a8f0677bc3ee7a577d65e6814974e7c8cf3667b29bb6cad96a4a60  .icm/_system/.gitignore
-5afbd67048fc9c23cdd5cc9705e5946db832264193f8a6dfbd7a810527f7cd4a  .icm/_system/ROUTER.md
-5e72086b1aa131eefc0a3698b067e807718bd503874b3fd3154fb0e459bb2db1  .icm/_system/VERSION
+358e17574dd8fd686d4abd123b5ea5456cdfe7fec7a6a58727bf65d18cbd674d  .icm/_system/ROUTER.md
+ccfffa05810b310bae43e4dc28683bdcd11859759de2789595469948d1cf28ec  .icm/_system/VERSION
 e63b762cfa09f93f86f2af7db472f194e21f6a78a6cf7a94ea61ddafdd5188a9  .icm/_system/agents/review-shots/CONTEXT.md
 cf3ba1897ac483a871a5d0a2ef6d338a884c1bd56779594751949b72e5ae0699  .icm/_system/ci/check.sh
 d1e5e4a4de2b85e4beeb11bce85fc810d8b1a3322e485ffe9b1fa45194b79920  .icm/_system/ci/code.sh
 0fc124d8440d58f68e9ffd1f183e1f23607fd46d8b4865e2f67fa77666f6cdab  .icm/_system/ci/guards.sh
 ca388bc331c8e06433753f8eaacd0d88a1e9e294535fbd74a29f8a050610321f  .icm/_system/ci/husky.sh
+804be7c11e103e5fa34ab71a45a2236b21ed9a0ecbdc24805c5bcef98692c750  .icm/_system/ci/icm-only.sh
 0acbec46347be4e843bcb6e88a5cd25e4431565c9e22582559dde786770dbb53  .icm/_system/hooks/dispatch.sh
-3f6a48f98959b77fe72c5296ed80441c44427e50481e333aec437c39c700ff71  .icm/_system/hooks/guard-system.sh
+5ac062a8c305bbb7903d588e5c97b05c1da87d5ee4635d23903449458c86685a  .icm/_system/hooks/guard-system.sh
 2669bdb21d4c9df514a6bfe1f3e649372b2afa55394d9b0c81689092c565d4e5  .icm/_system/hooks/route-request.sh
 92024f3611ca933dade3c96890d91068d9fbceccba434b8f7eeb9b1a618bb33b  .icm/_system/hooks/session-start.sh
 8573efbc21f48336efe5b9d6959d6dd96631fbb9036523c89c3e108c18ebafe2  .icm/_system/hooks/wrap-reminder.sh
@@ -25,7 +26,7 @@ a73201a940fe0e8b168a8ea9705e09333021808bee305fe7d72050d4c9284226  .icm/_system/r
 3afb5b55bc9857ec3cd9749df15a5bb5bb80f61d3a442b3b54ee40ac30e955d5  .icm/_system/rules/lane.md
 9f57a523345096813913b83b2ec0c74c2cde52a5dea96806d2764e7f82dd8e17  .icm/_system/rules/output.md
 66f1d543d7b7b1808f822d756a704409ca6a5004524c051650be096ed6f95924  .icm/_system/rules/questions.md
-e82a80698e23e96fe6c7b431d3283404e3a7621c0d080a9c167bc4c47793a76f  .icm/_system/rules/run.md
+788d4062a637cf99d69a3257285555f0c9b857472155e81302ee769901d6c0f7  .icm/_system/rules/run.md
 ea1ab49652bf31b0a0448ad24b7efc6ba3308d60f700490c2ae14ff98ee18ed1  .icm/_system/rules/ticket.md
 26b5b9c677ea7d09b2532d6b1480129b1736f29032edc78c2719488d3814e457  .icm/_system/rules/triggers.txt
 7893071870a08b26e4173a46f1f0430dfd1737a032f626d64c210240195a991e  .icm/_system/scripts/ci-status.sh
@@ -44,7 +45,7 @@ ef44d1bf199c78255aca9c7bc1232aa3f76a27cc54d6db3c7161e7d37d9a5969  .icm/_system/s
 ceeb9cfae82ba3f2434851741f8113008f793cefc61b1d4595be738362a8978c  .icm/_system/scripts/validate-spec.sh
 63266fa142a7ae18d7b6c28aeeffe7e32d85ea8f4c9a4d30c47b1923ed671516  .icm/_system/stages/build/CONTEXT.md
 129e652ea77e289eca505e50197820d12eddcd31f744b089e8b2788f6b11976a  .icm/_system/stages/define/CONTEXT.md
-c1517d1d937f02724e87b094202ea9d538b80f8f6ad1a71de1fd2399a162d8a2  .icm/_system/stages/release/CONTEXT.md
+e9e096f8b6cf15a35559664d547e8c8295cea94903bf00b3440f8a2107a905b0  .icm/_system/stages/release/CONTEXT.md
 d9281411a4a54ddd7f098ea2e34ee5e49b529413b7255f5407c6071094c69aa1  .icm/_system/stages/ticket/CONTEXT.md
 2277a21a7f8034c10e7c44663d2ac194d4b835358646fc3019f9802821ae8410  .icm/_system/templates/findings.md
 41975e283ee79fe818a365340f06d90652157bdd1fa3c94a13e6c58693eb75a8  .icm/_system/templates/handoff.md
